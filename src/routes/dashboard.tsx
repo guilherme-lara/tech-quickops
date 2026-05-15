@@ -54,17 +54,21 @@ function Dashboard() {
             </Link>
           </div>
           <div className="space-y-1.5">
+            {os.length === 0 && (
+              <div className="text-sm text-muted-foreground text-center py-10">Nenhuma OS ainda. Crie a primeira em <Link to="/os" className="text-primary font-semibold">Ordens de Serviço</Link>.</div>
+            )}
             {os.slice(0, 6).map((o) => {
               const cliente = clientes.find((c) => c.id === o.clienteId);
+              const suffix = (o.numero?.split("-")[1] ?? "").slice(-2) || "OS";
               return (
                 <div key={o.id} className="flex items-center justify-between p-3 rounded-2xl hover:bg-muted/60 transition-all duration-300 group">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-accent to-muted flex items-center justify-center text-xs font-bold text-primary">
-                      {o.numero.split("-")[1].slice(-2)}
+                      {suffix}
                     </div>
                     <div>
                       <div className="font-semibold text-sm">{o.titulo}</div>
-                      <div className="text-xs text-muted-foreground">{cliente?.nomeFantasia} · {o.numero}</div>
+                      <div className="text-xs text-muted-foreground">{cliente?.nomeFantasia ?? "—"} · {o.numero}</div>
                     </div>
                   </div>
                   <span className={`text-[10px] px-2.5 py-1 rounded-full font-semibold uppercase tracking-wider ${statusColor[o.status]}`}>{o.status}</span>
