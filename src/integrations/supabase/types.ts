@@ -14,16 +14,225 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      clientes: {
+        Row: {
+          created_at: string
+          documento: string | null
+          email: string | null
+          empresa_id: string
+          endereco_completo: string | null
+          id: string
+          nome: string
+          telefone: string | null
+        }
+        Insert: {
+          created_at?: string
+          documento?: string | null
+          email?: string | null
+          empresa_id: string
+          endereco_completo?: string | null
+          id?: string
+          nome: string
+          telefone?: string | null
+        }
+        Update: {
+          created_at?: string
+          documento?: string | null
+          email?: string | null
+          empresa_id?: string
+          endereco_completo?: string | null
+          id?: string
+          nome?: string
+          telefone?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clientes_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: false
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      empresas: {
+        Row: {
+          cnpj: string | null
+          created_at: string
+          id: string
+          nome_fantasia: string
+        }
+        Insert: {
+          cnpj?: string | null
+          created_at?: string
+          id?: string
+          nome_fantasia: string
+        }
+        Update: {
+          cnpj?: string | null
+          created_at?: string
+          id?: string
+          nome_fantasia?: string
+        }
+        Relationships: []
+      }
+      ordens_servico: {
+        Row: {
+          cliente_id: string
+          created_at: string
+          data_agendamento: string | null
+          descricao_problema: string
+          empresa_id: string
+          horario_atendimento: string | null
+          id: string
+          numero: string
+          solucao: string | null
+          status: Database["public"]["Enums"]["os_status"]
+          tecnico_id: string | null
+          titulo: string
+          valor: number
+        }
+        Insert: {
+          cliente_id: string
+          created_at?: string
+          data_agendamento?: string | null
+          descricao_problema?: string
+          empresa_id: string
+          horario_atendimento?: string | null
+          id?: string
+          numero: string
+          solucao?: string | null
+          status?: Database["public"]["Enums"]["os_status"]
+          tecnico_id?: string | null
+          titulo?: string
+          valor?: number
+        }
+        Update: {
+          cliente_id?: string
+          created_at?: string
+          data_agendamento?: string | null
+          descricao_problema?: string
+          empresa_id?: string
+          horario_atendimento?: string | null
+          id?: string
+          numero?: string
+          solucao?: string | null
+          status?: Database["public"]["Enums"]["os_status"]
+          tecnico_id?: string | null
+          titulo?: string
+          valor?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ordens_servico_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ordens_servico_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: false
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ordens_servico_tecnico_id_fkey"
+            columns: ["tecnico_id"]
+            isOneToOne: false
+            referencedRelation: "tecnicos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      perfis: {
+        Row: {
+          created_at: string
+          empresa_id: string
+          id: string
+          nome_completo: string
+          role: Database["public"]["Enums"]["app_role"]
+        }
+        Insert: {
+          created_at?: string
+          empresa_id: string
+          id: string
+          nome_completo?: string
+          role?: Database["public"]["Enums"]["app_role"]
+        }
+        Update: {
+          created_at?: string
+          empresa_id?: string
+          id?: string
+          nome_completo?: string
+          role?: Database["public"]["Enums"]["app_role"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "perfis_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: false
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tecnicos: {
+        Row: {
+          ativo: boolean
+          created_at: string
+          empresa_id: string
+          id: string
+          nome: string
+          perfil: string | null
+          telefone: string | null
+        }
+        Insert: {
+          ativo?: boolean
+          created_at?: string
+          empresa_id: string
+          id?: string
+          nome: string
+          perfil?: string | null
+          telefone?: string | null
+        }
+        Update: {
+          ativo?: boolean
+          created_at?: string
+          empresa_id?: string
+          id?: string
+          nome?: string
+          perfil?: string | null
+          telefone?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tecnicos_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: false
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_current_empresa_id: { Args: never; Returns: string }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "superadmin" | "admin" | "gestor" | "analista" | "tecnico"
+      os_status: "pendente" | "em_andamento" | "concluido" | "cancelado"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +359,9 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["superadmin", "admin", "gestor", "analista", "tecnico"],
+      os_status: ["pendente", "em_andamento", "concluido", "cancelado"],
+    },
   },
 } as const
