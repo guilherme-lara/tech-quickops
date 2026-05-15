@@ -1,7 +1,8 @@
 import { Outlet, Link, createRootRoute, HeadContent, Scripts, useRouterState, useNavigate } from "@tanstack/react-router";
 import { StoreProvider, useStore } from "@/lib/mock-store";
 import { Toaster } from "@/components/ui/sonner";
-import { useEffect } from "react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
 
 import appCss from "../styles.css?url";
 
@@ -28,14 +29,6 @@ export const Route = createRootRoute({
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "QuickOps — Gestão de Ordens de Serviço" },
       { name: "description", content: "QuickOps: SaaS B2B para gestão de OS e RAT digital." },
-      { property: "og:title", content: "QuickOps — Gestão de Ordens de Serviço" },
-      { name: "twitter:title", content: "QuickOps — Gestão de Ordens de Serviço" },
-      { property: "og:description", content: "QuickOps: SaaS B2B para gestão de OS e RAT digital." },
-      { name: "twitter:description", content: "QuickOps: SaaS B2B para gestão de OS e RAT digital." },
-      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/1ec151b9-5cd1-433d-beb7-bf7781c320bf/id-preview-afb7c59d--557bf18e-8373-497a-bce5-cff900f02a70.lovable.app-1777764952320.png" },
-      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/1ec151b9-5cd1-433d-beb7-bf7781c320bf/id-preview-afb7c59d--557bf18e-8373-497a-bce5-cff900f02a70.lovable.app-1777764952320.png" },
-      { name: "twitter:card", content: "summary_large_image" },
-      { property: "og:type", content: "website" },
     ],
     links: [{ rel: "stylesheet", href: appCss }],
   }),
@@ -54,10 +47,11 @@ function RootShell({ children }: { children: React.ReactNode }) {
 }
 
 function AuthGate() {
-  const { user } = useStore();
+  const { user, loadingAuth } = useStore();
   const navigate = useNavigate();
   const path = useRouterState({ select: (s) => s.location.pathname });
   useEffect(() => {
+    if (loadingAuth) return;
     if (path === "/") {
       if (!user) navigate({ to: "/login" });
       else navigate({ to: user.role === "gestor" ? "/dashboard" : "/tecnico/os" });
@@ -65,16 +59,19 @@ function AuthGate() {
     }
     if (!user && path !== "/login") navigate({ to: "/login" });
     if (user && path === "/login") navigate({ to: user.role === "gestor" ? "/dashboard" : "/tecnico/os" });
-  }, [user, path, navigate]);
+  }, [user, loadingAuth, path, navigate]);
   return null;
 }
 
 function RootComponent() {
+  const [qc] = useState(() => new QueryClient());
   return (
-    <StoreProvider>
-      <AuthGate />
-      <Outlet />
-      <Toaster />
-    </StoreProvider>
+    <QueryClientProvider client={qc}>
+      <StoreProvider>
+        <AuthGate />
+        <Outlet />
+        <Toaster />
+      </StoreProvider>
+    </QueryClientProvider>
   );
 }
