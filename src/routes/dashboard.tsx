@@ -85,7 +85,7 @@ function Dashboard() {
           <div className="space-y-4">
             {(["Orçamento", "Aprovado", "Em Execução", "Concluído", "Cancelado"] as const).map((s) => {
               const count = os.filter((o) => o.status === s).length;
-              const pct = (count / os.length) * 100;
+              const pct = os.length ? (count / os.length) * 100 : 0;
               return (
                 <div key={s}>
                   <div className="flex justify-between text-xs mb-1.5 font-medium">
