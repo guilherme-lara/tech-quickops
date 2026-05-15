@@ -31,8 +31,8 @@ function Dashboard() {
               </div>
             </div>
             <div className="flex gap-6 text-xs">
-              <div><div className="opacity-75">Ticket médio</div><div className="font-semibold text-base">R$ {os.length ? Math.round(faturamento / Math.max(concluidas, 1)).toLocaleString("pt-BR") : 0}</div></div>
-              <div><div className="opacity-75">Conversão</div><div className="font-semibold text-base">{Math.round((concluidas / os.length) * 100)}%</div></div>
+              <div><div className="opacity-75">Ticket médio</div><div className="font-semibold text-base">R$ {concluidas ? Math.round(faturamento / concluidas).toLocaleString("pt-BR") : 0}</div></div>
+              <div><div className="opacity-75">Conversão</div><div className="font-semibold text-base">{os.length ? Math.round((concluidas / os.length) * 100) : 0}%</div></div>
             </div>
           </div>
         </div>
