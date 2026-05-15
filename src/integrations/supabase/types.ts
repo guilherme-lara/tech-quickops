@@ -85,7 +85,7 @@ export type Database = {
           empresa_id: string
           horario_atendimento: string | null
           id: string
-          numero: string
+          numero: string | null
           solucao: string | null
           status: Database["public"]["Enums"]["os_status"]
           tecnico_id: string | null
@@ -100,7 +100,7 @@ export type Database = {
           empresa_id: string
           horario_atendimento?: string | null
           id?: string
-          numero: string
+          numero?: string | null
           solucao?: string | null
           status?: Database["public"]["Enums"]["os_status"]
           tecnico_id?: string | null
@@ -115,7 +115,7 @@ export type Database = {
           empresa_id?: string
           horario_atendimento?: string | null
           id?: string
-          numero?: string
+          numero?: string | null
           solucao?: string | null
           status?: Database["public"]["Enums"]["os_status"]
           tecnico_id?: string | null
@@ -232,7 +232,12 @@ export type Database = {
     }
     Enums: {
       app_role: "superadmin" | "admin" | "gestor" | "analista" | "tecnico"
-      os_status: "pendente" | "em_andamento" | "concluido" | "cancelado"
+      os_status:
+        | "pendente"
+        | "aprovado"
+        | "em_andamento"
+        | "concluido"
+        | "cancelado"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -361,7 +366,13 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["superadmin", "admin", "gestor", "analista", "tecnico"],
-      os_status: ["pendente", "em_andamento", "concluido", "cancelado"],
+      os_status: [
+        "pendente",
+        "aprovado",
+        "em_andamento",
+        "concluido",
+        "cancelado",
+      ],
     },
   },
 } as const
