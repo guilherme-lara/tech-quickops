@@ -227,7 +227,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       if (patch.titulo !== undefined) dbPatch.titulo = patch.titulo;
       if (patch.valor !== undefined) dbPatch.valor = patch.valor;
       if (patch.tecnicoId !== undefined) dbPatch.tecnico_id = patch.tecnicoId || null;
-      const { error } = await supabase.from("ordens_servico").update(dbPatch).eq("id", id);
+      const { error } = await (supabase.from("ordens_servico") as any).update(dbPatch).eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["ordens_servico", empresaId] }),
