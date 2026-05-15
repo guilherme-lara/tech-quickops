@@ -222,7 +222,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
   const updateOSM = useMutation({
     mutationFn: async ({ id, patch }: { id: string; patch: Partial<OS> }) => {
-      const dbPatch: Record<string, unknown> = {};
+      const dbPatch: Record<string, any> = {};
       if (patch.status) dbPatch.status = uiToDbStatus[patch.status];
       if (patch.titulo !== undefined) dbPatch.titulo = patch.titulo;
       if (patch.valor !== undefined) dbPatch.valor = patch.valor;
