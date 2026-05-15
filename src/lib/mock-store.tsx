@@ -1,5 +1,11 @@
-import { createContext, useContext, useState, ReactNode } from "react";
+import { createContext, useContext, useEffect, useState, ReactNode, useCallback } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 
+// ============================================================
+// Types — UI-shape (kept stable so existing components compile)
+// ============================================================
 export type Role = "gestor" | "tecnico";
 export type OSStatus = "Orçamento" | "Aprovado" | "Em Execução" | "Concluído" | "Cancelado";
 
@@ -8,54 +14,29 @@ export interface Tecnico { id: string; nome: string; perfil: string; telefone: s
 export interface Item { id: string; nome: string; tipo: "Peça" | "Serviço"; estoque: number; custo: number; venda: number; }
 export interface OSItem { itemId: string; quantidade: number; }
 export interface RAT {
-  checkin?: string;
-  checkout?: string;
-  descricao?: string;
-  itens: OSItem[];
-  evidencias: string[];
-  assinatura?: string;
+  checkin?: string; checkout?: string; descricao?: string;
+  itens: OSItem[]; evidencias: string[]; assinatura?: string;
 }
 export interface OS {
-  id: string;
-  numero: string;
-  clienteId: string;
-  tecnicoId: string;
-  titulo: string;
-  status: OSStatus;
-  criadaEm: string;
-  valor: number;
-  rat: RAT;
+  id: string; numero: string; clienteId: string; tecnicoId: string;
+  titulo: string; status: OSStatus; criadaEm: string; valor: number; rat: RAT;
 }
 
-interface User { nome: string; email: string; role: Role; }
+interface User { id: string; nome: string; email: string; role: Role; empresaId: string; }
 
-interface Store {
-  user: User | null;
-  login: (role: Role) => void;
-  logout: () => void;
-  clientes: Cliente[];
-  addCliente: (c: Omit<Cliente, "id">) => void;
-  tecnicos: Tecnico[];
-  itens: Item[];
-  os: OS[];
-  addOS: (o: Omit<OS, "id" | "numero" | "criadaEm" | "rat">) => void;
-  updateOS: (id: string, patch: Partial<OS>) => void;
-  updateRAT: (id: string, patch: Partial<RAT>) => void;
-}
+// ============================================================
+// DB ↔ UI mappers
+// ============================================================
+const dbToUiStatus: Record<string, OSStatus> = {
+  pendente: "Orçamento", aprovado: "Aprovado", em_andamento: "Em Execução",
+  concluido: "Concluído", cancelado: "Cancelado",
+};
+const uiToDbStatus: Record<OSStatus, string> = {
+  "Orçamento": "pendente", "Aprovado": "aprovado", "Em Execução": "em_andamento",
+  "Concluído": "concluido", "Cancelado": "cancelado",
+};
 
-const Ctx = createContext<Store | null>(null);
-
-const seedClientes: Cliente[] = [
-  { id: "c1", nomeFantasia: "Padaria Pão Quente", documento: "12.345.678/0001-90", telefone: "(11) 98765-4321", email: "contato@paoquente.com" },
-  { id: "c2", nomeFantasia: "Mercado Bom Preço", documento: "98.765.432/0001-10", telefone: "(11) 91234-5678", email: "compras@bompreco.com" },
-  { id: "c3", nomeFantasia: "Restaurante Sabor & Cia", documento: "11.222.333/0001-44", telefone: "(11) 99999-1111", email: "adm@saborecia.com" },
-  { id: "c4", nomeFantasia: "Posto Energia Total", documento: "55.444.333/0001-22", telefone: "(11) 95555-3333", email: "gerencia@energiatotal.com" },
-];
-const seedTecnicos: Tecnico[] = [
-  { id: "t1", nome: "Carlos Silva", perfil: "Refrigeração", telefone: "(11) 98888-1111", ativo: true },
-  { id: "t2", nome: "Marina Souza", perfil: "Elétrica", telefone: "(11) 97777-2222", ativo: true },
-  { id: "t3", nome: "João Pereira", perfil: "Hidráulica", telefone: "(11) 96666-3333", ativo: false },
-];
+// Itens (estoque) remains mock — not in DB scope
 const seedItens: Item[] = [
   { id: "i1", nome: "Compressor 1HP", tipo: "Peça", estoque: 8, custo: 480, venda: 890 },
   { id: "i2", nome: "Filtro Secador", tipo: "Peça", estoque: 24, custo: 35, venda: 75 },
@@ -64,50 +45,225 @@ const seedItens: Item[] = [
   { id: "i5", nome: "Hora Técnica", tipo: "Serviço", estoque: 999, custo: 0, venda: 120 },
   { id: "i6", nome: "Disjuntor 32A", tipo: "Peça", estoque: 12, custo: 25, venda: 60 },
 ];
-const seedOS: OS[] = [
-  { id: "o1", numero: "OS-1042", clienteId: "c1", tecnicoId: "t1", titulo: "Manutenção câmara fria", status: "Em Execução", criadaEm: "2026-04-30", valor: 1250, rat: { itens: [], evidencias: [] } },
-  { id: "o2", numero: "OS-1043", clienteId: "c2", tecnicoId: "t2", titulo: "Troca de disjuntor geral", status: "Aprovado", criadaEm: "2026-05-01", valor: 480, rat: { itens: [], evidencias: [] } },
-  { id: "o3", numero: "OS-1044", clienteId: "c3", tecnicoId: "t1", titulo: "Vazamento de gás", status: "Orçamento", criadaEm: "2026-05-01", valor: 0, rat: { itens: [], evidencias: [] } },
-  { id: "o4", numero: "OS-1045", clienteId: "c4", tecnicoId: "t1", titulo: "Instalação de freezer", status: "Concluído", criadaEm: "2026-04-25", valor: 2100, rat: { itens: [], evidencias: [] } },
-  { id: "o5", numero: "OS-1046", clienteId: "c1", tecnicoId: "t2", titulo: "Revisão elétrica", status: "Em Execução", criadaEm: "2026-05-02", valor: 720, rat: { itens: [], evidencias: [] } },
-  { id: "o6", numero: "OS-1047", clienteId: "c2", tecnicoId: "t1", titulo: "Limpeza de evaporador", status: "Cancelado", criadaEm: "2026-04-20", valor: 0, rat: { itens: [], evidencias: [] } },
-];
+
+// ============================================================
+// Store
+// ============================================================
+interface Store {
+  user: User | null;
+  loadingAuth: boolean;
+  login: (email: string, senha: string) => Promise<{ error?: string }>;
+  signup: (email: string, senha: string, nome: string, empresa: string) => Promise<{ error?: string }>;
+  logout: () => Promise<void>;
+
+  clientes: Cliente[];
+  loadingClientes: boolean;
+  addCliente: (c: Omit<Cliente, "id">) => Promise<void>;
+
+  tecnicos: Tecnico[];
+  loadingTecnicos: boolean;
+  addTecnico: (t: Omit<Tecnico, "id">) => Promise<void>;
+
+  itens: Item[];
+
+  os: OS[];
+  loadingOS: boolean;
+  addOS: (o: Omit<OS, "id" | "numero" | "criadaEm" | "rat">) => Promise<void>;
+  updateOS: (id: string, patch: Partial<OS>) => Promise<void>;
+  updateRAT: (id: string, patch: Partial<RAT>) => void;
+}
+
+const Ctx = createContext<Store | null>(null);
 
 export function StoreProvider({ children }: { children: ReactNode }) {
+  const qc = useQueryClient();
   const [user, setUser] = useState<User | null>(null);
-  const [clientes, setClientes] = useState(seedClientes);
-  const [tecnicos] = useState(seedTecnicos);
-  const [itens] = useState(seedItens);
-  const [os, setOs] = useState(seedOS);
+  const [loadingAuth, setLoadingAuth] = useState(true);
+  // local-only RAT progress (no DB table)
+  const [ratLocal, setRatLocal] = useState<Record<string, RAT>>({});
+
+  // Hydrate auth + perfil
+  useEffect(() => {
+    let mounted = true;
+    const loadPerfil = async (uid: string, email: string) => {
+      const { data } = await supabase
+        .from("perfis")
+        .select("nome_completo, role, empresa_id")
+        .eq("id", uid)
+        .maybeSingle();
+      if (!mounted) return;
+      if (data) {
+        const role: Role = data.role === "tecnico" ? "tecnico" : "gestor";
+        setUser({ id: uid, email, nome: data.nome_completo || email, role, empresaId: data.empresa_id });
+      }
+    };
+
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        loadPerfil(session.user.id, session.user.email ?? "");
+      }
+      setLoadingAuth(false);
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, session) => {
+      if (session?.user) {
+        loadPerfil(session.user.id, session.user.email ?? "");
+      } else {
+        setUser(null);
+      }
+      qc.invalidateQueries();
+    });
+    return () => { mounted = false; subscription.unsubscribe(); };
+  }, [qc]);
+
+  // ---------------- Queries ----------------
+  const enabled = !!user;
+  const empresaId = user?.empresaId;
+
+  const clientesQ = useQuery({
+    queryKey: ["clientes", empresaId],
+    enabled,
+    queryFn: async (): Promise<Cliente[]> => {
+      const { data, error } = await supabase
+        .from("clientes")
+        .select("id, nome, documento, telefone, email")
+        .eq("empresa_id", empresaId!)
+        .order("nome");
+      if (error) throw error;
+      return (data ?? []).map((r) => ({
+        id: r.id, nomeFantasia: r.nome, documento: r.documento ?? "",
+        telefone: r.telefone ?? "", email: r.email ?? "",
+      }));
+    },
+  });
+
+  const tecnicosQ = useQuery({
+    queryKey: ["tecnicos", empresaId],
+    enabled,
+    queryFn: async (): Promise<Tecnico[]> => {
+      const { data, error } = await supabase
+        .from("tecnicos")
+        .select("id, nome, perfil, telefone, ativo")
+        .eq("empresa_id", empresaId!)
+        .order("nome");
+      if (error) throw error;
+      return (data ?? []).map((r) => ({
+        id: r.id, nome: r.nome, perfil: r.perfil ?? "",
+        telefone: r.telefone ?? "", ativo: r.ativo,
+      }));
+    },
+  });
+
+  const osQ = useQuery({
+    queryKey: ["ordens_servico", empresaId],
+    enabled,
+    queryFn: async (): Promise<OS[]> => {
+      const { data, error } = await supabase
+        .from("ordens_servico")
+        .select("id, numero, cliente_id, tecnico_id, titulo, status, valor, created_at, descricao_problema, solucao")
+        .eq("empresa_id", empresaId!)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return (data ?? []).map((r) => ({
+        id: r.id,
+        numero: r.numero ?? "OS-?",
+        clienteId: r.cliente_id,
+        tecnicoId: r.tecnico_id ?? "",
+        titulo: r.titulo || r.descricao_problema || "",
+        status: dbToUiStatus[r.status] ?? "Orçamento",
+        criadaEm: (r.created_at ?? "").slice(0, 10),
+        valor: Number(r.valor ?? 0),
+        rat: ratLocal[r.id] ?? { itens: [], evidencias: [] },
+      }));
+    },
+  });
+
+  // ---------------- Mutations ----------------
+  const addClienteM = useMutation({
+    mutationFn: async (c: Omit<Cliente, "id">) => {
+      const { error } = await supabase.from("clientes").insert({
+        empresa_id: empresaId!, nome: c.nomeFantasia, documento: c.documento,
+        telefone: c.telefone, email: c.email,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["clientes", empresaId] }),
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const addTecnicoM = useMutation({
+    mutationFn: async (t: Omit<Tecnico, "id">) => {
+      const { error } = await supabase.from("tecnicos").insert({
+        empresa_id: empresaId!, nome: t.nome, perfil: t.perfil,
+        telefone: t.telefone, ativo: t.ativo,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["tecnicos", empresaId] }),
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const addOSM = useMutation({
+    mutationFn: async (o: Omit<OS, "id" | "numero" | "criadaEm" | "rat">) => {
+      const { error } = await supabase.from("ordens_servico").insert({
+        empresa_id: empresaId!,
+        cliente_id: o.clienteId,
+        tecnico_id: o.tecnicoId || null,
+        titulo: o.titulo,
+        descricao_problema: o.titulo,
+        status: uiToDbStatus[o.status] as any,
+        valor: o.valor,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["ordens_servico", empresaId] }),
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const updateOSM = useMutation({
+    mutationFn: async ({ id, patch }: { id: string; patch: Partial<OS> }) => {
+      const dbPatch: Record<string, any> = {};
+      if (patch.status) dbPatch.status = uiToDbStatus[patch.status];
+      if (patch.titulo !== undefined) dbPatch.titulo = patch.titulo;
+      if (patch.valor !== undefined) dbPatch.valor = patch.valor;
+      if (patch.tecnicoId !== undefined) dbPatch.tecnico_id = patch.tecnicoId || null;
+      const { error } = await (supabase.from("ordens_servico") as any).update(dbPatch).eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["ordens_servico", empresaId] }),
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  // ---------------- Auth methods ----------------
+  const login = useCallback(async (email: string, senha: string) => {
+    const { error } = await supabase.auth.signInWithPassword({ email, password: senha });
+    return error ? { error: error.message } : {};
+  }, []);
+
+  const signup = useCallback(async (email: string, senha: string, nome: string, empresa: string) => {
+    const redirectUrl = `${window.location.origin}/`;
+    const { error } = await supabase.auth.signUp({
+      email, password: senha,
+      options: { emailRedirectTo: redirectUrl, data: { nome_completo: nome, nome_empresa: empresa } },
+    });
+    return error ? { error: error.message } : {};
+  }, []);
+
+  const logout = useCallback(async () => { await supabase.auth.signOut(); }, []);
 
   const value: Store = {
-    user,
-    login: (role) =>
-      setUser({
-        nome: role === "gestor" ? "Ana Gestora" : "Carlos Silva",
-        email: role === "gestor" ? "ana@quickops.com" : "carlos@quickops.com",
-        role,
-      }),
-    logout: () => setUser(null),
-    clientes,
-    addCliente: (c) => setClientes((prev) => [...prev, { ...c, id: `c${prev.length + 1}` }]),
-    tecnicos,
-    itens,
-    os,
-    addOS: (o) =>
-      setOs((prev) => [
-        ...prev,
-        {
-          ...o,
-          id: `o${prev.length + 1}`,
-          numero: `OS-${1048 + prev.length - 5}`,
-          criadaEm: new Date().toISOString().slice(0, 10),
-          rat: { itens: [], evidencias: [] },
-        },
-      ]),
-    updateOS: (id, patch) => setOs((prev) => prev.map((x) => (x.id === id ? { ...x, ...patch } : x))),
-    updateRAT: (id, patch) =>
-      setOs((prev) => prev.map((x) => (x.id === id ? { ...x, rat: { ...x.rat, ...patch } } : x))),
+    user, loadingAuth, login, signup, logout,
+    clientes: clientesQ.data ?? [], loadingClientes: clientesQ.isLoading,
+    addCliente: async (c) => { await addClienteM.mutateAsync(c); },
+    tecnicos: tecnicosQ.data ?? [], loadingTecnicos: tecnicosQ.isLoading,
+    addTecnico: async (t) => { await addTecnicoM.mutateAsync(t); },
+    itens: seedItens,
+    os: osQ.data ?? [], loadingOS: osQ.isLoading,
+    addOS: async (o) => { await addOSM.mutateAsync(o); },
+    updateOS: async (id, patch) => { await updateOSM.mutateAsync({ id, patch }); },
+    updateRAT: (id, patch) => setRatLocal((prev) => ({
+      ...prev, [id]: { ...(prev[id] ?? { itens: [], evidencias: [] }), ...patch },
+    })),
   };
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
