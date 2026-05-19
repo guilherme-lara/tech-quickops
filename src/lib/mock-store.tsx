@@ -238,8 +238,29 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
   // ---------------- Auth methods ----------------
   const login = useCallback(async (email: string, senha: string) => {
-    const { error } = await supabase.auth.signInWithPassword({ email, password: senha });
-    return error ? { error: error.message } : {};
+    const { data: authData, error } = await supabase.auth.signInWithPassword({ email, password: senha });
+    if (error) return { error: error.message };
+
+    const sessionUser = authData.user;
+    if (!sessionUser) return { error: "Sessão não encontrada após o login." };
+
+    const { data: perfil, error: profileError } = await supabase
+      .from("perfis")
+      .select("id, nome_completo, role, empresa_id")
+      .eq("id", sessionUser.id)
+      .single();
+
+    if (profileError || !perfil) return { error: profileError?.message ?? "Perfil não encontrado." };
+
+    const role: Role = perfil.role === "tecnico" ? "tecnico" : "gestor";
+    setUser({
+      id: perfil.id,
+      email: sessionUser.email ?? email,
+      nome: perfil.nome_completo || sessionUser.email || email,
+      role,
+      empresaId: perfil.empresa_id,
+    });
+    return {};
   }, []);
 
   const signup = useCallback(async (email: string, senha: string, nome: string, empresa: string) => {
