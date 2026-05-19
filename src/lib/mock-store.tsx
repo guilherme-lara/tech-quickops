@@ -85,32 +85,34 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   // Hydrate auth + perfil
   useEffect(() => {
     let mounted = true;
-    const loadPerfil = async (uid: string, email: string) => {
-      const { data } = await supabase
+    const loadPerfil = async (uid: string, email: string): Promise<User | null> => {
+      const { data, error } = await supabase
         .from("perfis")
-        .select("nome_completo, role, empresa_id")
+        .select("id, nome_completo, role, empresa_id")
         .eq("id", uid)
-        .maybeSingle();
-      if (!mounted) return;
-      if (data) {
-        const role: Role = data.role === "tecnico" ? "tecnico" : "gestor";
-        setUser({ id: uid, email, nome: data.nome_completo || email, role, empresaId: data.empresa_id });
-      }
+        .single();
+      if (error || !data) return null;
+      const role: Role = data.role === "tecnico" ? "tecnico" : "gestor";
+      return { id: data.id, email, nome: data.nome_completo || email, role, empresaId: data.empresa_id };
     };
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (session?.user) {
-        loadPerfil(session.user.id, session.user.email ?? "");
+        const perfil = await loadPerfil(session.user.id, session.user.email ?? "");
+        if (mounted) setUser(perfil);
       }
       setLoadingAuth(false);
     });
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_e, session) => {
       if (session?.user) {
-        loadPerfil(session.user.id, session.user.email ?? "");
+        setLoadingAuth(true);
+        const perfil = await loadPerfil(session.user.id, session.user.email ?? "");
+        if (mounted) setUser(perfil);
       } else {
         setUser(null);
       }
+      if (mounted) setLoadingAuth(false);
       qc.invalidateQueries();
     });
     return () => { mounted = false; subscription.unsubscribe(); };
