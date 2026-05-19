@@ -7,10 +7,11 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useStore, statusColor, OSStatus, OS } from "@/lib/mock-store";
-import { Plus, User, HardHat, MoreVertical } from "lucide-react";
+import { Plus, User, HardHat, MoreVertical, Upload } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { DndContext, DragEndEvent, useDraggable, useDroppable, PointerSensor, useSensor, useSensors } from "@dnd-kit/core";
+import { ImportarOSDialog } from "@/components/ImportarOSDialog";
 
 export const Route = createFileRoute("/os")({ component: () => (<ProtectedRoute><OSPage /></ProtectedRoute>) });
 
