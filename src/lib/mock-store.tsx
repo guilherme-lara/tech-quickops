@@ -85,32 +85,34 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   // Hydrate auth + perfil
   useEffect(() => {
     let mounted = true;
-    const loadPerfil = async (uid: string, email: string) => {
-      const { data } = await supabase
+    const loadPerfil = async (uid: string, email: string): Promise<User | null> => {
+      const { data, error } = await supabase
         .from("perfis")
-        .select("nome_completo, role, empresa_id")
+        .select("id, nome_completo, role, empresa_id")
         .eq("id", uid)
-        .maybeSingle();
-      if (!mounted) return;
-      if (data) {
-        const role: Role = data.role === "tecnico" ? "tecnico" : "gestor";
-        setUser({ id: uid, email, nome: data.nome_completo || email, role, empresaId: data.empresa_id });
-      }
+        .single();
+      if (error || !data) return null;
+      const role: Role = data.role === "tecnico" ? "tecnico" : "gestor";
+      return { id: data.id, email, nome: data.nome_completo || email, role, empresaId: data.empresa_id };
     };
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (session?.user) {
-        loadPerfil(session.user.id, session.user.email ?? "");
+        const perfil = await loadPerfil(session.user.id, session.user.email ?? "");
+        if (mounted) setUser(perfil);
       }
       setLoadingAuth(false);
     });
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_e, session) => {
       if (session?.user) {
-        loadPerfil(session.user.id, session.user.email ?? "");
+        setLoadingAuth(true);
+        const perfil = await loadPerfil(session.user.id, session.user.email ?? "");
+        if (mounted) setUser(perfil);
       } else {
         setUser(null);
       }
+      if (mounted) setLoadingAuth(false);
       qc.invalidateQueries();
     });
     return () => { mounted = false; subscription.unsubscribe(); };
@@ -236,8 +238,29 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
   // ---------------- Auth methods ----------------
   const login = useCallback(async (email: string, senha: string) => {
-    const { error } = await supabase.auth.signInWithPassword({ email, password: senha });
-    return error ? { error: error.message } : {};
+    const { data: authData, error } = await supabase.auth.signInWithPassword({ email, password: senha });
+    if (error) return { error: error.message };
+
+    const sessionUser = authData.user;
+    if (!sessionUser) return { error: "Sessão não encontrada após o login." };
+
+    const { data: perfil, error: profileError } = await supabase
+      .from("perfis")
+      .select("id, nome_completo, role, empresa_id")
+      .eq("id", sessionUser.id)
+      .single();
+
+    if (profileError || !perfil) return { error: profileError?.message ?? "Perfil não encontrado." };
+
+    const role: Role = perfil.role === "tecnico" ? "tecnico" : "gestor";
+    setUser({
+      id: perfil.id,
+      email: sessionUser.email ?? email,
+      nome: perfil.nome_completo || sessionUser.email || email,
+      role,
+      empresaId: perfil.empresa_id,
+    });
+    return {};
   }, []);
 
   const signup = useCallback(async (email: string, senha: string, nome: string, empresa: string) => {
