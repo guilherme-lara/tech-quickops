@@ -43,12 +43,18 @@ function OSPage() {
     <GestorLayout>
       <div className="flex items-center justify-between mb-5">
         <p className="text-sm text-muted-foreground">Arraste cards entre colunas para atualizar o status</p>
-        <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger asChild>
-            <Button className="rounded-xl h-10 bg-gradient-to-r from-primary to-violet shadow-[var(--shadow-glow)]">
-              <Plus className="w-4 h-4" /> Nova OS
+        <div className="flex items-center gap-2">
+          <ImportarOSDialog trigger={
+            <Button variant="outline" className="rounded-xl h-10 gap-1.5">
+              <Upload className="w-4 h-4" /> Importar Planilha
             </Button>
-          </DialogTrigger>
+          } />
+          <Dialog open={open} onOpenChange={setOpen}>
+            <DialogTrigger asChild>
+              <Button className="rounded-xl h-10 bg-gradient-to-r from-primary to-violet shadow-[var(--shadow-glow)]">
+                <Plus className="w-4 h-4" /> Nova OS
+              </Button>
+            </DialogTrigger>
           <DialogContent className="rounded-2xl">
             <DialogHeader><DialogTitle>Nova Ordem de Serviço</DialogTitle></DialogHeader>
             <div className="space-y-3">
