@@ -1,9 +1,10 @@
+import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { TecnicoLayout } from "@/components/TecnicoLayout";
 import { useStore, statusColor } from "@/lib/mock-store";
 import { ChevronRight, MapPin, Clock, Zap } from "lucide-react";
 
-export const Route = createFileRoute("/tecnico/os")({ component: TecOSList });
+export const Route = createFileRoute("/tecnico/os")({ component: () => (<ProtectedRoute requireRole="tecnico"><TecOSList /></ProtectedRoute>) });
 
 function TecOSList() {
   const { os, clientes, user } = useStore();

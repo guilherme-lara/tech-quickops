@@ -1,9 +1,10 @@
+import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { createFileRoute } from "@tanstack/react-router";
 import { TecnicoLayout } from "@/components/TecnicoLayout";
 import { useStore, statusColor } from "@/lib/mock-store";
 import { CheckCircle2 } from "lucide-react";
 
-export const Route = createFileRoute("/tecnico/historico")({ component: HistoricoPage });
+export const Route = createFileRoute("/tecnico/historico")({ component: () => (<ProtectedRoute requireRole="tecnico"><HistoricoPage /></ProtectedRoute>) });
 
 function HistoricoPage() {
   const { os, clientes } = useStore();

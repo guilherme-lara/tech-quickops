@@ -1,3 +1,4 @@
+import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { createFileRoute } from "@tanstack/react-router";
 import { GestorLayout } from "@/components/GestorLayout";
 import { Button } from "@/components/ui/button";
@@ -11,7 +12,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { DndContext, DragEndEvent, useDraggable, useDroppable, PointerSensor, useSensor, useSensors } from "@dnd-kit/core";
 
-export const Route = createFileRoute("/os")({ component: OSPage });
+export const Route = createFileRoute("/os")({ component: () => (<ProtectedRoute><OSPage /></ProtectedRoute>) });
 
 const colunas: OSStatus[] = ["Orçamento", "Aprovado", "Em Execução", "Concluído", "Cancelado"];
 

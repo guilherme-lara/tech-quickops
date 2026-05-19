@@ -1,3 +1,4 @@
+import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { createFileRoute } from "@tanstack/react-router";
 import { GestorLayout } from "@/components/GestorLayout";
 import { Input } from "@/components/ui/input";
@@ -5,7 +6,7 @@ import { useStore } from "@/lib/mock-store";
 import { Package, Wrench, Search, TrendingUp, AlertTriangle } from "lucide-react";
 import { useState } from "react";
 
-export const Route = createFileRoute("/estoque")({ component: EstoquePage });
+export const Route = createFileRoute("/estoque")({ component: () => (<ProtectedRoute><EstoquePage /></ProtectedRoute>) });
 
 function EstoquePage() {
   const { itens } = useStore();

@@ -1,3 +1,4 @@
+import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { createFileRoute } from "@tanstack/react-router";
 import { TecnicoLayout } from "@/components/TecnicoLayout";
 import { useStore } from "@/lib/mock-store";
@@ -5,7 +6,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Card } from "@/components/ui/card";
 import { Mail, Phone, Award } from "lucide-react";
 
-export const Route = createFileRoute("/tecnico/perfil")({ component: Perfil });
+export const Route = createFileRoute("/tecnico/perfil")({ component: () => (<ProtectedRoute requireRole="tecnico"><Perfil /></ProtectedRoute>) });
 
 function Perfil() {
   const { user, os } = useStore();

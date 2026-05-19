@@ -1,5 +1,6 @@
 import { Outlet, Link, createRootRoute, HeadContent, Scripts, useRouterState, useNavigate } from "@tanstack/react-router";
 import { StoreProvider, useStore } from "@/lib/mock-store";
+import { AuthProvider } from "@/lib/auth-context";
 import { Toaster } from "@/components/ui/sonner";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
@@ -68,9 +69,11 @@ function RootComponent() {
   return (
     <QueryClientProvider client={qc}>
       <StoreProvider>
-        <AuthGate />
-        <Outlet />
-        <Toaster />
+        <AuthProvider>
+          <AuthGate />
+          <Outlet />
+          <Toaster />
+        </AuthProvider>
       </StoreProvider>
     </QueryClientProvider>
   );
