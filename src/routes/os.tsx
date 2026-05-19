@@ -7,10 +7,11 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useStore, statusColor, OSStatus, OS } from "@/lib/mock-store";
-import { Plus, User, HardHat, MoreVertical } from "lucide-react";
+import { Plus, User, HardHat, MoreVertical, Upload } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { DndContext, DragEndEvent, useDraggable, useDroppable, PointerSensor, useSensor, useSensors } from "@dnd-kit/core";
+import { ImportarOSDialog } from "@/components/ImportarOSDialog";
 
 export const Route = createFileRoute("/os")({ component: () => (<ProtectedRoute><OSPage /></ProtectedRoute>) });
 
@@ -42,12 +43,18 @@ function OSPage() {
     <GestorLayout>
       <div className="flex items-center justify-between mb-5">
         <p className="text-sm text-muted-foreground">Arraste cards entre colunas para atualizar o status</p>
-        <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger asChild>
-            <Button className="rounded-xl h-10 bg-gradient-to-r from-primary to-violet shadow-[var(--shadow-glow)]">
-              <Plus className="w-4 h-4" /> Nova OS
+        <div className="flex items-center gap-2">
+          <ImportarOSDialog trigger={
+            <Button variant="outline" className="rounded-xl h-10 gap-1.5">
+              <Upload className="w-4 h-4" /> Importar Planilha
             </Button>
-          </DialogTrigger>
+          } />
+          <Dialog open={open} onOpenChange={setOpen}>
+            <DialogTrigger asChild>
+              <Button className="rounded-xl h-10 bg-gradient-to-r from-primary to-violet shadow-[var(--shadow-glow)]">
+                <Plus className="w-4 h-4" /> Nova OS
+              </Button>
+            </DialogTrigger>
           <DialogContent className="rounded-2xl">
             <DialogHeader><DialogTitle>Nova Ordem de Serviço</DialogTitle></DialogHeader>
             <div className="space-y-3">
@@ -81,7 +88,8 @@ function OSPage() {
             </div>
             <DialogFooter><Button variant="outline" onClick={() => setOpen(false)}>Cancelar</Button><Button onClick={submit}>Criar OS</Button></DialogFooter>
           </DialogContent>
-        </Dialog>
+          </Dialog>
+        </div>
       </div>
 
       <DndContext sensors={sensors} onDragEnd={onDragEnd}>
