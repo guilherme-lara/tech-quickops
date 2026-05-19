@@ -1,3 +1,4 @@
+import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { TecnicoLayout } from "@/components/TecnicoLayout";
 import { useStore } from "@/lib/mock-store";
@@ -10,7 +11,7 @@ import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import SignatureCanvas from "react-signature-canvas";
 
-export const Route = createFileRoute("/tecnico/os/$id/rat")({ component: RATWizard });
+export const Route = createFileRoute("/tecnico/os/$id/rat")({ component: () => (<ProtectedRoute requireRole="tecnico"><RATWizard /></ProtectedRoute>) });
 
 const steps = ["Contexto", "Execução", "Peças", "Assinatura"];
 

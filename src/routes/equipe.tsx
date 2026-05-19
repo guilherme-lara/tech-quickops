@@ -1,3 +1,4 @@
+import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { createFileRoute } from "@tanstack/react-router";
 import { GestorLayout } from "@/components/GestorLayout";
 import { Card } from "@/components/ui/card";
@@ -11,7 +12,7 @@ import { Phone, BadgeCheck, Plus, Users } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
-export const Route = createFileRoute("/equipe")({ component: EquipePage });
+export const Route = createFileRoute("/equipe")({ component: () => (<ProtectedRoute><EquipePage /></ProtectedRoute>) });
 
 function EquipePage() {
   const { tecnicos, os, addTecnico, loadingTecnicos } = useStore();

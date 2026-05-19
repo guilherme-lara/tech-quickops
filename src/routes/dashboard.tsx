@@ -1,9 +1,10 @@
+import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { GestorLayout } from "@/components/GestorLayout";
 import { useStore, statusColor } from "@/lib/mock-store";
 import { ClipboardList, CheckCircle2, DollarSign, Users, TrendingUp, ArrowUpRight, Activity, Sparkles } from "lucide-react";
 
-export const Route = createFileRoute("/dashboard")({ component: Dashboard });
+export const Route = createFileRoute("/dashboard")({ component: () => (<ProtectedRoute><Dashboard /></ProtectedRoute>) });
 
 function Dashboard() {
   const { os, clientes, tecnicos } = useStore();
