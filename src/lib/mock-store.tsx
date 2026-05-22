@@ -279,12 +279,56 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const signup = useCallback(async (email: string, senha: string, nome: string, empresa: string) => {
+    // ETAPA 1 — cria conta no Auth
     const redirectUrl = `${window.location.origin}/`;
-    const { error } = await supabase.auth.signUp({
-      email, password: senha,
+    const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+      email,
+      password: senha,
       options: { emailRedirectTo: redirectUrl, data: { nome_completo: nome, nome_empresa: empresa } },
     });
-    return error ? { error: error.message } : {};
+    if (signUpError) return { error: signUpError.message };
+
+    const userId = signUpData.user?.id;
+    if (!userId) return { error: "Falha ao criar conta de usuário." };
+
+    // Se o e-mail exigir confirmação, não há sessão ativa → não dá pra inserir empresa/perfil (RLS).
+    // Nesse caso paramos aqui e pedimos para o usuário confirmar o e-mail.
+    if (!signUpData.session) {
+      return { error: "Conta criada! Confirme seu e-mail antes de continuar o cadastro." };
+    }
+
+    // ETAPA 2 — cria empresa
+    const { data: empresaRow, error: empresaError } = await supabase
+      .from("empresas")
+      .insert({ nome_fantasia: empresa })
+      .select("id")
+      .single();
+    if (empresaError || !empresaRow) {
+      return { error: `Erro ao criar empresa: ${empresaError?.message ?? "desconhecido"}` };
+    }
+
+    // ETAPA 3 — cria perfil (role forçada como 'admin')
+    const { error: perfilError } = await supabase
+      .from("perfis")
+      .insert({
+        id: userId,
+        empresa_id: empresaRow.id,
+        nome_completo: nome,
+        role: "admin" as any,
+      });
+    if (perfilError) {
+      return { error: `Erro ao criar perfil: ${perfilError.message}` };
+    }
+
+    // Hidrata o usuário em memória já com empresa_id
+    setUser({
+      id: userId,
+      email,
+      nome,
+      role: "gestor",
+      empresaId: empresaRow.id,
+    });
+    return {};
   }, []);
 
   const logout = useCallback(async () => { await supabase.auth.signOut(); }, []);
