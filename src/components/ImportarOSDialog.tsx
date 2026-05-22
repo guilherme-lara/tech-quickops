@@ -1,9 +1,10 @@
-import { useState, useRef } from "react";
+import { useMemo, useRef, useState } from "react";
 import * as XLSX from "xlsx";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { Upload, FileSpreadsheet, Download, Loader2, CheckCircle2 } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Upload, FileSpreadsheet, Download, Loader2, CheckCircle2, ArrowRight, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
@@ -13,26 +14,33 @@ interface Props {
   trigger?: React.ReactNode;
 }
 
-const STATUS_MAP: Record<string, string> = {
-  orcamento: "pendente", orçamento: "pendente", pendente: "pendente",
-  aprovado: "aprovado",
-  "em execucao": "em_andamento", "em execução": "em_andamento", em_andamento: "em_andamento", andamento: "em_andamento",
-  concluido: "concluido", concluído: "concluido", finalizado: "concluido",
-  cancelado: "cancelado",
-};
+// ─────────────────────────── Sistema → Planilha ───────────────────────────
+type FieldKey = "cliente" | "descricao" | "valor" | "data" | "tecnico";
+interface SystemField {
+  key: FieldKey;
+  label: string;
+  required: boolean;
+  hint?: string;
+}
+const SYSTEM_FIELDS: SystemField[] = [
+  { key: "cliente",   label: "Cliente",                required: true,  hint: "Nome do cliente (texto)" },
+  { key: "descricao", label: "Descrição do Problema",  required: true,  hint: "Defeito / descrição da OS" },
+  { key: "valor",     label: "Valor",                  required: false, hint: "Numérico (R$)" },
+  { key: "data",      label: "Data de Agendamento",    required: false, hint: "dd/mm/aaaa ou aaaa-mm-dd" },
+  { key: "tecnico",   label: "Técnico",                required: false, hint: "Nome do técnico" },
+];
 
-function normalize(s: any) { return String(s ?? "").trim().toLowerCase(); }
+const NONE = "__none__";
 
+// ───────────────────────────── Parsers ─────────────────────────────
 function parseDate(v: any): string | null {
   if (v == null || v === "") return null;
   if (typeof v === "number") {
-    // Excel serial date
     const d = XLSX.SSF.parse_date_code(v);
     if (!d) return null;
     return `${d.y}-${String(d.m).padStart(2, "0")}-${String(d.d).padStart(2, "0")}`;
   }
   const s = String(v).trim();
-  // dd/mm/yyyy
   const br = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})/);
   if (br) {
     const y = br[3].length === 2 ? `20${br[3]}` : br[3];
@@ -45,19 +53,6 @@ function parseDate(v: any): string | null {
   return null;
 }
 
-function parseTime(v: any): string | null {
-  if (v == null || v === "") return null;
-  if (typeof v === "number") {
-    const d = XLSX.SSF.parse_date_code(v);
-    if (!d) return null;
-    return `${String(d.H ?? 0).padStart(2, "0")}:${String(d.M ?? 0).padStart(2, "0")}:00`;
-  }
-  const s = String(v).trim();
-  const m = s.match(/(\d{1,2}):(\d{2})(?::(\d{2}))?/);
-  if (m) return `${m[1].padStart(2, "0")}:${m[2]}:${m[3] ?? "00"}`;
-  return null;
-}
-
 function parseValor(v: any): number {
   if (v == null || v === "") return 0;
   if (typeof v === "number") return v;
@@ -66,205 +61,351 @@ function parseValor(v: any): number {
   return isNaN(n) ? 0 : n;
 }
 
-function pick(row: Record<string, any>, ...keys: string[]) {
-  const norm = (k: string) => k.toLowerCase().replace(/[\s_-]/g, "");
-  const map: Record<string, any> = {};
-  for (const k of Object.keys(row)) map[norm(k)] = row[k];
-  for (const k of keys) {
-    const v = map[norm(k)];
-    if (v !== undefined && v !== "") return v;
-  }
-  return undefined;
-}
+type Step = "upload" | "mapping" | "importing" | "done";
 
 export function ImportarOSDialog({ trigger }: Props) {
   const { profile } = useAuth();
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
+  const [step, setStep] = useState<Step>("upload");
   const [file, setFile] = useState<File | null>(null);
   const [dragOver, setDragOver] = useState(false);
-  const [busy, setBusy] = useState(false);
+  const [headers, setHeaders] = useState<string[]>([]);
+  const [rows, setRows] = useState<Record<string, any>[]>([]);
+  const [mapping, setMapping] = useState<Record<FieldKey, string>>({
+    cliente: "", descricao: "", valor: "", data: "", tecnico: "",
+  });
   const [progress, setProgress] = useState(0);
-  const [done, setDone] = useState<{ os: number; clientes: number } | null>(null);
+  const [progressLabel, setProgressLabel] = useState("");
+  const [result, setResult] = useState<{ os: number; clientes: number; tecnicos: number } | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const reset = () => { setFile(null); setProgress(0); setDone(null); setBusy(false); };
+  const reset = () => {
+    setStep("upload"); setFile(null); setHeaders([]); setRows([]);
+    setMapping({ cliente: "", descricao: "", valor: "", data: "", tecnico: "" });
+    setProgress(0); setProgressLabel(""); setResult(null);
+  };
+
+  const requiredOk = useMemo(
+    () => SYSTEM_FIELDS.filter((f) => f.required).every((f) => mapping[f.key]),
+    [mapping]
+  );
+
+  // ───── ETAPA 1 — leitura ─────
+  const handleFile = async (f: File) => {
+    setFile(f);
+    try {
+      const buf = await f.arrayBuffer();
+      const wb = XLSX.read(buf, { type: "array", cellDates: false });
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      const aoa = XLSX.utils.sheet_to_json<any[]>(ws, { header: 1, defval: "" });
+      if (aoa.length === 0) { toast.error("Planilha vazia"); return; }
+
+      const rawHeaders = (aoa[0] as any[]).map((h, i) => String(h ?? `Coluna ${i + 1}`).trim() || `Coluna ${i + 1}`);
+      // dedup
+      const seen: Record<string, number> = {};
+      const heads = rawHeaders.map((h) => {
+        seen[h] = (seen[h] ?? 0) + 1;
+        return seen[h] === 1 ? h : `${h} (${seen[h]})`;
+      });
+
+      const parsedRows = aoa.slice(1)
+        .filter((r) => Array.isArray(r) && r.some((c) => c !== "" && c != null))
+        .map((r) => {
+          const obj: Record<string, any> = {};
+          heads.forEach((h, i) => { obj[h] = (r as any[])[i] ?? ""; });
+          return obj;
+        });
+
+      setHeaders(heads);
+      setRows(parsedRows);
+
+      // Auto-mapeamento por nome
+      const auto: Record<FieldKey, string> = { cliente: "", descricao: "", valor: "", data: "", tecnico: "" };
+      const guesses: Record<FieldKey, RegExp[]> = {
+        cliente:   [/cliente/i, /nome.*cliente/i, /raz[ãa]o/i],
+        descricao: [/descri[çc][ãa]o/i, /defeito/i, /problema/i, /servi[çc]o/i],
+        valor:     [/valor/i, /pre[çc]o/i, /total/i],
+        data:      [/data/i, /agenda/i],
+        tecnico:   [/t[ée]cnico/i, /respons[áa]vel/i],
+      };
+      (Object.keys(guesses) as FieldKey[]).forEach((k) => {
+        const found = heads.find((h) => guesses[k].some((rx) => rx.test(h)));
+        if (found) auto[k] = found;
+      });
+      setMapping(auto);
+      setStep("mapping");
+    } catch (e: any) {
+      toast.error(`Erro ao ler arquivo: ${e.message ?? "desconhecido"}`);
+    }
+  };
+
+  // ───── ETAPA 3 + 4 — resolução de IDs + bulk insert ─────
+  const importar = async () => {
+    if (!profile) return;
+    if (!requiredOk) { toast.error("Mapeie os campos obrigatórios"); return; }
+
+    setStep("importing");
+    setProgress(5);
+    setProgressLabel(`Lendo ${rows.length} linhas…`);
+
+    try {
+      // 1) Carrega clientes e técnicos existentes (RLS = empresa logada)
+      const [{ data: clis, error: cErr }, { data: tecs, error: tErr }] = await Promise.all([
+        supabase.from("clientes").select("id, nome").eq("empresa_id", profile.empresa_id),
+        supabase.from("tecnicos").select("id, nome").eq("empresa_id", profile.empresa_id),
+      ]);
+      if (cErr) throw cErr;
+      if (tErr) throw tErr;
+
+      const cliMap = new Map<string, string>();
+      (clis ?? []).forEach((c) => cliMap.set(c.nome.trim().toLowerCase(), c.id));
+      const tecMap = new Map<string, string>();
+      (tecs ?? []).forEach((t) => tecMap.set(t.nome.trim().toLowerCase(), t.id));
+
+      setProgress(20);
+      setProgressLabel("Identificando novos cadastros…");
+
+      // 2) Detecta novos clientes/técnicos
+      const novosCli = new Set<string>();
+      const novosTec = new Set<string>();
+      const mapped = rows.map((r) => {
+        const cli = String(r[mapping.cliente] ?? "").trim();
+        const desc = String(r[mapping.descricao] ?? "").trim();
+        const tec = mapping.tecnico ? String(r[mapping.tecnico] ?? "").trim() : "";
+        const valor = mapping.valor ? parseValor(r[mapping.valor]) : 0;
+        const data = mapping.data ? parseDate(r[mapping.data]) : null;
+
+        if (cli && !cliMap.has(cli.toLowerCase())) novosCli.add(cli);
+        if (tec && !tecMap.has(tec.toLowerCase())) novosTec.add(tec);
+
+        return { cli, desc, tec, valor, data };
+      }).filter((r) => r.cli && r.desc);
+
+      if (mapped.length === 0) {
+        toast.error("Nenhuma linha válida (cliente + descrição obrigatórios)");
+        setStep("mapping"); return;
+      }
+
+      // 3) Bulk insert de novos clientes/técnicos
+      setProgress(35);
+      setProgressLabel(`Cadastrando ${novosCli.size} clientes e ${novosTec.size} técnicos novos…`);
+
+      if (novosCli.size > 0) {
+        const payload = Array.from(novosCli).map((nome) => ({ empresa_id: profile.empresa_id, nome }));
+        const { data: ins, error } = await supabase.from("clientes").insert(payload).select("id, nome");
+        if (error) throw error;
+        (ins ?? []).forEach((c) => cliMap.set(c.nome.trim().toLowerCase(), c.id));
+      }
+      if (novosTec.size > 0) {
+        const payload = Array.from(novosTec).map((nome) => ({ empresa_id: profile.empresa_id, nome, ativo: true }));
+        const { data: ins, error } = await supabase.from("tecnicos").insert(payload).select("id, nome");
+        if (error) throw error;
+        (ins ?? []).forEach((t) => tecMap.set(t.nome.trim().toLowerCase(), t.id));
+      }
+
+      // 4) Monta payload final e insere em chunks
+      setProgress(55);
+      const osPayload = mapped.map((r) => ({
+        empresa_id: profile.empresa_id,
+        cliente_id: cliMap.get(r.cli.toLowerCase())!,
+        tecnico_id: r.tec ? (tecMap.get(r.tec.toLowerCase()) ?? null) : null,
+        titulo: r.desc.slice(0, 120),
+        descricao_problema: r.desc,
+        valor: r.valor,
+        status: "pendente" as const,
+        data_agendamento: r.data,
+      }));
+
+      const chunkSize = 100;
+      let inseridas = 0;
+      for (let i = 0; i < osPayload.length; i += chunkSize) {
+        const slice = osPayload.slice(i, i + chunkSize);
+        setProgressLabel(`Salvando ordens ${inseridas + 1}–${inseridas + slice.length} de ${osPayload.length}…`);
+        const { error } = await supabase.from("ordens_servico").insert(slice);
+        if (error) throw error;
+        inseridas += slice.length;
+        setProgress(55 + Math.round((inseridas / osPayload.length) * 40));
+      }
+
+      setProgress(100);
+      setResult({ os: inseridas, clientes: novosCli.size, tecnicos: novosTec.size });
+      setStep("done");
+      toast.success(`Sucesso! ${inseridas} ordens, ${novosCli.size} clientes e ${novosTec.size} técnicos importados.`);
+      qc.invalidateQueries({ queryKey: ["ordens_servico", profile.empresa_id] });
+      qc.invalidateQueries({ queryKey: ["clientes", profile.empresa_id] });
+      qc.invalidateQueries({ queryKey: ["tecnicos", profile.empresa_id] });
+    } catch (e: any) {
+      toast.error(e.message ?? "Falha ao importar planilha");
+      setStep("mapping");
+    }
+  };
 
   const baixarModelo = () => {
     const ws = XLSX.utils.aoa_to_sheet([
-      ["Data", "Horário", "Cliente", "Descrição", "Valor", "Status"],
-      ["15/05/2026", "14:30", "Restaurante Sabor & Arte", "Manutenção câmara fria", "1250,00", "Concluído"],
-      ["16/05/2026", "09:00", "Padaria Pão Quente", "Troca de compressor", "890,50", "Em Execução"],
+      ["Nome do Cliente", "Defeito", "Data", "Técnico Responsável", "Preço"],
+      ["Restaurante Sabor & Arte", "Manutenção câmara fria", "15/05/2026", "João Silva", "1250,00"],
+      ["Padaria Pão Quente", "Troca de compressor", "16/05/2026", "Maria Souza", "890,50"],
     ]);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "OS");
     XLSX.writeFile(wb, "modelo-importacao-os.xlsx");
   };
 
-  const processar = async () => {
-    if (!file || !profile) return;
-    setBusy(true);
-    setProgress(5);
-    try {
-      const buf = await file.arrayBuffer();
-      const wb = XLSX.read(buf, { type: "array", cellDates: false });
-      const ws = wb.Sheets[wb.SheetNames[0]];
-      const rows = XLSX.utils.sheet_to_json<Record<string, any>>(ws, { defval: "" });
-      if (rows.length === 0) { toast.error("Planilha vazia"); setBusy(false); return; }
-      setProgress(15);
-
-      // Load existing clients (RLS-scoped to empresa)
-      const { data: existing, error: cErr } = await supabase
-        .from("clientes").select("id, nome").eq("empresa_id", profile.empresa_id);
-      if (cErr) throw cErr;
-      const byName = new Map<string, string>();
-      (existing ?? []).forEach((c) => byName.set(c.nome.trim().toLowerCase(), c.id));
-
-      // Detect new clients
-      const novosNomes = new Set<string>();
-      const parsed = rows.map((r) => {
-        const nomeCli = String(pick(r, "Cliente", "cliente", "nome cliente") ?? "").trim();
-        if (nomeCli && !byName.has(nomeCli.toLowerCase())) novosNomes.add(nomeCli);
-        return {
-          data: parseDate(pick(r, "Data", "data")),
-          horario: parseTime(pick(r, "Horário", "Horario", "horario", "hora")),
-          cliente: nomeCli,
-          descricao: String(pick(r, "Descrição", "Descricao", "descricao") ?? "").trim(),
-          valor: parseValor(pick(r, "Valor", "valor", "preço", "preco")),
-          status: STATUS_MAP[normalize(pick(r, "Status", "status"))] ?? "pendente",
-        };
-      });
-
-      setProgress(35);
-
-      // Bulk insert new clients
-      let novosCount = 0;
-      if (novosNomes.size > 0) {
-        const payload = Array.from(novosNomes).map((nome) => ({ empresa_id: profile.empresa_id, nome }));
-        const { data: inserted, error: insErr } = await supabase
-          .from("clientes").insert(payload).select("id, nome");
-        if (insErr) throw insErr;
-        (inserted ?? []).forEach((c) => byName.set(c.nome.trim().toLowerCase(), c.id));
-        novosCount = inserted?.length ?? 0;
-      }
-
-      setProgress(55);
-
-      // Build OS payload
-      const osPayload = parsed
-        .filter((r) => r.cliente)
-        .map((r) => ({
-          empresa_id: profile.empresa_id,
-          cliente_id: byName.get(r.cliente.toLowerCase())!,
-          titulo: r.descricao || "Importado",
-          descricao_problema: r.descricao || "",
-          valor: r.valor,
-          status: r.status as any,
-          data_agendamento: r.data,
-          horario_atendimento: r.horario,
-        }));
-
-      if (osPayload.length === 0) { toast.error("Nenhuma linha válida encontrada"); setBusy(false); return; }
-
-      // Chunked insert for progress
-      const chunkSize = 100;
-      let inseridas = 0;
-      for (let i = 0; i < osPayload.length; i += chunkSize) {
-        const slice = osPayload.slice(i, i + chunkSize);
-        const { error: osErr } = await supabase.from("ordens_servico").insert(slice);
-        if (osErr) throw osErr;
-        inseridas += slice.length;
-        setProgress(55 + Math.round((inseridas / osPayload.length) * 40));
-      }
-
-      setProgress(100);
-      setDone({ os: inseridas, clientes: novosCount });
-      toast.success(`Sucesso! ${inseridas} chamados e ${novosCount} novos clientes foram importados.`);
-      qc.invalidateQueries({ queryKey: ["ordens_servico", profile.empresa_id] });
-      qc.invalidateQueries({ queryKey: ["clientes", profile.empresa_id] });
-    } catch (e: any) {
-      toast.error(e.message ?? "Falha ao importar planilha");
-      setBusy(false);
-    }
-  };
-
   const onDrop = (e: React.DragEvent) => {
     e.preventDefault(); setDragOver(false);
     const f = e.dataTransfer.files?.[0];
-    if (f) setFile(f);
+    if (f) handleFile(f);
   };
 
   return (
     <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) reset(); }}>
       <span onClick={() => setOpen(true)}>{trigger}</span>
-      <DialogContent className="rounded-2xl sm:max-w-lg">
+      <DialogContent className="rounded-2xl sm:max-w-2xl">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2"><FileSpreadsheet className="w-5 h-5 text-primary" />Importar planilha de OS</DialogTitle>
-          <DialogDescription>Suba um arquivo .xlsx ou .csv com o histórico de chamados.</DialogDescription>
+          <DialogTitle className="flex items-center gap-2">
+            <FileSpreadsheet className="w-5 h-5 text-primary" />
+            Importar planilha de OS
+          </DialogTitle>
+          <DialogDescription>
+            {step === "upload"   && "Etapa 1 de 3 — selecione um arquivo .xlsx ou .csv"}
+            {step === "mapping"  && "Etapa 2 de 3 — mapeie as colunas da sua planilha para os campos do sistema"}
+            {step === "importing"&& "Etapa 3 de 3 — processando linhas e salvando no banco"}
+            {step === "done"     && "Importação concluída"}
+          </DialogDescription>
         </DialogHeader>
 
-        <div className="rounded-xl border border-border/60 bg-muted/40 p-3 text-xs">
-          <div className="font-semibold mb-1.5">Colunas esperadas:</div>
-          <div className="grid grid-cols-3 gap-1.5 text-muted-foreground">
-            {["Data", "Horário", "Cliente", "Descrição", "Valor", "Status"].map((c) => (
-              <span key={c} className="px-2 py-1 rounded-md bg-background border border-border/60 font-mono text-[11px] text-center">{c}</span>
-            ))}
-          </div>
-          <Button variant="ghost" size="sm" onClick={baixarModelo} className="mt-2 h-7 text-xs gap-1.5">
-            <Download className="w-3 h-3" /> Baixar modelo
-          </Button>
-        </div>
+        {/* ETAPA 1 */}
+        {step === "upload" && (
+          <>
+            <div
+              onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+              onDragLeave={() => setDragOver(false)}
+              onDrop={onDrop}
+              onClick={() => inputRef.current?.click()}
+              className={`relative rounded-2xl border-2 border-dashed p-10 text-center cursor-pointer transition-all ${dragOver ? "border-primary bg-primary/5" : "border-border hover:border-primary/50 hover:bg-muted/40"}`}
+            >
+              <input ref={inputRef} type="file" accept=".xlsx,.xls,.csv" className="hidden"
+                onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFile(f); }} />
+              <Upload className="w-10 h-10 mx-auto text-muted-foreground mb-3" />
+              <div className="font-semibold">Arraste o arquivo aqui</div>
+              <div className="text-xs text-muted-foreground mt-1">ou clique para selecionar (.xlsx, .csv)</div>
+            </div>
+            <Button variant="ghost" size="sm" onClick={baixarModelo} className="self-start h-7 text-xs gap-1.5">
+              <Download className="w-3 h-3" /> Baixar modelo de exemplo
+            </Button>
+          </>
+        )}
 
-        {!done && (
-          <div
-            onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
-            onDragLeave={() => setDragOver(false)}
-            onDrop={onDrop}
-            onClick={() => inputRef.current?.click()}
-            className={`relative rounded-2xl border-2 border-dashed p-8 text-center cursor-pointer transition-all ${dragOver ? "border-primary bg-primary/5" : "border-border hover:border-primary/50 hover:bg-muted/40"}`}
-          >
-            <input ref={inputRef} type="file" accept=".xlsx,.xls,.csv" className="hidden"
-              onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
-            <Upload className="w-8 h-8 mx-auto text-muted-foreground mb-2" />
-            {file ? (
+        {/* ETAPA 2 — Mapeamento */}
+        {step === "mapping" && (
+          <div className="space-y-4">
+            <div className="rounded-xl border border-border/60 bg-muted/40 p-3 text-xs flex items-center justify-between">
               <div>
-                <div className="font-semibold text-sm">{file.name}</div>
-                <div className="text-xs text-muted-foreground mt-1">{(file.size / 1024).toFixed(1)} KB</div>
+                <span className="font-semibold">{file?.name}</span>
+                <span className="text-muted-foreground ml-2">{rows.length} linhas · {headers.length} colunas</span>
               </div>
-            ) : (
-              <div>
-                <div className="font-semibold text-sm">Arraste o arquivo aqui</div>
-                <div className="text-xs text-muted-foreground mt-1">ou clique para selecionar (.xlsx, .csv)</div>
+              <Button variant="ghost" size="sm" onClick={() => { setStep("upload"); setFile(null); }} className="h-7 text-xs">
+                Trocar arquivo
+              </Button>
+            </div>
+
+            <div className="rounded-2xl border border-border/60 divide-y">
+              <div className="grid grid-cols-[1fr_auto_1.2fr] items-center gap-3 px-4 py-2 bg-muted/40 text-[10px] uppercase tracking-wider font-bold text-muted-foreground">
+                <span>Campo do sistema</span><span /><span>Coluna da planilha</span>
+              </div>
+              {SYSTEM_FIELDS.map((f) => (
+                <div key={f.key} className="grid grid-cols-[1fr_auto_1.2fr] items-center gap-3 px-4 py-3">
+                  <div>
+                    <div className="flex items-center gap-2 text-sm font-semibold">
+                      {f.label}
+                      {f.required
+                        ? <span className="text-[10px] px-1.5 py-0.5 rounded bg-destructive/15 text-destructive font-bold">OBRIGATÓRIO</span>
+                        : <span className="text-[10px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground font-bold">OPCIONAL</span>}
+                    </div>
+                    {f.hint && <div className="text-[11px] text-muted-foreground mt-0.5">{f.hint}</div>}
+                  </div>
+                  <ArrowRight className="w-4 h-4 text-muted-foreground" />
+                  <Select
+                    value={mapping[f.key] || NONE}
+                    onValueChange={(v) => setMapping({ ...mapping, [f.key]: v === NONE ? "" : v })}
+                  >
+                    <SelectTrigger className={!mapping[f.key] && f.required ? "border-destructive/50" : ""}>
+                      <SelectValue placeholder="Selecione a coluna…" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value={NONE}>— Não mapear —</SelectItem>
+                      {headers.map((h) => (
+                        <SelectItem key={h} value={h}>{h}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              ))}
+            </div>
+
+            {rows[0] && (
+              <div className="rounded-xl border border-border/60 p-3 text-xs">
+                <div className="font-semibold mb-1.5 text-muted-foreground uppercase tracking-wider text-[10px]">Pré-visualização (linha 1)</div>
+                <div className="grid grid-cols-2 gap-x-4 gap-y-1">
+                  {SYSTEM_FIELDS.map((f) => {
+                    const v = mapping[f.key] ? rows[0][mapping[f.key]] : "";
+                    return (
+                      <div key={f.key} className="flex items-center gap-1.5 truncate">
+                        <span className="font-medium text-muted-foreground">{f.label}:</span>
+                        <span className="font-mono truncate">{String(v ?? "") || "—"}</span>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
             )}
           </div>
         )}
 
-        {busy && (
-          <div className="space-y-2">
-            <div className="flex items-center gap-2 text-sm"><Loader2 className="w-4 h-4 animate-spin" />Processando…</div>
+        {/* ETAPA 3 — Importando */}
+        {step === "importing" && (
+          <div className="space-y-3 py-6">
+            <div className="flex items-center gap-2 text-sm">
+              <Loader2 className="w-4 h-4 animate-spin text-primary" />
+              {progressLabel || "Processando…"}
+            </div>
             <Progress value={progress} />
+            <div className="text-[11px] text-muted-foreground text-right">{progress}%</div>
           </div>
         )}
 
-        {done && (
-          <div className="rounded-2xl border border-success/30 bg-success/5 p-4 text-center">
-            <CheckCircle2 className="w-10 h-10 mx-auto text-success mb-2" />
-            <div className="font-semibold">Importação concluída</div>
-            <div className="text-sm text-muted-foreground mt-1">{done.os} chamados · {done.clientes} novos clientes</div>
+        {/* DONE */}
+        {step === "done" && result && (
+          <div className="rounded-2xl border border-success/30 bg-success/5 p-6 text-center">
+            <CheckCircle2 className="w-12 h-12 mx-auto text-success mb-2" />
+            <div className="font-semibold text-lg">Importação concluída</div>
+            <div className="text-sm text-muted-foreground mt-1">
+              {result.os} ordens · {result.clientes} novos clientes · {result.tecnicos} novos técnicos
+            </div>
           </div>
         )}
 
         <DialogFooter>
-          {done ? (
-            <Button onClick={() => { setOpen(false); reset(); }} className="rounded-xl">Fechar</Button>
-          ) : (
+          {step === "upload" && (
+            <Button variant="outline" onClick={() => setOpen(false)}>Cancelar</Button>
+          )}
+          {step === "mapping" && (
             <>
-              <Button variant="outline" onClick={() => setOpen(false)} disabled={busy}>Cancelar</Button>
-              <Button onClick={processar} disabled={!file || busy} className="rounded-xl bg-gradient-to-r from-primary to-violet">
-                {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : "Importar"}
+              <Button variant="outline" onClick={() => { setStep("upload"); setFile(null); }} className="gap-1.5">
+                <ArrowLeft className="w-4 h-4" /> Voltar
+              </Button>
+              <Button
+                onClick={importar}
+                disabled={!requiredOk}
+                className="rounded-xl bg-gradient-to-r from-primary to-violet gap-1.5"
+              >
+                Importar {rows.length} linhas <ArrowRight className="w-4 h-4" />
               </Button>
             </>
+          )}
+          {step === "done" && (
+            <Button onClick={() => { setOpen(false); reset(); }} className="rounded-xl">Fechar</Button>
           )}
         </DialogFooter>
       </DialogContent>
