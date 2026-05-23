@@ -25,11 +25,20 @@ function LoginPage() {
 
   const doLogin = async () => {
     setLoading(true);
-    const { error } = await login(loginEmail, loginSenha);
-    setLoading(false);
-    if (error) return toast.error(error);
-    toast.success("Bem-vindo!");
-    navigate({ to: "/dashboard" });
+    try {
+      const { error } = await login(loginEmail, loginSenha);
+      if (error) {
+        toast.error(error);
+        return;
+      }
+      toast.success("Bem-vindo!");
+      // Hard redirect: limpa cache de rotas e força recarga da sessão.
+      window.location.href = "/dashboard";
+    } catch (err: any) {
+      toast.error(err?.message ?? "Erro ao entrar");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const doSignup = async () => {

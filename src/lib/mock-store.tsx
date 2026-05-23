@@ -85,51 +85,62 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   // Hydrate auth + perfil
   useEffect(() => {
     let mounted = true;
+
     const loadPerfil = async (uid: string, email: string): Promise<User | null> => {
-      try {
-        const { data, error } = await supabase
-          .from("perfis")
-          .select("id, nome_completo, role, empresa_id")
-          .eq("id", uid)
-          .single();
-        if (error || !data) return null;
-        const role: Role = data.role === "tecnico" ? "tecnico" : "gestor";
-        return { id: data.id, email, nome: data.nome_completo || email, role, empresaId: data.empresa_id };
-      } catch {
-        // Silencia 406/Not Acceptable quando o perfil ainda não foi criado.
+      const { data, error } = await supabase
+        .from("perfis")
+        .select("id, nome_completo, role, empresa_id")
+        .eq("id", uid)
+        .maybeSingle();
+      if (error) {
+        console.error("[auth] erro ao buscar perfil:", error);
         return null;
       }
+      if (!data) return null;
+      const role: Role = data.role === "tecnico" ? "tecnico" : "gestor";
+      return { id: data.id, email, nome: data.nome_completo || email, role, empresaId: data.empresa_id };
     };
 
-    // 1) Restaura sessão inicial — só libera isLoading depois desta confirmação.
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
-      if (session?.user) {
-        const perfil = await loadPerfil(session.user.id, session.user.email ?? "");
-        if (mounted) setUser(perfil);
+    // 1) Restaura sessão inicial
+    (async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.user) {
+          const perfil = await loadPerfil(session.user.id, session.user.email ?? "");
+          if (mounted) setUser(perfil);
+        } else if (mounted) {
+          setUser(null);
+        }
+      } catch (err) {
+        console.error("[auth] getSession falhou:", err);
+        if (mounted) setUser(null);
+      } finally {
+        if (mounted) setLoadingAuth(false);
       }
-      if (mounted) setLoadingAuth(false);
-    });
+    })();
 
-    // 2) Escuta apenas eventos que realmente mudam a identidade do usuário.
-    //    Ignora TOKEN_REFRESHED e USER_UPDATED (silenciosos / troca de aba).
+    // 2) Listener de mudanças
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === "TOKEN_REFRESHED" || event === "USER_UPDATED") return;
-
-      if (event === "SIGNED_OUT" || !session?.user) {
-        if (mounted) setUser(null);
-        qc.invalidateQueries();
-        return;
-      }
-
-      if (event === "SIGNED_IN" || event === "INITIAL_SESSION") {
-        // fire-and-forget — não awaita dentro do callback
-        (async () => {
+      (async () => {
+        try {
+          if (!session?.user) {
+            if (mounted) setUser(null);
+            qc.invalidateQueries();
+            return;
+          }
           const perfil = await loadPerfil(session.user.id, session.user.email ?? "");
           if (mounted) setUser(perfil);
           qc.invalidateQueries();
-        })();
-      }
+        } catch (err) {
+          console.error("[auth] onAuthStateChange falhou:", err);
+          if (mounted) setUser(null);
+        } finally {
+          if (mounted) setLoadingAuth(false);
+        }
+      })();
     });
+
     return () => { mounted = false; subscription.unsubscribe(); };
   }, [qc]);
 
@@ -263,7 +274,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       .from("perfis")
       .select("id, nome_completo, role, empresa_id")
       .eq("id", sessionUser.id)
-      .single();
+      .maybeSingle();
 
     if (profileError || !perfil) return { error: profileError?.message ?? "Perfil não encontrado." };
 
