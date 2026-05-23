@@ -7,18 +7,20 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useStore, statusColor, OSStatus, OS } from "@/lib/mock-store";
-import { Plus, User, HardHat, MoreVertical, Upload } from "lucide-react";
+import { Plus, User, HardHat, MoreVertical, Upload, ClipboardList } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { DndContext, DragEndEvent, useDraggable, useDroppable, PointerSensor, useSensor, useSensors } from "@dnd-kit/core";
 import { ImportarOSDialog } from "@/components/ImportarOSDialog";
+import { Skeleton } from "@/components/ui/skeleton";
+import { EmptyState } from "@/components/EmptyState";
 
 export const Route = createFileRoute("/os")({ component: () => (<ProtectedRoute><OSPage /></ProtectedRoute>) });
 
 const colunas: OSStatus[] = ["Orçamento", "Aprovado", "Em Execução", "Concluído", "Cancelado"];
 
 function OSPage() {
-  const { os, clientes, tecnicos, addOS, updateOS } = useStore();
+  const { os, clientes, tecnicos, addOS, updateOS, loadingOS } = useStore();
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState({ titulo: "", clienteId: "", tecnicoId: "", valor: "", status: "Orçamento" as OSStatus });
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }));
@@ -92,14 +94,38 @@ function OSPage() {
         </div>
       </div>
 
-      <DndContext sensors={sensors} onDragEnd={onDragEnd}>
+      {loadingOS ? (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-4">
-          {colunas.map((status) => {
-            const cards = os.filter((o) => o.status === status);
-            return <Coluna key={status} status={status} cards={cards} clientes={clientes} tecnicos={tecnicos} />;
-          })}
+          {colunas.map((c) => (
+            <div key={c} className="rounded-3xl p-3 bg-muted/40">
+              <Skeleton className="h-5 w-24 mb-3" />
+              <div className="space-y-2">
+                {[1, 2].map((i) => <Skeleton key={i} className="h-24 w-full rounded-2xl" />)}
+              </div>
+            </div>
+          ))}
         </div>
-      </DndContext>
+      ) : os.length === 0 ? (
+        <EmptyState
+          icon={ClipboardList}
+          title="Nenhuma ordem de serviço ainda"
+          description="Crie sua primeira OS ou importe seu histórico de uma planilha para começar a acompanhar seus chamados."
+          action={
+            <Button onClick={() => setOpen(true)} className="rounded-xl">
+              <Plus className="w-4 h-4" /> Criar primeira OS
+            </Button>
+          }
+        />
+      ) : (
+        <DndContext sensors={sensors} onDragEnd={onDragEnd}>
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-4">
+            {colunas.map((status) => {
+              const cards = os.filter((o) => o.status === status);
+              return <Coluna key={status} status={status} cards={cards} clientes={clientes} tecnicos={tecnicos} />;
+            })}
+          </div>
+        </DndContext>
+      )}
     </GestorLayout>
   );
 }
