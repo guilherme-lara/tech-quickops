@@ -1,6 +1,6 @@
 import { Link, useRouterState, useNavigate, Outlet } from "@tanstack/react-router";
 import { useStore } from "@/lib/mock-store";
-import { LayoutDashboard, Users, UsersRound, Package, ClipboardList, Wrench, LogOut, Bell, Search } from "lucide-react";
+import { LayoutDashboard, Users, UsersRound, Package, ClipboardList, Wrench, LogOut, Bell, Search, Settings } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -12,6 +12,7 @@ const navItems = [
   { to: "/clientes", label: "Clientes", icon: Users },
   { to: "/equipe", label: "Equipe", icon: UsersRound },
   { to: "/estoque", label: "Estoque", icon: Package },
+  { to: "/configuracoes", label: "Configurações", icon: Settings },
 ] as const;
 
 export function GestorLayout({ children }: { children?: ReactNode }) {

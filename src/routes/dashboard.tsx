@@ -2,12 +2,13 @@ import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { GestorLayout } from "@/components/GestorLayout";
 import { useStore, statusColor } from "@/lib/mock-store";
-import { ClipboardList, CheckCircle2, DollarSign, Users, TrendingUp, ArrowUpRight, Activity, Sparkles } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
+import { ClipboardList, CheckCircle2, Users, TrendingUp, ArrowUpRight, Activity, Sparkles } from "lucide-react";
 
 export const Route = createFileRoute("/dashboard")({ component: () => (<ProtectedRoute><Dashboard /></ProtectedRoute>) });
 
 function Dashboard() {
-  const { os, clientes, tecnicos } = useStore();
+  const { os, clientes, tecnicos, loadingOS, loadingClientes } = useStore();
   const abertas = os.filter((o) => ["Orçamento", "Aprovado", "Em Execução"].includes(o.status)).length;
   const concluidas = os.filter((o) => o.status === "Concluído").length;
   const emCampo = os.filter((o) => o.status === "Em Execução").length;
@@ -55,10 +56,24 @@ function Dashboard() {
             </Link>
           </div>
           <div className="space-y-1.5">
-            {os.length === 0 && (
+            {loadingOS && (
+              <div className="space-y-2">
+                {[1, 2, 3, 4].map((i) => (
+                  <div key={i} className="flex items-center gap-3 p-3">
+                    <Skeleton className="w-10 h-10 rounded-xl" />
+                    <div className="flex-1 space-y-2">
+                      <Skeleton className="h-4 w-3/5" />
+                      <Skeleton className="h-3 w-2/5" />
+                    </div>
+                    <Skeleton className="h-5 w-16 rounded-full" />
+                  </div>
+                ))}
+              </div>
+            )}
+            {!loadingOS && os.length === 0 && (
               <div className="text-sm text-muted-foreground text-center py-10">Nenhuma OS ainda. Crie a primeira em <Link to="/os" className="text-primary font-semibold">Ordens de Serviço</Link>.</div>
             )}
-            {os.slice(0, 6).map((o) => {
+            {!loadingOS && os.slice(0, 6).map((o) => {
               const cliente = clientes.find((c) => c.id === o.clienteId);
               const suffix = (o.numero?.split("-")[1] ?? "").slice(-2) || "OS";
               return (

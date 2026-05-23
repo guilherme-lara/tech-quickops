@@ -22,7 +22,7 @@ export interface OS {
   titulo: string; status: OSStatus; criadaEm: string; valor: number; rat: RAT;
 }
 
-interface User { id: string; nome: string; email: string; role: Role; empresaId: string; }
+interface User { id: string; nome: string; email: string; role: Role; empresaId: string; empresaNome: string; }
 
 // ============================================================
 // DB ↔ UI mappers
@@ -71,6 +71,9 @@ interface Store {
   addOS: (o: Omit<OS, "id" | "numero" | "criadaEm" | "rat">) => Promise<void>;
   updateOS: (id: string, patch: Partial<OS>) => Promise<void>;
   updateRAT: (id: string, patch: Partial<RAT>) => void;
+
+  updateProfile: (nome: string) => Promise<void>;
+  updateEmpresa: (nome: string) => Promise<void>;
 }
 
 const Ctx = createContext<Store | null>(null);
@@ -98,7 +101,14 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       }
       if (!data) return null;
       const role: Role = data.role === "tecnico" ? "tecnico" : "gestor";
-      return { id: data.id, email, nome: data.nome_completo || email, role, empresaId: data.empresa_id };
+      let empresaNome = "";
+      const { data: emp } = await supabase
+        .from("empresas")
+        .select("nome_fantasia")
+        .eq("id", data.empresa_id)
+        .maybeSingle();
+      if (emp) empresaNome = emp.nome_fantasia ?? "";
+      return { id: data.id, email, nome: data.nome_completo || email, role, empresaId: data.empresa_id, empresaNome };
     };
 
     // 1) Restaura sessão inicial
@@ -279,12 +289,15 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     if (profileError || !perfil) return { error: profileError?.message ?? "Perfil não encontrado." };
 
     const role: Role = perfil.role === "tecnico" ? "tecnico" : "gestor";
+    const { data: emp } = await supabase
+      .from("empresas").select("nome_fantasia").eq("id", perfil.empresa_id).maybeSingle();
     setUser({
       id: perfil.id,
       email: sessionUser.email ?? email,
       nome: perfil.nome_completo || sessionUser.email || email,
       role,
       empresaId: perfil.empresa_id,
+      empresaNome: emp?.nome_fantasia ?? "",
     });
     return {};
   }, []);
@@ -338,9 +351,24 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       nome,
       role: "gestor",
       empresaId: empresaRow.id,
+      empresaNome: empresa,
     });
     return {};
   }, []);
+
+  const updateProfile = useCallback(async (nome: string) => {
+    if (!user) throw new Error("Não autenticado");
+    const { error } = await supabase.from("perfis").update({ nome_completo: nome }).eq("id", user.id);
+    if (error) throw error;
+    setUser({ ...user, nome });
+  }, [user]);
+
+  const updateEmpresa = useCallback(async (nome: string) => {
+    if (!user) throw new Error("Não autenticado");
+    const { error } = await supabase.from("empresas").update({ nome_fantasia: nome }).eq("id", user.empresaId);
+    if (error) throw error;
+    setUser({ ...user, empresaNome: nome });
+  }, [user]);
 
   const logout = useCallback(async () => { await supabase.auth.signOut(); }, []);
 
@@ -357,6 +385,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     updateRAT: (id, patch) => setRatLocal((prev) => ({
       ...prev, [id]: { ...(prev[id] ?? { itens: [], evidencias: [] }), ...patch },
     })),
+    updateProfile,
+    updateEmpresa,
   };
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
