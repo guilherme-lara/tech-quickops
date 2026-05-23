@@ -274,7 +274,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       .from("perfis")
       .select("id, nome_completo, role, empresa_id")
       .eq("id", sessionUser.id)
-      .single();
+      .maybeSingle();
 
     if (profileError || !perfil) return { error: profileError?.message ?? "Perfil não encontrado." };
 
