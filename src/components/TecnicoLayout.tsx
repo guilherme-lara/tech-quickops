@@ -1,6 +1,6 @@
 import { Link, useRouterState, useNavigate, Outlet } from "@tanstack/react-router";
 import { ClipboardList, User, History, Wrench, LogOut } from "lucide-react";
-import { useStore } from "@/lib/mock-store";
+import { useAuth } from "@/lib/auth-context"; // <-- MUDANÇA AQUI
 import { ReactNode } from "react";
 
 const tabs = [
@@ -12,8 +12,14 @@ const tabs = [
 export function TecnicoLayout({ children }: { children?: ReactNode }) {
   const path = useRouterState({ select: (s) => s.location.pathname });
   const navigate = useNavigate();
-  const { user, logout } = useStore();
+  // <-- MUDANÇA AQUI: Usando nosso contexto blindado
+  const { profile, signOut } = useAuth();
   const isRAT = path.includes("/rat");
+
+  const handleLogout = async () => {
+    await signOut();
+    navigate({ to: "/login" });
+  };
 
   return (
     <div className="min-h-screen bg-background flex justify-center">
@@ -27,10 +33,16 @@ export function TecnicoLayout({ children }: { children?: ReactNode }) {
                 </div>
                 <div>
                   <div className="font-bold text-sm leading-tight">QuickOps</div>
-                  <div className="text-[10px] text-muted-foreground leading-tight">{user?.nome}</div>
+                  {/* <-- MUDANÇA AQUI: Lendo do profile correto */}
+                  <div className="text-[10px] text-muted-foreground leading-tight">
+                    {profile?.nome_completo}
+                  </div>
                 </div>
               </div>
-              <button onClick={() => { logout(); navigate({ to: "/login" }); }} className="w-9 h-9 rounded-xl glass flex items-center justify-center text-muted-foreground active:scale-95 transition">
+              <button
+                onClick={handleLogout}
+                className="w-9 h-9 rounded-xl glass flex items-center justify-center text-muted-foreground active:scale-95 transition"
+              >
                 <LogOut className="w-4 h-4" />
               </button>
             </div>
@@ -44,11 +56,21 @@ export function TecnicoLayout({ children }: { children?: ReactNode }) {
             {tabs.map((t) => {
               const active = path.startsWith(t.to);
               return (
-                <Link key={t.to} to={t.to} className="flex-1 flex flex-col items-center justify-center gap-0.5 active:scale-95 transition">
-                  <div className={`flex items-center justify-center w-10 h-10 rounded-2xl transition-all ${active ? "bg-gradient-to-br from-primary to-violet text-primary-foreground shadow-[var(--shadow-glow)]" : "text-muted-foreground"}`}>
+                <Link
+                  key={t.to}
+                  to={t.to}
+                  className="flex-1 flex flex-col items-center justify-center gap-0.5 active:scale-95 transition"
+                >
+                  <div
+                    className={`flex items-center justify-center w-10 h-10 rounded-2xl transition-all ${active ? "bg-gradient-to-br from-primary to-violet text-primary-foreground shadow-[var(--shadow-glow)]" : "text-muted-foreground"}`}
+                  >
                     <t.icon className="w-5 h-5" />
                   </div>
-                  <span className={`text-[10px] font-semibold ${active ? "text-primary" : "text-muted-foreground"}`}>{t.label}</span>
+                  <span
+                    className={`text-[10px] font-semibold ${active ? "text-primary" : "text-muted-foreground"}`}
+                  >
+                    {t.label}
+                  </span>
                 </Link>
               );
             })}

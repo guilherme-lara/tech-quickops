@@ -1,0 +1,1 @@
+ALTER TABLE tecnicos ADD COLUMN chave_pix text;

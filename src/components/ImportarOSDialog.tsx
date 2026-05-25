@@ -1,10 +1,31 @@
 import { useMemo, useRef, useState } from "react";
 import * as XLSX from "xlsx";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Upload, FileSpreadsheet, Download, Loader2, CheckCircle2, ArrowRight, ArrowLeft } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Upload,
+  FileSpreadsheet,
+  Download,
+  Loader2,
+  CheckCircle2,
+  ArrowRight,
+  ArrowLeft,
+} from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
@@ -23,11 +44,16 @@ interface SystemField {
   hint?: string;
 }
 const SYSTEM_FIELDS: SystemField[] = [
-  { key: "cliente",   label: "Cliente",                required: true,  hint: "Nome do cliente (texto)" },
-  { key: "descricao", label: "Descrição do Problema",  required: true,  hint: "Defeito / descrição da OS" },
-  { key: "valor",     label: "Valor",                  required: false, hint: "Numérico (R$)" },
-  { key: "data",      label: "Data de Agendamento",    required: false, hint: "dd/mm/aaaa ou aaaa-mm-dd" },
-  { key: "tecnico",   label: "Técnico",                required: false, hint: "Nome do técnico" },
+  { key: "cliente", label: "Cliente", required: true, hint: "Nome do cliente (texto)" },
+  {
+    key: "descricao",
+    label: "Descrição do Problema",
+    required: true,
+    hint: "Defeito / descrição da OS",
+  },
+  { key: "valor", label: "Valor", required: false, hint: "Numérico (R$)" },
+  { key: "data", label: "Data de Agendamento", required: false, hint: "dd/mm/aaaa ou aaaa-mm-dd" },
+  { key: "tecnico", label: "Técnico", required: false, hint: "Nome do técnico" },
 ];
 
 const NONE = "__none__";
@@ -56,7 +82,10 @@ function parseDate(v: any): string | null {
 function parseValor(v: any): number {
   if (v == null || v === "") return 0;
   if (typeof v === "number") return v;
-  const s = String(v).replace(/[R$\s]/g, "").replace(/\./g, "").replace(",", ".");
+  const s = String(v)
+    .replace(/[R$\s]/g, "")
+    .replace(/\./g, "")
+    .replace(",", ".");
   const n = parseFloat(s);
   return isNaN(n) ? 0 : n;
 }
@@ -73,22 +102,33 @@ export function ImportarOSDialog({ trigger }: Props) {
   const [headers, setHeaders] = useState<string[]>([]);
   const [rows, setRows] = useState<Record<string, any>[]>([]);
   const [mapping, setMapping] = useState<Record<FieldKey, string>>({
-    cliente: "", descricao: "", valor: "", data: "", tecnico: "",
+    cliente: "",
+    descricao: "",
+    valor: "",
+    data: "",
+    tecnico: "",
   });
   const [progress, setProgress] = useState(0);
   const [progressLabel, setProgressLabel] = useState("");
-  const [result, setResult] = useState<{ os: number; clientes: number; tecnicos: number } | null>(null);
+  const [result, setResult] = useState<{ os: number; clientes: number; tecnicos: number } | null>(
+    null,
+  );
   const inputRef = useRef<HTMLInputElement>(null);
 
   const reset = () => {
-    setStep("upload"); setFile(null); setHeaders([]); setRows([]);
+    setStep("upload");
+    setFile(null);
+    setHeaders([]);
+    setRows([]);
     setMapping({ cliente: "", descricao: "", valor: "", data: "", tecnico: "" });
-    setProgress(0); setProgressLabel(""); setResult(null);
+    setProgress(0);
+    setProgressLabel("");
+    setResult(null);
   };
 
   const requiredOk = useMemo(
     () => SYSTEM_FIELDS.filter((f) => f.required).every((f) => mapping[f.key]),
-    [mapping]
+    [mapping],
   );
 
   // ───── ETAPA 1 — leitura ─────
@@ -99,9 +139,14 @@ export function ImportarOSDialog({ trigger }: Props) {
       const wb = XLSX.read(buf, { type: "array", cellDates: false });
       const ws = wb.Sheets[wb.SheetNames[0]];
       const aoa = XLSX.utils.sheet_to_json<any[]>(ws, { header: 1, defval: "" });
-      if (aoa.length === 0) { toast.error("Planilha vazia"); return; }
+      if (aoa.length === 0) {
+        toast.error("Planilha vazia");
+        return;
+      }
 
-      const rawHeaders = (aoa[0] as any[]).map((h, i) => String(h ?? `Coluna ${i + 1}`).trim() || `Coluna ${i + 1}`);
+      const rawHeaders = (aoa[0] as any[]).map(
+        (h, i) => String(h ?? `Coluna ${i + 1}`).trim() || `Coluna ${i + 1}`,
+      );
       // dedup
       const seen: Record<string, number> = {};
       const heads = rawHeaders.map((h) => {
@@ -109,11 +154,14 @@ export function ImportarOSDialog({ trigger }: Props) {
         return seen[h] === 1 ? h : `${h} (${seen[h]})`;
       });
 
-      const parsedRows = aoa.slice(1)
+      const parsedRows = aoa
+        .slice(1)
         .filter((r) => Array.isArray(r) && r.some((c) => c !== "" && c != null))
         .map((r) => {
           const obj: Record<string, any> = {};
-          heads.forEach((h, i) => { obj[h] = (r as any[])[i] ?? ""; });
+          heads.forEach((h, i) => {
+            obj[h] = (r as any[])[i] ?? "";
+          });
           return obj;
         });
 
@@ -121,13 +169,19 @@ export function ImportarOSDialog({ trigger }: Props) {
       setRows(parsedRows);
 
       // Auto-mapeamento por nome
-      const auto: Record<FieldKey, string> = { cliente: "", descricao: "", valor: "", data: "", tecnico: "" };
+      const auto: Record<FieldKey, string> = {
+        cliente: "",
+        descricao: "",
+        valor: "",
+        data: "",
+        tecnico: "",
+      };
       const guesses: Record<FieldKey, RegExp[]> = {
-        cliente:   [/cliente/i, /nome.*cliente/i, /raz[ãa]o/i],
+        cliente: [/cliente/i, /nome.*cliente/i, /raz[ãa]o/i],
         descricao: [/descri[çc][ãa]o/i, /defeito/i, /problema/i, /servi[çc]o/i],
-        valor:     [/valor/i, /pre[çc]o/i, /total/i],
-        data:      [/data/i, /agenda/i],
-        tecnico:   [/t[ée]cnico/i, /respons[áa]vel/i],
+        valor: [/valor/i, /pre[çc]o/i, /total/i],
+        data: [/data/i, /agenda/i],
+        tecnico: [/t[ée]cnico/i, /respons[áa]vel/i],
       };
       (Object.keys(guesses) as FieldKey[]).forEach((k) => {
         const found = heads.find((h) => guesses[k].some((rx) => rx.test(h)));
@@ -143,7 +197,10 @@ export function ImportarOSDialog({ trigger }: Props) {
   // ───── ETAPA 3 + 4 — resolução de IDs + bulk insert ─────
   const importar = async () => {
     if (!profile) return;
-    if (!requiredOk) { toast.error("Mapeie os campos obrigatórios"); return; }
+    if (!requiredOk) {
+      toast.error("Mapeie os campos obrigatórios");
+      return;
+    }
 
     setStep("importing");
     setProgress(5);
@@ -169,22 +226,25 @@ export function ImportarOSDialog({ trigger }: Props) {
       // 2) Detecta novos clientes/técnicos
       const novosCli = new Set<string>();
       const novosTec = new Set<string>();
-      const mapped = rows.map((r) => {
-        const cli = String(r[mapping.cliente] ?? "").trim();
-        const desc = String(r[mapping.descricao] ?? "").trim();
-        const tec = mapping.tecnico ? String(r[mapping.tecnico] ?? "").trim() : "";
-        const valor = mapping.valor ? parseValor(r[mapping.valor]) : 0;
-        const data = mapping.data ? parseDate(r[mapping.data]) : null;
+      const mapped = rows
+        .map((r) => {
+          const cli = String(r[mapping.cliente] ?? "").trim();
+          const desc = String(r[mapping.descricao] ?? "").trim();
+          const tec = mapping.tecnico ? String(r[mapping.tecnico] ?? "").trim() : "";
+          const valor = mapping.valor ? parseValor(r[mapping.valor]) : 0;
+          const data = mapping.data ? parseDate(r[mapping.data]) : null;
 
-        if (cli && !cliMap.has(cli.toLowerCase())) novosCli.add(cli);
-        if (tec && !tecMap.has(tec.toLowerCase())) novosTec.add(tec);
+          if (cli && !cliMap.has(cli.toLowerCase())) novosCli.add(cli);
+          if (tec && !tecMap.has(tec.toLowerCase())) novosTec.add(tec);
 
-        return { cli, desc, tec, valor, data };
-      }).filter((r) => r.cli && r.desc);
+          return { cli, desc, tec, valor, data };
+        })
+        .filter((r) => r.cli && r.desc);
 
       if (mapped.length === 0) {
         toast.error("Nenhuma linha válida (cliente + descrição obrigatórios)");
-        setStep("mapping"); return;
+        setStep("mapping");
+        return;
       }
 
       // 3) Bulk insert de novos clientes/técnicos
@@ -192,14 +252,27 @@ export function ImportarOSDialog({ trigger }: Props) {
       setProgressLabel(`Cadastrando ${novosCli.size} clientes e ${novosTec.size} técnicos novos…`);
 
       if (novosCli.size > 0) {
-        const payload = Array.from(novosCli).map((nome) => ({ empresa_id: profile.empresa_id, nome }));
-        const { data: ins, error } = await supabase.from("clientes").insert(payload).select("id, nome");
+        const payload = Array.from(novosCli).map((nome) => ({
+          empresa_id: profile.empresa_id,
+          nome,
+        }));
+        const { data: ins, error } = await supabase
+          .from("clientes")
+          .insert(payload)
+          .select("id, nome");
         if (error) throw error;
         (ins ?? []).forEach((c) => cliMap.set(c.nome.trim().toLowerCase(), c.id));
       }
       if (novosTec.size > 0) {
-        const payload = Array.from(novosTec).map((nome) => ({ empresa_id: profile.empresa_id, nome, ativo: true }));
-        const { data: ins, error } = await supabase.from("tecnicos").insert(payload).select("id, nome");
+        const payload = Array.from(novosTec).map((nome) => ({
+          empresa_id: profile.empresa_id,
+          nome,
+          ativo: true,
+        }));
+        const { data: ins, error } = await supabase
+          .from("tecnicos")
+          .insert(payload)
+          .select("id, nome");
         if (error) throw error;
         (ins ?? []).forEach((t) => tecMap.set(t.nome.trim().toLowerCase(), t.id));
       }
@@ -221,7 +294,9 @@ export function ImportarOSDialog({ trigger }: Props) {
       let inseridas = 0;
       for (let i = 0; i < osPayload.length; i += chunkSize) {
         const slice = osPayload.slice(i, i + chunkSize);
-        setProgressLabel(`Salvando ordens ${inseridas + 1}–${inseridas + slice.length} de ${osPayload.length}…`);
+        setProgressLabel(
+          `Salvando ordens ${inseridas + 1}–${inseridas + slice.length} de ${osPayload.length}…`,
+        );
         const { error } = await supabase.from("ordens_servico").insert(slice);
         if (error) throw error;
         inseridas += slice.length;
@@ -231,7 +306,9 @@ export function ImportarOSDialog({ trigger }: Props) {
       setProgress(100);
       setResult({ os: inseridas, clientes: novosCli.size, tecnicos: novosTec.size });
       setStep("done");
-      toast.success(`Sucesso! ${inseridas} ordens, ${novosCli.size} clientes e ${novosTec.size} técnicos importados.`);
+      toast.success(
+        `Sucesso! ${inseridas} ordens, ${novosCli.size} clientes e ${novosTec.size} técnicos importados.`,
+      );
       qc.invalidateQueries({ queryKey: ["ordens_servico", profile.empresa_id] });
       qc.invalidateQueries({ queryKey: ["clientes", profile.empresa_id] });
       qc.invalidateQueries({ queryKey: ["tecnicos", profile.empresa_id] });
@@ -253,13 +330,20 @@ export function ImportarOSDialog({ trigger }: Props) {
   };
 
   const onDrop = (e: React.DragEvent) => {
-    e.preventDefault(); setDragOver(false);
+    e.preventDefault();
+    setDragOver(false);
     const f = e.dataTransfer.files?.[0];
     if (f) handleFile(f);
   };
 
   return (
-    <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) reset(); }}>
+    <Dialog
+      open={open}
+      onOpenChange={(o) => {
+        setOpen(o);
+        if (!o) reset();
+      }}
+    >
       <span onClick={() => setOpen(true)}>{trigger}</span>
       <DialogContent className="rounded-2xl sm:max-w-2xl">
         <DialogHeader>
@@ -268,10 +352,11 @@ export function ImportarOSDialog({ trigger }: Props) {
             Importar planilha de OS
           </DialogTitle>
           <DialogDescription>
-            {step === "upload"   && "Etapa 1 de 3 — selecione um arquivo .xlsx ou .csv"}
-            {step === "mapping"  && "Etapa 2 de 3 — mapeie as colunas da sua planilha para os campos do sistema"}
-            {step === "importing"&& "Etapa 3 de 3 — processando linhas e salvando no banco"}
-            {step === "done"     && "Importação concluída"}
+            {step === "upload" && "Etapa 1 de 3 — selecione um arquivo .xlsx ou .csv"}
+            {step === "mapping" &&
+              "Etapa 2 de 3 — mapeie as colunas da sua planilha para os campos do sistema"}
+            {step === "importing" && "Etapa 3 de 3 — processando linhas e salvando no banco"}
+            {step === "done" && "Importação concluída"}
           </DialogDescription>
         </DialogHeader>
 
@@ -279,19 +364,37 @@ export function ImportarOSDialog({ trigger }: Props) {
         {step === "upload" && (
           <>
             <div
-              onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+              onDragOver={(e) => {
+                e.preventDefault();
+                setDragOver(true);
+              }}
               onDragLeave={() => setDragOver(false)}
               onDrop={onDrop}
               onClick={() => inputRef.current?.click()}
               className={`relative rounded-2xl border-2 border-dashed p-10 text-center cursor-pointer transition-all ${dragOver ? "border-primary bg-primary/5" : "border-border hover:border-primary/50 hover:bg-muted/40"}`}
             >
-              <input ref={inputRef} type="file" accept=".xlsx,.xls,.csv" className="hidden"
-                onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFile(f); }} />
+              <input
+                ref={inputRef}
+                type="file"
+                accept=".xlsx,.xls,.csv"
+                className="hidden"
+                onChange={(e) => {
+                  const f = e.target.files?.[0];
+                  if (f) handleFile(f);
+                }}
+              />
               <Upload className="w-10 h-10 mx-auto text-muted-foreground mb-3" />
               <div className="font-semibold">Arraste o arquivo aqui</div>
-              <div className="text-xs text-muted-foreground mt-1">ou clique para selecionar (.xlsx, .csv)</div>
+              <div className="text-xs text-muted-foreground mt-1">
+                ou clique para selecionar (.xlsx, .csv)
+              </div>
             </div>
-            <Button variant="ghost" size="sm" onClick={baixarModelo} className="self-start h-7 text-xs gap-1.5">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={baixarModelo}
+              className="self-start h-7 text-xs gap-1.5"
+            >
               <Download className="w-3 h-3" /> Baixar modelo de exemplo
             </Button>
           </>
@@ -303,40 +406,67 @@ export function ImportarOSDialog({ trigger }: Props) {
             <div className="rounded-xl border border-border/60 bg-muted/40 p-3 text-xs flex items-center justify-between">
               <div>
                 <span className="font-semibold">{file?.name}</span>
-                <span className="text-muted-foreground ml-2">{rows.length} linhas · {headers.length} colunas</span>
+                <span className="text-muted-foreground ml-2">
+                  {rows.length} linhas · {headers.length} colunas
+                </span>
               </div>
-              <Button variant="ghost" size="sm" onClick={() => { setStep("upload"); setFile(null); }} className="h-7 text-xs">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setStep("upload");
+                  setFile(null);
+                }}
+                className="h-7 text-xs"
+              >
                 Trocar arquivo
               </Button>
             </div>
 
             <div className="rounded-2xl border border-border/60 divide-y">
               <div className="grid grid-cols-[1fr_auto_1.2fr] items-center gap-3 px-4 py-2 bg-muted/40 text-[10px] uppercase tracking-wider font-bold text-muted-foreground">
-                <span>Campo do sistema</span><span /><span>Coluna da planilha</span>
+                <span>Campo do sistema</span>
+                <span />
+                <span>Coluna da planilha</span>
               </div>
               {SYSTEM_FIELDS.map((f) => (
-                <div key={f.key} className="grid grid-cols-[1fr_auto_1.2fr] items-center gap-3 px-4 py-3">
+                <div
+                  key={f.key}
+                  className="grid grid-cols-[1fr_auto_1.2fr] items-center gap-3 px-4 py-3"
+                >
                   <div>
                     <div className="flex items-center gap-2 text-sm font-semibold">
                       {f.label}
-                      {f.required
-                        ? <span className="text-[10px] px-1.5 py-0.5 rounded bg-destructive/15 text-destructive font-bold">OBRIGATÓRIO</span>
-                        : <span className="text-[10px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground font-bold">OPCIONAL</span>}
+                      {f.required ? (
+                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-destructive/15 text-destructive font-bold">
+                          OBRIGATÓRIO
+                        </span>
+                      ) : (
+                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground font-bold">
+                          OPCIONAL
+                        </span>
+                      )}
                     </div>
-                    {f.hint && <div className="text-[11px] text-muted-foreground mt-0.5">{f.hint}</div>}
+                    {f.hint && (
+                      <div className="text-[11px] text-muted-foreground mt-0.5">{f.hint}</div>
+                    )}
                   </div>
                   <ArrowRight className="w-4 h-4 text-muted-foreground" />
                   <Select
                     value={mapping[f.key] || NONE}
                     onValueChange={(v) => setMapping({ ...mapping, [f.key]: v === NONE ? "" : v })}
                   >
-                    <SelectTrigger className={!mapping[f.key] && f.required ? "border-destructive/50" : ""}>
+                    <SelectTrigger
+                      className={!mapping[f.key] && f.required ? "border-destructive/50" : ""}
+                    >
                       <SelectValue placeholder="Selecione a coluna…" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value={NONE}>— Não mapear —</SelectItem>
                       {headers.map((h) => (
-                        <SelectItem key={h} value={h}>{h}</SelectItem>
+                        <SelectItem key={h} value={h}>
+                          {h}
+                        </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
@@ -346,7 +476,9 @@ export function ImportarOSDialog({ trigger }: Props) {
 
             {rows[0] && (
               <div className="rounded-xl border border-border/60 p-3 text-xs">
-                <div className="font-semibold mb-1.5 text-muted-foreground uppercase tracking-wider text-[10px]">Pré-visualização (linha 1)</div>
+                <div className="font-semibold mb-1.5 text-muted-foreground uppercase tracking-wider text-[10px]">
+                  Pré-visualização (linha 1)
+                </div>
                 <div className="grid grid-cols-2 gap-x-4 gap-y-1">
                   {SYSTEM_FIELDS.map((f) => {
                     const v = mapping[f.key] ? rows[0][mapping[f.key]] : "";
@@ -381,18 +513,28 @@ export function ImportarOSDialog({ trigger }: Props) {
             <CheckCircle2 className="w-12 h-12 mx-auto text-success mb-2" />
             <div className="font-semibold text-lg">Importação concluída</div>
             <div className="text-sm text-muted-foreground mt-1">
-              {result.os} ordens · {result.clientes} novos clientes · {result.tecnicos} novos técnicos
+              {result.os} ordens · {result.clientes} novos clientes · {result.tecnicos} novos
+              técnicos
             </div>
           </div>
         )}
 
         <DialogFooter>
           {step === "upload" && (
-            <Button variant="outline" onClick={() => setOpen(false)}>Cancelar</Button>
+            <Button variant="outline" onClick={() => setOpen(false)}>
+              Cancelar
+            </Button>
           )}
           {step === "mapping" && (
             <>
-              <Button variant="outline" onClick={() => { setStep("upload"); setFile(null); }} className="gap-1.5">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setStep("upload");
+                  setFile(null);
+                }}
+                className="gap-1.5"
+              >
                 <ArrowLeft className="w-4 h-4" /> Voltar
               </Button>
               <Button
@@ -405,7 +547,15 @@ export function ImportarOSDialog({ trigger }: Props) {
             </>
           )}
           {step === "done" && (
-            <Button onClick={() => { setOpen(false); reset(); }} className="rounded-xl">Fechar</Button>
+            <Button
+              onClick={() => {
+                setOpen(false);
+                reset();
+              }}
+              className="rounded-xl"
+            >
+              Fechar
+            </Button>
           )}
         </DialogFooter>
       </DialogContent>

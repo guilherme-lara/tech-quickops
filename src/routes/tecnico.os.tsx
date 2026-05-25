@@ -1,70 +1,231 @@
+import { createFileRoute } from "@tanstack/react-router";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
-import { createFileRoute, Link } from "@tanstack/react-router";
 import { TecnicoLayout } from "@/components/TecnicoLayout";
-import { useStore, statusColor } from "@/lib/mock-store";
-import { ChevronRight, MapPin, Clock, Zap } from "lucide-react";
+import { useAuth } from "@/lib/auth-context";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { MapPin, Calendar, Loader2 } from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { supabase } from "@/integrations/supabase/client";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
-export const Route = createFileRoute("/tecnico/os")({ component: () => (<ProtectedRoute requireRole="tecnico"><TecOSList /></ProtectedRoute>) });
+export const Route = createFileRoute("/tecnico/os")({
+  component: () => (
+    <ProtectedRoute>
+      <TecnicoOSPage />
+    </ProtectedRoute>
+  ),
+});
 
-function TecOSList() {
-  const { os, clientes, user } = useStore();
-  const tecnicoId = "t1";
-  const minhasOS = os.filter((o) => o.tecnicoId === tecnicoId && o.status !== "Cancelado");
-  const pend = minhasOS.filter((o) => o.status !== "Concluído").length;
+// Cores dos status (trazidas para cá para não dependermos do mock)
+const statusColor: Record<string, string> = {
+  Orçamento: "bg-slate-500/10 text-slate-500",
+  Aprovado: "bg-blue-500/10 text-blue-500",
+  "Em Execução": "bg-amber-500/10 text-amber-500",
+  Concluído: "bg-emerald-500/10 text-emerald-500",
+  Cancelado: "bg-red-500/10 text-red-500",
+};
+
+const statusLabel: Record<string, string> = {
+  pendente: "Orçamento",
+  aprovado: "Aprovado",
+  em_andamento: "Em Execução",
+  concluido: "Concluído",
+  cancelado: "Cancelado",
+};
+
+function TecnicoOSPage() {
+  const { profile } = useAuth();
+  const queryClient = useQueryClient();
+  const [selectedOS, setSelectedOS] = useState<any>(null);
+  const [newStatus, setNewStatus] = useState<
+    "pendente" | "aprovado" | "em_andamento" | "concluido" | "cancelado"
+  >("em_andamento");
+  const [isUpdating, setIsUpdating] = useState(false);
+
+  // 1. Busca REAL no Supabase: Trazendo as OS do técnico + os dados do cliente vinculado
+  const { data: minhasOS, isLoading } = useQuery({
+    queryKey: ["minhas-os", profile?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("ordens_servico")
+        .select(
+          `
+          *,
+          clientes ( id, nome )
+        `,
+        )
+        .eq("tecnico_id", profile?.id || "")
+        .eq("empresa_id", profile?.empresa_id || "")
+        .neq("status", "cancelado") // Não mostra as canceladas
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!profile?.id, // Só roda a query se o perfil estiver carregado
+  });
+
+  // 2. Atualização REAL no Supabase
+  const handleUpdateStatus = async () => {
+    if (!selectedOS) return;
+    try {
+      setIsUpdating(true);
+      const { error } = await supabase
+        .from("ordens_servico")
+        .update({ status: newStatus })
+        .eq("id", selectedOS.id);
+
+      if (error) throw error;
+
+      toast.success(`Status atualizado para ${newStatus}`);
+      setSelectedOS(null);
+      // Força a tela a buscar os dados atualizados
+      queryClient.invalidateQueries({ queryKey: ["minhas-os", profile?.id] });
+    } catch (error: any) {
+      console.error(error);
+      toast.error("Erro ao atualizar status: " + error.message);
+    } finally {
+      setIsUpdating(false);
+    }
+  };
 
   return (
     <TecnicoLayout>
-      {/* Hero */}
-      <div className="px-4 pt-2">
-        <div className="rounded-3xl p-5 text-white relative overflow-hidden shadow-[var(--shadow-glow)]" style={{ backgroundImage: "var(--gradient-hero)" }}>
-          <div className="absolute -top-12 -right-12 w-44 h-44 rounded-full bg-white/15 blur-2xl" />
-          <div className="relative z-10">
-            <p className="text-xs opacity-80 font-medium">Bom dia,</p>
-            <h2 className="text-2xl font-bold tracking-tight">{user?.nome?.split(" ")[0]} 👋</h2>
-            <div className="mt-4 flex items-center gap-2">
-              <div className="rounded-2xl bg-white/15 backdrop-blur border border-white/20 px-3 py-2">
-                <div className="text-[10px] opacity-80 uppercase tracking-wider">Pendentes</div>
-                <div className="text-xl font-bold">{pend}</div>
-              </div>
-              <div className="rounded-2xl bg-white/15 backdrop-blur border border-white/20 px-3 py-2">
-                <div className="text-[10px] opacity-80 uppercase tracking-wider">Hoje</div>
-                <div className="text-xl font-bold">{minhasOS.length}</div>
-              </div>
-            </div>
-          </div>
-        </div>
+      <div className="mb-5 px-4 pt-4">
+        <h1 className="text-2xl font-bold tracking-tight">Meus Chamados</h1>
+        <p className="text-sm text-muted-foreground">
+          {isLoading
+            ? "Buscando chamados..."
+            : `Você tem ${minhasOS?.length || 0} serviços atribuídos.`}
+        </p>
       </div>
 
-      <div className="px-4 mt-5">
-        <h3 className="font-bold text-sm mb-3 flex items-center gap-1.5"><Zap className="w-4 h-4 text-primary" /> Atendimentos</h3>
-        <div className="space-y-2.5">
-          {minhasOS.map((o) => {
-            const cliente = clientes.find((c) => c.id === o.clienteId);
+      <div className="space-y-4 px-4 pb-24">
+        {isLoading ? (
+          <div className="flex justify-center py-12">
+            <Loader2 className="w-8 h-8 animate-spin text-primary" />
+          </div>
+        ) : !minhasOS || minhasOS.length === 0 ? (
+          <div className="text-center py-12 text-muted-foreground border-2 border-dashed border-border/60 rounded-2xl">
+            Nenhuma OS atribuída a você no momento.
+          </div>
+        ) : (
+          minhasOS.map((ordem: any) => {
+            const isConcluido = ordem.status === "Concluído";
+
             return (
-              <Link key={o.id} to="/tecnico/os/$id/rat" params={{ id: o.id }}
-                className="block rounded-2xl bg-card border border-border/60 p-4 shadow-[var(--shadow-card)] active:scale-[0.98] transition-all">
-                <div className="flex items-start justify-between gap-2">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <span className="text-[10px] font-bold tracking-wider text-muted-foreground">{o.numero}</span>
-                      <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold ${statusColor[o.status]}`}>{o.status}</span>
-                    </div>
-                    <div className="font-semibold text-sm mt-1.5">{o.titulo}</div>
-                    <div className="text-xs text-muted-foreground mt-1 truncate">{cliente?.nomeFantasia}</div>
-                    <div className="flex items-center gap-3 mt-2.5 text-[11px] text-muted-foreground">
-                      <span className="flex items-center gap-1"><MapPin className="w-3 h-3" /> São Paulo, SP</span>
-                      <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> 09:00</span>
-                    </div>
-                  </div>
-                  <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary to-violet flex items-center justify-center text-primary-foreground">
-                    <ChevronRight className="w-4 h-4" />
-                  </div>
+              <Card
+                key={ordem.id}
+                className={`p-4 shadow-[var(--shadow-card)] border-border/60 rounded-2xl ${isConcluido ? "opacity-70" : ""}`}
+              >
+                <div className="flex justify-between items-start mb-3">
+                  <span className="text-[10px] font-bold text-muted-foreground tracking-wider">
+                    {ordem.id.split("-")[0].toUpperCase()}
+                  </span>
+                  <span
+                    className={`text-[10px] px-2 py-1 rounded-full font-bold uppercase tracking-wider ${statusColor[ordem.status] || statusColor["Orçamento"]}`}
+                  >
+                    {ordem.status}
+                  </span>
                 </div>
-              </Link>
+
+                <h3 className="font-semibold text-base mb-1">{ordem.titulo}</h3>
+                <p className="text-xs text-muted-foreground line-clamp-2 mb-4">
+                  {ordem.descricao_problema || "Sem descrição adicional."}
+                </p>
+
+                <div className="space-y-2 mb-4 bg-muted/30 p-3 rounded-xl">
+                  <div className="flex items-center gap-2 text-xs font-medium">
+                    <MapPin className="w-3.5 h-3.5 text-primary" />{" "}
+                    {ordem.clientes?.nome || "Cliente não informado"}
+                  </div>
+                  {ordem.data_agendamento && (
+                    <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
+                      <Calendar className="w-3.5 h-3.5" />{" "}
+                      {new Date(ordem.data_agendamento).toLocaleDateString("pt-BR")}
+                    </div>
+                  )}
+                </div>
+
+                <Button
+                  className="w-full h-10 rounded-xl font-semibold"
+                  variant={isConcluido ? "outline" : "default"}
+                  disabled={isConcluido}
+                  onClick={() => {
+                    setSelectedOS(ordem);
+                    setNewStatus(ordem.status);
+                  }}
+                >
+                  {isConcluido ? "Serviço Finalizado" : "Atualizar Status"}
+                </Button>
+              </Card>
             );
-          })}
-        </div>
+          })
+        )}
       </div>
+
+      {/* Drawer Mobile de Atualização de Status */}
+      <Dialog
+        open={!!selectedOS}
+        onOpenChange={(open) => !open && !isUpdating && setSelectedOS(null)}
+      >
+        <DialogContent className="rounded-[2rem] w-[90vw] max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Atualizar Serviço</DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            {/* Adicionei o (v: any) aqui no onValueChange para o TypeScript parar de reclamar */}
+            <Select
+              value={newStatus}
+              onValueChange={(v: any) => setNewStatus(v)}
+              disabled={isUpdating}
+            >
+              <SelectTrigger className="h-12 rounded-xl">
+                <SelectValue placeholder="Selecione o novo status" />
+              </SelectTrigger>
+              <SelectContent>
+                {/* Aqui mudamos os values para os nomes exatos do banco de dados (minúsculo e sem espaço) */}
+                <SelectItem value="aprovado">Aprovado (A caminho)</SelectItem>
+                <SelectItem value="em_andamento">Em Execução (No local)</SelectItem>
+                <SelectItem value="concluido">Concluído (Serviço finalizado)</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <DialogFooter className="flex-row gap-2 sm:justify-end">
+            <Button
+              variant="outline"
+              className="flex-1 rounded-xl"
+              onClick={() => setSelectedOS(null)}
+              disabled={isUpdating}
+            >
+              Cancelar
+            </Button>
+            <Button
+              className="flex-1 bg-primary rounded-xl"
+              onClick={handleUpdateStatus}
+              disabled={isUpdating}
+            >
+              {isUpdating ? <Loader2 className="w-4 h-4 animate-spin" /> : "Salvar"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </TecnicoLayout>
   );
 }

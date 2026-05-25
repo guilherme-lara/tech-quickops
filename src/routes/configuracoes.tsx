@@ -11,7 +11,11 @@ import { toast } from "sonner";
 import { User, Building2, Save } from "lucide-react";
 
 export const Route = createFileRoute("/configuracoes")({
-  component: () => (<ProtectedRoute><ConfiguracoesPage /></ProtectedRoute>),
+  component: () => (
+    <ProtectedRoute>
+      <ConfiguracoesPage />
+    </ProtectedRoute>
+  ),
 });
 
 function ConfiguracoesPage() {
@@ -57,7 +61,7 @@ function ConfiguracoesPage() {
   return (
     <GestorLayout>
       <div className="max-w-2xl space-y-5">
-        <Card className="p-6">
+        <Card className="p-4 md:p-6">
           <div className="flex items-center gap-3 mb-5">
             <div className="w-10 h-10 rounded-2xl bg-primary/10 flex items-center justify-center">
               <User className="w-5 h-5 text-primary" />
@@ -82,7 +86,7 @@ function ConfiguracoesPage() {
           </div>
         </Card>
 
-        <Card className="p-6">
+        <Card className="p-4 md:p-6">
           <div className="flex items-center gap-3 mb-5">
             <div className="w-10 h-10 rounded-2xl bg-violet/10 flex items-center justify-center">
               <Building2 className="w-5 h-5 text-violet" />
