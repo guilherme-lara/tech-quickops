@@ -178,9 +178,43 @@ export type Database = {
           },
         ]
       }
+      rat_arquivos: {
+        Row: {
+          arquivo_url: string
+          created_at: string
+          id: string
+          nome_arquivo: string
+          ordem_servico_id: string
+        }
+        Insert: {
+          arquivo_url: string
+          created_at?: string
+          id?: string
+          nome_arquivo: string
+          ordem_servico_id: string
+        }
+        Update: {
+          arquivo_url?: string
+          created_at?: string
+          id?: string
+          nome_arquivo?: string
+          ordem_servico_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rat_arquivos_ordem_servico_id_fkey"
+            columns: ["ordem_servico_id"]
+            isOneToOne: false
+            referencedRelation: "ordens_servico"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tecnicos: {
         Row: {
           ativo: boolean
+          chave_pix: string | null
+          comissao: number | null
           created_at: string
           empresa_id: string
           id: string
@@ -190,6 +224,8 @@ export type Database = {
         }
         Insert: {
           ativo?: boolean
+          chave_pix?: string | null
+          comissao?: number | null
           created_at?: string
           empresa_id: string
           id?: string
@@ -199,6 +235,8 @@ export type Database = {
         }
         Update: {
           ativo?: boolean
+          chave_pix?: string | null
+          comissao?: number | null
           created_at?: string
           empresa_id?: string
           id?: string
