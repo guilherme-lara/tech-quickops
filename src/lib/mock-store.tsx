@@ -187,8 +187,12 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     const handleGhostUser = async () => {
       console.error("[auth] Perfil não encontrado após retries. Possível usuário fantasma. Deslogando...");
       await supabase.auth.signOut();
-      if (mounted) setUser(null);
-      if (window.location.pathname !== "/login") {
+      if (mounted) {
+        setUser(null);
+        setLoadingAuth(false);
+      }
+      toast.error("Erro de integridade: Perfil não encontrado. Por favor, contate o suporte.");
+      if (typeof window !== "undefined" && window.location.pathname !== "/login") {
         window.location.href = "/login";
       }
     };
