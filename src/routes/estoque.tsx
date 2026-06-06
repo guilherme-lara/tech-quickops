@@ -89,9 +89,15 @@ function EstoquePage() {
               ? "Tente outro termo de busca."
               : "Cadastre o primeiro item para começar a controlar seu estoque."
           }
-          actionLabel="Novo item"
-          onAction={openNew}
+          action={
+            !q ? (
+              <Button onClick={openNew} className="gap-2">
+                <Plus className="w-4 h-4" /> Novo item
+              </Button>
+            ) : undefined
+          }
         />
+
       ) : (
         <div className="bg-card rounded-xl border border-border shadow-sm overflow-hidden">
           <div className="overflow-x-auto w-full">
