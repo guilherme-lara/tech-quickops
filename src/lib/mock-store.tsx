@@ -115,6 +115,11 @@ interface Store {
   deleteTecnico: (id: string) => Promise<void>;
 
   itens: Item[];
+  loadingItens: boolean;
+  addItem: (i: Omit<Item, "id">) => Promise<void>;
+  updateItem: (id: string, patch: Partial<Item>) => Promise<void>;
+  deleteItem: (id: string) => Promise<void>;
+
 
   os: OS[];
   loadingOS: boolean;
