@@ -84,15 +84,8 @@ const uiToDbStatus: Record<OSStatus, string> = {
   Cancelado: "cancelado",
 };
 
-// Itens (estoque) remains mock — not in DB scope
-const seedItens: Item[] = [
-  { id: "i1", nome: "Compressor 1HP", tipo: "Peça", estoque: 8, custo: 480, venda: 890 },
-  { id: "i2", nome: "Filtro Secador", tipo: "Peça", estoque: 24, custo: 35, venda: 75 },
-  { id: "i3", nome: "Gás R134a (kg)", tipo: "Peça", estoque: 15, custo: 90, venda: 180 },
-  { id: "i4", nome: "Visita Técnica", tipo: "Serviço", estoque: 999, custo: 0, venda: 150 },
-  { id: "i5", nome: "Hora Técnica", tipo: "Serviço", estoque: 999, custo: 0, venda: 120 },
-  { id: "i6", nome: "Disjuntor 32A", tipo: "Peça", estoque: 12, custo: 25, venda: 60 },
-];
+// Itens (estoque) — agora 100% no Supabase
+
 
 // ============================================================
 // Store
