@@ -28,11 +28,11 @@ export interface Tecnico {
 export interface Item {
   id: string;
   nome: string;
-  tipo: "Peça" | "Serviço";
-  estoque: number;
-  custo: number;
-  venda: number;
+  codigo: string;
+  quantidade: number;
+  valor_unitario: number;
 }
+
 export interface OSItem {
   itemId: string;
   quantidade: number;
