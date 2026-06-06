@@ -659,7 +659,17 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     deleteTecnico: async (id) => {
       await deleteTecnicoM.mutateAsync(id);
     },
-    itens: seedItens,
+    itens: itensQ.data ?? [],
+    loadingItens: itensQ.isLoading,
+    addItem: async (i) => {
+      await addItemM.mutateAsync(i);
+    },
+    updateItem: async (id, patch) => {
+      await updateItemM.mutateAsync({ id, patch });
+    },
+    deleteItem: async (id) => {
+      await deleteItemM.mutateAsync(id);
+    },
     os: osQ.data ?? [],
     loadingOS: osQ.isLoading,
     addOS: async (o) => {
