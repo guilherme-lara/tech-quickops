@@ -438,6 +438,67 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  // ---------------- Itens estoque ----------------
+  const itensQ = useQuery({
+    queryKey: ["itens_estoque", empresaId],
+    enabled,
+    queryFn: async (): Promise<Item[]> => {
+      const { data, error } = await (supabase.from("itens_estoque" as any) as any)
+        .select("id, nome, codigo, quantidade, valor_unitario")
+        .eq("empresa_id", empresaId!)
+        .order("nome");
+      if (error) throw error;
+      return ((data ?? []) as any[]).map((r) => ({
+        id: r.id,
+        nome: r.nome,
+        codigo: r.codigo ?? "",
+        quantidade: Number(r.quantidade ?? 0),
+        valor_unitario: Number(r.valor_unitario ?? 0),
+      }));
+    },
+  });
+
+  const addItemM = useMutation({
+    mutationFn: async (i: Omit<Item, "id">) => {
+      const { error } = await (supabase.from("itens_estoque" as any) as any).insert({
+        empresa_id: empresaId!,
+        nome: i.nome,
+        codigo: i.codigo || null,
+        quantidade: i.quantidade,
+        valor_unitario: i.valor_unitario,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["itens_estoque", empresaId] }),
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const updateItemM = useMutation({
+    mutationFn: async ({ id, patch }: { id: string; patch: Partial<Item> }) => {
+      const dbPatch: Record<string, any> = {};
+      if (patch.nome !== undefined) dbPatch.nome = patch.nome;
+      if (patch.codigo !== undefined) dbPatch.codigo = patch.codigo || null;
+      if (patch.quantidade !== undefined) dbPatch.quantidade = patch.quantidade;
+      if (patch.valor_unitario !== undefined) dbPatch.valor_unitario = patch.valor_unitario;
+      const { error } = await (supabase.from("itens_estoque" as any) as any)
+        .update(dbPatch)
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["itens_estoque", empresaId] }),
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const deleteItemM = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await (supabase.from("itens_estoque" as any) as any).delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["itens_estoque", empresaId] }),
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+
   // ---------------- Auth methods ----------------
   const login = useCallback(async (email: string, senha: string) => {
     const { data: authData, error } = await supabase.auth.signInWithPassword({
