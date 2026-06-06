@@ -28,11 +28,11 @@ export interface Tecnico {
 export interface Item {
   id: string;
   nome: string;
-  tipo: "Peça" | "Serviço";
-  estoque: number;
-  custo: number;
-  venda: number;
+  codigo: string;
+  quantidade: number;
+  valor_unitario: number;
 }
+
 export interface OSItem {
   itemId: string;
   quantidade: number;
@@ -84,15 +84,8 @@ const uiToDbStatus: Record<OSStatus, string> = {
   Cancelado: "cancelado",
 };
 
-// Itens (estoque) remains mock — not in DB scope
-const seedItens: Item[] = [
-  { id: "i1", nome: "Compressor 1HP", tipo: "Peça", estoque: 8, custo: 480, venda: 890 },
-  { id: "i2", nome: "Filtro Secador", tipo: "Peça", estoque: 24, custo: 35, venda: 75 },
-  { id: "i3", nome: "Gás R134a (kg)", tipo: "Peça", estoque: 15, custo: 90, venda: 180 },
-  { id: "i4", nome: "Visita Técnica", tipo: "Serviço", estoque: 999, custo: 0, venda: 150 },
-  { id: "i5", nome: "Hora Técnica", tipo: "Serviço", estoque: 999, custo: 0, venda: 120 },
-  { id: "i6", nome: "Disjuntor 32A", tipo: "Peça", estoque: 12, custo: 25, venda: 60 },
-];
+// Itens (estoque) — agora 100% no Supabase
+
 
 // ============================================================
 // Store
@@ -122,6 +115,11 @@ interface Store {
   deleteTecnico: (id: string) => Promise<void>;
 
   itens: Item[];
+  loadingItens: boolean;
+  addItem: (i: Omit<Item, "id">) => Promise<void>;
+  updateItem: (id: string, patch: Partial<Item>) => Promise<void>;
+  deleteItem: (id: string) => Promise<void>;
+
 
   os: OS[];
   loadingOS: boolean;
@@ -440,6 +438,67 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  // ---------------- Itens estoque ----------------
+  const itensQ = useQuery({
+    queryKey: ["itens_estoque", empresaId],
+    enabled,
+    queryFn: async (): Promise<Item[]> => {
+      const { data, error } = await (supabase.from("itens_estoque" as any) as any)
+        .select("id, nome, codigo, quantidade, valor_unitario")
+        .eq("empresa_id", empresaId!)
+        .order("nome");
+      if (error) throw error;
+      return ((data ?? []) as any[]).map((r) => ({
+        id: r.id,
+        nome: r.nome,
+        codigo: r.codigo ?? "",
+        quantidade: Number(r.quantidade ?? 0),
+        valor_unitario: Number(r.valor_unitario ?? 0),
+      }));
+    },
+  });
+
+  const addItemM = useMutation({
+    mutationFn: async (i: Omit<Item, "id">) => {
+      const { error } = await (supabase.from("itens_estoque" as any) as any).insert({
+        empresa_id: empresaId!,
+        nome: i.nome,
+        codigo: i.codigo || null,
+        quantidade: i.quantidade,
+        valor_unitario: i.valor_unitario,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["itens_estoque", empresaId] }),
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const updateItemM = useMutation({
+    mutationFn: async ({ id, patch }: { id: string; patch: Partial<Item> }) => {
+      const dbPatch: Record<string, any> = {};
+      if (patch.nome !== undefined) dbPatch.nome = patch.nome;
+      if (patch.codigo !== undefined) dbPatch.codigo = patch.codigo || null;
+      if (patch.quantidade !== undefined) dbPatch.quantidade = patch.quantidade;
+      if (patch.valor_unitario !== undefined) dbPatch.valor_unitario = patch.valor_unitario;
+      const { error } = await (supabase.from("itens_estoque" as any) as any)
+        .update(dbPatch)
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["itens_estoque", empresaId] }),
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const deleteItemM = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await (supabase.from("itens_estoque" as any) as any).delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["itens_estoque", empresaId] }),
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+
   // ---------------- Auth methods ----------------
   const login = useCallback(async (email: string, senha: string) => {
     const { data: authData, error } = await supabase.auth.signInWithPassword({
@@ -600,7 +659,17 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     deleteTecnico: async (id) => {
       await deleteTecnicoM.mutateAsync(id);
     },
-    itens: seedItens,
+    itens: itensQ.data ?? [],
+    loadingItens: itensQ.isLoading,
+    addItem: async (i) => {
+      await addItemM.mutateAsync(i);
+    },
+    updateItem: async (id, patch) => {
+      await updateItemM.mutateAsync({ id, patch });
+    },
+    deleteItem: async (id) => {
+      await deleteItemM.mutateAsync(id);
+    },
     os: osQ.data ?? [],
     loadingOS: osQ.isLoading,
     addOS: async (o) => {
