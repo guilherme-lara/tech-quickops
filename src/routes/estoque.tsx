@@ -3,9 +3,21 @@ import { createFileRoute } from "@tanstack/react-router";
 import { GestorLayout } from "@/components/GestorLayout";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { useStore } from "@/lib/mock-store";
-import { Package, Wrench, Search, TrendingUp, AlertTriangle, List, LayoutGrid } from "lucide-react";
+import { Label } from "@/components/ui/label";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Skeleton } from "@/components/ui/skeleton";
+import { EmptyState } from "@/components/EmptyState";
+import { useStore, type Item } from "@/lib/mock-store";
+import { Package, Search, AlertTriangle, Plus, Pencil, Trash2 } from "lucide-react";
 import { useState } from "react";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/estoque")({
   component: () => (
@@ -16,10 +28,34 @@ export const Route = createFileRoute("/estoque")({
 });
 
 function EstoquePage() {
-  const { itens } = useStore();
+  const { itens, loadingItens, addItem, updateItem, deleteItem } = useStore();
   const [q, setQ] = useState("");
-  const [viewMode, setViewMode] = useState<"list" | "card">("list");
-  const filtrados = itens.filter((i) => i.nome.toLowerCase().includes(q.toLowerCase()));
+  const [open, setOpen] = useState(false);
+  const [editing, setEditing] = useState<Item | null>(null);
+
+  const filtrados = itens.filter(
+    (i) =>
+      i.nome.toLowerCase().includes(q.toLowerCase()) ||
+      (i.codigo ?? "").toLowerCase().includes(q.toLowerCase()),
+  );
+
+  const openNew = () => {
+    setEditing(null);
+    setOpen(true);
+  };
+  const openEdit = (i: Item) => {
+    setEditing(i);
+    setOpen(true);
+  };
+  const handleDelete = async (i: Item) => {
+    if (!window.confirm(`Excluir "${i.nome}"?`)) return;
+    try {
+      await deleteItem(i.id);
+      toast.success("Item excluído");
+    } catch (e: any) {
+      toast.error(e.message);
+    }
+  };
 
   return (
     <GestorLayout>
@@ -27,76 +63,85 @@ function EstoquePage() {
         <div className="relative flex-1 w-full max-w-md">
           <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
           <Input
-            placeholder="Buscar item..."
+            placeholder="Buscar por nome ou código..."
             className="pl-10 h-11 rounded-xl glass border-0"
             value={q}
             onChange={(e) => setQ(e.target.value)}
           />
         </div>
-        <div className="flex items-center rounded-lg bg-muted/50 p-1">
-          <Button
-            variant="ghost"
-            size="icon"
-            className={`h-8 w-8 rounded-md ${viewMode === "list" ? "bg-background shadow-sm" : ""}`}
-            onClick={() => setViewMode("list")}
-          >
-            <List className="w-4 h-4" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className={`h-8 w-8 rounded-md ${viewMode === "card" ? "bg-background shadow-sm" : ""}`}
-            onClick={() => setViewMode("card")}
-          >
-            <LayoutGrid className="w-4 h-4" />
-          </Button>
-        </div>
+        <Button onClick={openNew} className="h-11 rounded-xl gap-2">
+          <Plus className="w-4 h-4" /> Novo item
+        </Button>
       </div>
 
-      {viewMode === "list" ? (
+      {loadingItens ? (
+        <div className="bg-card rounded-xl border border-border shadow-sm p-4 space-y-3">
+          {[1, 2, 3, 4].map((i) => (
+            <Skeleton key={i} className="h-12 w-full rounded-lg" />
+          ))}
+        </div>
+      ) : filtrados.length === 0 ? (
+        <EmptyState
+          icon={Package}
+          title={q ? "Nenhum item encontrado" : "Estoque vazio"}
+          description={
+            q
+              ? "Tente outro termo de busca."
+              : "Cadastre o primeiro item para começar a controlar seu estoque."
+          }
+          actionLabel="Novo item"
+          onAction={openNew}
+        />
+      ) : (
         <div className="bg-card rounded-xl border border-border shadow-sm overflow-hidden">
           <div className="overflow-x-auto w-full">
             <table className="w-full text-sm text-left">
               <thead className="bg-muted/50 text-xs uppercase text-muted-foreground">
                 <tr>
-                  <th className="px-5 py-3 font-semibold">Tipo</th>
                   <th className="px-5 py-3 font-semibold">Nome</th>
-                  <th className="px-5 py-3 font-semibold">Custo</th>
-                  <th className="px-5 py-3 font-semibold">Venda</th>
-                  <th className="px-5 py-3 font-semibold">Margem</th>
-                  <th className="px-5 py-3 font-semibold">Estoque</th>
+                  <th className="px-5 py-3 font-semibold">Código</th>
+                  <th className="px-5 py-3 font-semibold">Quantidade</th>
+                  <th className="px-5 py-3 font-semibold">Valor unit.</th>
+                  <th className="px-5 py-3 font-semibold">Valor total</th>
+                  <th className="px-5 py-3 font-semibold w-24"></th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
                 {filtrados.map((i) => {
-                  const margem = i.custo > 0 ? ((i.venda - i.custo) / i.custo) * 100 : 100;
-                  const baixo = i.tipo === "Peça" && i.estoque < 10;
+                  const baixo = i.quantidade < 10;
+                  const total = i.quantidade * i.valor_unitario;
                   return (
                     <tr key={i.id} className="hover:bg-muted/30 transition-colors">
+                      <td className="px-5 py-3 font-medium">{i.nome}</td>
+                      <td className="px-5 py-3 text-muted-foreground">{i.codigo || "—"}</td>
                       <td className="px-5 py-3">
                         <span
-                          className={`text-[10px] px-2.5 py-1 rounded-full font-bold uppercase tracking-wider ${i.tipo === "Peça" ? "bg-info/10 text-info" : "bg-violet/10 text-violet"}`}
+                          className={`flex items-center gap-1.5 font-medium ${baixo ? "text-warning-foreground" : ""}`}
                         >
-                          {i.tipo}
+                          {baixo && <AlertTriangle className="w-3.5 h-3.5" />}
+                          {i.quantidade} un.
                         </span>
                       </td>
-                      <td className="px-5 py-3 font-medium">{i.nome}</td>
-                      <td className="px-5 py-3 text-muted-foreground">R$ {i.custo.toFixed(2)}</td>
-                      <td className="px-5 py-3 font-semibold">R$ {i.venda.toFixed(2)}</td>
-                      <td className="px-5 py-3">
-                        <span className="text-success font-medium">+{margem.toFixed(0)}%</span>
+                      <td className="px-5 py-3 font-semibold">
+                        R$ {i.valor_unitario.toFixed(2)}
+                      </td>
+                      <td className="px-5 py-3 font-semibold text-success">
+                        R$ {total.toFixed(2)}
                       </td>
                       <td className="px-5 py-3">
-                        {i.tipo === "Peça" ? (
-                          <span
-                            className={`flex items-center gap-1.5 font-medium ${baixo ? "text-warning-foreground" : ""}`}
+                        <div className="flex gap-1 justify-end">
+                          <Button variant="ghost" size="icon" onClick={() => openEdit(i)}>
+                            <Pencil className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                            onClick={() => handleDelete(i)}
                           >
-                            {baixo && <AlertTriangle className="w-3.5 h-3.5" />}
-                            {i.estoque} un.
-                          </span>
-                        ) : (
-                          <span className="text-muted-foreground">—</span>
-                        )}
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
                       </td>
                     </tr>
                   );
@@ -105,64 +150,130 @@ function EstoquePage() {
             </table>
           </div>
         </div>
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {filtrados.map((i) => {
-            const margem = i.custo > 0 ? ((i.venda - i.custo) / i.custo) * 100 : 100;
-            const Icon = i.tipo === "Peça" ? Package : Wrench;
-            const baixo = i.tipo === "Peça" && i.estoque < 10;
-            return (
-              <div
-                key={i.id}
-                className="rounded-3xl bg-card border border-border/60 p-5 shadow-[var(--shadow-card)] hover:-translate-y-1 hover:shadow-xl transition-all duration-300"
-              >
-                <div className="flex items-start justify-between">
-                  <div
-                    className={`w-12 h-12 rounded-2xl flex items-center justify-center ${i.tipo === "Peça" ? "bg-info/10 text-info" : "bg-violet/10 text-violet"}`}
-                  >
-                    <Icon className="w-5 h-5" />
-                  </div>
-                  <span
-                    className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider ${i.tipo === "Peça" ? "bg-info/10 text-info" : "bg-violet/10 text-violet"}`}
-                  >
-                    {i.tipo}
-                  </span>
-                </div>
-                <h3 className="font-bold text-base mt-4 leading-tight">{i.nome}</h3>
-
-                <div className="grid grid-cols-2 gap-2 mt-4">
-                  <div className="rounded-xl bg-muted/60 p-2.5">
-                    <div className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">
-                      Custo
-                    </div>
-                    <div className="font-semibold text-sm">R$ {i.custo.toFixed(2)}</div>
-                  </div>
-                  <div className="rounded-xl bg-muted/60 p-2.5">
-                    <div className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">
-                      Venda
-                    </div>
-                    <div className="font-bold text-sm">R$ {i.venda.toFixed(2)}</div>
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between mt-4 pt-4 border-t border-border/60">
-                  <span className="flex items-center gap-1 text-xs font-semibold text-success">
-                    <TrendingUp className="w-3 h-3" />+{margem.toFixed(0)}% margem
-                  </span>
-                  {i.tipo === "Peça" && (
-                    <span
-                      className={`text-xs font-semibold flex items-center gap-1 ${baixo ? "text-warning-foreground" : "text-muted-foreground"}`}
-                    >
-                      {baixo && <AlertTriangle className="w-3 h-3" />}
-                      {i.estoque} un.
-                    </span>
-                  )}
-                </div>
-              </div>
-            );
-          })}
-        </div>
       )}
+
+      <ItemDialog
+        open={open}
+        onOpenChange={setOpen}
+        item={editing}
+        onSubmit={async (data) => {
+          try {
+            if (editing) {
+              await updateItem(editing.id, data);
+              toast.success("Item atualizado");
+            } else {
+              await addItem(data);
+              toast.success("Item cadastrado");
+            }
+            setOpen(false);
+          } catch (e: any) {
+            toast.error(e.message);
+          }
+        }}
+      />
     </GestorLayout>
+  );
+}
+
+function ItemDialog({
+  open,
+  onOpenChange,
+  item,
+  onSubmit,
+}: {
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+  item: Item | null;
+  onSubmit: (data: Omit<Item, "id">) => Promise<void>;
+}) {
+  const [nome, setNome] = useState(item?.nome ?? "");
+  const [codigo, setCodigo] = useState(item?.codigo ?? "");
+  const [quantidade, setQuantidade] = useState(String(item?.quantidade ?? 0));
+  const [valor, setValor] = useState(String(item?.valor_unitario ?? 0));
+  const [saving, setSaving] = useState(false);
+
+  // Reset on open change
+  if (open && item && item.nome !== nome && nome === "") {
+    setNome(item.nome);
+    setCodigo(item.codigo);
+    setQuantidade(String(item.quantidade));
+    setValor(String(item.valor_unitario));
+  }
+
+  return (
+    <Dialog
+      open={open}
+      onOpenChange={(v) => {
+        onOpenChange(v);
+        if (!v) {
+          setNome(item?.nome ?? "");
+          setCodigo(item?.codigo ?? "");
+          setQuantidade(String(item?.quantidade ?? 0));
+          setValor(String(item?.valor_unitario ?? 0));
+        }
+      }}
+    >
+      <DialogContent className="sm:max-w-[450px]">
+        <DialogHeader>
+          <DialogTitle>{item ? "Editar item" : "Novo item"}</DialogTitle>
+        </DialogHeader>
+        <form
+          className="space-y-4 py-2"
+          onSubmit={async (e) => {
+            e.preventDefault();
+            if (!nome.trim()) {
+              toast.error("Nome obrigatório");
+              return;
+            }
+            setSaving(true);
+            await onSubmit({
+              nome: nome.trim(),
+              codigo: codigo.trim(),
+              quantidade: parseInt(quantidade, 10) || 0,
+              valor_unitario: parseFloat(valor) || 0,
+            });
+            setSaving(false);
+          }}
+        >
+          <div>
+            <Label>Nome *</Label>
+            <Input value={nome} onChange={(e) => setNome(e.target.value)} />
+          </div>
+          <div>
+            <Label>Código</Label>
+            <Input value={codigo} onChange={(e) => setCodigo(e.target.value)} />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <Label>Quantidade</Label>
+              <Input
+                type="number"
+                min="0"
+                value={quantidade}
+                onChange={(e) => setQuantidade(e.target.value)}
+              />
+            </div>
+            <div>
+              <Label>Valor unitário (R$)</Label>
+              <Input
+                type="number"
+                step="0.01"
+                min="0"
+                value={valor}
+                onChange={(e) => setValor(e.target.value)}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>
+              Cancelar
+            </Button>
+            <Button type="submit" disabled={saving}>
+              {saving ? "Salvando..." : item ? "Salvar" : "Cadastrar"}
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 }
