@@ -10,7 +10,6 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/EmptyState";
@@ -18,6 +17,18 @@ import { useStore, type Item } from "@/lib/mock-store";
 import { Package, Search, AlertTriangle, Plus, Pencil, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+
+const itemSchema = z.object({
+  nome: z.string().min(1, "Nome é obrigatório").max(255, "Nome muito longo"),
+  codigo: z.string().max(100, "Código muito longo").optional(),
+  quantidade: z.coerce.number().int("Quantidade deve ser um número inteiro").min(0, "Quantidade não pode ser negativa"),
+  valor_unitario: z.coerce.number().min(0, "Valor unitário não pode ser negativo"),
+});
+
+type ItemFormData = z.infer<typeof itemSchema>;
 
 export const Route = createFileRoute("/estoque")({
   component: () => (
