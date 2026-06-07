@@ -15,7 +15,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/EmptyState";
 import { useStore, type Item } from "@/lib/mock-store";
 import { Package, Search, AlertTriangle, Plus, Pencil, Trash2 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -218,15 +218,15 @@ function ItemDialog({
     },
   });
 
-  // Reset form when dialog opens with new data
-  useState(() => {
+  // Reset form when item changes
+  useEffect(() => {
     reset({
       nome: item?.nome ?? "",
       codigo: item?.codigo ?? "",
       quantidade: item?.quantidade ?? 0,
       valor_unitario: item?.valor_unitario ?? 0,
     });
-  });
+  }, [item, reset]);
 
   const handleFormSubmit = async (data: ItemFormData) => {
     await onSubmit({
