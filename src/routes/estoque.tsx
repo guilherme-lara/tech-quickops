@@ -10,14 +10,25 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/EmptyState";
 import { useStore, type Item } from "@/lib/mock-store";
 import { Package, Search, AlertTriangle, Plus, Pencil, Trash2 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+
+const itemSchema = z.object({
+  nome: z.string().min(1, "Nome é obrigatório").max(255, "Nome muito longo"),
+  codigo: z.string().max(100, "Código muito longo").optional(),
+  quantidade: z.coerce.number().int("Quantidade deve ser um número inteiro").min(0, "Quantidade não pode ser negativa"),
+  valor_unitario: z.coerce.number().min(0, "Valor unitário não pode ser negativo"),
+});
+
+type ItemFormData = z.infer<typeof itemSchema>;
 
 export const Route = createFileRoute("/estoque")({
   component: () => (
@@ -192,19 +203,39 @@ function ItemDialog({
   item: Item | null;
   onSubmit: (data: Omit<Item, "id">) => Promise<void>;
 }) {
-  const [nome, setNome] = useState(item?.nome ?? "");
-  const [codigo, setCodigo] = useState(item?.codigo ?? "");
-  const [quantidade, setQuantidade] = useState(String(item?.quantidade ?? 0));
-  const [valor, setValor] = useState(String(item?.valor_unitario ?? 0));
-  const [saving, setSaving] = useState(false);
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors, isSubmitting },
+  } = useForm<ItemFormData>({
+    resolver: zodResolver(itemSchema),
+    defaultValues: {
+      nome: item?.nome ?? "",
+      codigo: item?.codigo ?? "",
+      quantidade: item?.quantidade ?? 0,
+      valor_unitario: item?.valor_unitario ?? 0,
+    },
+  });
 
-  // Reset on open change
-  if (open && item && item.nome !== nome && nome === "") {
-    setNome(item.nome);
-    setCodigo(item.codigo);
-    setQuantidade(String(item.quantidade));
-    setValor(String(item.valor_unitario));
-  }
+  // Reset form when item changes
+  useEffect(() => {
+    reset({
+      nome: item?.nome ?? "",
+      codigo: item?.codigo ?? "",
+      quantidade: item?.quantidade ?? 0,
+      valor_unitario: item?.valor_unitario ?? 0,
+    });
+  }, [item, reset]);
+
+  const handleFormSubmit = async (data: ItemFormData) => {
+    await onSubmit({
+      nome: data.nome.trim(),
+      codigo: data.codigo?.trim() || "",
+      quantidade: data.quantidade,
+      valor_unitario: data.valor_unitario,
+    });
+  };
 
   return (
     <Dialog
@@ -212,10 +243,12 @@ function ItemDialog({
       onOpenChange={(v) => {
         onOpenChange(v);
         if (!v) {
-          setNome(item?.nome ?? "");
-          setCodigo(item?.codigo ?? "");
-          setQuantidade(String(item?.quantidade ?? 0));
-          setValor(String(item?.valor_unitario ?? 0));
+          reset({
+            nome: item?.nome ?? "",
+            codigo: item?.codigo ?? "",
+            quantidade: item?.quantidade ?? 0,
+            valor_unitario: item?.valor_unitario ?? 0,
+          });
         }
       }}
     >
@@ -223,59 +256,55 @@ function ItemDialog({
         <DialogHeader>
           <DialogTitle>{item ? "Editar item" : "Novo item"}</DialogTitle>
         </DialogHeader>
-        <form
-          className="space-y-4 py-2"
-          onSubmit={async (e) => {
-            e.preventDefault();
-            if (!nome.trim()) {
-              toast.error("Nome obrigatório");
-              return;
-            }
-            setSaving(true);
-            await onSubmit({
-              nome: nome.trim(),
-              codigo: codigo.trim(),
-              quantidade: parseInt(quantidade, 10) || 0,
-              valor_unitario: parseFloat(valor) || 0,
-            });
-            setSaving(false);
-          }}
-        >
+        <form className="space-y-4 py-2" onSubmit={handleSubmit(handleFormSubmit)}>
           <div>
-            <Label>Nome *</Label>
-            <Input value={nome} onChange={(e) => setNome(e.target.value)} />
+            <Label htmlFor="nome">Nome *</Label>
+            <Input id="nome" {...register("nome")} />
+            {errors.nome && (
+              <p className="text-sm text-destructive mt-1">{errors.nome.message}</p>
+            )}
           </div>
           <div>
-            <Label>Código</Label>
-            <Input value={codigo} onChange={(e) => setCodigo(e.target.value)} />
+            <Label htmlFor="codigo">Código</Label>
+            <Input id="codigo" {...register("codigo")} />
+            {errors.codigo && (
+              <p className="text-sm text-destructive mt-1">{errors.codigo.message}</p>
+            )}
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <Label>Quantidade</Label>
+              <Label htmlFor="quantidade">Quantidade</Label>
               <Input
+                id="quantidade"
                 type="number"
                 min="0"
-                value={quantidade}
-                onChange={(e) => setQuantidade(e.target.value)}
+                step="1"
+                {...register("quantidade")}
               />
+              {errors.quantidade && (
+                <p className="text-sm text-destructive mt-1">{errors.quantidade.message}</p>
+              )}
             </div>
             <div>
-              <Label>Valor unitário (R$)</Label>
+              <Label htmlFor="valor_unitario">Valor unitário (R$)</Label>
               <Input
+                id="valor_unitario"
                 type="number"
                 step="0.01"
                 min="0"
-                value={valor}
-                onChange={(e) => setValor(e.target.value)}
+                {...register("valor_unitario")}
               />
+              {errors.valor_unitario && (
+                <p className="text-sm text-destructive mt-1">{errors.valor_unitario.message}</p>
+              )}
             </div>
           </div>
           <DialogFooter>
             <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>
               Cancelar
             </Button>
-            <Button type="submit" disabled={saving}>
-              {saving ? "Salvando..." : item ? "Salvar" : "Cadastrar"}
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting ? "Salvando..." : item ? "Salvar" : "Cadastrar"}
             </Button>
           </DialogFooter>
         </form>
