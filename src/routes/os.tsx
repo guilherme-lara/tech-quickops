@@ -65,6 +65,7 @@ function OSPage() {
     clienteId: "",
     tecnicoId: "",
     valor: "",
+    custo_viagem: "",
     status: "Orçamento" as OSStatus,
   });
   const [viewMode, setViewMode] = useState<"list" | "card">("list");
@@ -80,11 +81,19 @@ function OSPage() {
       clienteId: form.clienteId,
       tecnicoId: form.tecnicoId,
       valor: Number(form.valor) || 0,
+      custo_viagem: Number(form.custo_viagem) || 0,
       status: form.status,
     });
     toast.success("OS criada com sucesso");
     setOpen(false);
-    setForm({ titulo: "", clienteId: "", tecnicoId: "", valor: "", status: "Orçamento" });
+    setForm({
+      titulo: "",
+      clienteId: "",
+      tecnicoId: "",
+      valor: "",
+      custo_viagem: "",
+      status: "Orçamento",
+    });
   };
 
   const onDragEnd = (e: DragEndEvent) => {
