@@ -57,6 +57,7 @@ export interface OS {
   status: OSStatus;
   criadaEm: string;
   valor: number;
+  custo_viagem?: number;
   rat: RAT;
 }
 
