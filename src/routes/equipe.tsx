@@ -7,6 +7,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Dialog,
   DialogContent,
   DialogHeader,
@@ -20,7 +27,9 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useStore } from "@/lib/mock-store";
+import { useStore, type TipoComissao } from "@/lib/mock-store";
+import { supabase } from "@/integrations/supabase/client";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   Phone,
   BadgeCheck,
@@ -30,7 +39,6 @@ import {
   LayoutGrid,
   MoreVertical,
   Edit2,
-  Trash2,
   Ban,
 } from "lucide-react";
 import { useState } from "react";
