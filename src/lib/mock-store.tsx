@@ -372,14 +372,16 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
   const addTecnicoM = useMutation({
     mutationFn: async (t: Omit<Tecnico, "id">) => {
-      const { error } = await supabase.from("tecnicos").insert({
+      const { error } = await (supabase.from("tecnicos") as any).insert({
         empresa_id: empresaId!,
         nome: t.nome,
         perfil: t.perfil,
         telefone: t.telefone,
         ativo: t.ativo,
         comissao: t.comissao,
+        tipo_comissao: t.tipo_comissao ?? "fixo",
         chave_pix: t.chave_pix,
+        username: t.username || null,
       });
       if (error) throw error;
     },
@@ -395,8 +397,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       if (patch.telefone !== undefined) dbPatch.telefone = patch.telefone;
       if (patch.ativo !== undefined) dbPatch.ativo = patch.ativo;
       if (patch.comissao !== undefined) dbPatch.comissao = patch.comissao;
+      if (patch.tipo_comissao !== undefined) dbPatch.tipo_comissao = patch.tipo_comissao;
       if (patch.chave_pix !== undefined) dbPatch.chave_pix = patch.chave_pix;
-      const { error } = await supabase.from("tecnicos").update(dbPatch as any).eq("id", id);
+      if (patch.username !== undefined) dbPatch.username = patch.username || null;
+      const { error } = await (supabase.from("tecnicos") as any).update(dbPatch).eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["tecnicos", empresaId] }),
