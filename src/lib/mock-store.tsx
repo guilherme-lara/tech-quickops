@@ -285,20 +285,22 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     queryKey: ["tecnicos", empresaId],
     enabled,
     queryFn: async (): Promise<Tecnico[]> => {
-      const { data, error } = await supabase
-        .from("tecnicos")
-        .select("id, nome, perfil, telefone, ativo, comissao, chave_pix")
+      const { data, error } = await (supabase
+        .from("tecnicos") as any)
+        .select("id, nome, perfil, telefone, ativo, comissao, tipo_comissao, chave_pix, username")
         .eq("empresa_id", empresaId!)
         .order("nome");
       if (error) throw error;
-      return (data ?? []).map((r) => ({
+      return ((data ?? []) as any[]).map((r) => ({
         id: r.id,
         nome: r.nome,
         perfil: r.perfil ?? "",
         telefone: r.telefone ?? "",
         ativo: r.ativo,
         comissao: Number(r.comissao || 0),
+        tipo_comissao: (r.tipo_comissao as TipoComissao) ?? "fixo",
         chave_pix: r.chave_pix ?? "",
+        username: r.username ?? "",
       }));
     },
   });
