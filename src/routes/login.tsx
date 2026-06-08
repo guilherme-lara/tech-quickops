@@ -114,13 +114,17 @@ function LoginPage() {
 
             <TabsContent value="login" className="space-y-4 mt-6">
               <div className="space-y-1.5">
-                <Label className="text-xs font-semibold">E-MAIL</Label>
+                <Label className="text-xs font-semibold">E-MAIL OU USUÁRIO</Label>
                 <Input
-                  type="email"
+                  type="text"
+                  placeholder="seu@email.com  ou  joao.adami"
                   value={loginEmail}
                   onChange={(e) => setLoginEmail(e.target.value)}
                   className="h-12 rounded-xl"
                 />
+                <p className="text-[11px] text-muted-foreground">
+                  Técnicos podem entrar apenas com o usuário (ex.: <code>joao.adami</code>).
+                </p>
               </div>
               <div className="space-y-1.5">
                 <Label className="text-xs font-semibold">SENHA</Label>
