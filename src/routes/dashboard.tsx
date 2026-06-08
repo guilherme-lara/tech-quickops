@@ -25,6 +25,16 @@ export const Route = createFileRoute("/dashboard")({
   ),
 });
 
+interface ProdRow {
+  tecnico_id: string;
+  nome: string;
+  os_concluidas: number;
+  faturamento: number;
+  custos_viagem: number;
+  custos_materiais: number;
+  comissao_pagar: number;
+}
+
 function Dashboard() {
   const { profile } = useAuth();
   const { os, clientes, tecnicos, loadingOS, loadingClientes } = useStore();
@@ -34,6 +44,26 @@ function Dashboard() {
   const concluidas = os.filter((o) => o.status === "Concluído").length;
   const emCampo = os.filter((o) => o.status === "Em Execução").length;
   const faturamento = os.filter((o) => o.status === "Concluído").reduce((s, o) => s + o.valor, 0);
+
+  const produtividadeQ = useQuery({
+    queryKey: ["vw_produtividade_tecnico", profile?.empresa_id],
+    enabled: !!profile && profile.role !== "tecnico",
+    queryFn: async (): Promise<ProdRow[]> => {
+      const { data, error } = await (supabase.from("vw_produtividade_tecnico" as any) as any)
+        .select("*")
+        .order("faturamento", { ascending: false });
+      if (error) throw error;
+      return ((data ?? []) as any[]).map((r) => ({
+        tecnico_id: r.tecnico_id,
+        nome: r.nome ?? "—",
+        os_concluidas: Number(r.os_concluidas ?? 0),
+        faturamento: Number(r.faturamento ?? 0),
+        custos_viagem: Number(r.custos_viagem ?? 0),
+        custos_materiais: Number(r.custos_materiais ?? 0),
+        comissao_pagar: Number(r.comissao_pagar ?? 0),
+      }));
+    },
+  });
 
   if (profile?.role === "tecnico") {
     return <Navigate to="/tecnico/os" replace />;
