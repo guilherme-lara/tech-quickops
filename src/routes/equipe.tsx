@@ -195,6 +195,29 @@ function EquipePage() {
                     placeholder="Ex.: Refrigeração, Elétrica"
                   />
                 </div>
+                {!form.id && (
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <Label>Usuário (login)</Label>
+                      <Input
+                        value={form.username}
+                        onChange={(e) =>
+                          setForm({ ...form, username: e.target.value.toLowerCase() })
+                        }
+                        placeholder="joao.adami"
+                      />
+                    </div>
+                    <div>
+                      <Label>Senha inicial</Label>
+                      <Input
+                        type="password"
+                        value={form.senha}
+                        onChange={(e) => setForm({ ...form, senha: e.target.value })}
+                        placeholder="Mín. 6 caracteres"
+                      />
+                    </div>
+                  </div>
+                )}
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <Label>Telefone</Label>
@@ -205,29 +228,53 @@ function EquipePage() {
                     />
                   </div>
                   <div>
-                    <Label>Comissão (%)</Label>
+                    <Label>Tipo de comissão</Label>
+                    <Select
+                      value={form.tipo_comissao}
+                      onValueChange={(v) =>
+                        setForm({ ...form, tipo_comissao: v as TipoComissao })
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="porcentagem">% sobre OS</SelectItem>
+                        <SelectItem value="fixo">Valor fixo (R$)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <Label>
+                      {form.tipo_comissao === "fixo" ? "Valor fixo (R$)" : "Comissão (%)"}
+                    </Label>
                     <Input
                       type="number"
+                      step="0.01"
                       value={form.comissao}
                       onChange={(e) => setForm({ ...form, comissao: e.target.value })}
-                      placeholder="Ex: 30"
+                      placeholder={form.tipo_comissao === "fixo" ? "Ex: 150,00" : "Ex: 30"}
+                    />
+                  </div>
+                  <div>
+                    <Label>Chave PIX</Label>
+                    <Input
+                      value={form.chave_pix}
+                      onChange={(e) => setForm({ ...form, chave_pix: e.target.value })}
+                      placeholder="Email, CPF, Celular ou Aleatória"
                     />
                   </div>
                 </div>
-                <div>
-                  <Label>Chave PIX</Label>
-                  <Input
-                    value={form.chave_pix}
-                    onChange={(e) => setForm({ ...form, chave_pix: e.target.value })}
-                    placeholder="Email, CPF, Celular ou Aleatória"
-                  />
-                </div>
               </div>
               <DialogFooter>
-                <Button variant="outline" onClick={() => setOpen(false)}>
+                <Button variant="outline" onClick={() => setOpen(false)} disabled={saving}>
                   Cancelar
                 </Button>
-                <Button onClick={submit}>Salvar</Button>
+                <Button onClick={submit} disabled={saving}>
+                  {saving ? "Salvando..." : "Salvar"}
+                </Button>
               </DialogFooter>
             </DialogContent>
           </Dialog>
