@@ -310,15 +310,14 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     queryKey: ["ordens_servico", empresaId],
     enabled,
     queryFn: async (): Promise<OS[]> => {
-      const { data, error } = await supabase
-        .from("ordens_servico")
+      const { data, error } = await (supabase.from("ordens_servico") as any)
         .select(
-          "id, numero, cliente_id, tecnico_id, titulo, status, valor, created_at, descricao_problema, solucao",
+          "id, numero, cliente_id, tecnico_id, titulo, status, valor, custo_viagem, created_at, descricao_problema, solucao",
         )
         .eq("empresa_id", empresaId!)
         .order("created_at", { ascending: false });
       if (error) throw error;
-      return (data ?? []).map((r) => ({
+      return ((data ?? []) as any[]).map((r) => ({
         id: r.id,
         numero: r.numero ?? "OS-?",
         clienteId: r.cliente_id,
@@ -327,6 +326,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         status: dbToUiStatus[r.status] ?? "Orçamento",
         criadaEm: (r.created_at ?? "").slice(0, 10),
         valor: Number(r.valor ?? 0),
+        custo_viagem: Number(r.custo_viagem ?? 0),
         rat: ratLocal[r.id] ?? { itens: [], evidencias: [] },
       }));
     },
