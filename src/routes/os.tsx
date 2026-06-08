@@ -201,13 +201,24 @@ function OSPage() {
                     </Select>
                   </div>
                 </div>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-3 gap-3">
                   <div>
                     <Label>Valor estimado</Label>
                     <Input
                       type="number"
+                      step="0.01"
                       value={form.valor}
                       onChange={(e) => setForm({ ...form, valor: e.target.value })}
+                    />
+                  </div>
+                  <div>
+                    <Label>Custo viagem (R$)</Label>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      value={form.custo_viagem}
+                      onChange={(e) => setForm({ ...form, custo_viagem: e.target.value })}
+                      placeholder="0,00"
                     />
                   </div>
                   <div>
