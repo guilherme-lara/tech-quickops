@@ -238,6 +238,70 @@ function Dashboard() {
           </div>
         </div>
       </div>
+
+      {/* PRODUTIVIDADE DA EQUIPE */}
+      <div className="mt-6 rounded-3xl bg-card p-4 md:p-6 shadow-[var(--shadow-card)] border border-border/60">
+        <div className="flex items-center justify-between mb-5">
+          <div>
+            <h3 className="font-bold text-lg flex items-center gap-2">
+              <Wallet className="w-4 h-4 text-primary" /> Produtividade da equipe
+            </h3>
+            <p className="text-xs text-muted-foreground">
+              OS concluídas, faturamento gerado, custos e comissão a pagar por técnico
+            </p>
+          </div>
+        </div>
+        {produtividadeQ.isLoading ? (
+          <div className="space-y-2">
+            {[1, 2, 3].map((i) => (
+              <Skeleton key={i} className="h-12 w-full rounded-xl" />
+            ))}
+          </div>
+        ) : produtividadeQ.error ? (
+          <div className="text-sm text-destructive py-4">
+            Erro ao carregar produtividade: {(produtividadeQ.error as Error).message}
+          </div>
+        ) : (produtividadeQ.data ?? []).length === 0 ? (
+          <div className="text-sm text-muted-foreground text-center py-8">
+            Nenhuma OS concluída no período ainda.
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm text-left">
+              <thead className="text-[10px] uppercase tracking-wider text-muted-foreground border-b border-border/60">
+                <tr>
+                  <th className="px-3 py-2 font-semibold">Técnico</th>
+                  <th className="px-3 py-2 font-semibold text-right">OS Concl.</th>
+                  <th className="px-3 py-2 font-semibold text-right">Faturamento</th>
+                  <th className="px-3 py-2 font-semibold text-right">Custo viagem</th>
+                  <th className="px-3 py-2 font-semibold text-right">Materiais</th>
+                  <th className="px-3 py-2 font-semibold text-right">Comissão a pagar</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border/60">
+                {(produtividadeQ.data ?? []).map((p) => (
+                  <tr key={p.tecnico_id} className="hover:bg-muted/30">
+                    <td className="px-3 py-2.5 font-medium">{p.nome}</td>
+                    <td className="px-3 py-2.5 text-right">{p.os_concluidas}</td>
+                    <td className="px-3 py-2.5 text-right font-semibold">
+                      R$ {p.faturamento.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                    </td>
+                    <td className="px-3 py-2.5 text-right text-muted-foreground">
+                      R$ {p.custos_viagem.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                    </td>
+                    <td className="px-3 py-2.5 text-right text-muted-foreground">
+                      R$ {p.custos_materiais.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                    </td>
+                    <td className="px-3 py-2.5 text-right font-bold text-primary">
+                      R$ {p.comissao_pagar.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
     </GestorLayout>
   );
 }
