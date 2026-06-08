@@ -76,10 +76,49 @@ export type Database = {
         }
         Relationships: []
       }
+      itens_inventario: {
+        Row: {
+          codigo: string | null
+          created_at: string
+          empresa_id: string
+          id: string
+          nome: string
+          quantidade: number
+          valor_unitario: number
+        }
+        Insert: {
+          codigo?: string | null
+          created_at?: string
+          empresa_id: string
+          id?: string
+          nome: string
+          quantidade?: number
+          valor_unitario?: number
+        }
+        Update: {
+          codigo?: string | null
+          created_at?: string
+          empresa_id?: string
+          id?: string
+          nome?: string
+          quantidade?: number
+          valor_unitario?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "itens_inventario_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: false
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ordens_servico: {
         Row: {
           cliente_id: string
           created_at: string
+          custo_viagem: number
           data_agendamento: string | null
           descricao_problema: string
           empresa_id: string
@@ -95,6 +134,7 @@ export type Database = {
         Insert: {
           cliente_id: string
           created_at?: string
+          custo_viagem?: number
           data_agendamento?: string | null
           descricao_problema?: string
           empresa_id: string
@@ -110,6 +150,7 @@ export type Database = {
         Update: {
           cliente_id?: string
           created_at?: string
+          custo_viagem?: number
           data_agendamento?: string | null
           descricao_problema?: string
           empresa_id?: string
@@ -142,6 +183,68 @@ export type Database = {
             columns: ["tecnico_id"]
             isOneToOne: false
             referencedRelation: "tecnicos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ordens_servico_tecnico_id_fkey"
+            columns: ["tecnico_id"]
+            isOneToOne: false
+            referencedRelation: "vw_produtividade_tecnico"
+            referencedColumns: ["tecnico_id"]
+          },
+        ]
+      }
+      os_inventario: {
+        Row: {
+          created_at: string
+          empresa_id: string
+          id: string
+          item_id: string
+          os_id: string
+          quantidade: number
+          valor_total_item: number
+          valor_unitario: number
+        }
+        Insert: {
+          created_at?: string
+          empresa_id: string
+          id?: string
+          item_id: string
+          os_id: string
+          quantidade: number
+          valor_total_item?: number
+          valor_unitario?: number
+        }
+        Update: {
+          created_at?: string
+          empresa_id?: string
+          id?: string
+          item_id?: string
+          os_id?: string
+          quantidade?: number
+          valor_total_item?: number
+          valor_unitario?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "os_inventario_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: false
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "os_inventario_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "itens_inventario"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "os_inventario_os_id_fkey"
+            columns: ["os_id"]
+            isOneToOne: false
+            referencedRelation: "ordens_servico"
             referencedColumns: ["id"]
           },
         ]
@@ -221,6 +324,9 @@ export type Database = {
           nome: string
           perfil: string | null
           telefone: string | null
+          tipo_comissao: Database["public"]["Enums"]["tipo_comissao_enum"]
+          user_id: string | null
+          username: string | null
         }
         Insert: {
           ativo?: boolean
@@ -232,6 +338,9 @@ export type Database = {
           nome: string
           perfil?: string | null
           telefone?: string | null
+          tipo_comissao?: Database["public"]["Enums"]["tipo_comissao_enum"]
+          user_id?: string | null
+          username?: string | null
         }
         Update: {
           ativo?: boolean
@@ -243,6 +352,9 @@ export type Database = {
           nome?: string
           perfil?: string | null
           telefone?: string | null
+          tipo_comissao?: Database["public"]["Enums"]["tipo_comissao_enum"]
+          user_id?: string | null
+          username?: string | null
         }
         Relationships: [
           {
@@ -256,9 +368,46 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      vw_produtividade_tecnico: {
+        Row: {
+          comissao_pagar: number | null
+          comissao_regra: number | null
+          custos_materiais: number | null
+          custos_viagem: number | null
+          empresa_id: string | null
+          faturamento: number | null
+          nome: string | null
+          os_concluidas: number | null
+          tecnico_id: string | null
+          tipo_comissao:
+            | Database["public"]["Enums"]["tipo_comissao_enum"]
+            | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tecnicos_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: false
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
+      criar_tecnico: {
+        Args: {
+          p_chave_pix?: string
+          p_comissao: number
+          p_dominio?: string
+          p_nome: string
+          p_senha: string
+          p_telefone?: string
+          p_tipo_comissao: Database["public"]["Enums"]["tipo_comissao_enum"]
+          p_username: string
+        }
+        Returns: string
+      }
       get_current_empresa_id: { Args: never; Returns: string }
       has_role: {
         Args: {
@@ -276,6 +425,7 @@ export type Database = {
         | "em_andamento"
         | "concluido"
         | "cancelado"
+      tipo_comissao_enum: "fixo" | "porcentagem"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -411,6 +561,7 @@ export const Constants = {
         "concluido",
         "cancelado",
       ],
+      tipo_comissao_enum: ["fixo", "porcentagem"],
     },
   },
 } as const
