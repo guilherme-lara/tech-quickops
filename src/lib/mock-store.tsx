@@ -449,10 +449,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
   // ---------------- Itens estoque ----------------
   const itensQ = useQuery({
-    queryKey: ["itens_estoque", empresaId],
+    queryKey: ["itens_inventario", empresaId],
     enabled,
     queryFn: async (): Promise<Item[]> => {
-      const { data, error } = await (supabase.from("itens_estoque" as any) as any)
+      const { data, error } = await (supabase.from("itens_inventario" as any) as any)
         .select("id, nome, codigo, quantidade, valor_unitario")
         .eq("empresa_id", empresaId!)
         .order("nome");
@@ -469,7 +469,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
   const addItemM = useMutation({
     mutationFn: async (i: Omit<Item, "id">) => {
-      const { error } = await (supabase.from("itens_estoque" as any) as any).insert({
+      const { error } = await (supabase.from("itens_inventario" as any) as any).insert({
         empresa_id: empresaId!,
         nome: i.nome,
         codigo: i.codigo || null,
@@ -478,7 +478,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       });
       if (error) throw error;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["itens_estoque", empresaId] }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["itens_inventario", empresaId] }),
     onError: (e: Error) => toast.error(e.message),
   });
 
@@ -489,21 +489,21 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       if (patch.codigo !== undefined) dbPatch.codigo = patch.codigo || null;
       if (patch.quantidade !== undefined) dbPatch.quantidade = patch.quantidade;
       if (patch.valor_unitario !== undefined) dbPatch.valor_unitario = patch.valor_unitario;
-      const { error } = await (supabase.from("itens_estoque" as any) as any)
+      const { error } = await (supabase.from("itens_inventario" as any) as any)
         .update(dbPatch)
         .eq("id", id);
       if (error) throw error;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["itens_estoque", empresaId] }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["itens_inventario", empresaId] }),
     onError: (e: Error) => toast.error(e.message),
   });
 
   const deleteItemM = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await (supabase.from("itens_estoque" as any) as any).delete().eq("id", id);
+      const { error } = await (supabase.from("itens_inventario" as any) as any).delete().eq("id", id);
       if (error) throw error;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["itens_estoque", empresaId] }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["itens_inventario", empresaId] }),
     onError: (e: Error) => toast.error(e.message),
   });
 
