@@ -16,6 +16,7 @@ export interface Cliente {
   telefone: string;
   email: string;
 }
+export type TipoComissao = "fixo" | "porcentagem";
 export interface Tecnico {
   id: string;
   nome: string;
@@ -23,7 +24,9 @@ export interface Tecnico {
   telefone: string;
   ativo: boolean;
   comissao?: number;
+  tipo_comissao?: TipoComissao;
   chave_pix?: string;
+  username?: string;
 }
 export interface Item {
   id: string;
