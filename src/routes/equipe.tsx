@@ -53,27 +53,26 @@ export const Route = createFileRoute("/equipe")({
 });
 
 function EquipePage() {
-  const { tecnicos, os, addTecnico, updateTecnico, deleteTecnico, loadingTecnicos } = useStore();
+  const { tecnicos, os, updateTecnico, deleteTecnico, loadingTecnicos } = useStore();
+  const qc = useQueryClient();
   const [open, setOpen] = useState(false);
-  const [form, setForm] = useState({
+  const [saving, setSaving] = useState(false);
+  const emptyForm = {
     id: "",
     nome: "",
     perfil: "Técnico de Campo",
     telefone: "",
+    username: "",
+    senha: "",
+    tipo_comissao: "porcentagem" as TipoComissao,
     comissao: "",
     chave_pix: "",
-  });
+  };
+  const [form, setForm] = useState(emptyForm);
   const [viewMode, setViewMode] = useState<"list" | "card">("list");
 
   const openNew = () => {
-    setForm({
-      id: "",
-      nome: "",
-      perfil: "Técnico de Campo",
-      telefone: "",
-      comissao: "",
-      chave_pix: "",
-    });
+    setForm(emptyForm);
     setOpen(true);
   };
 
@@ -83,6 +82,9 @@ function EquipePage() {
       nome: t.nome,
       perfil: t.perfil,
       telefone: t.telefone,
+      username: t.username || "",
+      senha: "",
+      tipo_comissao: (t.tipo_comissao as TipoComissao) || "porcentagem",
       comissao: t.comissao ? String(t.comissao) : "",
       chave_pix: t.chave_pix || "",
     });
@@ -98,29 +100,46 @@ function EquipePage() {
 
   const submit = async () => {
     if (!form.nome.trim()) return toast.error("Informe o nome do técnico");
+    setSaving(true);
     try {
       if (form.id) {
         await updateTecnico(form.id, {
-          ...form,
+          nome: form.nome,
+          perfil: form.perfil,
+          telefone: form.telefone,
           comissao: Number(form.comissao) || 0,
+          tipo_comissao: form.tipo_comissao,
+          chave_pix: form.chave_pix,
+          username: form.username,
           ativo: true,
         });
         toast.success("Técnico atualizado!");
       } else {
-        await addTecnico({ ...form, comissao: Number(form.comissao) || 0, ativo: true });
-        toast.success("Técnico cadastrado!");
+        // Novo técnico → cria auth user via RPC (sem perder sessão).
+        if (!form.username.trim()) return toast.error("Informe o usuário (ex: joao.adami)");
+        if (!/^[a-z0-9._-]+$/i.test(form.username))
+          return toast.error("Usuário inválido (use letras, números, . _ -)");
+        if (form.senha.length < 6) return toast.error("Senha deve ter ao menos 6 caracteres");
+
+        const { error } = await (supabase.rpc as any)("criar_tecnico", {
+          p_nome: form.nome,
+          p_username: form.username.toLowerCase(),
+          p_senha: form.senha,
+          p_tipo_comissao: form.tipo_comissao,
+          p_comissao: Number(form.comissao) || 0,
+          p_telefone: form.telefone || null,
+          p_chave_pix: form.chave_pix || null,
+        });
+        if (error) throw error;
+        qc.invalidateQueries({ queryKey: ["tecnicos"] });
+        toast.success("Técnico cadastrado! Login: " + form.username.toLowerCase());
       }
       setOpen(false);
-      setForm({
-        id: "",
-        nome: "",
-        perfil: "Técnico de Campo",
-        telefone: "",
-        comissao: "",
-        chave_pix: "",
-      });
+      setForm(emptyForm);
     } catch (e: any) {
       toast.error(e.message ?? "Erro ao salvar");
+    } finally {
+      setSaving(false);
     }
   };
 
