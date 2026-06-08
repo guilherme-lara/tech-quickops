@@ -65,6 +65,7 @@ function OSPage() {
     clienteId: "",
     tecnicoId: "",
     valor: "",
+    custo_viagem: "",
     status: "Orçamento" as OSStatus,
   });
   const [viewMode, setViewMode] = useState<"list" | "card">("list");
@@ -80,11 +81,19 @@ function OSPage() {
       clienteId: form.clienteId,
       tecnicoId: form.tecnicoId,
       valor: Number(form.valor) || 0,
+      custo_viagem: Number(form.custo_viagem) || 0,
       status: form.status,
     });
     toast.success("OS criada com sucesso");
     setOpen(false);
-    setForm({ titulo: "", clienteId: "", tecnicoId: "", valor: "", status: "Orçamento" });
+    setForm({
+      titulo: "",
+      clienteId: "",
+      tecnicoId: "",
+      valor: "",
+      custo_viagem: "",
+      status: "Orçamento",
+    });
   };
 
   const onDragEnd = (e: DragEndEvent) => {
@@ -192,13 +201,24 @@ function OSPage() {
                     </Select>
                   </div>
                 </div>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-3 gap-3">
                   <div>
                     <Label>Valor estimado</Label>
                     <Input
                       type="number"
+                      step="0.01"
                       value={form.valor}
                       onChange={(e) => setForm({ ...form, valor: e.target.value })}
+                    />
+                  </div>
+                  <div>
+                    <Label>Custo viagem (R$)</Label>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      value={form.custo_viagem}
+                      onChange={(e) => setForm({ ...form, custo_viagem: e.target.value })}
+                      placeholder="0,00"
                     />
                   </div>
                   <div>

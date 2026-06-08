@@ -4,6 +4,8 @@ import { createFileRoute, Link, Navigate } from "@tanstack/react-router";
 import { GestorLayout } from "@/components/GestorLayout";
 import { useStore, statusColor } from "@/lib/mock-store";
 import { Skeleton } from "@/components/ui/skeleton";
+import { supabase } from "@/integrations/supabase/client";
+import { useQuery } from "@tanstack/react-query";
 import {
   ClipboardList,
   CheckCircle2,
@@ -12,6 +14,7 @@ import {
   ArrowUpRight,
   Activity,
   Sparkles,
+  Wallet,
 } from "lucide-react";
 
 export const Route = createFileRoute("/dashboard")({
@@ -22,6 +25,16 @@ export const Route = createFileRoute("/dashboard")({
   ),
 });
 
+interface ProdRow {
+  tecnico_id: string;
+  nome: string;
+  os_concluidas: number;
+  faturamento: number;
+  custos_viagem: number;
+  custos_materiais: number;
+  comissao_pagar: number;
+}
+
 function Dashboard() {
   const { profile } = useAuth();
   const { os, clientes, tecnicos, loadingOS, loadingClientes } = useStore();
@@ -31,6 +44,26 @@ function Dashboard() {
   const concluidas = os.filter((o) => o.status === "Concluído").length;
   const emCampo = os.filter((o) => o.status === "Em Execução").length;
   const faturamento = os.filter((o) => o.status === "Concluído").reduce((s, o) => s + o.valor, 0);
+
+  const produtividadeQ = useQuery({
+    queryKey: ["vw_produtividade_tecnico", profile?.empresa_id],
+    enabled: !!profile && profile.role !== "tecnico",
+    queryFn: async (): Promise<ProdRow[]> => {
+      const { data, error } = await (supabase.from("vw_produtividade_tecnico" as any) as any)
+        .select("*")
+        .order("faturamento", { ascending: false });
+      if (error) throw error;
+      return ((data ?? []) as any[]).map((r) => ({
+        tecnico_id: r.tecnico_id,
+        nome: r.nome ?? "—",
+        os_concluidas: Number(r.os_concluidas ?? 0),
+        faturamento: Number(r.faturamento ?? 0),
+        custos_viagem: Number(r.custos_viagem ?? 0),
+        custos_materiais: Number(r.custos_materiais ?? 0),
+        comissao_pagar: Number(r.comissao_pagar ?? 0),
+      }));
+    },
+  });
 
   if (profile?.role === "tecnico") {
     return <Navigate to="/tecnico/os" replace />;
@@ -204,6 +237,70 @@ function Dashboard() {
             )}
           </div>
         </div>
+      </div>
+
+      {/* PRODUTIVIDADE DA EQUIPE */}
+      <div className="mt-6 rounded-3xl bg-card p-4 md:p-6 shadow-[var(--shadow-card)] border border-border/60">
+        <div className="flex items-center justify-between mb-5">
+          <div>
+            <h3 className="font-bold text-lg flex items-center gap-2">
+              <Wallet className="w-4 h-4 text-primary" /> Produtividade da equipe
+            </h3>
+            <p className="text-xs text-muted-foreground">
+              OS concluídas, faturamento gerado, custos e comissão a pagar por técnico
+            </p>
+          </div>
+        </div>
+        {produtividadeQ.isLoading ? (
+          <div className="space-y-2">
+            {[1, 2, 3].map((i) => (
+              <Skeleton key={i} className="h-12 w-full rounded-xl" />
+            ))}
+          </div>
+        ) : produtividadeQ.error ? (
+          <div className="text-sm text-destructive py-4">
+            Erro ao carregar produtividade: {(produtividadeQ.error as Error).message}
+          </div>
+        ) : (produtividadeQ.data ?? []).length === 0 ? (
+          <div className="text-sm text-muted-foreground text-center py-8">
+            Nenhuma OS concluída no período ainda.
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm text-left">
+              <thead className="text-[10px] uppercase tracking-wider text-muted-foreground border-b border-border/60">
+                <tr>
+                  <th className="px-3 py-2 font-semibold">Técnico</th>
+                  <th className="px-3 py-2 font-semibold text-right">OS Concl.</th>
+                  <th className="px-3 py-2 font-semibold text-right">Faturamento</th>
+                  <th className="px-3 py-2 font-semibold text-right">Custo viagem</th>
+                  <th className="px-3 py-2 font-semibold text-right">Materiais</th>
+                  <th className="px-3 py-2 font-semibold text-right">Comissão a pagar</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border/60">
+                {(produtividadeQ.data ?? []).map((p) => (
+                  <tr key={p.tecnico_id} className="hover:bg-muted/30">
+                    <td className="px-3 py-2.5 font-medium">{p.nome}</td>
+                    <td className="px-3 py-2.5 text-right">{p.os_concluidas}</td>
+                    <td className="px-3 py-2.5 text-right font-semibold">
+                      R$ {p.faturamento.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                    </td>
+                    <td className="px-3 py-2.5 text-right text-muted-foreground">
+                      R$ {p.custos_viagem.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                    </td>
+                    <td className="px-3 py-2.5 text-right text-muted-foreground">
+                      R$ {p.custos_materiais.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                    </td>
+                    <td className="px-3 py-2.5 text-right font-bold text-primary">
+                      R$ {p.comissao_pagar.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
     </GestorLayout>
   );

@@ -57,6 +57,7 @@ export interface OS {
   status: OSStatus;
   criadaEm: string;
   valor: number;
+  custo_viagem?: number;
   rat: RAT;
 }
 
@@ -309,15 +310,14 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     queryKey: ["ordens_servico", empresaId],
     enabled,
     queryFn: async (): Promise<OS[]> => {
-      const { data, error } = await supabase
-        .from("ordens_servico")
+      const { data, error } = await (supabase.from("ordens_servico") as any)
         .select(
-          "id, numero, cliente_id, tecnico_id, titulo, status, valor, created_at, descricao_problema, solucao",
+          "id, numero, cliente_id, tecnico_id, titulo, status, valor, custo_viagem, created_at, descricao_problema, solucao",
         )
         .eq("empresa_id", empresaId!)
         .order("created_at", { ascending: false });
       if (error) throw error;
-      return (data ?? []).map((r) => ({
+      return ((data ?? []) as any[]).map((r) => ({
         id: r.id,
         numero: r.numero ?? "OS-?",
         clienteId: r.cliente_id,
@@ -326,6 +326,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         status: dbToUiStatus[r.status] ?? "Orçamento",
         criadaEm: (r.created_at ?? "").slice(0, 10),
         valor: Number(r.valor ?? 0),
+        custo_viagem: Number(r.custo_viagem ?? 0),
         rat: ratLocal[r.id] ?? { itens: [], evidencias: [] },
       }));
     },
@@ -418,7 +419,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
   const addOSM = useMutation({
     mutationFn: async (o: Omit<OS, "id" | "numero" | "criadaEm" | "rat">) => {
-      const { error } = await supabase.from("ordens_servico").insert({
+      const { error } = await (supabase.from("ordens_servico") as any).insert({
         empresa_id: empresaId!,
         cliente_id: o.clienteId,
         tecnico_id: o.tecnicoId || null,
@@ -426,6 +427,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         descricao_problema: o.titulo,
         status: uiToDbStatus[o.status] as any,
         valor: o.valor,
+        custo_viagem: o.custo_viagem ?? 0,
       });
       if (error) throw error;
     },
@@ -439,6 +441,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       if (patch.status) dbPatch.status = uiToDbStatus[patch.status];
       if (patch.titulo !== undefined) dbPatch.titulo = patch.titulo;
       if (patch.valor !== undefined) dbPatch.valor = patch.valor;
+      if (patch.custo_viagem !== undefined) dbPatch.custo_viagem = patch.custo_viagem;
       if (patch.tecnicoId !== undefined) dbPatch.tecnico_id = patch.tecnicoId || null;
       const { error } = await (supabase.from("ordens_servico") as any).update(dbPatch).eq("id", id);
       if (error) throw error;
