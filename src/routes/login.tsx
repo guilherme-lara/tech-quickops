@@ -26,13 +26,17 @@ function LoginPage() {
   const doLogin = async () => {
     setLoading(true);
     try {
-      const { error } = await login(loginEmail, loginSenha);
+      // Se não houver "@", trata como username de técnico → completa domínio padrão.
+      const identifier = loginEmail.trim();
+      const emailToUse = identifier.includes("@")
+        ? identifier
+        : `${identifier.toLowerCase()}@quickops.com`;
+      const { error } = await login(emailToUse, loginSenha);
       if (error) {
         toast.error(error);
         return;
       }
       toast.success("Bem-vindo!");
-      // Hard redirect: limpa cache de rotas e força recarga da sessão.
       window.location.href = "/dashboard";
     } catch (err: any) {
       toast.error(err?.message ?? "Erro ao entrar");
@@ -110,13 +114,17 @@ function LoginPage() {
 
             <TabsContent value="login" className="space-y-4 mt-6">
               <div className="space-y-1.5">
-                <Label className="text-xs font-semibold">E-MAIL</Label>
+                <Label className="text-xs font-semibold">E-MAIL OU USUÁRIO</Label>
                 <Input
-                  type="email"
+                  type="text"
+                  placeholder="seu@email.com  ou  joao.adami"
                   value={loginEmail}
                   onChange={(e) => setLoginEmail(e.target.value)}
                   className="h-12 rounded-xl"
                 />
+                <p className="text-[11px] text-muted-foreground">
+                  Técnicos podem entrar apenas com o usuário (ex.: <code>joao.adami</code>).
+                </p>
               </div>
               <div className="space-y-1.5">
                 <Label className="text-xs font-semibold">SENHA</Label>

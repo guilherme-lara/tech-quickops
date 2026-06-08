@@ -7,6 +7,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Dialog,
   DialogContent,
   DialogHeader,
@@ -20,7 +27,9 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useStore } from "@/lib/mock-store";
+import { useStore, type TipoComissao } from "@/lib/mock-store";
+import { supabase } from "@/integrations/supabase/client";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   Phone,
   BadgeCheck,
@@ -30,7 +39,6 @@ import {
   LayoutGrid,
   MoreVertical,
   Edit2,
-  Trash2,
   Ban,
 } from "lucide-react";
 import { useState } from "react";
@@ -45,27 +53,26 @@ export const Route = createFileRoute("/equipe")({
 });
 
 function EquipePage() {
-  const { tecnicos, os, addTecnico, updateTecnico, deleteTecnico, loadingTecnicos } = useStore();
+  const { tecnicos, os, updateTecnico, deleteTecnico, loadingTecnicos } = useStore();
+  const qc = useQueryClient();
   const [open, setOpen] = useState(false);
-  const [form, setForm] = useState({
+  const [saving, setSaving] = useState(false);
+  const emptyForm = {
     id: "",
     nome: "",
     perfil: "Técnico de Campo",
     telefone: "",
+    username: "",
+    senha: "",
+    tipo_comissao: "porcentagem" as TipoComissao,
     comissao: "",
     chave_pix: "",
-  });
+  };
+  const [form, setForm] = useState(emptyForm);
   const [viewMode, setViewMode] = useState<"list" | "card">("list");
 
   const openNew = () => {
-    setForm({
-      id: "",
-      nome: "",
-      perfil: "Técnico de Campo",
-      telefone: "",
-      comissao: "",
-      chave_pix: "",
-    });
+    setForm(emptyForm);
     setOpen(true);
   };
 
@@ -75,6 +82,9 @@ function EquipePage() {
       nome: t.nome,
       perfil: t.perfil,
       telefone: t.telefone,
+      username: t.username || "",
+      senha: "",
+      tipo_comissao: (t.tipo_comissao as TipoComissao) || "porcentagem",
       comissao: t.comissao ? String(t.comissao) : "",
       chave_pix: t.chave_pix || "",
     });
@@ -90,29 +100,46 @@ function EquipePage() {
 
   const submit = async () => {
     if (!form.nome.trim()) return toast.error("Informe o nome do técnico");
+    setSaving(true);
     try {
       if (form.id) {
         await updateTecnico(form.id, {
-          ...form,
+          nome: form.nome,
+          perfil: form.perfil,
+          telefone: form.telefone,
           comissao: Number(form.comissao) || 0,
+          tipo_comissao: form.tipo_comissao,
+          chave_pix: form.chave_pix,
+          username: form.username,
           ativo: true,
         });
         toast.success("Técnico atualizado!");
       } else {
-        await addTecnico({ ...form, comissao: Number(form.comissao) || 0, ativo: true });
-        toast.success("Técnico cadastrado!");
+        // Novo técnico → cria auth user via RPC (sem perder sessão).
+        if (!form.username.trim()) return toast.error("Informe o usuário (ex: joao.adami)");
+        if (!/^[a-z0-9._-]+$/i.test(form.username))
+          return toast.error("Usuário inválido (use letras, números, . _ -)");
+        if (form.senha.length < 6) return toast.error("Senha deve ter ao menos 6 caracteres");
+
+        const { error } = await (supabase.rpc as any)("criar_tecnico", {
+          p_nome: form.nome,
+          p_username: form.username.toLowerCase(),
+          p_senha: form.senha,
+          p_tipo_comissao: form.tipo_comissao,
+          p_comissao: Number(form.comissao) || 0,
+          p_telefone: form.telefone || null,
+          p_chave_pix: form.chave_pix || null,
+        });
+        if (error) throw error;
+        qc.invalidateQueries({ queryKey: ["tecnicos"] });
+        toast.success("Técnico cadastrado! Login: " + form.username.toLowerCase());
       }
       setOpen(false);
-      setForm({
-        id: "",
-        nome: "",
-        perfil: "Técnico de Campo",
-        telefone: "",
-        comissao: "",
-        chave_pix: "",
-      });
+      setForm(emptyForm);
     } catch (e: any) {
       toast.error(e.message ?? "Erro ao salvar");
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -168,6 +195,29 @@ function EquipePage() {
                     placeholder="Ex.: Refrigeração, Elétrica"
                   />
                 </div>
+                {!form.id && (
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <Label>Usuário (login)</Label>
+                      <Input
+                        value={form.username}
+                        onChange={(e) =>
+                          setForm({ ...form, username: e.target.value.toLowerCase() })
+                        }
+                        placeholder="joao.adami"
+                      />
+                    </div>
+                    <div>
+                      <Label>Senha inicial</Label>
+                      <Input
+                        type="password"
+                        value={form.senha}
+                        onChange={(e) => setForm({ ...form, senha: e.target.value })}
+                        placeholder="Mín. 6 caracteres"
+                      />
+                    </div>
+                  </div>
+                )}
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <Label>Telefone</Label>
@@ -178,29 +228,53 @@ function EquipePage() {
                     />
                   </div>
                   <div>
-                    <Label>Comissão (%)</Label>
+                    <Label>Tipo de comissão</Label>
+                    <Select
+                      value={form.tipo_comissao}
+                      onValueChange={(v) =>
+                        setForm({ ...form, tipo_comissao: v as TipoComissao })
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="porcentagem">% sobre OS</SelectItem>
+                        <SelectItem value="fixo">Valor fixo (R$)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <Label>
+                      {form.tipo_comissao === "fixo" ? "Valor fixo (R$)" : "Comissão (%)"}
+                    </Label>
                     <Input
                       type="number"
+                      step="0.01"
                       value={form.comissao}
                       onChange={(e) => setForm({ ...form, comissao: e.target.value })}
-                      placeholder="Ex: 30"
+                      placeholder={form.tipo_comissao === "fixo" ? "Ex: 150,00" : "Ex: 30"}
+                    />
+                  </div>
+                  <div>
+                    <Label>Chave PIX</Label>
+                    <Input
+                      value={form.chave_pix}
+                      onChange={(e) => setForm({ ...form, chave_pix: e.target.value })}
+                      placeholder="Email, CPF, Celular ou Aleatória"
                     />
                   </div>
                 </div>
-                <div>
-                  <Label>Chave PIX</Label>
-                  <Input
-                    value={form.chave_pix}
-                    onChange={(e) => setForm({ ...form, chave_pix: e.target.value })}
-                    placeholder="Email, CPF, Celular ou Aleatória"
-                  />
-                </div>
               </div>
               <DialogFooter>
-                <Button variant="outline" onClick={() => setOpen(false)}>
+                <Button variant="outline" onClick={() => setOpen(false)} disabled={saving}>
                   Cancelar
                 </Button>
-                <Button onClick={submit}>Salvar</Button>
+                <Button onClick={submit} disabled={saving}>
+                  {saving ? "Salvando..." : "Salvar"}
+                </Button>
               </DialogFooter>
             </DialogContent>
           </Dialog>
