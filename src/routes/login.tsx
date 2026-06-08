@@ -26,13 +26,17 @@ function LoginPage() {
   const doLogin = async () => {
     setLoading(true);
     try {
-      const { error } = await login(loginEmail, loginSenha);
+      // Se não houver "@", trata como username de técnico → completa domínio padrão.
+      const identifier = loginEmail.trim();
+      const emailToUse = identifier.includes("@")
+        ? identifier
+        : `${identifier.toLowerCase()}@quickops.com`;
+      const { error } = await login(emailToUse, loginSenha);
       if (error) {
         toast.error(error);
         return;
       }
       toast.success("Bem-vindo!");
-      // Hard redirect: limpa cache de rotas e força recarga da sessão.
       window.location.href = "/dashboard";
     } catch (err: any) {
       toast.error(err?.message ?? "Erro ao entrar");
