@@ -32,7 +32,7 @@ const navItems = [
   { to: "/os", label: "Ordens de Serviço", icon: ClipboardList },
   { to: "/clientes", label: "Clientes", icon: Users },
   { to: "/equipe", label: "Equipe", icon: UsersRound },
-  { to: "/estoque", label: "Estoque", icon: Package },
+  { to: "/estoque", label: "Inventário", icon: Package },
   { to: "/configuracoes", label: "Configurações", icon: Settings },
 ] as const;
 
