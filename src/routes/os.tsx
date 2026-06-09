@@ -478,117 +478,163 @@ function OSCard({ ordem, cliente, tecnico }: { ordem: OS; cliente: any; tecnico:
   );
 }
 
-function EditableOSRow({
+function EditOSDialog({
   ordem,
-  clienteNome,
+  clientes,
   tecnicos,
-  onUpdate,
+  onClose,
+  onSave,
 }: {
-  ordem: OS;
-  clienteNome: string;
+  ordem: OS | null;
+  clientes: { id: string; nomeFantasia: string }[];
   tecnicos: { id: string; nome: string }[];
-  onUpdate: (id: string, patch: Partial<OS>) => Promise<void>;
+  onClose: () => void;
+  onSave: (patch: Partial<OS>) => Promise<void>;
 }) {
-  const [valorStr, setValorStr] = useState(String(ordem.valor ?? 0));
-  const [editingValor, setEditingValor] = useState(false);
+  const [form, setForm] = useState({
+    titulo: "",
+    clienteId: "",
+    tecnicoId: "",
+    valor: "",
+    custo_viagem: "",
+    status: "Orçamento" as OSStatus,
+  });
+  const [saving, setSaving] = useState(false);
 
-  // Keep local input in sync when parent data changes (e.g., realtime updates)
-  if (!editingValor && valorStr !== String(ordem.valor ?? 0)) {
-    // noop — avoid loops; only sync via blur/commit
-  }
-
-  const commit = async (patch: Partial<OS>, label: string) => {
-    try {
-      await onUpdate(ordem.id, patch);
-      toast.success(`${label} atualizado`);
-    } catch (e: any) {
-      toast.error(e?.message ?? "Erro ao atualizar");
+  useEffect(() => {
+    if (ordem) {
+      setForm({
+        titulo: ordem.titulo ?? "",
+        clienteId: ordem.clienteId ?? "",
+        tecnicoId: ordem.tecnicoId ?? "",
+        valor: String(ordem.valor ?? 0),
+        custo_viagem: String(ordem.custo_viagem ?? 0),
+        status: ordem.status,
+      });
     }
-  };
+  }, [ordem]);
 
-  const commitValor = async () => {
-    setEditingValor(false);
-    const novo = Number(valorStr.replace(",", "."));
-    if (Number.isNaN(novo) || novo < 0) {
-      toast.error("Valor inválido");
-      setValorStr(String(ordem.valor ?? 0));
+  const handleSave = async () => {
+    if (!ordem) return;
+    if (!form.titulo || !form.clienteId || !form.tecnicoId) {
+      toast.error("Preencha todos os campos");
       return;
     }
-    if (novo === ordem.valor) return;
-    await commit({ valor: novo }, "Valor");
+    setSaving(true);
+    try {
+      await onSave({
+        titulo: form.titulo,
+        clienteId: form.clienteId,
+        tecnicoId: form.tecnicoId,
+        valor: Number(form.valor) || 0,
+        custo_viagem: Number(form.custo_viagem) || 0,
+        status: form.status,
+      });
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
-    <tr className="hover:bg-muted/30 transition-colors">
-      <td className="px-5 py-3 font-medium whitespace-nowrap">{ordem.numero}</td>
-      <td className="px-5 py-3 whitespace-nowrap">
-        <Select
-          value={ordem.status}
-          onValueChange={(v) => commit({ status: v as OSStatus }, "Status")}
-        >
-          <SelectTrigger
-            className={`h-8 w-[150px] border-0 font-bold uppercase tracking-wider text-[10px] ${statusColor[ordem.status]}`}
-          >
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {colunas.map((c) => (
-              <SelectItem key={c} value={c}>
-                {c}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </td>
-      <td className="px-5 py-3 font-medium min-w-[200px]">{ordem.titulo}</td>
-      <td className="px-5 py-3 text-muted-foreground whitespace-nowrap">
-        <span className="flex items-center gap-1.5">
-          <User className="w-3.5 h-3.5" />
-          {clienteNome}
-        </span>
-      </td>
-      <td className="px-5 py-3 whitespace-nowrap">
-        <Select
-          value={ordem.tecnicoId}
-          onValueChange={(v) => commit({ tecnicoId: v }, "Técnico")}
-        >
-          <SelectTrigger className="h-8 w-[160px]">
-            <SelectValue placeholder="Selecione..." />
-          </SelectTrigger>
-          <SelectContent>
-            {tecnicos.map((t) => (
-              <SelectItem key={t.id} value={t.id}>
-                {t.nome}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </td>
-      <td className="px-5 py-3 font-semibold whitespace-nowrap">
-        <Input
-          type="number"
-          step="0.01"
-          min="0"
-          className="h-8 w-28"
-          value={editingValor ? valorStr : String(ordem.valor ?? 0)}
-          onFocus={() => {
-            setValorStr(String(ordem.valor ?? 0));
-            setEditingValor(true);
-          }}
-          onChange={(e) => setValorStr(e.target.value)}
-          onBlur={commitValor}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") (e.target as HTMLInputElement).blur();
-            if (e.key === "Escape") {
-              setValorStr(String(ordem.valor ?? 0));
-              setEditingValor(false);
-            }
-          }}
-        />
-      </td>
-      <td className="px-5 py-3 text-right">
-        <RatGallery osId={ordem.id} />
-      </td>
-    </tr>
+    <Dialog open={!!ordem} onOpenChange={(v) => !v && onClose()}>
+      <DialogContent className="rounded-2xl">
+        <DialogHeader>
+          <DialogTitle>Editar OS {ordem?.numero}</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-3">
+          <div>
+            <Label>Título</Label>
+            <Input
+              value={form.titulo}
+              onChange={(e) => setForm({ ...form, titulo: e.target.value })}
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <Label>Cliente</Label>
+              <Select
+                value={form.clienteId}
+                onValueChange={(v) => setForm({ ...form, clienteId: v })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {clientes.map((c) => (
+                    <SelectItem key={c.id} value={c.id}>
+                      {c.nomeFantasia}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>Técnico</Label>
+              <Select
+                value={form.tecnicoId}
+                onValueChange={(v) => setForm({ ...form, tecnicoId: v })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {tecnicos.map((t) => (
+                    <SelectItem key={t.id} value={t.id}>
+                      {t.nome}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <div className="grid grid-cols-3 gap-3">
+            <div>
+              <Label>Valor</Label>
+              <Input
+                type="number"
+                step="0.01"
+                value={form.valor}
+                onChange={(e) => setForm({ ...form, valor: e.target.value })}
+              />
+            </div>
+            <div>
+              <Label>Custo viagem</Label>
+              <Input
+                type="number"
+                step="0.01"
+                value={form.custo_viagem}
+                onChange={(e) => setForm({ ...form, custo_viagem: e.target.value })}
+              />
+            </div>
+            <div>
+              <Label>Status</Label>
+              <Select
+                value={form.status}
+                onValueChange={(v) => setForm({ ...form, status: v as OSStatus })}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {colunas.map((c) => (
+                    <SelectItem key={c} value={c}>
+                      {c}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose} disabled={saving}>
+            Cancelar
+          </Button>
+          <Button onClick={handleSave} disabled={saving}>
+            {saving ? "Salvando..." : "Salvar"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
