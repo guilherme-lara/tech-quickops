@@ -60,6 +60,7 @@ const colunas: OSStatus[] = ["Orçamento", "Aprovado", "Em Execução", "Conclu�
 function OSPage() {
   const { os, clientes, tecnicos, addOS, updateOS, loadingOS } = useStore();
   const [open, setOpen] = useState(false);
+  const [editing, setEditing] = useState<OS | null>(null);
   const [form, setForm] = useState({
     titulo: "",
     clienteId: "",
