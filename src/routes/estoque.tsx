@@ -94,11 +94,11 @@ function EstoquePage() {
       ) : filtrados.length === 0 ? (
         <EmptyState
           icon={Package}
-          title={q ? "Nenhum item encontrado" : "Estoque vazio"}
+          title={q ? "Nenhum item encontrado" : "Inventário vazio"}
           description={
             q
               ? "Tente outro termo de busca."
-              : "Cadastre o primeiro item para começar a controlar seu estoque."
+              : "Cadastre o primeiro item para começar a controlar seu inventário."
           }
           action={
             !q ? (
