@@ -369,6 +369,23 @@ function OSPage() {
           </div>
         </DndContext>
       )}
+
+      <EditOSDialog
+        ordem={editing}
+        clientes={clientes}
+        tecnicos={tecnicos}
+        onClose={() => setEditing(null)}
+        onSave={async (patch) => {
+          if (!editing) return;
+          try {
+            await updateOS(editing.id, patch);
+            toast.success("OS atualizada");
+            setEditing(null);
+          } catch (e: any) {
+            toast.error(e?.message ?? "Erro ao atualizar");
+          }
+        }}
+      />
     </GestorLayout>
   );
 }
