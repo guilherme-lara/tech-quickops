@@ -429,3 +429,118 @@ function OSCard({ ordem, cliente, tecnico }: { ordem: OS; cliente: any; tecnico:
     </div>
   );
 }
+
+function EditableOSRow({
+  ordem,
+  clienteNome,
+  tecnicos,
+  onUpdate,
+}: {
+  ordem: OS;
+  clienteNome: string;
+  tecnicos: { id: string; nome: string }[];
+  onUpdate: (id: string, patch: Partial<OS>) => Promise<void>;
+}) {
+  const [valorStr, setValorStr] = useState(String(ordem.valor ?? 0));
+  const [editingValor, setEditingValor] = useState(false);
+
+  // Keep local input in sync when parent data changes (e.g., realtime updates)
+  if (!editingValor && valorStr !== String(ordem.valor ?? 0)) {
+    // noop — avoid loops; only sync via blur/commit
+  }
+
+  const commit = async (patch: Partial<OS>, label: string) => {
+    try {
+      await onUpdate(ordem.id, patch);
+      toast.success(`${label} atualizado`);
+    } catch (e: any) {
+      toast.error(e?.message ?? "Erro ao atualizar");
+    }
+  };
+
+  const commitValor = async () => {
+    setEditingValor(false);
+    const novo = Number(valorStr.replace(",", "."));
+    if (Number.isNaN(novo) || novo < 0) {
+      toast.error("Valor inválido");
+      setValorStr(String(ordem.valor ?? 0));
+      return;
+    }
+    if (novo === ordem.valor) return;
+    await commit({ valor: novo }, "Valor");
+  };
+
+  return (
+    <tr className="hover:bg-muted/30 transition-colors">
+      <td className="px-5 py-3 font-medium whitespace-nowrap">{ordem.numero}</td>
+      <td className="px-5 py-3 whitespace-nowrap">
+        <Select
+          value={ordem.status}
+          onValueChange={(v) => commit({ status: v as OSStatus }, "Status")}
+        >
+          <SelectTrigger
+            className={`h-8 w-[150px] border-0 font-bold uppercase tracking-wider text-[10px] ${statusColor[ordem.status]}`}
+          >
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {colunas.map((c) => (
+              <SelectItem key={c} value={c}>
+                {c}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </td>
+      <td className="px-5 py-3 font-medium min-w-[200px]">{ordem.titulo}</td>
+      <td className="px-5 py-3 text-muted-foreground whitespace-nowrap">
+        <span className="flex items-center gap-1.5">
+          <User className="w-3.5 h-3.5" />
+          {clienteNome}
+        </span>
+      </td>
+      <td className="px-5 py-3 whitespace-nowrap">
+        <Select
+          value={ordem.tecnicoId}
+          onValueChange={(v) => commit({ tecnicoId: v }, "Técnico")}
+        >
+          <SelectTrigger className="h-8 w-[160px]">
+            <SelectValue placeholder="Selecione..." />
+          </SelectTrigger>
+          <SelectContent>
+            {tecnicos.map((t) => (
+              <SelectItem key={t.id} value={t.id}>
+                {t.nome}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </td>
+      <td className="px-5 py-3 font-semibold whitespace-nowrap">
+        <Input
+          type="number"
+          step="0.01"
+          min="0"
+          className="h-8 w-28"
+          value={editingValor ? valorStr : String(ordem.valor ?? 0)}
+          onFocus={() => {
+            setValorStr(String(ordem.valor ?? 0));
+            setEditingValor(true);
+          }}
+          onChange={(e) => setValorStr(e.target.value)}
+          onBlur={commitValor}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") (e.target as HTMLInputElement).blur();
+            if (e.key === "Escape") {
+              setValorStr(String(ordem.valor ?? 0));
+              setEditingValor(false);
+            }
+          }}
+        />
+      </td>
+      <td className="px-5 py-3 text-right">
+        <RatGallery osId={ordem.id} />
+      </td>
+    </tr>
+  );
+}
