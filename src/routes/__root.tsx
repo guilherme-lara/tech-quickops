@@ -42,7 +42,15 @@ export const Route = createRootRoute({
       { title: "QuickOps — Gestão de Ordens de Serviço" },
       { name: "description", content: "QuickOps: SaaS B2B para gestão de OS e RAT digital." },
     ],
-    links: [{ rel: "stylesheet", href: appCss }],
+    links: [
+      { rel: "preconnect", href: "https://fonts.googleapis.com" },
+      { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
+      {
+        rel: "stylesheet",
+        href: "https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap",
+      },
+      { rel: "stylesheet", href: appCss },
+    ],
   }),
   shellComponent: RootShell,
   component: RootComponent,
