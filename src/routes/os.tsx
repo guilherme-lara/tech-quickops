@@ -306,37 +306,14 @@ function OSPage() {
               <tbody className="divide-y divide-border">
                 {os.map((o) => {
                   const cliente = clientes.find((c) => c.id === o.clienteId);
-                  const tecnico = tecnicos.find((t) => t.id === o.tecnicoId);
                   return (
-                    <tr key={o.id} className="hover:bg-muted/30 transition-colors">
-                      <td className="px-5 py-3 font-medium whitespace-nowrap">{o.numero}</td>
-                      <td className="px-5 py-3 whitespace-nowrap">
-                        <span
-                          className={`text-[10px] px-2.5 py-1 rounded-full font-bold uppercase tracking-wider ${statusColor[o.status]}`}
-                        >
-                          {o.status}
-                        </span>
-                      </td>
-                      <td className="px-5 py-3 font-medium min-w-[200px]">{o.titulo}</td>
-                      <td className="px-5 py-3 text-muted-foreground whitespace-nowrap">
-                        <span className="flex items-center gap-1.5">
-                          <User className="w-3.5 h-3.5" />
-                          {cliente?.nomeFantasia}
-                        </span>
-                      </td>
-                      <td className="px-5 py-3 text-muted-foreground whitespace-nowrap">
-                        <span className="flex items-center gap-1.5">
-                          <HardHat className="w-3.5 h-3.5" />
-                          {tecnico?.nome.split(" ")[0]}
-                        </span>
-                      </td>
-                      <td className="px-5 py-3 font-semibold whitespace-nowrap">
-                        R$ {o.valor.toLocaleString("pt-BR")}
-                      </td>
-                      <td className="px-5 py-3 text-right">
-                        <RatGallery osId={o.id} />
-                      </td>
-                    </tr>
+                    <EditableOSRow
+                      key={o.id}
+                      ordem={o}
+                      clienteNome={cliente?.nomeFantasia ?? "—"}
+                      tecnicos={tecnicos}
+                      onUpdate={updateOS}
+                    />
                   );
                 })}
               </tbody>
