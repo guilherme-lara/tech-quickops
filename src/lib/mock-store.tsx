@@ -131,9 +131,13 @@ interface Store {
 
   os: OS[];
   loadingOS: boolean;
+  osPage: number;
+  osTotal: number;
+  setOsPage: (p: number) => void;
   addOS: (o: Omit<OS, "id" | "numero" | "criadaEm" | "rat">) => Promise<void>;
   updateOS: (id: string, patch: Partial<OS>) => Promise<void>;
   updateRAT: (id: string, patch: Partial<RAT>) => void;
+
 
   updateProfile: (nome: string) => Promise<void>;
   updateEmpresa: (nome: string) => Promise<void>;
