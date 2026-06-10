@@ -704,6 +704,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     },
     os: osQ.data ?? [],
     loadingOS: osQ.isLoading,
+    osPage,
+    osTotal,
+    setOsPage,
+
     addOS: async (o) => {
       await addOSM.mutateAsync(o);
     },
