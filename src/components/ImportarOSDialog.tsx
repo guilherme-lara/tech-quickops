@@ -301,7 +301,9 @@ export function ImportarOSDialog({ trigger }: Props) {
         valor: r.valor,
         status: "pendente" as const,
         data_agendamento: r.data,
+        dados_adicionais: r.dadosAdicionais ?? {},
       }));
+
 
       const chunkSize = 100;
       let inseridas = 0;
