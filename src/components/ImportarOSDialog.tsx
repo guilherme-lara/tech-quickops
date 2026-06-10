@@ -226,6 +226,11 @@ export function ImportarOSDialog({ trigger }: Props) {
       // 2) Detecta novos clientes/técnicos
       const novosCli = new Set<string>();
       const novosTec = new Set<string>();
+      const mappedCols = new Set(
+        (Object.values(mapping) as string[]).filter((v) => v && v.length > 0),
+      );
+      const extraCols = headers.filter((h) => !mappedCols.has(h));
+
       const mapped = rows
         .map((r) => {
           const cli = String(r[mapping.cliente] ?? "").trim();
@@ -237,9 +242,17 @@ export function ImportarOSDialog({ trigger }: Props) {
           if (cli && !cliMap.has(cli.toLowerCase())) novosCli.add(cli);
           if (tec && !tecMap.has(tec.toLowerCase())) novosTec.add(tec);
 
-          return { cli, desc, tec, valor, data };
+          // Captura colunas extras como dados_adicionais
+          const dadosAdicionais: Record<string, any> = {};
+          for (const col of extraCols) {
+            const v = r[col];
+            if (v !== "" && v != null) dadosAdicionais[col] = v;
+          }
+
+          return { cli, desc, tec, valor, data, dadosAdicionais };
         })
         .filter((r) => r.cli && r.desc);
+
 
       if (mapped.length === 0) {
         toast.error("Nenhuma linha válida (cliente + descrição obrigatórios)");
@@ -288,7 +301,9 @@ export function ImportarOSDialog({ trigger }: Props) {
         valor: r.valor,
         status: "pendente" as const,
         data_agendamento: r.data,
+        dados_adicionais: r.dadosAdicionais ?? {},
       }));
+
 
       const chunkSize = 100;
       let inseridas = 0;

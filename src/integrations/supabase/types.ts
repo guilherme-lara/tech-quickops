@@ -119,6 +119,7 @@ export type Database = {
           cliente_id: string
           created_at: string
           custo_viagem: number
+          dados_adicionais: Json
           data_agendamento: string | null
           descricao_problema: string
           empresa_id: string
@@ -135,6 +136,7 @@ export type Database = {
           cliente_id: string
           created_at?: string
           custo_viagem?: number
+          dados_adicionais?: Json
           data_agendamento?: string | null
           descricao_problema?: string
           empresa_id: string
@@ -151,6 +153,7 @@ export type Database = {
           cliente_id?: string
           created_at?: string
           custo_viagem?: number
+          dados_adicionais?: Json
           data_agendamento?: string | null
           descricao_problema?: string
           empresa_id?: string

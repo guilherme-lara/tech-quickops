@@ -19,7 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useStore, statusColor, OSStatus, OS } from "@/lib/mock-store";
+import { useStore, statusColor, OSStatus, OS, OS_PAGE_SIZE } from "@/lib/mock-store";
 import {
   Plus,
   User,
@@ -29,6 +29,8 @@ import {
   ClipboardList,
   List,
   LayoutGrid,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -58,7 +60,8 @@ export const Route = createFileRoute("/os")({
 const colunas: OSStatus[] = ["Orçamento", "Aprovado", "Em Execução", "Concluído", "Cancelado"];
 
 function OSPage() {
-  const { os, clientes, tecnicos, addOS, updateOS, loadingOS } = useStore();
+  const { os, clientes, tecnicos, addOS, updateOS, loadingOS, osPage, osTotal, setOsPage } = useStore();
+  const totalPages = Math.max(1, Math.ceil(osTotal / OS_PAGE_SIZE));
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<OS | null>(null);
   const [form, setForm] = useState({
@@ -370,6 +373,39 @@ function OSPage() {
         </DndContext>
       )}
 
+      {os.length > 0 && viewMode === "list" && (
+        <div className="flex items-center justify-between mt-4 px-1">
+          <p className="text-xs text-muted-foreground">
+            Mostrando {osPage * OS_PAGE_SIZE + 1}–{Math.min((osPage + 1) * OS_PAGE_SIZE, osTotal)} de {osTotal} OS
+          </p>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setOsPage(Math.max(0, osPage - 1))}
+              disabled={osPage === 0}
+              className="rounded-lg gap-1"
+            >
+              <ChevronLeft className="w-4 h-4" /> Anterior
+            </Button>
+            <span className="text-xs font-medium tabular-nums px-2">
+              Página {osPage + 1} de {totalPages}
+            </span>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setOsPage(Math.min(totalPages - 1, osPage + 1))}
+              disabled={osPage >= totalPages - 1}
+              className="rounded-lg gap-1"
+            >
+              Próxima <ChevronRight className="w-4 h-4" />
+            </Button>
+          </div>
+        </div>
+      )}
+
+
+
       <EditOSDialog
         ordem={editing}
         clientes={clientes}
@@ -625,7 +661,23 @@ function EditOSDialog({
               </Select>
             </div>
           </div>
+          {ordem?.dados_adicionais && Object.keys(ordem.dados_adicionais).length > 0 && (
+            <div className="rounded-xl border border-border/60 bg-muted/30 p-3">
+              <div className="text-[10px] uppercase tracking-wider font-bold text-muted-foreground mb-2">
+                Informações adicionais (importadas)
+              </div>
+              <dl className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-xs">
+                {Object.entries(ordem.dados_adicionais).map(([k, v]) => (
+                  <div key={k} className="flex flex-col min-w-0">
+                    <dt className="font-medium text-muted-foreground truncate">{k}</dt>
+                    <dd className="font-mono truncate">{String(v ?? "—")}</dd>
+                  </div>
+                ))}
+              </dl>
+            </div>
+          )}
         </div>
+
         <DialogFooter>
           <Button variant="outline" onClick={onClose} disabled={saving}>
             Cancelar

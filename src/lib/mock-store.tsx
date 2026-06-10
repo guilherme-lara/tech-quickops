@@ -59,7 +59,11 @@ export interface OS {
   valor: number;
   custo_viagem?: number;
   rat: RAT;
+  dados_adicionais?: Record<string, any>;
 }
+
+export const OS_PAGE_SIZE = 50;
+
 
 interface User {
   id: string;
@@ -127,9 +131,13 @@ interface Store {
 
   os: OS[];
   loadingOS: boolean;
+  osPage: number;
+  osTotal: number;
+  setOsPage: (p: number) => void;
   addOS: (o: Omit<OS, "id" | "numero" | "criadaEm" | "rat">) => Promise<void>;
   updateOS: (id: string, patch: Partial<OS>) => Promise<void>;
   updateRAT: (id: string, patch: Partial<RAT>) => void;
+
 
   updateProfile: (nome: string) => Promise<void>;
   updateEmpresa: (nome: string) => Promise<void>;
@@ -143,6 +151,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const [loadingAuth, setLoadingAuth] = useState(true);
   // local-only RAT progress (no DB table)
   const [ratLocal, setRatLocal] = useState<Record<string, RAT>>({});
+  const [osPage, setOsPage] = useState(0);
+  const [osTotal, setOsTotal] = useState(0);
+
 
   // Hydrate auth + perfil
   useEffect(() => {
@@ -307,16 +318,21 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   });
 
   const osQ = useQuery({
-    queryKey: ["ordens_servico", empresaId],
+    queryKey: ["ordens_servico", empresaId, osPage],
     enabled,
     queryFn: async (): Promise<OS[]> => {
-      const { data, error } = await (supabase.from("ordens_servico") as any)
+      const from = osPage * OS_PAGE_SIZE;
+      const to = from + OS_PAGE_SIZE - 1;
+      const { data, error, count } = await (supabase.from("ordens_servico") as any)
         .select(
-          "id, numero, cliente_id, tecnico_id, titulo, status, valor, custo_viagem, created_at, descricao_problema, solucao",
+          "id, numero, cliente_id, tecnico_id, titulo, status, valor, custo_viagem, created_at, descricao_problema, solucao, dados_adicionais",
+          { count: "exact" },
         )
         .eq("empresa_id", empresaId!)
-        .order("created_at", { ascending: false });
+        .order("created_at", { ascending: false })
+        .range(from, to);
       if (error) throw error;
+      setOsTotal(count ?? 0);
       return ((data ?? []) as any[]).map((r) => ({
         id: r.id,
         numero: r.numero ?? "OS-?",
@@ -328,9 +344,11 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         valor: Number(r.valor ?? 0),
         custo_viagem: Number(r.custo_viagem ?? 0),
         rat: ratLocal[r.id] ?? { itens: [], evidencias: [] },
+        dados_adicionais: r.dados_adicionais ?? {},
       }));
     },
   });
+
 
   // ---------------- Mutations ----------------
   const addClienteM = useMutation({
@@ -443,6 +461,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       if (patch.valor !== undefined) dbPatch.valor = patch.valor;
       if (patch.custo_viagem !== undefined) dbPatch.custo_viagem = patch.custo_viagem;
       if (patch.tecnicoId !== undefined) dbPatch.tecnico_id = patch.tecnicoId || null;
+      if (patch.clienteId !== undefined) dbPatch.cliente_id = patch.clienteId;
+      if (patch.dados_adicionais !== undefined) dbPatch.dados_adicionais = patch.dados_adicionais;
       const { error } = await (supabase.from("ordens_servico") as any).update(dbPatch).eq("id", id);
       if (error) throw error;
     },
@@ -684,6 +704,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     },
     os: osQ.data ?? [],
     loadingOS: osQ.isLoading,
+    osPage,
+    osTotal,
+    setOsPage,
+
     addOS: async (o) => {
       await addOSM.mutateAsync(o);
     },
