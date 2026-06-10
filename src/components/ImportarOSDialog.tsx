@@ -512,8 +512,34 @@ export function ImportarOSDialog({ trigger }: Props) {
                     );
                   })}
                 </div>
-              </div>
-            )}
+
+            {(() => {
+              const mappedCols = new Set(
+                (Object.values(mapping) as string[]).filter((v) => v && v.length > 0),
+              );
+              const extras = headers.filter((h) => !mappedCols.has(h));
+              if (extras.length === 0) return null;
+              return (
+                <div className="rounded-xl border border-border/60 p-3 text-xs">
+                  <div className="font-semibold mb-1.5 text-muted-foreground uppercase tracking-wider text-[10px]">
+                    {extras.length} coluna(s) extra(s) → serão salvas em “Informações Adicionais”
+                  </div>
+                  <div className="flex flex-wrap gap-1.5">
+                    {extras.map((h) => (
+                      <span
+                        key={h}
+                        className="px-2 py-0.5 rounded-full bg-primary/10 text-primary text-[11px] font-medium"
+                      >
+                        {h}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              );
+            })()}
+          </div>
+        )}
+
           </div>
         )}
 
