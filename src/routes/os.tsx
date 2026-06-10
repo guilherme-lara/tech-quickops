@@ -404,24 +404,7 @@ function OSPage() {
         </div>
       )}
 
-      ) : (
-        <DndContext sensors={sensors} onDragEnd={onDragEnd}>
-          <div className="flex md:grid md:grid-cols-2 xl:grid-cols-5 gap-4 overflow-x-auto pb-4 snap-x snap-mandatory w-full">
-            {colunas.map((status) => {
-              const cards = os.filter((o) => o.status === status);
-              return (
-                <Coluna
-                  key={status}
-                  status={status}
-                  cards={cards}
-                  clientes={clientes}
-                  tecnicos={tecnicos}
-                />
-              );
-            })}
-          </div>
-        </DndContext>
-      )}
+
 
       <EditOSDialog
         ordem={editing}
