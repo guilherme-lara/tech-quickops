@@ -373,6 +373,56 @@ function OSPage() {
         </DndContext>
       )}
 
+      {os.length > 0 && viewMode === "list" && (
+        <div className="flex items-center justify-between mt-4 px-1">
+          <p className="text-xs text-muted-foreground">
+            Mostrando {osPage * OS_PAGE_SIZE + 1}–{Math.min((osPage + 1) * OS_PAGE_SIZE, osTotal)} de {osTotal} OS
+          </p>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setOsPage(Math.max(0, osPage - 1))}
+              disabled={osPage === 0}
+              className="rounded-lg gap-1"
+            >
+              <ChevronLeft className="w-4 h-4" /> Anterior
+            </Button>
+            <span className="text-xs font-medium tabular-nums px-2">
+              Página {osPage + 1} de {totalPages}
+            </span>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setOsPage(Math.min(totalPages - 1, osPage + 1))}
+              disabled={osPage >= totalPages - 1}
+              className="rounded-lg gap-1"
+            >
+              Próxima <ChevronRight className="w-4 h-4" />
+            </Button>
+          </div>
+        </div>
+      )}
+
+      ) : (
+        <DndContext sensors={sensors} onDragEnd={onDragEnd}>
+          <div className="flex md:grid md:grid-cols-2 xl:grid-cols-5 gap-4 overflow-x-auto pb-4 snap-x snap-mandatory w-full">
+            {colunas.map((status) => {
+              const cards = os.filter((o) => o.status === status);
+              return (
+                <Coluna
+                  key={status}
+                  status={status}
+                  cards={cards}
+                  clientes={clientes}
+                  tecnicos={tecnicos}
+                />
+              );
+            })}
+          </div>
+        </DndContext>
+      )}
+
       <EditOSDialog
         ordem={editing}
         clientes={clientes}
