@@ -438,12 +438,19 @@ export function ImportarOSDialog({ trigger }: Props) {
               </Button>
             </div>
 
+            <div className="rounded-xl border border-primary/30 bg-primary/5 p-3 text-xs text-foreground/80">
+              💡 <span className="font-semibold">Dica:</span> todas as colunas que você
+              <span className="font-semibold"> não mapear</span> serão salvas automaticamente
+              na aba <span className="font-semibold">Informações Adicionais</span> da OS — nenhum dado é descartado.
+            </div>
+
             <div className="rounded-2xl border border-border/60 divide-y">
               <div className="grid grid-cols-[1fr_auto_1.2fr] items-center gap-3 px-4 py-2 bg-muted/40 text-[10px] uppercase tracking-wider font-bold text-muted-foreground">
                 <span>Campo do sistema</span>
                 <span />
                 <span>Coluna da planilha</span>
               </div>
+
               {SYSTEM_FIELDS.map((f) => (
                 <div
                   key={f.key}
