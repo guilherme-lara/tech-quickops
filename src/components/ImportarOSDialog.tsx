@@ -512,6 +512,8 @@ export function ImportarOSDialog({ trigger }: Props) {
                     );
                   })}
                 </div>
+              </div>
+            )}
 
             {(() => {
               const mappedCols = new Set(
@@ -540,8 +542,6 @@ export function ImportarOSDialog({ trigger }: Props) {
           </div>
         )}
 
-          </div>
-        )}
 
         {/* ETAPA 3 — Importando */}
         {step === "importing" && (
