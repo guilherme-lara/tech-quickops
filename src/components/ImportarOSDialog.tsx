@@ -438,12 +438,19 @@ export function ImportarOSDialog({ trigger }: Props) {
               </Button>
             </div>
 
+            <div className="rounded-xl border border-primary/30 bg-primary/5 p-3 text-xs text-foreground/80">
+              💡 <span className="font-semibold">Dica:</span> todas as colunas que você
+              <span className="font-semibold"> não mapear</span> serão salvas automaticamente
+              na aba <span className="font-semibold">Informações Adicionais</span> da OS — nenhum dado é descartado.
+            </div>
+
             <div className="rounded-2xl border border-border/60 divide-y">
               <div className="grid grid-cols-[1fr_auto_1.2fr] items-center gap-3 px-4 py-2 bg-muted/40 text-[10px] uppercase tracking-wider font-bold text-muted-foreground">
                 <span>Campo do sistema</span>
                 <span />
                 <span>Coluna da planilha</span>
               </div>
+
               {SYSTEM_FIELDS.map((f) => (
                 <div
                   key={f.key}
@@ -507,8 +514,34 @@ export function ImportarOSDialog({ trigger }: Props) {
                 </div>
               </div>
             )}
+
+            {(() => {
+              const mappedCols = new Set(
+                (Object.values(mapping) as string[]).filter((v) => v && v.length > 0),
+              );
+              const extras = headers.filter((h) => !mappedCols.has(h));
+              if (extras.length === 0) return null;
+              return (
+                <div className="rounded-xl border border-border/60 p-3 text-xs">
+                  <div className="font-semibold mb-1.5 text-muted-foreground uppercase tracking-wider text-[10px]">
+                    {extras.length} coluna(s) extra(s) → serão salvas em “Informações Adicionais”
+                  </div>
+                  <div className="flex flex-wrap gap-1.5">
+                    {extras.map((h) => (
+                      <span
+                        key={h}
+                        className="px-2 py-0.5 rounded-full bg-primary/10 text-primary text-[11px] font-medium"
+                      >
+                        {h}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              );
+            })()}
           </div>
         )}
+
 
         {/* ETAPA 3 — Importando */}
         {step === "importing" && (
