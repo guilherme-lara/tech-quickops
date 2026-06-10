@@ -461,6 +461,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       if (patch.valor !== undefined) dbPatch.valor = patch.valor;
       if (patch.custo_viagem !== undefined) dbPatch.custo_viagem = patch.custo_viagem;
       if (patch.tecnicoId !== undefined) dbPatch.tecnico_id = patch.tecnicoId || null;
+      if (patch.clienteId !== undefined) dbPatch.cliente_id = patch.clienteId;
+      if (patch.dados_adicionais !== undefined) dbPatch.dados_adicionais = patch.dados_adicionais;
       const { error } = await (supabase.from("ordens_servico") as any).update(dbPatch).eq("id", id);
       if (error) throw error;
     },
