@@ -60,7 +60,8 @@ export const Route = createFileRoute("/os")({
 const colunas: OSStatus[] = ["Orçamento", "Aprovado", "Em Execução", "Concluído", "Cancelado"];
 
 function OSPage() {
-  const { os, clientes, tecnicos, addOS, updateOS, loadingOS } = useStore();
+  const { os, clientes, tecnicos, addOS, updateOS, loadingOS, osPage, osTotal, setOsPage } = useStore();
+  const totalPages = Math.max(1, Math.ceil(osTotal / OS_PAGE_SIZE));
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<OS | null>(null);
   const [form, setForm] = useState({
