@@ -151,6 +151,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const [loadingAuth, setLoadingAuth] = useState(true);
   // local-only RAT progress (no DB table)
   const [ratLocal, setRatLocal] = useState<Record<string, RAT>>({});
+  const [osPage, setOsPage] = useState(0);
+  const [osTotal, setOsTotal] = useState(0);
+
 
   // Hydrate auth + perfil
   useEffect(() => {
