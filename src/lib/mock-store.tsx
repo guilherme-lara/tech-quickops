@@ -732,6 +732,11 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     osPage,
     osTotal,
     setOsPage,
+    osMonth,
+    osYear,
+    setOsMonth: (m: number) => { setOsPage(0); setOsMonth(m); },
+    setOsYear: (y: number) => { setOsPage(0); setOsYear(y); },
+
 
     addOS: async (o) => {
       await addOSM.mutateAsync(o);
