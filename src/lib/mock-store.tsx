@@ -158,6 +158,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const [ratLocal, setRatLocal] = useState<Record<string, RAT>>({});
   const [osPage, setOsPage] = useState(0);
   const [osTotal, setOsTotal] = useState(0);
+  const now = new Date();
+  const [osMonth, setOsMonth] = useState<number>(0); // 0 = todos
+  const [osYear, setOsYear] = useState<number>(now.getFullYear());
+
 
 
   // Hydrate auth + perfil
