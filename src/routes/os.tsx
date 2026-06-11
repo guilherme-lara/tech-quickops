@@ -154,7 +154,7 @@ function OSPage() {
                 <Plus className="w-4 h-4" /> Nova OS
               </Button>
             </DialogTrigger>
-            <DialogContent className="rounded-2xl">
+            <DialogContent className="rounded-2xl w-[95vw] sm:max-w-4xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Nova Ordem de Serviço</DialogTitle>
               </DialogHeader>
@@ -573,7 +573,7 @@ function EditOSDialog({
 
   return (
     <Dialog open={!!ordem} onOpenChange={(v) => !v && onClose()}>
-      <DialogContent className="rounded-2xl">
+      <DialogContent className="rounded-2xl w-[95vw] sm:max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Editar OS {ordem?.numero}</DialogTitle>
         </DialogHeader>

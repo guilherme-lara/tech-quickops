@@ -360,7 +360,7 @@ export function ImportarOSDialog({ trigger }: Props) {
       }}
     >
       <span onClick={() => setOpen(true)}>{trigger}</span>
-      <DialogContent className="rounded-2xl sm:max-w-2xl">
+      <DialogContent className="rounded-2xl w-[95vw] sm:max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <FileSpreadsheet className="w-5 h-5 text-primary" />
