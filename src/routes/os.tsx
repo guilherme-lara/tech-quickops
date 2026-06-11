@@ -48,6 +48,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/EmptyState";
 import { Card } from "@/components/ui/card";
 import { RatGallery } from "@/components/RatGallery";
+import { MesAnoFilter } from "@/components/MesAnoFilter";
 
 export const Route = createFileRoute("/os")({
   component: () => (
@@ -123,6 +124,7 @@ function OSPage() {
           )}
         </div>
         <div className="flex items-center gap-2 w-full md:w-auto overflow-x-auto pb-2 md:pb-0">
+          <MesAnoFilter />
           <div className="flex items-center rounded-lg bg-muted/50 p-1 shrink-0">
             <Button
               variant="ghost"
