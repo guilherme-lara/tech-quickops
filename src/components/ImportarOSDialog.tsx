@@ -137,36 +137,69 @@ export function ImportarOSDialog({ trigger }: Props) {
     try {
       const buf = await f.arrayBuffer();
       const wb = XLSX.read(buf, { type: "array", cellDates: false });
-      const ws = wb.Sheets[wb.SheetNames[0]];
-      const aoa = XLSX.utils.sheet_to_json<any[]>(ws, { header: 1, defval: "" });
-      if (aoa.length === 0) {
+      if (wb.SheetNames.length === 0) {
         toast.error("Planilha vazia");
         return;
       }
 
-      const rawHeaders = (aoa[0] as any[]).map(
-        (h, i) => String(h ?? `Coluna ${i + 1}`).trim() || `Coluna ${i + 1}`,
-      );
-      // dedup
-      const seen: Record<string, number> = {};
-      const heads = rawHeaders.map((h) => {
-        seen[h] = (seen[h] ?? 0) + 1;
-        return seen[h] === 1 ? h : `${h} (${seen[h]})`;
-      });
+      // Itera por TODAS as abas, unifica headers e concatena linhas.
+      // Adiciona coluna virtual "Aba" para rastreabilidade.
+      const headerSet: string[] = [];
+      const allRows: Record<string, any>[] = [];
+      let totalRowsRead = 0;
 
-      const parsedRows = aoa
-        .slice(1)
-        .filter((r) => Array.isArray(r) && r.some((c) => c !== "" && c != null))
-        .map((r) => {
-          const obj: Record<string, any> = {};
-          heads.forEach((h, i) => {
-            obj[h] = (r as any[])[i] ?? "";
-          });
-          return obj;
+      for (const sheetName of wb.SheetNames) {
+        const ws = wb.Sheets[sheetName];
+        const aoa = XLSX.utils.sheet_to_json<any[]>(ws, { header: 1, defval: "" });
+        if (aoa.length === 0) continue;
+
+        const rawHeaders = (aoa[0] as any[]).map(
+          (h, i) => String(h ?? `Coluna ${i + 1}`).trim() || `Coluna ${i + 1}`,
+        );
+        const seen: Record<string, number> = {};
+        const heads = rawHeaders.map((h) => {
+          seen[h] = (seen[h] ?? 0) + 1;
+          return seen[h] === 1 ? h : `${h} (${seen[h]})`;
         });
+
+        // Acrescenta novos headers à união (preservando ordem)
+        for (const h of heads) if (!headerSet.includes(h)) headerSet.push(h);
+
+        const sheetRows = aoa
+          .slice(1)
+          .filter((r) => Array.isArray(r) && r.some((c) => c !== "" && c != null))
+          .map((r) => {
+            const obj: Record<string, any> = {};
+            heads.forEach((h, i) => {
+              obj[h] = (r as any[])[i] ?? "";
+            });
+            obj["Aba"] = sheetName;
+            return obj;
+          });
+
+        allRows.push(...sheetRows);
+        totalRowsRead += sheetRows.length;
+      }
+
+      if (!headerSet.includes("Aba")) headerSet.push("Aba");
+
+      if (allRows.length === 0) {
+        toast.error("Nenhuma linha encontrada nas abas");
+        return;
+      }
+
+      const heads = headerSet;
+      const parsedRows = allRows;
 
       setHeaders(heads);
       setRows(parsedRows);
+
+      if (wb.SheetNames.length > 1) {
+        toast.success(
+          `${wb.SheetNames.length} abas lidas · ${totalRowsRead} linhas no total`,
+        );
+      }
+
 
       // Auto-mapeamento por nome
       const auto: Record<FieldKey, string> = {
