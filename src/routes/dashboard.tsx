@@ -3,6 +3,8 @@ import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { createFileRoute, Link, Navigate } from "@tanstack/react-router";
 import { GestorLayout } from "@/components/GestorLayout";
 import { useStore, statusColor } from "@/lib/mock-store";
+import { MesAnoFilter } from "@/components/MesAnoFilter";
+
 import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
