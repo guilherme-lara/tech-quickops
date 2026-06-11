@@ -134,9 +134,14 @@ interface Store {
   osPage: number;
   osTotal: number;
   setOsPage: (p: number) => void;
+  osMonth: number; // 0 = todos; 1..12
+  osYear: number;  // 0 = todos
+  setOsMonth: (m: number) => void;
+  setOsYear: (y: number) => void;
   addOS: (o: Omit<OS, "id" | "numero" | "criadaEm" | "rat">) => Promise<void>;
   updateOS: (id: string, patch: Partial<OS>) => Promise<void>;
   updateRAT: (id: string, patch: Partial<RAT>) => void;
+
 
 
   updateProfile: (nome: string) => Promise<void>;
@@ -153,6 +158,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const [ratLocal, setRatLocal] = useState<Record<string, RAT>>({});
   const [osPage, setOsPage] = useState(0);
   const [osTotal, setOsTotal] = useState(0);
+  const now = new Date();
+  const [osMonth, setOsMonth] = useState<number>(0); // 0 = todos
+  const [osYear, setOsYear] = useState<number>(now.getFullYear());
+
 
 
   // Hydrate auth + perfil
@@ -318,17 +327,32 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   });
 
   const osQ = useQuery({
-    queryKey: ["ordens_servico", empresaId, osPage],
+    queryKey: ["ordens_servico", empresaId, osPage, osMonth, osYear],
     enabled,
     queryFn: async (): Promise<OS[]> => {
       const from = osPage * OS_PAGE_SIZE;
       const to = from + OS_PAGE_SIZE - 1;
-      const { data, error, count } = await (supabase.from("ordens_servico") as any)
+      let q = (supabase.from("ordens_servico") as any)
         .select(
           "id, numero, cliente_id, tecnico_id, titulo, status, valor, custo_viagem, created_at, descricao_problema, solucao, dados_adicionais",
           { count: "exact" },
         )
-        .eq("empresa_id", empresaId!)
+        .eq("empresa_id", empresaId!);
+
+      // Filtro mês/ano sobre created_at
+      if (osYear > 0) {
+        if (osMonth > 0) {
+          const start = new Date(Date.UTC(osYear, osMonth - 1, 1));
+          const end = new Date(Date.UTC(osYear, osMonth, 1));
+          q = q.gte("created_at", start.toISOString()).lt("created_at", end.toISOString());
+        } else {
+          const start = new Date(Date.UTC(osYear, 0, 1));
+          const end = new Date(Date.UTC(osYear + 1, 0, 1));
+          q = q.gte("created_at", start.toISOString()).lt("created_at", end.toISOString());
+        }
+      }
+
+      const { data, error, count } = await q
         .order("created_at", { ascending: false })
         .range(from, to);
       if (error) throw error;
@@ -348,6 +372,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       }));
     },
   });
+
 
 
   // ---------------- Mutations ----------------
@@ -707,6 +732,11 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     osPage,
     osTotal,
     setOsPage,
+    osMonth,
+    osYear,
+    setOsMonth: (m: number) => { setOsPage(0); setOsMonth(m); },
+    setOsYear: (y: number) => { setOsPage(0); setOsYear(y); },
+
 
     addOS: async (o) => {
       await addOSM.mutateAsync(o);

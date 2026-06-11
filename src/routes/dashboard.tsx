@@ -3,6 +3,8 @@ import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { createFileRoute, Link, Navigate } from "@tanstack/react-router";
 import { GestorLayout } from "@/components/GestorLayout";
 import { useStore, statusColor } from "@/lib/mock-store";
+import { MesAnoFilter } from "@/components/MesAnoFilter";
+
 import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
@@ -70,6 +72,13 @@ function Dashboard() {
   }
   return (
     <GestorLayout>
+      <div className="flex items-center justify-between mb-5 gap-3 flex-wrap">
+        <div>
+          <h1 className="text-xl font-bold">Dashboard</h1>
+          <p className="text-xs text-muted-foreground">Visão geral do período selecionado</p>
+        </div>
+        <MesAnoFilter />
+      </div>
       {/* BENTO GRID */}
       <div className="grid grid-cols-12 auto-rows-[120px] gap-4">
         {/* Hero faturamento */}
