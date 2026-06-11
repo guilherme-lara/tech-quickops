@@ -134,9 +134,14 @@ interface Store {
   osPage: number;
   osTotal: number;
   setOsPage: (p: number) => void;
+  osMonth: number; // 0 = todos; 1..12
+  osYear: number;  // 0 = todos
+  setOsMonth: (m: number) => void;
+  setOsYear: (y: number) => void;
   addOS: (o: Omit<OS, "id" | "numero" | "criadaEm" | "rat">) => Promise<void>;
   updateOS: (id: string, patch: Partial<OS>) => Promise<void>;
   updateRAT: (id: string, patch: Partial<RAT>) => void;
+
 
 
   updateProfile: (nome: string) => Promise<void>;
