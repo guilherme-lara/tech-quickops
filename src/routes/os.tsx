@@ -334,6 +334,7 @@ function OSPage() {
                           {cliente?.nomeFantasia ?? "—"}
                         </span>
                       </td>
+                    
                       <td className="px-5 py-3 text-muted-foreground whitespace-nowrap">
                         <span className="flex items-center gap-1.5">
                           <HardHat className="w-3.5 h-3.5" />
