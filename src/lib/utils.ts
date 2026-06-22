@@ -53,3 +53,51 @@ function isValidCNPJ(cnpj: string): boolean {
   if (result !== parseInt(digits.charAt(1))) return false;
   return true;
 }
+
+/**
+ * Formata uma data ISO (string ou Date) para o padrão pt-BR.
+ * Ex: "21/06/2026" ou "21/06/2026 14:30"
+ */
+export function formatDate(
+  date: string | Date | null | undefined,
+  options?: { showTime?: boolean },
+): string {
+  if (!date) return "—";
+  try {
+    const d = typeof date === "string" ? new Date(date) : date;
+    if (isNaN(d.getTime())) return "—";
+    if (options?.showTime) {
+      return d.toLocaleDateString("pt-BR", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+    }
+    return d.toLocaleDateString("pt-BR", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    });
+  } catch {
+    return "—";
+  }
+}
+
+/**
+ * Retorna true se a data for anterior a hoje (considerando apenas dia).
+ */
+export function isOverdue(date: string | Date | null | undefined): boolean {
+  if (!date) return false;
+  try {
+    const d = typeof date === "string" ? new Date(date) : date;
+    if (isNaN(d.getTime())) return false;
+    const hoje = new Date();
+    hoje.setHours(0, 0, 0, 0);
+    d.setHours(0, 0, 0, 0);
+    return d < hoje;
+  } catch {
+    return false;
+  }
+}
