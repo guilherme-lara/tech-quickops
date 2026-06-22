@@ -644,6 +644,7 @@ function EditOSDialog({
     custo_viagem: "",
     status: "Orçamento" as OSStatus,
   });
+  const [dadosExtras, setDadosExtras] = useState<Record<string, any>>({});
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -656,6 +657,7 @@ function EditOSDialog({
         custo_viagem: String(ordem.custo_viagem ?? 0),
         status: ordem.status,
       });
+      setDadosExtras((ordem?.dados_adicionais as Record<string, any>) || {});
     }
   }, [ordem]);
 
@@ -674,6 +676,7 @@ function EditOSDialog({
         valor: Number(form.valor) || 0,
         custo_viagem: Number(form.custo_viagem) || 0,
         status: form.status,
+        dados_adicionais: dadosExtras,
       });
     } finally {
       setSaving(false);
@@ -770,19 +773,22 @@ function EditOSDialog({
               </Select>
             </div>
           </div>
-          {ordem?.dados_adicionais && Object.keys(ordem.dados_adicionais).length > 0 && (
+          {Object.keys(dadosExtras).length > 0 && (
             <div className="rounded-xl border border-border/60 bg-muted/30 p-3">
               <div className="text-[10px] uppercase tracking-wider font-bold text-muted-foreground mb-2">
                 Informações adicionais (importadas)
               </div>
-              <dl className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-xs">
-                {Object.entries(ordem.dados_adicionais).map(([k, v]) => (
-                  <div key={k} className="flex flex-col min-w-0">
-                    <dt className="font-medium text-muted-foreground truncate">{k}</dt>
-                    <dd className="font-mono truncate">{String(v ?? "—")}</dd>
+              <div className="grid grid-cols-2 gap-3">
+                {Object.entries(dadosExtras).map(([k, v]) => (
+                  <div key={k}>
+                    <Label>{k}</Label>
+                    <Input
+                      value={String(v ?? "")}
+                      onChange={(e) => setDadosExtras((prev) => ({ ...prev, [k]: e.target.value }))}
+                    />
                   </div>
                 ))}
-              </dl>
+              </div>
             </div>
           )}
         </div>
