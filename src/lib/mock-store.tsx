@@ -58,6 +58,7 @@ export interface OS {
   criadaEm: string;
   data_atendimento?: string;
   data_agendamento?: string;
+  horario_atendimento?: string;
   updatedAt?: string;
   valor: number;
   custo_viagem?: number;

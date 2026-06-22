@@ -166,9 +166,13 @@ function OSPage() {
     valor: "",
     custo_viagem: "",
     data_agendamento: "",
+    horario_atendimento: "",
     descricao_problema: "",
     status: "Orçamento" as OSStatus,
   });
+  const [novosDadosExtras, setNovosDadosExtras] = useState<Record<string, any>>({});
+  const [novoCampoNome, setNovoCampoNome] = useState("");
+  const [novoCampoValor, setNovoCampoValor] = useState("");
   const [viewMode, setViewMode] = useState<"list" | "card">("list");
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }));
 
@@ -184,8 +188,10 @@ function OSPage() {
       valor: Number(form.valor) || 0,
       custo_viagem: Number(form.custo_viagem) || 0,
       data_agendamento: form.data_agendamento || undefined,
+      horario_atendimento: form.horario_atendimento || undefined,
       descricao_problema: form.descricao_problema,
       status: form.status,
+      dados_adicionais: novosDadosExtras,
     });
     toast.success("OS criada com sucesso");
     setOpen(false);
@@ -196,9 +202,21 @@ function OSPage() {
       valor: "",
       custo_viagem: "",
       data_agendamento: "",
+      horario_atendimento: "",
       descricao_problema: "",
       status: "Orçamento",
     });
+    setNovosDadosExtras({});
+  };
+
+  const adicionarCampoPersonalizado = () => {
+    if (!novoCampoNome.trim()) return;
+    setNovosDadosExtras((prev) => ({
+      ...prev,
+      [novoCampoNome.trim()]: novoCampoValor,
+    }));
+    setNovoCampoNome("");
+    setNovoCampoValor("");
   };
 
   const onDragEnd = (e: DragEndEvent) => {
@@ -276,27 +294,28 @@ function OSPage() {
                 <Plus className="w-4 h-4" /> Nova OS
               </Button>
             </DialogTrigger>
-            <DialogContent className="rounded-2xl w-[95vw] sm:max-w-4xl max-h-[90vh] overflow-y-auto">
+            <DialogContent className="rounded-2xl w-[95vw] sm:max-w-3xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Nova Ordem de Serviço</DialogTitle>
               </DialogHeader>
-              <div className="space-y-3">
+              <div className="space-y-4">
                 <div>
                   <Label>Título</Label>
                   <Input
                     value={form.titulo}
                     onChange={(e) => setForm({ ...form, titulo: e.target.value })}
                     placeholder="Ex: Manutenção câmara fria"
+                    className="h-10"
                   />
                 </div>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-2 gap-4">
                   <div>
                     <Label>Cliente</Label>
                     <Select
                       value={form.clienteId}
                       onValueChange={(v) => setForm({ ...form, clienteId: v })}
                     >
-                      <SelectTrigger>
+                      <SelectTrigger className="h-10">
                         <SelectValue placeholder="Selecione..." />
                       </SelectTrigger>
                       <SelectContent>
@@ -314,7 +333,7 @@ function OSPage() {
                       value={form.tecnicoId}
                       onValueChange={(v) => setForm({ ...form, tecnicoId: v })}
                     >
-                      <SelectTrigger>
+                      <SelectTrigger className="h-10">
                         <SelectValue placeholder="Selecione..." />
                       </SelectTrigger>
                       <SelectContent>
@@ -327,14 +346,35 @@ function OSPage() {
                     </Select>
                   </div>
                 </div>
-                <div className="grid grid-cols-3 gap-3">
+                <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label>Valor estimado</Label>
+                    <Label>Data do Agendamento</Label>
+                    <Input
+                      type="date"
+                      value={form.data_agendamento}
+                      onChange={(e) => setForm({ ...form, data_agendamento: e.target.value })}
+                      className="h-10"
+                    />
+                  </div>
+                  <div>
+                    <Label>Horário do Atendimento</Label>
+                    <Input
+                      type="time"
+                      value={form.horario_atendimento}
+                      onChange={(e) => setForm({ ...form, horario_atendimento: e.target.value })}
+                      className="h-10"
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label>Valor estimado (R$)</Label>
                     <Input
                       type="number"
                       step="0.01"
                       value={form.valor}
                       onChange={(e) => setForm({ ...form, valor: e.target.value })}
+                      className="h-10"
                     />
                   </div>
                   <div>
@@ -345,26 +385,89 @@ function OSPage() {
                       value={form.custo_viagem}
                       onChange={(e) => setForm({ ...form, custo_viagem: e.target.value })}
                       placeholder="0,00"
+                      className="h-10"
                     />
                   </div>
-                  <div>
-                    <Label>Status</Label>
-                    <Select
-                      value={form.status}
-                      onValueChange={(v) => setForm({ ...form, status: v as OSStatus })}
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {colunas.map((c) => (
-                          <SelectItem key={c} value={c}>
-                            {c}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                </div>
+                <div>
+                  <Label>Status</Label>
+                  <Select
+                    value={form.status}
+                    onValueChange={(v) => setForm({ ...form, status: v as OSStatus })}
+                  >
+                    <SelectTrigger className="h-10">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {colunas.map((c) => (
+                        <SelectItem key={c} value={c}>
+                          {c}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label>Descrição do Problema</Label>
+                  <textarea
+                    value={form.descricao_problema}
+                    onChange={(e) => setForm({ ...form, descricao_problema: e.target.value })}
+                    placeholder="Descreva o problema ou serviço a ser executado..."
+                    className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  />
+                </div>
+
+                <div className="rounded-xl border border-border/60 bg-muted/30 p-4">
+                  <div className="text-[10px] uppercase tracking-wider font-bold text-muted-foreground mb-3">
+                    Campos Personalizados (Opcional)
                   </div>
+                  <div className="flex gap-2 mb-3">
+                    <Input
+                      placeholder="Nome do campo"
+                      value={novoCampoNome}
+                      onChange={(e) => setNovoCampoNome(e.target.value)}
+                      className="h-9 flex-1"
+                    />
+                    <Input
+                      placeholder="Valor"
+                      value={novoCampoValor}
+                      onChange={(e) => setNovoCampoValor(e.target.value)}
+                      className="h-9 flex-1"
+                    />
+                    <Button
+                      type="button"
+                      size="icon"
+                      onClick={adicionarCampoPersonalizado}
+                      className="h-9 w-9 shrink-0"
+                    >
+                      +
+                    </Button>
+                  </div>
+                  {Object.keys(novosDadosExtras).length > 0 && (
+                    <div className="grid grid-cols-2 gap-2">
+                      {Object.entries(novosDadosExtras).map(([k, v]) => (
+                        <div
+                          key={k}
+                          className="flex items-center justify-between bg-background/50 rounded-lg px-3 py-2"
+                        >
+                          <div className="flex-1 min-w-0">
+                            <div className="text-[10px] text-muted-foreground uppercase">{k}</div>
+                            <div className="text-xs font-medium truncate">{String(v)}</div>
+                          </div>
+                          <button
+                            onClick={() => {
+                              const next = { ...novosDadosExtras };
+                              delete next[k];
+                              setNovosDadosExtras(next);
+                            }}
+                            className="ml-2 text-muted-foreground hover:text-destructive"
+                          >
+                            <X className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
               <DialogFooter>
