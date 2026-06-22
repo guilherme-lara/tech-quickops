@@ -20,6 +20,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useStore, statusColor, OSStatus, OS, OS_PAGE_SIZE } from "@/lib/mock-store";
+import { formatDate } from "@/lib/utils";
 import {
   Plus,
   User,
@@ -31,6 +32,8 @@ import {
   LayoutGrid,
   ChevronLeft,
   ChevronRight,
+  Search,
+  X,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -50,22 +53,6 @@ import { Card } from "@/components/ui/card";
 import { RatGallery } from "@/components/RatGallery";
 import { MesAnoFilter } from "@/components/MesAnoFilter";
 
-/** Formata data ISO → DD/MM/AAAA (inline para evitar problemas com code-split do Vite) */
-function formatDate(date: string | null | undefined): string {
-  if (!date) return "—";
-  try {
-    const d = new Date(date);
-    if (isNaN(d.getTime())) return "—";
-    return d.toLocaleDateString("pt-BR", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-    });
-  } catch {
-    return "—";
-  }
-}
-
 export const Route = createFileRoute("/os")({
   component: () => (
     <ProtectedRoute>
@@ -75,6 +62,96 @@ export const Route = createFileRoute("/os")({
 });
 
 const colunas: OSStatus[] = ["Orçamento", "Aprovado", "Em Execução", "Concluído", "Cancelado"];
+
+function FiltrosBar() {
+  const {
+    osSearchCliente,
+    setOsSearchCliente,
+    osSearchTecnico,
+    setOsSearchTecnico,
+    osFilterStatus,
+    setOsFilterStatus,
+    tecnicos,
+  } = useStore();
+
+  const hasFilters = osSearchCliente || osSearchTecnico || osFilterStatus;
+
+  const limparFiltros = () => {
+    setOsSearchCliente("");
+    setOsSearchTecnico("");
+    setOsFilterStatus("");
+  };
+
+  return (
+    <div className="flex flex-wrap items-end gap-3 mb-4">
+      <div className="flex flex-col gap-1.5 min-w-[180px] flex-1">
+        <Label className="text-xs text-muted-foreground">Cliente</Label>
+        <div className="relative">
+          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <Input
+            placeholder="Buscar por cliente..."
+            value={osSearchCliente}
+            onChange={(e) => setOsSearchCliente(e.target.value)}
+            className="pl-8 h-9 text-sm rounded-xl"
+          />
+          {osSearchCliente && (
+            <button
+              onClick={() => setOsSearchCliente("")}
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          )}
+        </div>
+      </div>
+
+      <div className="flex flex-col gap-1.5 min-w-[180px] flex-1">
+        <Label className="text-xs text-muted-foreground">Técnico</Label>
+        <Select value={osSearchTecnico} onValueChange={setOsSearchTecnico}>
+          <SelectTrigger className="h-9 text-sm rounded-xl">
+            <SelectValue placeholder="Todos os técnicos" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value=" ">Todos os técnicos</SelectItem>
+            {tecnicos.map((t) => (
+              <SelectItem key={t.id} value={t.nome}>
+                {t.nome}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div className="flex flex-col gap-1.5 min-w-[150px] flex-1">
+        <Label className="text-xs text-muted-foreground">Status</Label>
+        <Select value={osFilterStatus} onValueChange={setOsFilterStatus}>
+          <SelectTrigger className="h-9 text-sm rounded-xl">
+            <SelectValue placeholder="Todos os status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value=" ">Todos os status</SelectItem>
+            {colunas.map((c) => (
+              <SelectItem key={c} value={c}>
+                {c}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      {hasFilters && (
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={limparFiltros}
+          className="h-9 rounded-xl gap-1.5"
+        >
+          <X className="w-4 h-4" /> Limpar filtros
+        </Button>
+      )}
+    </div>
+  );
+}
 
 function OSPage() {
   const { os, clientes, tecnicos, addOS, updateOS, loadingOS, osPage, osTotal, setOsPage } =
@@ -312,73 +389,76 @@ function OSPage() {
           }
         />
       ) : viewMode === "list" ? (
-        <Card className="p-0 overflow-hidden">
-          <div className="overflow-x-auto w-full">
-            <table className="w-full text-sm text-left">
-              <thead className="bg-muted/50 text-xs uppercase text-muted-foreground">
-                <tr>
-                  <th className="px-5 py-3 font-semibold">Número</th>
-                  <th className="px-5 py-3 font-semibold">Status</th>
-                  <th className="px-5 py-3 font-semibold">Título</th>
-                  <th className="px-5 py-3 font-semibold">Cliente</th>
-                  <th className="px-5 py-3 font-semibold">Técnico</th>
-                  <th className="px-5 py-3 font-semibold">Data</th>
-                  <th className="px-5 py-3 font-semibold">Data Conclusão</th>
-                  <th className="px-5 py-3 font-semibold">Valor</th>
-                  <th className="px-5 py-3"></th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border">
-                {os.map((o) => {
-                  const cliente = clientes.find((c) => c.id === o.clienteId);
-                  const tecnico = tecnicos.find((t) => t.id === o.tecnicoId);
-                  return (
-                    <tr
-                      key={o.id}
-                      onClick={() => setEditing(o)}
-                      className="hover:bg-muted/30 transition-colors cursor-pointer"
-                    >
-                      <td className="px-5 py-3 font-medium whitespace-nowrap">{o.numero}</td>
-                      <td className="px-5 py-3 whitespace-nowrap">
-                        <span
-                          className={`text-[10px] px-2.5 py-1 rounded-full font-bold uppercase tracking-wider ${statusColor[o.status]}`}
-                        >
-                          {o.status}
-                        </span>
-                      </td>
-                      <td className="px-5 py-3 font-medium min-w-[200px]">{o.titulo}</td>
-                      <td className="px-5 py-3 text-muted-foreground whitespace-nowrap">
-                        <span className="flex items-center gap-1.5">
-                          <User className="w-3.5 h-3.5" />
-                          {cliente?.nomeFantasia ?? "—"}
-                        </span>
-                      </td>
+        <>
+          <FiltrosBar />
+          <Card className="p-0 overflow-hidden">
+            <div className="overflow-x-auto w-full">
+              <table className="w-full text-sm text-left">
+                <thead className="bg-muted/50 text-xs uppercase text-muted-foreground">
+                  <tr>
+                    <th className="px-5 py-3 font-semibold">Número</th>
+                    <th className="px-5 py-3 font-semibold">Status</th>
+                    <th className="px-5 py-3 font-semibold">Data</th>
+                    <th className="px-5 py-3 font-semibold">Conclusão</th>
+                    <th className="px-5 py-3 font-semibold">Título</th>
+                    <th className="px-5 py-3 font-semibold">Cliente</th>
+                    <th className="px-5 py-3 font-semibold">Técnico</th>
+                    <th className="px-5 py-3 font-semibold">Valor</th>
+                    <th className="px-5 py-3"></th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border">
+                  {os.map((o) => {
+                    const cliente = clientes.find((c) => c.id === o.clienteId);
+                    const tecnico = tecnicos.find((t) => t.id === o.tecnicoId);
+                    return (
+                      <tr
+                        key={o.id}
+                        onClick={() => setEditing(o)}
+                        className="hover:bg-muted/30 transition-colors cursor-pointer"
+                      >
+                        <td className="px-5 py-3 font-medium whitespace-nowrap">{o.numero}</td>
+                        <td className="px-5 py-3 whitespace-nowrap">
+                          <span
+                            className={`text-[10px] px-2.5 py-1 rounded-full font-bold uppercase tracking-wider ${statusColor[o.status]}`}
+                          >
+                            {o.status}
+                          </span>
+                        </td>
+                        <td className="px-5 py-3 text-muted-foreground whitespace-nowrap">
+                          {formatDate(o.data_atendimento)}
+                        </td>
+                        <td className="px-5 py-3 text-muted-foreground whitespace-nowrap">
+                          {o.status === "Concluído" ? formatDate(o.updatedAt) : "—"}
+                        </td>
+                        <td className="px-5 py-3 font-medium min-w-[200px]">{o.titulo}</td>
+                        <td className="px-5 py-3 text-muted-foreground whitespace-nowrap">
+                          <span className="flex items-center gap-1.5">
+                            <User className="w-3.5 h-3.5" />
+                            {cliente?.nomeFantasia ?? "—"}
+                          </span>
+                        </td>
 
-                      <td className="px-5 py-3 text-muted-foreground whitespace-nowrap">
-                        <span className="flex items-center gap-1.5">
-                          <HardHat className="w-3.5 h-3.5" />
-                          {tecnico?.nome?.split(" ")[0] ?? "—"}
-                        </span>
-                      </td>
-                      <td className="px-5 py-3 text-muted-foreground whitespace-nowrap">
-                        {formatDate(o.data_atendimento)}
-                      </td>
-                      <td className="px-5 py-3 text-muted-foreground whitespace-nowrap">
-                        {o.status === "Concluído" ? formatDate(o.updatedAt) : "—"}
-                      </td>
-                      <td className="px-5 py-3 font-semibold whitespace-nowrap">
-                        R$ {o.valor.toLocaleString("pt-BR")}
-                      </td>
-                      <td className="px-5 py-3 text-right" onClick={(e) => e.stopPropagation()}>
-                        <RatGallery osId={o.id} />
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        </Card>
+                        <td className="px-5 py-3 text-muted-foreground whitespace-nowrap">
+                          <span className="flex items-center gap-1.5">
+                            <HardHat className="w-3.5 h-3.5" />
+                            {tecnico?.nome?.split(" ")[0] ?? "—"}
+                          </span>
+                        </td>
+                        <td className="px-5 py-3 font-semibold whitespace-nowrap">
+                          R$ {o.valor.toLocaleString("pt-BR")}
+                        </td>
+                        <td className="px-5 py-3 text-right" onClick={(e) => e.stopPropagation()}>
+                          <RatGallery osId={o.id} />
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </Card>
+        </>
       ) : (
         <DndContext sensors={sensors} onDragEnd={onDragEnd}>
           <div className="flex md:grid md:grid-cols-2 xl:grid-cols-5 gap-4 overflow-x-auto pb-4 snap-x snap-mandatory w-full">

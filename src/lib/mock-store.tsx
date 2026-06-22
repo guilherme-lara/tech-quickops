@@ -137,6 +137,12 @@ interface Store {
   osYear: number; // 0 = todos
   setOsMonth: (m: number) => void;
   setOsYear: (y: number) => void;
+  osSearchCliente: string;
+  setOsSearchCliente: (v: string) => void;
+  osSearchTecnico: string;
+  setOsSearchTecnico: (v: string) => void;
+  osFilterStatus: string;
+  setOsFilterStatus: (v: string) => void;
   addOS: (o: Omit<OS, "id" | "numero" | "criadaEm" | "rat">) => Promise<void>;
   updateOS: (id: string, patch: Partial<OS>) => Promise<void>;
   updateRAT: (id: string, patch: Partial<RAT>) => void;
@@ -158,6 +164,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const now = new Date();
   const [osMonth, setOsMonth] = useState<number>(0); // 0 = todos
   const [osYear, setOsYear] = useState<number>(now.getFullYear());
+  const [osSearchCliente, setOsSearchCliente] = useState("");
+  const [osSearchTecnico, setOsSearchTecnico] = useState("");
+  const [osFilterStatus, setOsFilterStatus] = useState("");
 
   // Hydrate auth + perfil
   useEffect(() => {
@@ -330,7 +339,16 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   });
 
   const osQ = useQuery({
-    queryKey: ["ordens_servico", empresaId, osPage, osMonth, osYear],
+    queryKey: [
+      "ordens_servico",
+      empresaId,
+      osPage,
+      osMonth,
+      osYear,
+      osSearchCliente,
+      osSearchTecnico,
+      osFilterStatus,
+    ],
     enabled,
     queryFn: async (): Promise<OS[]> => {
       const from = osPage * OS_PAGE_SIZE;
@@ -353,6 +371,17 @@ export function StoreProvider({ children }: { children: ReactNode }) {
           const end = new Date(Date.UTC(osYear + 1, 0, 1));
           q = q.gte("created_at", start.toISOString()).lt("created_at", end.toISOString());
         }
+      }
+
+      // Filtros avançados
+      if (osSearchCliente.trim()) {
+        q = q.ilike("cliente_nome", `%${osSearchCliente.trim()}%`);
+      }
+      if (osSearchTecnico.trim()) {
+        q = q.ilike("tecnico_nome", `%${osSearchTecnico.trim()}%`);
+      }
+      if (osFilterStatus) {
+        q = q.eq("status", osFilterStatus);
       }
 
       const { data, error, count } = await q
@@ -749,6 +778,21 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     setOsYear: (y: number) => {
       setOsPage(0);
       setOsYear(y);
+    },
+    osSearchCliente,
+    setOsSearchCliente: (v: string) => {
+      setOsPage(0);
+      setOsSearchCliente(v);
+    },
+    osSearchTecnico,
+    setOsSearchTecnico: (v: string) => {
+      setOsPage(0);
+      setOsSearchTecnico(v);
+    },
+    osFilterStatus,
+    setOsFilterStatus: (v: string) => {
+      setOsPage(0);
+      setOsFilterStatus(v);
     },
 
     addOS: async (o) => {
