@@ -56,6 +56,8 @@ export interface OS {
   titulo: string;
   status: OSStatus;
   criadaEm: string;
+  data_atendimento?: string;
+  updatedAt?: string;
   valor: number;
   custo_viagem?: number;
   rat: RAT;
@@ -63,7 +65,6 @@ export interface OS {
 }
 
 export const OS_PAGE_SIZE = 50;
-
 
 interface User {
   id: string;
@@ -93,7 +94,6 @@ const uiToDbStatus: Record<OSStatus, string> = {
 };
 
 // Itens (estoque) — agora 100% no Supabase
-
 
 // ============================================================
 // Store
@@ -128,21 +128,18 @@ interface Store {
   updateItem: (id: string, patch: Partial<Item>) => Promise<void>;
   deleteItem: (id: string) => Promise<void>;
 
-
   os: OS[];
   loadingOS: boolean;
   osPage: number;
   osTotal: number;
   setOsPage: (p: number) => void;
   osMonth: number; // 0 = todos; 1..12
-  osYear: number;  // 0 = todos
+  osYear: number; // 0 = todos
   setOsMonth: (m: number) => void;
   setOsYear: (y: number) => void;
   addOS: (o: Omit<OS, "id" | "numero" | "criadaEm" | "rat">) => Promise<void>;
   updateOS: (id: string, patch: Partial<OS>) => Promise<void>;
   updateRAT: (id: string, patch: Partial<RAT>) => void;
-
-
 
   updateProfile: (nome: string) => Promise<void>;
   updateEmpresa: (nome: string) => Promise<void>;
@@ -162,20 +159,23 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const [osMonth, setOsMonth] = useState<number>(0); // 0 = todos
   const [osYear, setOsYear] = useState<number>(now.getFullYear());
 
-
-
   // Hydrate auth + perfil
   useEffect(() => {
     let mounted = true;
 
-    const loadPerfil = async (uid: string, email: string, retries = 3, delayMs = 500): Promise<User | null> => {
+    const loadPerfil = async (
+      uid: string,
+      email: string,
+      retries = 3,
+      delayMs = 500,
+    ): Promise<User | null> => {
       for (let attempt = 1; attempt <= retries; attempt++) {
         const { data, error } = await supabase
           .from("perfis")
           .select("id, nome_completo, role, empresa_id")
           .eq("id", uid)
           .maybeSingle();
-        
+
         if (error) {
           console.error(`[auth] erro ao buscar perfil (tentativa ${attempt}):`, error);
           if (attempt === retries) return null;
@@ -197,9 +197,11 @@ export function StoreProvider({ children }: { children: ReactNode }) {
             empresaNome,
           };
         }
-        
+
         if (attempt < retries) {
-          console.warn(`[auth] Perfil não encontrado, tentando novamente em ${delayMs}ms... (tentativa ${attempt})`);
+          console.warn(
+            `[auth] Perfil não encontrado, tentando novamente em ${delayMs}ms... (tentativa ${attempt})`,
+          );
           await new Promise((res) => setTimeout(res, delayMs));
         }
       }
@@ -207,7 +209,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     };
 
     const handleGhostUser = async () => {
-      console.error("[auth] Perfil não encontrado após retries. Possível usuário fantasma. Deslogando...");
+      console.error(
+        "[auth] Perfil não encontrado após retries. Possível usuário fantasma. Deslogando...",
+      );
       await supabase.auth.signOut();
       if (mounted) {
         setUser(null);
@@ -306,8 +310,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     queryKey: ["tecnicos", empresaId],
     enabled,
     queryFn: async (): Promise<Tecnico[]> => {
-      const { data, error } = await (supabase
-        .from("tecnicos") as any)
+      const { data, error } = await (supabase.from("tecnicos") as any)
         .select("id, nome, perfil, telefone, ativo, comissao, tipo_comissao, chave_pix, username")
         .eq("empresa_id", empresaId!)
         .order("nome");
@@ -334,7 +337,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       const to = from + OS_PAGE_SIZE - 1;
       let q = (supabase.from("ordens_servico") as any)
         .select(
-          "id, numero, cliente_id, tecnico_id, titulo, status, valor, custo_viagem, created_at, descricao_problema, solucao, dados_adicionais",
+          "id, numero, cliente_id, tecnico_id, titulo, status, valor, custo_viagem, created_at, updated_at, data_agendamento, descricao_problema, solucao, dados_adicionais",
           { count: "exact" },
         )
         .eq("empresa_id", empresaId!);
@@ -365,6 +368,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         titulo: r.titulo || r.descricao_problema || "",
         status: dbToUiStatus[r.status] ?? "Orçamento",
         criadaEm: (r.created_at ?? "").slice(0, 10),
+        data_atendimento: r.data_agendamento ?? r.dados_adicionais?.Data ?? undefined,
+        updatedAt: r.updated_at ?? undefined,
         valor: Number(r.valor ?? 0),
         custo_viagem: Number(r.custo_viagem ?? 0),
         rat: ratLocal[r.id] ?? { itens: [], evidencias: [] },
@@ -372,8 +377,6 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       }));
     },
   });
-
-
 
   // ---------------- Mutations ----------------
   const addClienteM = useMutation({
@@ -398,7 +401,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       if (patch.documento !== undefined) dbPatch.documento = patch.documento;
       if (patch.telefone !== undefined) dbPatch.telefone = patch.telefone;
       if (patch.email !== undefined) dbPatch.email = patch.email;
-      const { error } = await supabase.from("clientes").update(dbPatch as any).eq("id", id);
+      const { error } = await supabase
+        .from("clientes")
+        .update(dbPatch as any)
+        .eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["clientes", empresaId] }),
@@ -548,13 +554,14 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
   const deleteItemM = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await (supabase.from("itens_inventario" as any) as any).delete().eq("id", id);
+      const { error } = await (supabase.from("itens_inventario" as any) as any)
+        .delete()
+        .eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["itens_inventario", empresaId] }),
     onError: (e: Error) => toast.error(e.message),
   });
-
 
   // ---------------- Auth methods ----------------
   const login = useCallback(async (email: string, senha: string) => {
@@ -651,7 +658,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         });
         return {};
       } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : "Erro inesperado durante o cadastro";
+        const errorMessage =
+          err instanceof Error ? err.message : "Erro inesperado durante o cadastro";
         return { error: errorMessage };
       }
     },
@@ -734,9 +742,14 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     setOsPage,
     osMonth,
     osYear,
-    setOsMonth: (m: number) => { setOsPage(0); setOsMonth(m); },
-    setOsYear: (y: number) => { setOsPage(0); setOsYear(y); },
-
+    setOsMonth: (m: number) => {
+      setOsPage(0);
+      setOsMonth(m);
+    },
+    setOsYear: (y: number) => {
+      setOsPage(0);
+      setOsYear(y);
+    },
 
     addOS: async (o) => {
       await addOSM.mutateAsync(o);
