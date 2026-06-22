@@ -57,6 +57,7 @@ export interface OS {
   status: OSStatus;
   criadaEm: string;
   data_atendimento?: string;
+  data_agendamento?: string;
   updatedAt?: string;
   valor: number;
   custo_viagem?: number;
@@ -336,7 +337,6 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     queryKey: [
       "ordens_servico",
       empresaId,
-      osPage,
       osMonth,
       osYear,
       osSearchCliente,
@@ -345,12 +345,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     ],
     enabled,
     queryFn: async (): Promise<OS[]> => {
-      const from = osPage * OS_PAGE_SIZE;
-      const to = from + OS_PAGE_SIZE - 1;
       let q = (supabase.from("ordens_servico") as any)
         .select(
           "id, numero, cliente_id, tecnico_id, titulo, status, valor, custo_viagem, created_at, updated_at, data_agendamento, descricao_problema, solucao, dados_adicionais",
-          { count: "exact" },
         )
         .eq("empresa_id", empresaId!);
 
@@ -371,11 +368,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         if (dbStatus) q = q.eq("status", dbStatus);
       }
 
-      const { data, error, count } = await q
-        .order("created_at", { ascending: false })
-        .range(from, to);
+      const { data, error } = await q.order("created_at", { ascending: false });
       if (error) throw error;
-      setOsTotal(count ?? 0);
 
       // Fetch clientes for name-based filtering
       const clientesData = clientesQ.data ?? [];
@@ -390,6 +384,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         status: dbToUiStatus[r.status] ?? "Orçamento",
         criadaEm: (r.created_at ?? "").slice(0, 10),
         data_atendimento: r.data_agendamento ?? r.dados_adicionais?.Data ?? undefined,
+        data_agendamento: r.data_agendamento ?? r.dados_adicionais?.Data ?? undefined,
         updatedAt: r.updated_at ?? undefined,
         valor: Number(r.valor ?? 0),
         custo_viagem: Number(r.custo_viagem ?? 0),
@@ -416,7 +411,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       }
 
       return results;
-    }
+    },
   });
 
   // ---------------- Mutations ----------------

@@ -426,11 +426,14 @@ function OSPage() {
                               {o.status}
                             </span>
                           </td>
-                          <td className="px-5 py-3 text-muted-foreground whitespace-nowrap">
-                            {formatDate(o.data_atendimento)}
+                          <td className="px-5 py-3 whitespace-nowrap">
+                            {formatDate(o.data_agendamento || o.dados_adicionais?.Data)}
                           </td>
-                          <td className="px-5 py-3 text-muted-foreground whitespace-nowrap">
-                            {o.status === "Concluído" ? formatDate(o.updatedAt) : "—"}
+                          <td className="px-5 py-3 whitespace-nowrap">
+                            {o.status?.toLowerCase() === "concluido" ||
+                            o.status?.toLowerCase() === "concluído"
+                              ? formatDate(o.data_agendamento || o.dados_adicionais?.Data)
+                              : "-"}
                           </td>
                           <td className="px-5 py-3 font-medium min-w-[200px]">{o.titulo}</td>
                           <td className="px-5 py-3 text-muted-foreground whitespace-nowrap">
