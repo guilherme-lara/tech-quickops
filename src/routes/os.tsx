@@ -165,6 +165,8 @@ function OSPage() {
     tecnicoId: "",
     valor: "",
     custo_viagem: "",
+    data_agendamento: "",
+    descricao_problema: "",
     status: "Orçamento" as OSStatus,
   });
   const [viewMode, setViewMode] = useState<"list" | "card">("list");
@@ -181,6 +183,8 @@ function OSPage() {
       tecnicoId: form.tecnicoId,
       valor: Number(form.valor) || 0,
       custo_viagem: Number(form.custo_viagem) || 0,
+      data_agendamento: form.data_agendamento || undefined,
+      descricao_problema: form.descricao_problema,
       status: form.status,
     });
     toast.success("OS criada com sucesso");
@@ -191,6 +195,8 @@ function OSPage() {
       tecnicoId: "",
       valor: "",
       custo_viagem: "",
+      data_agendamento: "",
+      descricao_problema: "",
       status: "Orçamento",
     });
   };
@@ -205,6 +211,17 @@ function OSPage() {
       toast.success(`Movida para ${target}`);
     }
   };
+
+  const fixedKeys = new Set(["Data"]);
+  const dynamicHeaders = Array.from(
+    new Set(
+      os.flatMap((o) =>
+        Object.keys((o.dados_adicionais as Record<string, any>) || {}).filter(
+          (k) => !fixedKeys.has(k),
+        ),
+      ),
+    ),
+  );
 
   return (
     <GestorLayout>
@@ -405,6 +422,11 @@ function OSPage() {
                       <th className="px-5 py-3 font-semibold">Cliente</th>
                       <th className="px-5 py-3 font-semibold">Técnico</th>
                       <th className="px-5 py-3 font-semibold">Valor</th>
+                      {dynamicHeaders.map((key) => (
+                        <th key={key} className="px-5 py-3 font-semibold capitalize">
+                          {key}
+                        </th>
+                      ))}
                       <th className="px-5 py-3"></th>
                     </tr>
                   </thead>
@@ -452,6 +474,11 @@ function OSPage() {
                           <td className="px-5 py-3 font-semibold whitespace-nowrap">
                             R$ {o.valor.toLocaleString("pt-BR")}
                           </td>
+                          {dynamicHeaders.map((key) => (
+                            <td key={key} className="px-5 py-3 whitespace-nowrap">
+                              {(o.dados_adicionais as Record<string, any>)?.[key] || "—"}
+                            </td>
+                          ))}
                           <td className="px-5 py-3 text-right" onClick={(e) => e.stopPropagation()}>
                             <RatGallery osId={o.id} />
                           </td>

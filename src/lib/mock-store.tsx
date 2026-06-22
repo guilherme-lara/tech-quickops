@@ -63,6 +63,7 @@ export interface OS {
   custo_viagem?: number;
   rat: RAT;
   dados_adicionais?: Record<string, any>;
+  descricao_problema?: string;
 }
 
 export const OS_PAGE_SIZE = 50;
