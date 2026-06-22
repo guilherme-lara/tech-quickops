@@ -247,13 +247,13 @@ export function ImportarOSDialog({ trigger }: Props) {
         try {
           const { error } = await supabase.from("ordens_servico").insert(linha);
           if (error) {
-            console.error("Erro na linha", i + 1, ":", linha, error);
+            console.error("ERRO DETALHADO DO SUPABASE:", error, "LINHA:", i + 1, linha);
             falhas++;
           } else {
             inseridas++;
           }
         } catch (e) {
-          console.error("Erro inesperado na linha", i + 1, ":", linha, e);
+          console.error("ERRO DETALHADO DO SUPABASE (exceção):", e, "LINHA:", i + 1, linha);
           falhas++;
         }
         setProgress(60 + Math.round(((i + 1) / osPayload.length) * 40));

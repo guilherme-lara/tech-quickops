@@ -376,7 +376,12 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         .range(from, to);
       if (error) throw error;
       setOsTotal(count ?? 0);
-      return ((data ?? []) as any[]).map((r) => ({
+
+      // Fetch clientes for name-based filtering
+      const clientesData = clientesQ.data ?? [];
+      const tecnicosData = tecnicosQ.data ?? [];
+
+      let results = ((data ?? []) as any[]).map((r) => ({
         id: r.id,
         numero: r.numero ?? "OS-?",
         clienteId: r.cliente_id,
@@ -391,7 +396,27 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         rat: ratLocal[r.id] ?? { itens: [], evidencias: [] },
         dados_adicionais: r.dados_adicionais ?? {},
       }));
-    },
+
+      // Client name filter
+      if (osSearchCliente) {
+        const term = osSearchCliente.toLowerCase();
+        const matchingIds = new Set(
+          clientesData.filter((c) => c.nomeFantasia.toLowerCase().includes(term)).map((c) => c.id),
+        );
+        results = results.filter((o) => matchingIds.has(o.clienteId));
+      }
+
+      // Technician name filter
+      if (osSearchTecnico) {
+        const term = osSearchTecnico.toLowerCase();
+        const matchingIds = new Set(
+          tecnicosData.filter((t) => t.nome.toLowerCase().includes(term)).map((t) => t.id),
+        );
+        results = results.filter((o) => matchingIds.has(o.tecnicoId));
+      }
+
+      return results;
+    }
   });
 
   // ---------------- Mutations ----------------
