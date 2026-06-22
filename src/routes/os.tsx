@@ -20,6 +20,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useStore, statusColor, OSStatus, OS, OS_PAGE_SIZE } from "@/lib/mock-store";
+import { formatDate } from "@/lib/utils";
 import {
   Plus,
   User,
@@ -61,7 +62,8 @@ export const Route = createFileRoute("/os")({
 const colunas: OSStatus[] = ["Orçamento", "Aprovado", "Em Execução", "Concluído", "Cancelado"];
 
 function OSPage() {
-  const { os, clientes, tecnicos, addOS, updateOS, loadingOS, osPage, osTotal, setOsPage } = useStore();
+  const { os, clientes, tecnicos, addOS, updateOS, loadingOS, osPage, osTotal, setOsPage } =
+    useStore();
   const totalPages = Math.max(1, Math.ceil(osTotal / OS_PAGE_SIZE));
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<OS | null>(null);
@@ -305,6 +307,8 @@ function OSPage() {
                   <th className="px-5 py-3 font-semibold">Título</th>
                   <th className="px-5 py-3 font-semibold">Cliente</th>
                   <th className="px-5 py-3 font-semibold">Técnico</th>
+                  <th className="px-5 py-3 font-semibold">Data</th>
+                  <th className="px-5 py-3 font-semibold">Data Conclusão</th>
                   <th className="px-5 py-3 font-semibold">Valor</th>
                   <th className="px-5 py-3"></th>
                 </tr>
@@ -334,20 +338,23 @@ function OSPage() {
                           {cliente?.nomeFantasia ?? "—"}
                         </span>
                       </td>
-                    
+
                       <td className="px-5 py-3 text-muted-foreground whitespace-nowrap">
                         <span className="flex items-center gap-1.5">
                           <HardHat className="w-3.5 h-3.5" />
                           {tecnico?.nome?.split(" ")[0] ?? "—"}
                         </span>
                       </td>
+                      <td className="px-5 py-3 text-muted-foreground whitespace-nowrap">
+                        {formatDate(o.data_atendimento)}
+                      </td>
+                      <td className="px-5 py-3 text-muted-foreground whitespace-nowrap">
+                        {o.status === "Concluído" ? formatDate(o.updatedAt) : "—"}
+                      </td>
                       <td className="px-5 py-3 font-semibold whitespace-nowrap">
                         R$ {o.valor.toLocaleString("pt-BR")}
                       </td>
-                      <td
-                        className="px-5 py-3 text-right"
-                        onClick={(e) => e.stopPropagation()}
-                      >
+                      <td className="px-5 py-3 text-right" onClick={(e) => e.stopPropagation()}>
                         <RatGallery osId={o.id} />
                       </td>
                     </tr>
@@ -379,7 +386,8 @@ function OSPage() {
       {os.length > 0 && viewMode === "list" && (
         <div className="flex items-center justify-between mt-4 px-1">
           <p className="text-xs text-muted-foreground">
-            Mostrando {osPage * OS_PAGE_SIZE + 1}–{Math.min((osPage + 1) * OS_PAGE_SIZE, osTotal)} de {osTotal} OS
+            Mostrando {osPage * OS_PAGE_SIZE + 1}–{Math.min((osPage + 1) * OS_PAGE_SIZE, osTotal)}{" "}
+            de {osTotal} OS
           </p>
           <div className="flex items-center gap-2">
             <Button
@@ -406,8 +414,6 @@ function OSPage() {
           </div>
         </div>
       )}
-
-
 
       <EditOSDialog
         ordem={editing}
