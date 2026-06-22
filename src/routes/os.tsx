@@ -377,87 +377,89 @@ function OSPage() {
             ))}
           </Card>
         )
-      ) : os.length === 0 ? (
-        <EmptyState
-          icon={ClipboardList}
-          title="Nenhuma ordem de serviço ainda"
-          description="Crie sua primeira OS ou importe seu histórico de uma planilha para começar a acompanhar seus chamados."
-          action={
-            <Button onClick={() => setOpen(true)} className="rounded-xl">
-              <Plus className="w-4 h-4" /> Criar primeira OS
-            </Button>
-          }
-        />
       ) : viewMode === "list" ? (
         <>
           <FiltrosBar />
-          <Card className="p-0 overflow-hidden">
-            <div className="overflow-x-auto w-full">
-              <table className="w-full text-sm text-left">
-                <thead className="bg-muted/50 text-xs uppercase text-muted-foreground">
-                  <tr>
-                    <th className="px-5 py-3 font-semibold">Número</th>
-                    <th className="px-5 py-3 font-semibold">Status</th>
-                    <th className="px-5 py-3 font-semibold">Data</th>
-                    <th className="px-5 py-3 font-semibold">Conclusão</th>
-                    <th className="px-5 py-3 font-semibold">Título</th>
-                    <th className="px-5 py-3 font-semibold">Cliente</th>
-                    <th className="px-5 py-3 font-semibold">Técnico</th>
-                    <th className="px-5 py-3 font-semibold">Valor</th>
-                    <th className="px-5 py-3"></th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border">
-                  {os.map((o) => {
-                    const cliente = clientes.find((c) => c.id === o.clienteId);
-                    const tecnico = tecnicos.find((t) => t.id === o.tecnicoId);
-                    return (
-                      <tr
-                        key={o.id}
-                        onClick={() => setEditing(o)}
-                        className="hover:bg-muted/30 transition-colors cursor-pointer"
-                      >
-                        <td className="px-5 py-3 font-medium whitespace-nowrap">{o.numero}</td>
-                        <td className="px-5 py-3 whitespace-nowrap">
-                          <span
-                            className={`text-[10px] px-2.5 py-1 rounded-full font-bold uppercase tracking-wider ${statusColor[o.status]}`}
-                          >
-                            {o.status}
-                          </span>
-                        </td>
-                        <td className="px-5 py-3 text-muted-foreground whitespace-nowrap">
-                          {formatDate(o.data_atendimento)}
-                        </td>
-                        <td className="px-5 py-3 text-muted-foreground whitespace-nowrap">
-                          {o.status === "Concluído" ? formatDate(o.updatedAt) : "—"}
-                        </td>
-                        <td className="px-5 py-3 font-medium min-w-[200px]">{o.titulo}</td>
-                        <td className="px-5 py-3 text-muted-foreground whitespace-nowrap">
-                          <span className="flex items-center gap-1.5">
-                            <User className="w-3.5 h-3.5" />
-                            {cliente?.nomeFantasia ?? "—"}
-                          </span>
-                        </td>
+          {os.length === 0 ? (
+            <EmptyState
+              icon={ClipboardList}
+              title="Nenhuma ordem de serviço encontrada"
+              description="Tente ajustar os filtros ou crie uma nova OS."
+              action={
+                <Button onClick={() => setOpen(true)} className="rounded-xl">
+                  <Plus className="w-4 h-4" /> Criar primeira OS
+                </Button>
+              }
+            />
+          ) : (
+            <Card className="p-0 overflow-hidden">
+              <div className="overflow-x-auto w-full">
+                <table className="w-full text-sm text-left">
+                  <thead className="bg-muted/50 text-xs uppercase text-muted-foreground">
+                    <tr>
+                      <th className="px-5 py-3 font-semibold">Número</th>
+                      <th className="px-5 py-3 font-semibold">Status</th>
+                      <th className="px-5 py-3 font-semibold">Data</th>
+                      <th className="px-5 py-3 font-semibold">Conclusão</th>
+                      <th className="px-5 py-3 font-semibold">Título</th>
+                      <th className="px-5 py-3 font-semibold">Cliente</th>
+                      <th className="px-5 py-3 font-semibold">Técnico</th>
+                      <th className="px-5 py-3 font-semibold">Valor</th>
+                      <th className="px-5 py-3"></th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border">
+                    {os.map((o) => {
+                      const cliente = clientes.find((c) => c.id === o.clienteId);
+                      const tecnico = tecnicos.find((t) => t.id === o.tecnicoId);
+                      return (
+                        <tr
+                          key={o.id}
+                          onClick={() => setEditing(o)}
+                          className="hover:bg-muted/30 transition-colors cursor-pointer"
+                        >
+                          <td className="px-5 py-3 font-medium whitespace-nowrap">{o.numero}</td>
+                          <td className="px-5 py-3 whitespace-nowrap">
+                            <span
+                              className={`text-[10px] px-2.5 py-1 rounded-full font-bold uppercase tracking-wider ${statusColor[o.status]}`}
+                            >
+                              {o.status}
+                            </span>
+                          </td>
+                          <td className="px-5 py-3 text-muted-foreground whitespace-nowrap">
+                            {formatDate(o.data_atendimento)}
+                          </td>
+                          <td className="px-5 py-3 text-muted-foreground whitespace-nowrap">
+                            {o.status === "Concluído" ? formatDate(o.updatedAt) : "—"}
+                          </td>
+                          <td className="px-5 py-3 font-medium min-w-[200px]">{o.titulo}</td>
+                          <td className="px-5 py-3 text-muted-foreground whitespace-nowrap">
+                            <span className="flex items-center gap-1.5">
+                              <User className="w-3.5 h-3.5" />
+                              {cliente?.nomeFantasia ?? "—"}
+                            </span>
+                          </td>
 
-                        <td className="px-5 py-3 text-muted-foreground whitespace-nowrap">
-                          <span className="flex items-center gap-1.5">
-                            <HardHat className="w-3.5 h-3.5" />
-                            {tecnico?.nome?.split(" ")[0] ?? "—"}
-                          </span>
-                        </td>
-                        <td className="px-5 py-3 font-semibold whitespace-nowrap">
-                          R$ {o.valor.toLocaleString("pt-BR")}
-                        </td>
-                        <td className="px-5 py-3 text-right" onClick={(e) => e.stopPropagation()}>
-                          <RatGallery osId={o.id} />
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          </Card>
+                          <td className="px-5 py-3 text-muted-foreground whitespace-nowrap">
+                            <span className="flex items-center gap-1.5">
+                              <HardHat className="w-3.5 h-3.5" />
+                              {tecnico?.nome?.split(" ")[0] ?? "—"}
+                            </span>
+                          </td>
+                          <td className="px-5 py-3 font-semibold whitespace-nowrap">
+                            R$ {o.valor.toLocaleString("pt-BR")}
+                          </td>
+                          <td className="px-5 py-3 text-right" onClick={(e) => e.stopPropagation()}>
+                            <RatGallery osId={o.id} />
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </Card>
+          )}
         </>
       ) : (
         <DndContext sensors={sensors} onDragEnd={onDragEnd}>

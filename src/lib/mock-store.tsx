@@ -93,8 +93,6 @@ const uiToDbStatus: Record<OSStatus, string> = {
   Cancelado: "cancelado",
 };
 
-// Itens (estoque) — agora 100% no Supabase
-
 // ============================================================
 // Store
 // ============================================================
@@ -133,8 +131,8 @@ interface Store {
   osPage: number;
   osTotal: number;
   setOsPage: (p: number) => void;
-  osMonth: number; // 0 = todos; 1..12
-  osYear: number; // 0 = todos
+  osMonth: number;
+  osYear: number;
   setOsMonth: (m: number) => void;
   setOsYear: (y: number) => void;
   osSearchCliente: string;
@@ -157,12 +155,11 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const qc = useQueryClient();
   const [user, setUser] = useState<User | null>(null);
   const [loadingAuth, setLoadingAuth] = useState(true);
-  // local-only RAT progress (no DB table)
   const [ratLocal, setRatLocal] = useState<Record<string, RAT>>({});
   const [osPage, setOsPage] = useState(0);
   const [osTotal, setOsTotal] = useState(0);
   const now = new Date();
-  const [osMonth, setOsMonth] = useState<number>(0); // 0 = todos
+  const [osMonth, setOsMonth] = useState<number>(0);
   const [osYear, setOsYear] = useState<number>(now.getFullYear());
   const [osSearchCliente, setOsSearchCliente] = useState("");
   const [osSearchTecnico, setOsSearchTecnico] = useState("");
@@ -232,7 +229,6 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       }
     };
 
-    // 1) Restaura sessão inicial
     (async () => {
       try {
         const {
@@ -256,7 +252,6 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       }
     })();
 
-    // 2) Listener de mudanças
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
@@ -291,7 +286,6 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     };
   }, [qc]);
 
-  // ---------------- Queries ----------------
   const enabled = !!user;
   const empresaId = user?.empresaId;
 
@@ -360,7 +354,6 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         )
         .eq("empresa_id", empresaId!);
 
-      // Filtro mês/ano sobre created_at
       if (osYear > 0) {
         if (osMonth > 0) {
           const start = new Date(Date.UTC(osYear, osMonth - 1, 1));
@@ -373,15 +366,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         }
       }
 
-      // Filtros avançados
-      if (osSearchCliente.trim()) {
-        q = q.ilike("cliente_nome", `%${osSearchCliente.trim()}%`);
-      }
-      if (osSearchTecnico.trim()) {
-        q = q.ilike("tecnico_nome", `%${osSearchTecnico.trim()}%`);
-      }
       if (osFilterStatus) {
-        q = q.eq("status", osFilterStatus);
+        const dbStatus = uiToDbStatus[osFilterStatus as OSStatus];
+        if (dbStatus) q = q.eq("status", dbStatus);
       }
 
       const { data, error, count } = await q
@@ -632,7 +619,6 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const signup = useCallback(
     async (email: string, senha: string, nome: string, empresa: string) => {
       try {
-        // ETAPA 1 — cria conta no Auth
         const redirectUrl = `${window.location.origin}/`;
         const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
           email,
@@ -647,13 +633,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         const userId = signUpData.user?.id;
         if (!userId) return { error: "Falha ao criar conta de usuário." };
 
-        // Se o e-mail exigir confirmação, não há sessão ativa → não dá pra inserir empresa/perfil (RLS).
-        // Nesse caso paramos aqui e pedimos para o usuário confirmar o e-mail.
         if (!signUpData.session) {
           return { error: "Conta criada! Confirme seu e-mail antes de continuar o cadastro." };
         }
 
-        // ETAPA 2 — cria empresa
         const { data: empresaRow, error: empresaError } = await supabase
           .from("empresas")
           .insert({ nome_fantasia: empresa })
@@ -663,20 +646,17 @@ export function StoreProvider({ children }: { children: ReactNode }) {
           return { error: `Erro ao criar empresa: ${empresaError?.message ?? "desconhecido"}` };
         }
 
-        // ETAPA 3 — cria perfil (role forçada como 'gestor')
         const { error: perfilError } = await supabase.from("perfis").insert({
           id: userId,
           empresa_id: empresaRow.id,
           nome_completo: nome,
-          role: "gestor" as any, // Mapeado internamente para gestor
+          role: "gestor" as any,
         });
         if (perfilError) {
-          // Fallback de segurança: desloga o usuário fantasma se falhar ao criar perfil
           await supabase.auth.signOut();
           return { error: `Erro ao criar perfil. Conta não ativada: ${perfilError.message}` };
         }
 
-        // Hidrata o usuário em memória já com empresa_id
         setUser({
           id: userId,
           email,
@@ -794,7 +774,6 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       setOsPage(0);
       setOsFilterStatus(v);
     },
-
     addOS: async (o) => {
       await addOSM.mutateAsync(o);
     },

@@ -137,14 +137,18 @@ export function ImportarOSDialog({ trigger }: Props) {
       const parsedRows = allRows;
 
       // Auto-map (Zero-Click Mapping)
-      const clienteCol = heads.find(h => /cliente|empresa|local/i.test(h));
-      const dataCol = heads.find(h => /data/i.test(h));
-      const valorCol = heads.find(h => /valor/i.test(h));
-      const tecnicoCol = heads.find(h => /t[ée]cnico|respons[áa]vel/i.test(h));
-      const descricaoCol = heads.find(h => /descri[çc][ãa]o|defeito|problema|servi[çc]o/i.test(h));
+      const clienteCol = heads.find((h) => /cliente|empresa|local/i.test(h));
+      const dataCol = heads.find((h) => /data/i.test(h));
+      const valorCol = heads.find((h) => /valor/i.test(h));
+      const tecnicoCol = heads.find((h) => /t[ée]cnico|respons[áa]vel/i.test(h));
+      const descricaoCol = heads.find((h) =>
+        /descri[çc][ãa]o|defeito|problema|servi[çc]o/i.test(h),
+      );
 
-      const essentialCols = [clienteCol, dataCol, valorCol, tecnicoCol, descricaoCol].filter(Boolean) as string[];
-      const extraCols = heads.filter(h => !essentialCols.includes(h));
+      const essentialCols = [clienteCol, dataCol, valorCol, tecnicoCol, descricaoCol].filter(
+        Boolean,
+      ) as string[];
+      const extraCols = heads.filter((h) => !essentialCols.includes(h));
 
       setProgress(25);
       setProgressLabel("Identificando novos cadastros…");
@@ -197,7 +201,10 @@ export function ImportarOSDialog({ trigger }: Props) {
           empresa_id: profile.empresa_id,
           nome,
         }));
-        const { data: ins, error } = await supabase.from("clientes").insert(payload).select("id, nome");
+        const { data: ins, error } = await supabase
+          .from("clientes")
+          .insert(payload)
+          .select("id, nome");
         if (error) throw error;
         (ins ?? []).forEach((c) => cliMap.set(c.nome.trim().toLowerCase(), c.id));
       }
@@ -208,7 +215,10 @@ export function ImportarOSDialog({ trigger }: Props) {
           nome,
           ativo: true,
         }));
-        const { data: ins, error } = await supabase.from("tecnicos").insert(payload).select("id, nome");
+        const { data: ins, error } = await supabase
+          .from("tecnicos")
+          .insert(payload)
+          .select("id, nome");
         if (error) throw error;
         (ins ?? []).forEach((t) => tecMap.set(t.nome.trim().toLowerCase(), t.id));
       }
@@ -226,21 +236,33 @@ export function ImportarOSDialog({ trigger }: Props) {
         dados_adicionais: r.dadosAdicionais,
       }));
 
-      const chunkSize = 100;
+      // Insere uma a uma para capturar falhas individuais
       let inseridas = 0;
-      for (let i = 0; i < osPayload.length; i += chunkSize) {
-        const slice = osPayload.slice(i, i + chunkSize);
-        setProgressLabel(`Salvando ordens ${inseridas + 1}–${inseridas + slice.length} de ${osPayload.length}…`);
-        const { error } = await supabase.from("ordens_servico").insert(slice);
-        if (error) throw error;
-        inseridas += slice.length;
-        setProgress(60 + Math.round((inseridas / osPayload.length) * 40));
+      let falhas = 0;
+      for (let i = 0; i < osPayload.length; i++) {
+        const linha = osPayload[i];
+        setProgressLabel(
+          `Salvando ordem ${i + 1} de ${osPayload.length} (${inseridas} ok · ${falhas} falhas)…`,
+        );
+        try {
+          const { error } = await supabase.from("ordens_servico").insert(linha);
+          if (error) {
+            console.error("Erro na linha", i + 1, ":", linha, error);
+            falhas++;
+          } else {
+            inseridas++;
+          }
+        } catch (e) {
+          console.error("Erro inesperado na linha", i + 1, ":", linha, e);
+          falhas++;
+        }
+        setProgress(60 + Math.round(((i + 1) / osPayload.length) * 40));
       }
 
       setProgress(100);
       setResult({ os: inseridas, clientes: novosCli.size, tecnicos: novosTec.size });
       setStep("done");
-      toast.success(`Sucesso! ${inseridas} ordens importadas com Zero-Click Mapping.`);
+      toast.success(`Importadas: ${inseridas}. Falhas: ${falhas}.`);
       qc.invalidateQueries({ queryKey: ["ordens_servico", profile.empresa_id] });
       qc.invalidateQueries({ queryKey: ["clientes", profile.empresa_id] });
       qc.invalidateQueries({ queryKey: ["tecnicos", profile.empresa_id] });
