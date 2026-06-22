@@ -20,7 +20,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useStore, statusColor, OSStatus, OS, OS_PAGE_SIZE } from "@/lib/mock-store";
-import { formatDate } from "@/lib/utils";
 import {
   Plus,
   User,
@@ -50,6 +49,22 @@ import { EmptyState } from "@/components/EmptyState";
 import { Card } from "@/components/ui/card";
 import { RatGallery } from "@/components/RatGallery";
 import { MesAnoFilter } from "@/components/MesAnoFilter";
+
+/** Formata data ISO → DD/MM/AAAA (inline para evitar problemas com code-split do Vite) */
+function formatDate(date: string | null | undefined): string {
+  if (!date) return "—";
+  try {
+    const d = new Date(date);
+    if (isNaN(d.getTime())) return "—";
+    return d.toLocaleDateString("pt-BR", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    });
+  } catch {
+    return "—";
+  }
+}
 
 export const Route = createFileRoute("/os")({
   component: () => (
