@@ -212,12 +212,21 @@ function OSPage() {
     }
   };
 
-  const fixedKeys = new Set(["Data"]);
+  const fixedKeys = new Set([
+    "Data",
+    "status",
+    "valor",
+    "cliente",
+    "tecnico",
+    "título",
+    "titulo",
+    "numero",
+  ]);
   const dynamicHeaders = Array.from(
     new Set(
       os.flatMap((o) =>
         Object.keys((o.dados_adicionais as Record<string, any>) || {}).filter(
-          (k) => !fixedKeys.has(k),
+          (k) => !fixedKeys.has(k.toLowerCase()),
         ),
       ),
     ),
@@ -410,11 +419,13 @@ function OSPage() {
             />
           ) : (
             <Card className="p-0 overflow-hidden">
-              <div className="overflow-x-auto w-full">
+              <div className="overflow-x-auto w-full pb-4">
                 <table className="w-full text-sm text-left">
                   <thead className="bg-muted/50 text-xs uppercase text-muted-foreground">
                     <tr>
-                      <th className="px-5 py-3 font-semibold">Número</th>
+                      <th className="px-5 py-3 font-semibold sticky left-0 z-20 bg-muted/50 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">
+                        Número
+                      </th>
                       <th className="px-5 py-3 font-semibold">Status</th>
                       <th className="px-5 py-3 font-semibold">Data</th>
                       <th className="px-5 py-3 font-semibold">Conclusão</th>
@@ -423,7 +434,10 @@ function OSPage() {
                       <th className="px-5 py-3 font-semibold">Técnico</th>
                       <th className="px-5 py-3 font-semibold">Valor</th>
                       {dynamicHeaders.map((key) => (
-                        <th key={key} className="px-5 py-3 font-semibold capitalize">
+                        <th
+                          key={key}
+                          className="px-4 py-2 font-semibold text-[10px] text-muted-foreground uppercase tracking-wider whitespace-nowrap bg-muted/20"
+                        >
                           {key}
                         </th>
                       ))}
@@ -440,7 +454,9 @@ function OSPage() {
                           onClick={() => setEditing(o)}
                           className="hover:bg-muted/30 transition-colors cursor-pointer"
                         >
-                          <td className="px-5 py-3 font-medium whitespace-nowrap">{o.numero}</td>
+                          <td className="px-5 py-3 font-medium whitespace-nowrap sticky left-0 z-20 bg-background shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">
+                            {o.numero}
+                          </td>
                           <td className="px-5 py-3 whitespace-nowrap">
                             <span
                               className={`text-[10px] px-2.5 py-1 rounded-full font-bold uppercase tracking-wider ${statusColor[o.status]}`}
@@ -475,7 +491,10 @@ function OSPage() {
                             R$ {o.valor.toLocaleString("pt-BR")}
                           </td>
                           {dynamicHeaders.map((key) => (
-                            <td key={key} className="px-5 py-3 whitespace-nowrap">
+                            <td
+                              key={key}
+                              className="px-4 py-3 text-xs text-muted-foreground whitespace-nowrap max-w-[150px] truncate"
+                            >
                               {(o.dados_adicionais as Record<string, any>)?.[key] || "—"}
                             </td>
                           ))}
