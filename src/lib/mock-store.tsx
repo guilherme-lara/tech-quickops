@@ -345,11 +345,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     ],
     enabled,
     queryFn: async (): Promise<OS[]> => {
-      let q = (supabase.from("ordens_servico") as any)
-        .select(
-          "id, numero, cliente_id, tecnico_id, titulo, status, valor, custo_viagem, created_at, updated_at, data_agendamento, descricao_problema, solucao, dados_adicionais",
-        )
-        .eq("empresa_id", empresaId!);
+      let q = (supabase.from("ordens_servico") as any).select("*").eq("empresa_id", empresaId!);
 
       if (osYear > 0) {
         if (osMonth > 0) {
@@ -385,7 +381,6 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         criadaEm: (r.created_at ?? "").slice(0, 10),
         data_atendimento: r.data_agendamento ?? r.dados_adicionais?.Data ?? undefined,
         data_agendamento: r.data_agendamento ?? r.dados_adicionais?.Data ?? undefined,
-        updatedAt: r.updated_at ?? undefined,
         valor: Number(r.valor ?? 0),
         custo_viagem: Number(r.custo_viagem ?? 0),
         rat: ratLocal[r.id] ?? { itens: [], evidencias: [] },
