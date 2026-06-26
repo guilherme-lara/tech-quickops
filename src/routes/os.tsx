@@ -158,9 +158,26 @@ function FiltrosBar() {
 }
 
 function OSPage() {
-  const { os, clientes, tecnicos, addOS, updateOS, loadingOS, osPage, osTotal, setOsPage } =
-    useStore();
+  const {
+    os,
+    clientes,
+    tecnicos,
+    addOS,
+    updateOS,
+    loadingOS,
+    osPage,
+    osTotal,
+    setOsPage,
+    osSearchCliente,
+    osSearchTecnico,
+    osFilterStatus,
+  } = useStore();
   const queryClient = useQueryClient();
+
+  // Dispara a busca quando os filtros ou página mudam
+  useEffect(() => {
+    queryClient.invalidateQueries({ queryKey: ["ordens_servico"] });
+  }, [osPage, osSearchCliente, osSearchTecnico, osFilterStatus, queryClient]);
   const totalPages = Math.max(1, Math.ceil(osTotal / OS_PAGE_SIZE));
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<OS | null>(null);
