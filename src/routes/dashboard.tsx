@@ -21,6 +21,7 @@ import {
   FileText,
   Clock,
   AlertCircle,
+  AlertTriangle,
 } from "lucide-react";
 
 export const Route = createFileRoute("/dashboard")({
@@ -77,6 +78,32 @@ function Dashboard() {
   ).length;
   const concluidas = os.filter((o) => o.status === "Concluído").length;
   const emCampo = os.filter((o) => o.status === "Em Execução").length;
+
+  const contagemTotalQ = useQuery({
+    queryKey: ["ordens_servico_total", profile?.empresa_id],
+    enabled: !!profile && profile.role !== "tecnico",
+    queryFn: async (): Promise<{ total: number; semTecnico: number }> => {
+      // Contagem total
+      const { count: total, error: errTotal } = await (supabase
+        .from("ordens_servico") as any)
+        .select("id", { count: "exact", head: true })
+        .eq("empresa_id", profile?.empresa_id);
+      if (errTotal) throw errTotal;
+
+      // Contagem de OSs sem técnico
+      const { count: semTecnico, error: errSemTecnico } = await (supabase
+        .from("ordens_servico") as any)
+        .select("id", { count: "exact", head: true })
+        .eq("empresa_id", profile?.empresa_id)
+        .is("tecnico_id", null);
+      if (errSemTecnico) throw errSemTecnico;
+
+      return {
+        total: total ?? 0,
+        semTecnico: semTecnico ?? 0,
+      };
+    },
+  });
 
   const produtividadeQ = useQuery({
     queryKey: ["vw_produtividade_tecnico", profile?.empresa_id],
@@ -167,37 +194,52 @@ function Dashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Coluna Esquerda: KPIs + Atividades Recentes */}
         <div className="lg:col-span-2 space-y-6">
-          {/* KPIs Grid */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <KpiCard
-              icon={ClipboardList}
-              label="OS Abertas"
-              value={abertas}
-              trend="+12%"
-              tone="info"
-            />
-            <KpiCard
-              icon={CheckCircle2}
-              label="Concluídas"
-              value={concluidas}
-              trend="+8%"
-              tone="success"
-            />
-            <KpiCard
-              icon={Users}
-              label="Clientes Ativos"
-              value={clientes.length}
-              trend="+3"
-              tone="violet"
-            />
-            <KpiCard
-              icon={Activity}
-              label="Em Campo Agora"
-              value={emCampo}
-              trend={`${tecnicos.filter((t) => t.ativo).length} técnicos`}
-              tone="warning"
-            />
+      {/* Aviso de OS Sem Técnico */}
+      {contagemTotalQ.data && contagemTotalQ.data.semTecnico > 0 && (
+        <div className="rounded-2xl bg-amber-50 border border-amber-200 p-4 mb-4 flex items-center gap-3">
+          <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0" />
+          <div className="flex-1">
+            <p className="text-sm font-semibold text-amber-900">
+              {contagemTotalQ.data.semTecnico} OS(s) sem técnico atribuído
+            </p>
+            <p className="text-xs text-amber-700">
+              Verifique as importações ou atribua técnicos manualmente
+            </p>
           </div>
+        </div>
+      )}
+
+      {/* KPIs Grid */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <KpiCard
+          icon={ClipboardList}
+          label="Total de OS"
+          value={contagemTotalQ.data?.total ?? 0}
+          trend={contagemTotalQ.isLoading ? "..." : "total"}
+          tone="info"
+        />
+        <KpiCard
+          icon={CheckCircle2}
+          label="Concluídas"
+          value={concluidas}
+          trend="+8%"
+          tone="success"
+        />
+        <KpiCard
+          icon={Users}
+          label="Clientes Ativos"
+          value={clientes.length}
+          trend="+3"
+          tone="violet"
+        />
+        <KpiCard
+          icon={Activity}
+          label="Em Campo Agora"
+          value={emCampo}
+          trend={`${tecnicos.filter((t) => t.ativo).length} técnicos`}
+          tone="warning"
+        />
+      </div>
 
           {/* Atividades Recentes */}
           <div className="rounded-3xl bg-card p-4 md:p-6 shadow-[var(--shadow-card)] border border-border/60">
