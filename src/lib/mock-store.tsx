@@ -67,6 +67,13 @@ export interface OS {
   rat: RAT;
   dados_adicionais?: Record<string, any>;
   descricao_problema?: string;
+  tecnico?: {
+    id: string;
+    nome: string;
+    perfil: string;
+    telefone: string;
+    ativo: boolean;
+  };
 }
 
 export const OS_PAGE_SIZE = 10;
@@ -355,7 +362,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     enabled,
     queryFn: async (): Promise<OS[]> => {
       let q = (supabase.from("ordens_servico") as any)
-        .select("*", { count: "exact" })
+        .select("*, tecnico:tecnicos!tecnico_id(id, nome, perfil, telefone, ativo)", {
+          count: "exact",
+        })
         .eq("empresa_id", empresaId!);
 
       // Filter by appointment date (month/year) using YYYY-MM-DD format
@@ -433,6 +442,15 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         custo_viagem: Number(r.custo_viagem ?? 0),
         rat: ratLocal[r.id] ?? { itens: [], evidencias: [] },
         dados_adicionais: r.dados_adicionais ?? {},
+        tecnico: r.tecnico
+          ? {
+              id: r.tecnico.id,
+              nome: r.tecnico.nome,
+              perfil: r.tecnico.perfil ?? "",
+              telefone: r.tecnico.telefone ?? "",
+              ativo: r.tecnico.ativo ?? true,
+            }
+          : undefined,
       }));
     },
   });

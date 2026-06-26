@@ -622,7 +622,7 @@ function OSPage() {
                   <tbody className="divide-y divide-border">
                     {os.map((o) => {
                       const cliente = clientes.find((c) => c.id === o.clienteId);
-                      const tecnico = tecnicos.find((t) => t.id === o.tecnicoId);
+                      const tecnico = o.tecnico || tecnicos.find((t) => t.id === o.tecnicoId);
                       return (
                         <tr
                           key={o.id}
