@@ -38,6 +38,7 @@ import {
   X,
   Trash,
   Edit,
+  AlertTriangle,
 } from "lucide-react";
 import { useEffect, useState, useRef } from "react";
 import { toast } from "sonner";
@@ -54,6 +55,7 @@ import { ImportarOSDialog } from "@/components/ImportarOSDialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/EmptyState";
 import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { RatGallery } from "@/components/RatGallery";
 import { MesAnoFilter } from "@/components/MesAnoFilter";
 
@@ -628,17 +630,57 @@ function OSPage() {
                             setEditing(o);
                             setDialogMode("view");
                           }}
-                          className="hover:bg-muted/30 transition-colors cursor-pointer"
+                          className="hover:bg-muted/50 transition-colors cursor-pointer border-b border-border/40 last:border-b-0"
                         >
                           <td className="px-5 py-3 font-medium whitespace-nowrap sticky left-0 z-20 bg-background shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">
-                            {o.numero}
+                            <div className="flex items-center gap-2">
+                              {o.dados_adicionais?._tecnico_nao_encontrado && (
+                                <AlertTriangle className="w-3.5 h-3.5 text-amber-500" />
+                              )}
+                              {o.numero}
+                            </div>
                           </td>
                           <td className="px-5 py-3 whitespace-nowrap">
-                            <span
-                              className={`text-[10px] px-2.5 py-1 rounded-full font-bold uppercase tracking-wider ${statusColor[o.status]}`}
-                            >
-                              {o.status}
-                            </span>
+                            {o.status === "Concluído" && (
+                              <Badge
+                                variant="outline"
+                                className="bg-emerald-50 text-emerald-700 border-emerald-200"
+                              >
+                                {o.status}
+                              </Badge>
+                            )}
+                            {o.status === "Orçamento" && (
+                              <Badge
+                                variant="outline"
+                                className="bg-amber-50 text-amber-700 border-amber-200"
+                              >
+                                {o.status}
+                              </Badge>
+                            )}
+                            {o.status === "Em Execução" && (
+                              <Badge
+                                variant="outline"
+                                className="bg-blue-50 text-blue-700 border-blue-200"
+                              >
+                                {o.status}
+                              </Badge>
+                            )}
+                            {o.status === "Cancelado" && (
+                              <Badge
+                                variant="outline"
+                                className="bg-red-50 text-red-700 border-red-200"
+                              >
+                                {o.status}
+                              </Badge>
+                            )}
+                            {o.status === "Aprovado" && (
+                              <Badge
+                                variant="outline"
+                                className="bg-violet-50 text-violet-700 border-violet-200"
+                              >
+                                {o.status}
+                              </Badge>
+                            )}
                           </td>
                           <td className="px-5 py-3 whitespace-nowrap">
                             {formatDate(o.data_agendamento || o.dados_adicionais?.Data)}

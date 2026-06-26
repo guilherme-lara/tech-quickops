@@ -255,17 +255,23 @@ export function ImportarOSDialog({ trigger }: Props) {
       }
 
       setProgress(60);
-      const osPayload = mapped.map((r) => ({
-        empresa_id: profile.empresa_id,
-        cliente_id: cliMap.get(r.cli.toLowerCase())!,
-        tecnico_id: r.tec ? (tecMap.get(r.tec.toLowerCase()) ?? null) : null,
-        titulo: r.desc.slice(0, 120),
-        descricao_problema: r.desc,
-        valor: r.valor,
-        status: "pendente" as const,
-        data_agendamento: r.data,
-        dados_adicionais: r.dadosAdicionais,
-      }));
+      const osPayload = mapped.map((r) => {
+        const tecnicoId = r.tec ? (tecMap.get(r.tec.toLowerCase()) ?? null) : null;
+        return {
+          empresa_id: profile.empresa_id,
+          cliente_id: cliMap.get(r.cli.toLowerCase())!,
+          tecnico_id: tecnicoId,
+          titulo: r.desc.slice(0, 120),
+          descricao_problema: r.desc,
+          valor: r.valor,
+          status: "pendente" as const,
+          data_agendamento: r.data,
+          dados_adicionais: {
+            ...r.dadosAdicionais,
+            _tecnico_nao_encontrado: !tecnicoId && r.tec ? r.tec : null,
+          },
+        };
+      });
 
       // Insere uma a uma para capturar falhas individuais
       let inseridas = 0;
