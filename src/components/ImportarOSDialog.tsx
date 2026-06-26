@@ -111,6 +111,62 @@ export function ImportarOSDialog({ trigger }: Props) {
     setResult(null);
   };
 
+  const findOrCreateTecnico = async (nomeTecnico: string): Promise<string | null> => {
+    if (!nomeTecnico || nomeTecnico.trim() === "" || !profile) {
+      return null;
+    }
+
+    const nomeLower = nomeTecnico.trim().toLowerCase();
+
+    // 1. Verificar se já existe (case-insensitive)
+    const { data: existente, error: errBusca } = await supabase
+      .from("tecnicos")
+      .select("id, nome")
+      .eq("empresa_id", profile.empresa_id)
+      .ilike("nome", nomeTecnico.trim())
+      .maybeSingle();
+
+    if (errBusca) {
+      console.error("Erro ao buscar técnico:", errBusca);
+      return null;
+    }
+
+    if (existente) {
+      toast.success(`Técnico ${existente.nome} vinculado com sucesso`);
+      return existente.id;
+    }
+
+    // 2. Não existe, criar automaticamente
+    try {
+      const { data: novo, error: errInsert } = await supabase
+        .from("tecnicos")
+        .insert({
+          empresa_id: profile.empresa_id,
+          nome: nomeTecnico.trim(),
+          ativo: true,
+        })
+        .select("id, nome")
+        .single();
+
+      if (errInsert) {
+        console.error("Erro ao criar técnico:", errInsert);
+        toast.error(`Erro ao criar técnico ${nomeTecnico}`);
+        return null;
+      }
+
+      if (novo) {
+        toast.success(`Técnico ${novo.nome} criado automaticamente`);
+        return novo.id;
+      }
+    } catch (e) {
+      console.error("Exceção ao criar técnico:", e);
+      toast.error(`Erro ao criar técnico ${nomeTecnico}`);
+      return null;
+    }
+
+    return null;
+  };
+
   const processImport = async (f: File) => {
     if (!profile) return;
     setStep("importing");
@@ -182,22 +238,19 @@ export function ImportarOSDialog({ trigger }: Props) {
       const extraCols = heads.filter((h) => !essentialCols.includes(h));
 
       setProgress(25);
-      setProgressLabel("Identificando novos cadastros…");
+      setProgressLabel("Processando técnicos...");
 
-      const [{ data: clis, error: cErr }, { data: tecs, error: tErr }] = await Promise.all([
+      const [{ data: clis, error: cErr }] = await Promise.all([
         supabase.from("clientes").select("id, nome").eq("empresa_id", profile.empresa_id),
-        supabase.from("tecnicos").select("id, nome").eq("empresa_id", profile.empresa_id),
       ]);
       if (cErr) throw cErr;
-      if (tErr) throw tErr;
 
       const cliMap = new Map<string, string>();
       (clis ?? []).forEach((c) => cliMap.set(c.nome.trim().toLowerCase(), c.id));
-      const tecMap = new Map<string, string>();
-      (tecs ?? []).forEach((t) => tecMap.set(t.nome.trim().toLowerCase(), t.id));
 
       const novosCli = new Set<string>();
-      const novosTec = new Set<string>();
+      let tecsCriados = 0;
+      let tecsVinculados = 0;
 
       const mapped = parsedRows
         .map((r) => {
@@ -208,7 +261,6 @@ export function ImportarOSDialog({ trigger }: Props) {
           const data = dataCol ? parseDate(r[dataCol]) : null;
 
           if (cli && !cliMap.has(cli.toLowerCase())) novosCli.add(cli);
-          if (tec && !tecMap.has(tec.toLowerCase())) novosTec.add(tec);
 
           const dadosAdicionais: Record<string, any> = {};
           for (const col of extraCols) {
@@ -225,7 +277,7 @@ export function ImportarOSDialog({ trigger }: Props) {
       }
 
       setProgress(40);
-      setProgressLabel(`Cadastrando ${novosCli.size} clientes e ${novosTec.size} técnicos...`);
+      setProgressLabel(`Cadastrando ${novosCli.size} clientes...`);
 
       if (novosCli.size > 0) {
         const payload = Array.from(novosCli).map((nome) => ({
@@ -240,24 +292,27 @@ export function ImportarOSDialog({ trigger }: Props) {
         (ins ?? []).forEach((c) => cliMap.set(c.nome.trim().toLowerCase(), c.id));
       }
 
-      if (novosTec.size > 0) {
-        const payload = Array.from(novosTec).map((nome) => ({
-          empresa_id: profile.empresa_id,
-          nome,
-          ativo: true,
-        }));
-        const { data: ins, error } = await supabase
-          .from("tecnicos")
-          .insert(payload)
-          .select("id, nome");
-        if (error) throw error;
-        (ins ?? []).forEach((t) => tecMap.set(t.nome.trim().toLowerCase(), t.id));
-      }
+      setProgress(50);
+      setProgressLabel("Vinculando técnicos às ordens...");
 
-      setProgress(60);
-      const osPayload = mapped.map((r) => {
-        const tecnicoId = r.tec ? (tecMap.get(r.tec.toLowerCase()) ?? null) : null;
-        return {
+      // Processar técnicos linha por linha (findOrCreate)
+      const osPayload = [];
+      for (const r of mapped) {
+        let tecnicoId: string | null = null;
+        let needsValidation = false;
+
+        if (r.tec && r.tec.trim() !== "") {
+          tecnicoId = await findOrCreateTecnico(r.tec);
+          if (tecnicoId) {
+            tecsVinculados++;
+          } else {
+            needsValidation = true;
+          }
+        } else {
+          needsValidation = true;
+        }
+
+        osPayload.push({
           empresa_id: profile.empresa_id,
           cliente_id: cliMap.get(r.cli.toLowerCase())!,
           tecnico_id: tecnicoId,
@@ -268,10 +323,13 @@ export function ImportarOSDialog({ trigger }: Props) {
           data_agendamento: r.data,
           dados_adicionais: {
             ...r.dadosAdicionais,
-            _tecnico_nao_encontrado: !tecnicoId && r.tec ? r.tec : null,
+            needs_validation: needsValidation,
+            _tecnico_nome_planilha: r.tec || null,
           },
-        };
-      });
+        });
+      }
+
+      setProgress(60);
 
       // Insere uma a uma para capturar falhas individuais
       let inseridas = 0;
@@ -297,9 +355,15 @@ export function ImportarOSDialog({ trigger }: Props) {
       }
 
       setProgress(100);
-      setResult({ os: inseridas, clientes: novosCli.size, tecnicos: novosTec.size });
+      setResult({
+        os: inseridas,
+        clientes: novosCli.size,
+        tecnicos: tecsCriados + tecsVinculados,
+      });
       setStep("done");
-      toast.success(`Importadas: ${inseridas}. Falhas: ${falhas}.`);
+      toast.success(
+        `Importadas: ${inseridas}. Falhas: ${falhas}. ${tecsCriados > 0 ? `${tecsCriados} técnico(s) criado(s).` : ""} ${tecsVinculados > 0 ? `${tecsVinculados} técnico(s) vinculado(s).` : ""}`,
+      );
       qc.invalidateQueries({ queryKey: ["ordens_servico", profile.empresa_id] });
       qc.invalidateQueries({ queryKey: ["clientes", profile.empresa_id] });
       qc.invalidateQueries({ queryKey: ["tecnicos", profile.empresa_id] });
@@ -312,9 +376,33 @@ export function ImportarOSDialog({ trigger }: Props) {
 
   const baixarModelo = () => {
     const ws = XLSX.utils.aoa_to_sheet([
-      ["Local da Obra", "Descrição do Problema", "Data Prevista", "Responsável Técnico", "Valor Acordado", "Prioridade", "Observação"],
-      ["Restaurante Sabor & Arte", "Manutenção câmara fria", "15/05/2026", "João Silva", "1250,00", "Alta", "Ligar antes"],
-      ["Padaria Pão Quente", "Troca de compressor", "16/05/2026", "Maria Souza", "890,50", "Média", ""],
+      [
+        "Local da Obra",
+        "Descrição do Problema",
+        "Data Prevista",
+        "Responsável Técnico",
+        "Valor Acordado",
+        "Prioridade",
+        "Observação",
+      ],
+      [
+        "Restaurante Sabor & Arte",
+        "Manutenção câmara fria",
+        "15/05/2026",
+        "João Silva",
+        "1250,00",
+        "Alta",
+        "Ligar antes",
+      ],
+      [
+        "Padaria Pão Quente",
+        "Troca de compressor",
+        "16/05/2026",
+        "Maria Souza",
+        "890,50",
+        "Média",
+        "",
+      ],
     ]);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "OS");
@@ -344,7 +432,8 @@ export function ImportarOSDialog({ trigger }: Props) {
             Importar planilha de OS
           </DialogTitle>
           <DialogDescription>
-            {step === "upload" && "Mapeamento automático (Zero-Click): colunas não reconhecidas vão para informações adicionais."}
+            {step === "upload" &&
+              "Mapeamento automático (Zero-Click): colunas não reconhecidas vão para informações adicionais."}
             {step === "importing" && "Processando linhas e salvando no banco..."}
             {step === "done" && "Importação concluída"}
           </DialogDescription>
@@ -406,7 +495,8 @@ export function ImportarOSDialog({ trigger }: Props) {
             <CheckCircle2 className="w-12 h-12 mx-auto text-success mb-2" />
             <div className="font-semibold text-lg">Importação concluída</div>
             <div className="text-sm text-muted-foreground mt-1">
-              {result.os} ordens · {result.clientes} novos clientes · {result.tecnicos} novos técnicos
+              {result.os} ordens · {result.clientes} novos clientes · {result.tecnicos} novos
+              técnicos
             </div>
           </div>
         )}
