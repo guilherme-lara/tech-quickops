@@ -37,6 +37,7 @@ import {
   Search,
   X,
   Trash,
+  Edit,
 } from "lucide-react";
 import { useEffect, useState, useRef } from "react";
 import { toast } from "sonner";
@@ -178,6 +179,7 @@ function OSPage() {
   const [novoCampoNome, setNovoCampoNome] = useState("");
   const [novoCampoValor, setNovoCampoValor] = useState("");
   const [viewMode, setViewMode] = useState<"list" | "card">("list");
+  const [dialogMode, setDialogMode] = useState<"view" | "edit">("view");
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }));
   const scrollRef = useRef<HTMLDivElement>(null);
   const [isDown, setIsDown] = useState(false);
@@ -596,7 +598,10 @@ function OSPage() {
                       return (
                         <tr
                           key={o.id}
-                          onClick={() => setEditing(o)}
+                          onClick={() => {
+                            setEditing(o);
+                            setDialogMode("view");
+                          }}
                           className="hover:bg-muted/30 transition-colors cursor-pointer"
                         >
                           <td className="px-5 py-3 font-medium whitespace-nowrap sticky left-0 z-20 bg-background shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">
@@ -634,6 +639,18 @@ function OSPage() {
                           <td className="px-5 py-3 text-right" onClick={(e) => e.stopPropagation()}>
                             <div className="flex items-center justify-end gap-1">
                               <RatGallery osId={o.id} />
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setEditing(o);
+                                  setDialogMode("edit");
+                                }}
+                              >
+                                <Edit className="w-4 h-4 text-blue-500" />
+                              </Button>
                               <Button
                                 variant="ghost"
                                 size="icon"
@@ -708,6 +725,7 @@ function OSPage() {
       )}
 
       <EditOSDialog
+        mode={dialogMode}
         ordem={editing}
         clientes={clientes}
         tecnicos={tecnicos}
@@ -816,18 +834,21 @@ function OSCard({ ordem, cliente, tecnico }: { ordem: OS; cliente: any; tecnico:
 }
 
 function EditOSDialog({
+  mode,
   ordem,
   clientes,
   tecnicos,
   onClose,
   onSave,
 }: {
+  mode: "view" | "edit";
   ordem: OS | null;
   clientes: { id: string; nomeFantasia: string }[];
   tecnicos: { id: string; nome: string }[];
   onClose: () => void;
   onSave: (patch: Partial<OS>) => Promise<void>;
 }) {
+  const isView = mode === "view";
   const [form, setForm] = useState({
     titulo: "",
     clienteId: "",
@@ -885,12 +906,15 @@ function EditOSDialog({
     <Dialog open={!!ordem} onOpenChange={(v) => !v && onClose()}>
       <DialogContent className="rounded-2xl w-[95vw] sm:max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Editar OS {ordem?.numero}</DialogTitle>
+          <DialogTitle>
+            {mode === "view" ? "Visualizar OS" : "Editar OS"} {ordem?.numero}
+          </DialogTitle>
         </DialogHeader>
         <div className="space-y-3">
           <div>
             <Label>Título</Label>
             <Input
+              disabled={isView}
               value={form.titulo}
               onChange={(e) => setForm({ ...form, titulo: e.target.value })}
             />
@@ -899,6 +923,7 @@ function EditOSDialog({
             <div>
               <Label>Cliente</Label>
               <Select
+                disabled={isView}
                 value={form.clienteId}
                 onValueChange={(v) => setForm({ ...form, clienteId: v })}
               >
@@ -917,6 +942,7 @@ function EditOSDialog({
             <div>
               <Label>Técnico</Label>
               <Select
+                disabled={isView}
                 value={form.tecnicoId}
                 onValueChange={(v) => setForm({ ...form, tecnicoId: v })}
               >
@@ -937,6 +963,7 @@ function EditOSDialog({
             <div>
               <Label>Valor</Label>
               <Input
+                disabled={isView}
                 type="number"
                 step="0.01"
                 value={form.valor}
@@ -946,6 +973,7 @@ function EditOSDialog({
             <div>
               <Label>Custo viagem</Label>
               <Input
+                disabled={isView}
                 type="number"
                 step="0.01"
                 value={form.custo_viagem}
@@ -955,6 +983,7 @@ function EditOSDialog({
             <div>
               <Label>Status</Label>
               <Select
+                disabled={isView}
                 value={form.status}
                 onValueChange={(v) => setForm({ ...form, status: v as OSStatus })}
               >
@@ -975,6 +1004,7 @@ function EditOSDialog({
             <div>
               <Label>Data do Agendamento</Label>
               <Input
+                disabled={isView}
                 type="date"
                 value={dataAgendamento}
                 onChange={(e) => setDataAgendamento(e.target.value)}
@@ -983,6 +1013,7 @@ function EditOSDialog({
             <div>
               <Label>Descrição do Problema</Label>
               <textarea
+                disabled={isView}
                 value={descricaoProblema}
                 onChange={(e) => setDescricaoProblema(e.target.value)}
                 placeholder="Descreva o problema ou serviço a ser executado..."
@@ -1000,6 +1031,7 @@ function EditOSDialog({
                   <div key={k}>
                     <Label>{k}</Label>
                     <Input
+                      disabled={isView}
                       value={String(v ?? "")}
                       onChange={(e) => setDadosExtras((prev) => ({ ...prev, [k]: e.target.value }))}
                     />
@@ -1012,11 +1044,13 @@ function EditOSDialog({
 
         <DialogFooter>
           <Button variant="outline" onClick={onClose} disabled={saving}>
-            Cancelar
+            Fechar
           </Button>
-          <Button onClick={handleSave} disabled={saving}>
-            {saving ? "Salvando..." : "Salvar"}
-          </Button>
+          {!isView && (
+            <Button onClick={handleSave} disabled={saving}>
+              {saving ? "Salvando..." : "Salvar"}
+            </Button>
+          )}
         </DialogFooter>
       </DialogContent>
     </Dialog>
