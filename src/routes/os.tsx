@@ -851,9 +851,9 @@ function EditOSDialog({
         custo_viagem: String(ordem.custo_viagem ?? 0),
         status: ordem.status,
       });
-      setDescricaoProblema(ordem.descricao_problema || "");
-      setDataAgendamento(ordem.data_agendamento || "");
-      setDadosExtras((ordem.dados_adicionais as Record<string, any>) || {});
+      setDescricaoProblema(ordem?.descricao_problema || "");
+      setDataAgendamento(ordem?.data_agendamento || "");
+      setDadosExtras((ordem?.dados_adicionais as Record<string, any>) || {});
     }
   }, [ordem]);
 

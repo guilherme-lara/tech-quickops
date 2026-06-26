@@ -67,7 +67,7 @@ export interface OS {
   descricao_problema?: string;
 }
 
-export const OS_PAGE_SIZE = 50;
+export const OS_PAGE_SIZE = 10;
 
 interface User {
   id: string;
@@ -339,6 +339,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     queryKey: [
       "ordens_servico",
       empresaId,
+      osPage,
       osMonth,
       osYear,
       osSearchCliente,
@@ -347,8 +348,11 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     ],
     enabled,
     queryFn: async (): Promise<OS[]> => {
-      let q = (supabase.from("ordens_servico") as any).select("*").eq("empresa_id", empresaId!);
+      let q = (supabase.from("ordens_servico") as any)
+        .select("*", { count: "exact" })
+        .eq("empresa_id", empresaId!);
 
+      // Filter by creation date (month/year)
       if (osYear > 0) {
         if (osMonth > 0) {
           const start = new Date(Date.UTC(osYear, osMonth - 1, 1));
@@ -361,53 +365,67 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         }
       }
 
-      if (osFilterStatus) {
-        const dbStatus = uiToDbStatus[osFilterStatus as OSStatus];
-        if (dbStatus) q = q.eq("status", dbStatus);
+      // Filter by status
+      if (osFilterStatus && osFilterStatus !== " ") {
+        if (uiToDbStatus[osFilterStatus as OSStatus]) {
+          q = q.eq("status", uiToDbStatus[osFilterStatus as OSStatus]);
+        } else {
+          q = q.ilike("status", `%${osFilterStatus}%`);
+        }
       }
 
-      const { data, error } = await q.order("created_at", { ascending: false });
+      // Filter by client name (resolve to IDs)
+      if (osSearchCliente && osSearchCliente !== " ") {
+        const term = osSearchCliente.toLowerCase();
+        const clientesData = clientesQ.data ?? [];
+        const matchingIds = clientesData
+          .filter((c) => c.nomeFantasia.toLowerCase().includes(term))
+          .map((c) => c.id);
+        if (matchingIds.length > 0) {
+          q = q.in("cliente_id", matchingIds);
+        }
+      }
+
+      // Filter by technician name (resolve to IDs)
+      if (osSearchTecnico && osSearchTecnico !== " ") {
+        const term = osSearchTecnico.toLowerCase();
+        const tecnicosData = tecnicosQ.data ?? [];
+        const matchingIds = tecnicosData
+          .filter((t) => t.nome.toLowerCase().includes(term))
+          .map((t) => t.id);
+        if (matchingIds.length > 0) {
+          q = q.in("tecnico_id", matchingIds);
+        }
+      }
+
+      // Pagination: 10 items per page
+      const from = osPage * OS_PAGE_SIZE;
+      const to = from + OS_PAGE_SIZE - 1;
+      q = q.range(from, to).order("created_at", { ascending: false });
+
+      const { data, error, count } = await q;
       if (error) throw error;
 
-      // Fetch clientes for name-based filtering
-      const clientesData = clientesQ.data ?? [];
-      const tecnicosData = tecnicosQ.data ?? [];
+      // Update total count
+      if (count !== null) setOsTotal(count);
 
-      let results = ((data ?? []) as any[]).map((r) => ({
+      return ((data ?? []) as any[]).map((r) => ({
         id: r.id,
         numero: r.numero ?? "OS-?",
         clienteId: r.cliente_id,
         tecnicoId: r.tecnico_id ?? "",
         titulo: r.titulo || r.descricao_problema || "",
+        descricao_problema: r.descricao_problema ?? "",
         status: dbToUiStatus[r.status] ?? "Orçamento",
         criadaEm: (r.created_at ?? "").slice(0, 10),
-        data_atendimento: r.data_agendamento ?? r.dados_adicionais?.Data ?? undefined,
-        data_agendamento: r.data_agendamento ?? r.dados_adicionais?.Data ?? undefined,
+        data_atendimento: r.data_agendamento ?? undefined,
+        data_agendamento: r.data_agendamento ?? undefined,
+        horario_atendimento: r.horario_atendimento ?? undefined,
         valor: Number(r.valor ?? 0),
         custo_viagem: Number(r.custo_viagem ?? 0),
         rat: ratLocal[r.id] ?? { itens: [], evidencias: [] },
         dados_adicionais: r.dados_adicionais ?? {},
       }));
-
-      // Client name filter
-      if (osSearchCliente) {
-        const term = osSearchCliente.toLowerCase();
-        const matchingIds = new Set(
-          clientesData.filter((c) => c.nomeFantasia.toLowerCase().includes(term)).map((c) => c.id),
-        );
-        results = results.filter((o) => matchingIds.has(o.clienteId));
-      }
-
-      // Technician name filter
-      if (osSearchTecnico) {
-        const term = osSearchTecnico.toLowerCase();
-        const matchingIds = new Set(
-          tecnicosData.filter((t) => t.nome.toLowerCase().includes(term)).map((t) => t.id),
-        );
-        results = results.filter((o) => matchingIds.has(o.tecnicoId));
-      }
-
-      return results;
     },
   });
 
