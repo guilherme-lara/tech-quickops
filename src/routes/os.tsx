@@ -20,6 +20,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useStore, statusColor, OSStatus, OS, OS_PAGE_SIZE } from "@/lib/mock-store";
+import { supabase } from "@/integrations/supabase/client";
+import { useQueryClient } from "@tanstack/react-query";
 import { formatDate } from "@/lib/utils";
 import {
   Plus,
@@ -34,6 +36,7 @@ import {
   ChevronRight,
   Search,
   X,
+  Trash,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -83,7 +86,7 @@ function FiltrosBar() {
   };
 
   return (
-    <div className="flex flex-wrap items-end gap-3 mb-4">
+    <div className="flex flex-col md:flex-row items-end gap-4 w-full mb-6">
       <div className="flex flex-col gap-1.5 min-w-[180px] flex-1">
         <Label className="text-xs text-muted-foreground">Cliente</Label>
         <div className="relative">
@@ -156,6 +159,7 @@ function FiltrosBar() {
 function OSPage() {
   const { os, clientes, tecnicos, addOS, updateOS, loadingOS, osPage, osTotal, setOsPage } =
     useStore();
+  const queryClient = useQueryClient();
   const totalPages = Math.max(1, Math.ceil(osTotal / OS_PAGE_SIZE));
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<OS | null>(null);
@@ -175,6 +179,19 @@ function OSPage() {
   const [novoCampoValor, setNovoCampoValor] = useState("");
   const [viewMode, setViewMode] = useState<"list" | "card">("list");
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }));
+
+  const handleDeleteOS = async (id: string) => {
+    const osItem = os.find((o) => o.id === id);
+    if (!confirm(`Tem certeza que deseja excluir a OS ${osItem?.numero || ""}?`)) return;
+    try {
+      const { error } = await supabase.from("ordens_servico").delete().eq("id", id);
+      if (error) throw error;
+      toast.success("OS excluída com sucesso");
+      queryClient.invalidateQueries({ queryKey: ["ordens_servico"] });
+    } catch (e: any) {
+      toast.error(e?.message ?? "Erro ao excluir OS");
+    }
+  };
 
   const submit = () => {
     if (!form.titulo || !form.clienteId || !form.tecnicoId) {
@@ -602,7 +619,20 @@ function OSPage() {
                             </td>
                           ))}
                           <td className="px-5 py-3 text-right" onClick={(e) => e.stopPropagation()}>
-                            <RatGallery osId={o.id} />
+                            <div className="flex items-center justify-end gap-1">
+                              <RatGallery osId={o.id} />
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleDeleteOS(o.id);
+                                }}
+                              >
+                                <Trash className="w-4 h-4 text-red-500" />
+                              </Button>
+                            </div>
                           </td>
                         </tr>
                       );
@@ -793,6 +823,8 @@ function EditOSDialog({
     custo_viagem: "",
     status: "Orçamento" as OSStatus,
   });
+  const [descricaoProblema, setDescricaoProblema] = useState("");
+  const [dataAgendamento, setDataAgendamento] = useState("");
   const [dadosExtras, setDadosExtras] = useState<Record<string, any>>({});
   const [saving, setSaving] = useState(false);
 
@@ -806,7 +838,9 @@ function EditOSDialog({
         custo_viagem: String(ordem.custo_viagem ?? 0),
         status: ordem.status,
       });
-      setDadosExtras((ordem?.dados_adicionais as Record<string, any>) || {});
+      setDescricaoProblema(ordem.descricao_problema || "");
+      setDataAgendamento(ordem.data_agendamento || "");
+      setDadosExtras((ordem.dados_adicionais as Record<string, any>) || {});
     }
   }, [ordem]);
 
@@ -824,6 +858,8 @@ function EditOSDialog({
         tecnicoId: form.tecnicoId,
         valor: Number(form.valor) || 0,
         custo_viagem: Number(form.custo_viagem) || 0,
+        data_agendamento: dataAgendamento,
+        descricao_problema: descricaoProblema,
         status: form.status,
         dados_adicionais: dadosExtras,
       });
@@ -920,6 +956,25 @@ function EditOSDialog({
                   ))}
                 </SelectContent>
               </Select>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <Label>Data do Agendamento</Label>
+              <Input
+                type="date"
+                value={dataAgendamento}
+                onChange={(e) => setDataAgendamento(e.target.value)}
+              />
+            </div>
+            <div>
+              <Label>Descrição do Problema</Label>
+              <textarea
+                value={descricaoProblema}
+                onChange={(e) => setDescricaoProblema(e.target.value)}
+                placeholder="Descreva o problema ou serviço a ser executado..."
+                className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              />
             </div>
           </div>
           {Object.keys(dadosExtras).length > 0 && (
