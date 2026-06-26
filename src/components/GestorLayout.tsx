@@ -27,7 +27,7 @@ import {
 import { useAuth } from "@/lib/auth-context";
 import { ReactNode, useState } from "react";
 
-const navItems = [
+const allNavItems = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { to: "/os", label: "Ordens de Serviço", icon: ClipboardList },
   { to: "/clientes", label: "Clientes", icon: Users },
@@ -36,10 +36,19 @@ const navItems = [
   { to: "/configuracoes", label: "Configurações", icon: Settings },
 ] as const;
 
+// Itens restritos para gestores
+const restrictedItems = ["/clientes", "/equipe"] as const;
+
 export function GestorLayout({ children }: { children?: ReactNode }) {
   const path = useRouterState({ select: (s) => s.location.pathname });
   const navigate = useNavigate();
   const { user, profile, signOut } = useAuth();
+
+  // RBAC: filtrar itens de menu baseado na role
+  const navItems = allNavItems.filter(
+    (item) => !(profile?.role === "tecnico" && restrictedItems.includes(item.to as any)),
+  );
+
   const current = navItems.find((n) => path.startsWith(n.to))?.label ?? "Dashboard";
   const [isOpen, setIsOpen] = useState(false);
 

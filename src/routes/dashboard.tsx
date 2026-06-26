@@ -105,6 +105,24 @@ function Dashboard() {
     },
   });
 
+  const osAtivasQ = useQuery({
+    queryKey: ["ordens_servico_ativas_tecnico", profile?.id],
+    enabled: !!profile && profile.role === "tecnico",
+    queryFn: async (): Promise<number> => {
+      const { count, error } = await (supabase
+        .from("ordens_servico") as any)
+        .select("id", { count: "exact", head: true })
+        .eq("tecnico_id", profile?.id || "")
+        .eq("empresa_id", profile?.empresa_id || "")
+        .neq("status", "Concluído")
+        .neq("status", "Cancelado");
+      if (error) throw error;
+      return count ?? 0;
+    },
+  });
+
+  const osAtivasCount = profile?.role === "tecnico" ? (osAtivasQ.data ?? 0) : emCampo;
+
   const produtividadeQ = useQuery({
     queryKey: ["vw_produtividade_tecnico", profile?.empresa_id],
     enabled: !!profile && profile.role !== "tecnico",
@@ -234,9 +252,9 @@ function Dashboard() {
         />
         <KpiCard
           icon={Activity}
-          label="Em Campo Agora"
-          value={emCampo}
-          trend={`${tecnicos.filter((t) => t.ativo).length} técnicos`}
+          label={profile?.role === "tecnico" ? "OS Ativas" : "Em Campo Agora"}
+          value={osAtivasCount}
+          trend={profile?.role === "tecnico" ? "Suas atribuições" : `${tecnicos.filter((t) => t.ativo).length} técnicos`}
           tone="warning"
         />
       </div>

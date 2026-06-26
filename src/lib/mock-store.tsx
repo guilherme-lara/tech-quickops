@@ -27,6 +27,8 @@ export interface Tecnico {
   tipo_comissao?: TipoComissao;
   chave_pix?: string;
   username?: string;
+  email?: string;
+  dados_adicionais?: Record<string, any>;
 }
 export interface Item {
   id: string;
@@ -317,7 +319,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     enabled,
     queryFn: async (): Promise<Tecnico[]> => {
       const { data, error } = await (supabase.from("tecnicos") as any)
-        .select("id, nome, perfil, telefone, ativo, comissao, tipo_comissao, chave_pix, username")
+        .select(
+          "id, nome, perfil, telefone, ativo, comissao, tipo_comissao, chave_pix, username, email, dados_adicionais",
+        )
         .eq("empresa_id", empresaId!)
         .order("nome");
       if (error) throw error;
@@ -331,6 +335,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         tipo_comissao: (r.tipo_comissao as TipoComissao) ?? "fixo",
         chave_pix: r.chave_pix ?? "",
         username: r.username ?? "",
+        email: r.email ?? "",
+        dados_adicionais: r.dados_adicionais ?? {},
       }));
     },
   });
@@ -502,6 +508,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       if (patch.tipo_comissao !== undefined) dbPatch.tipo_comissao = patch.tipo_comissao;
       if (patch.chave_pix !== undefined) dbPatch.chave_pix = patch.chave_pix;
       if (patch.username !== undefined) dbPatch.username = patch.username || null;
+      if (patch.email !== undefined) dbPatch.email = patch.email || null;
+      if (patch.dados_adicionais !== undefined) dbPatch.dados_adicionais = patch.dados_adicionais;
       const { error } = await (supabase.from("tecnicos") as any).update(dbPatch).eq("id", id);
       if (error) throw error;
     },

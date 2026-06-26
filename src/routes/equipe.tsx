@@ -63,10 +63,13 @@ function EquipePage() {
     perfil: "Técnico de Campo",
     telefone: "",
     username: "",
+    email: "",
     senha: "",
     tipo_comissao: "porcentagem" as TipoComissao,
     comissao: "",
     chave_pix: "",
+    cidade_atendimento: "",
+    raio_atendimento: "",
   };
   const [form, setForm] = useState(emptyForm);
   const [viewMode, setViewMode] = useState<"list" | "card">("list");
@@ -77,16 +80,22 @@ function EquipePage() {
   };
 
   const openEdit = (t: any) => {
+    const dadosAdicionais = t.dados_adicionais || {};
     setForm({
       id: t.id,
       nome: t.nome,
       perfil: t.perfil,
       telefone: t.telefone,
       username: t.username || "",
+      email: t.email || "",
       senha: "",
       tipo_comissao: (t.tipo_comissao as TipoComissao) || "porcentagem",
       comissao: t.comissao ? String(t.comissao) : "",
       chave_pix: t.chave_pix || "",
+      cidade_atendimento: dadosAdicionais.cidade_atendimento || "",
+      raio_atendimento: dadosAdicionais.raio_atendimento
+        ? String(dadosAdicionais.raio_atendimento)
+        : "",
     });
     setOpen(true);
   };
@@ -103,6 +112,10 @@ function EquipePage() {
     setSaving(true);
     try {
       if (form.id) {
+        const dadosAdicionais: any = {};
+        if (form.cidade_atendimento) dadosAdicionais.cidade_atendimento = form.cidade_atendimento;
+        if (form.raio_atendimento) dadosAdicionais.raio_atendimento = Number(form.raio_atendimento);
+
         await updateTecnico(form.id, {
           nome: form.nome,
           perfil: form.perfil,
@@ -112,6 +125,7 @@ function EquipePage() {
           chave_pix: form.chave_pix,
           username: form.username,
           ativo: true,
+          dados_adicionais: Object.keys(dadosAdicionais).length > 0 ? dadosAdicionais : undefined,
         });
         toast.success("Técnico atualizado!");
       } else {
@@ -121,6 +135,10 @@ function EquipePage() {
           return toast.error("Usuário inválido (use letras, números, . _ -)");
         if (form.senha.length < 6) return toast.error("Senha deve ter ao menos 6 caracteres");
 
+        const dadosAdicionais: any = {};
+        if (form.cidade_atendimento) dadosAdicionais.cidade_atendimento = form.cidade_atendimento;
+        if (form.raio_atendimento) dadosAdicionais.raio_atendimento = Number(form.raio_atendimento);
+
         const { error } = await (supabase.rpc as any)("criar_tecnico", {
           p_nome: form.nome,
           p_username: form.username.toLowerCase(),
@@ -129,6 +147,7 @@ function EquipePage() {
           p_comissao: Number(form.comissao) || 0,
           p_telefone: form.telefone || null,
           p_chave_pix: form.chave_pix || null,
+          p_dados_adicionais: Object.keys(dadosAdicionais).length > 0 ? dadosAdicionais : null,
         });
         if (error) throw error;
         qc.invalidateQueries({ queryKey: ["tecnicos"] });
@@ -195,7 +214,12 @@ function EquipePage() {
                     placeholder="Ex.: Refrigeração, Elétrica"
                   />
                 </div>
-                {!form.id && (
+                {form.id ? (
+                  <div>
+                    <Label>E-mail / Login (somente leitura)</Label>
+                    <Input value={form.email} disabled className="bg-muted/50" />
+                  </div>
+                ) : (
                   <div className="grid grid-cols-2 gap-3">
                     <div>
                       <Label>Usuário (login)</Label>
@@ -208,14 +232,25 @@ function EquipePage() {
                       />
                     </div>
                     <div>
-                      <Label>Senha inicial</Label>
+                      <Label>E-mail</Label>
                       <Input
-                        type="password"
-                        value={form.senha}
-                        onChange={(e) => setForm({ ...form, senha: e.target.value })}
-                        placeholder="Mín. 6 caracteres"
+                        type="email"
+                        value={form.email}
+                        onChange={(e) => setForm({ ...form, email: e.target.value })}
+                        placeholder="tecnico@empresa.com"
                       />
                     </div>
+                  </div>
+                )}
+                {!form.id && (
+                  <div>
+                    <Label>Senha inicial</Label>
+                    <Input
+                      type="password"
+                      value={form.senha}
+                      onChange={(e) => setForm({ ...form, senha: e.target.value })}
+                      placeholder="Mín. 6 caracteres"
+                    />
                   </div>
                 )}
                 <div className="grid grid-cols-2 gap-3">
@@ -231,9 +266,7 @@ function EquipePage() {
                     <Label>Tipo de comissão</Label>
                     <Select
                       value={form.tipo_comissao}
-                      onValueChange={(v) =>
-                        setForm({ ...form, tipo_comissao: v as TipoComissao })
-                      }
+                      onValueChange={(v) => setForm({ ...form, tipo_comissao: v as TipoComissao })}
                     >
                       <SelectTrigger>
                         <SelectValue />
@@ -267,6 +300,37 @@ function EquipePage() {
                     />
                   </div>
                 </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <Label>Cidade de Atendimento</Label>
+                    <Input
+                      value={form.cidade_atendimento}
+                      onChange={(e) => setForm({ ...form, cidade_atendimento: e.target.value })}
+                      placeholder="Ex: São Paulo"
+                    />
+                  </div>
+                  <div>
+                    <Label>Raio de Atendimento (km)</Label>
+                    <Input
+                      type="number"
+                      step="0.1"
+                      value={form.raio_atendimento}
+                      onChange={(e) => setForm({ ...form, raio_atendimento: e.target.value })}
+                      placeholder="Ex: 50"
+                    />
+                  </div>
+                </div>
+                {form.id && (
+                  <div>
+                    <Label>Nova Senha (deixe em branco para manter a atual)</Label>
+                    <Input
+                      type="password"
+                      value={form.senha}
+                      onChange={(e) => setForm({ ...form, senha: e.target.value })}
+                      placeholder="Mín. 6 caracteres"
+                    />
+                  </div>
+                )}
               </div>
               <DialogFooter>
                 <Button variant="outline" onClick={() => setOpen(false)} disabled={saving}>

@@ -28,6 +28,17 @@ function LoginPage() {
     try {
       // Se não houver "@", trata como username de técnico → completa domínio padrão.
       const identifier = loginEmail.trim();
+
+      // Validação de e-mail: se contiver @, deve ter formato válido
+      if (identifier.includes("@")) {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(identifier)) {
+          toast.error("Formato de e-mail inválido");
+          setLoading(false);
+          return;
+        }
+      }
+
       const emailToUse = identifier.includes("@")
         ? identifier
         : `${identifier.toLowerCase()}@quickops.com`;
