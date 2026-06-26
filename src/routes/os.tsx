@@ -38,7 +38,7 @@ import {
   X,
   Trash,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { toast } from "sonner";
 import {
   DndContext,
@@ -179,6 +179,33 @@ function OSPage() {
   const [novoCampoValor, setNovoCampoValor] = useState("");
   const [viewMode, setViewMode] = useState<"list" | "card">("list");
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }));
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [isDown, setIsDown] = useState(false);
+  const [startX, setStartX] = useState(0);
+  const [scrollLeft, setScrollLeft] = useState(0);
+
+  const onMouseDown = (e: React.MouseEvent) => {
+    if (!scrollRef.current) return;
+    setIsDown(true);
+    setStartX(e.pageX - scrollRef.current.offsetLeft);
+    setScrollLeft(scrollRef.current.scrollLeft);
+  };
+
+  const onMouseLeave = () => {
+    setIsDown(false);
+  };
+
+  const onMouseUp = () => {
+    setIsDown(false);
+  };
+
+  const onMouseMove = (e: React.MouseEvent) => {
+    if (!isDown || !scrollRef.current) return;
+    e.preventDefault();
+    const x = e.pageX - scrollRef.current.offsetLeft;
+    const walk = (x - startX) * 1.5;
+    scrollRef.current.scrollLeft = scrollLeft - walk;
+  };
 
   const handleDeleteOS = async (id: string) => {
     const osItem = os.find((o) => o.id === id);
@@ -539,7 +566,14 @@ function OSPage() {
             />
           ) : (
             <Card className="p-0 overflow-hidden">
-              <div className="overflow-x-auto w-full pb-4">
+              <div
+                ref={scrollRef}
+                className="overflow-x-auto w-full pb-4 cursor-grab active:cursor-grabbing select-none"
+                onMouseDown={onMouseDown}
+                onMouseLeave={onMouseLeave}
+                onMouseUp={onMouseUp}
+                onMouseMove={onMouseMove}
+              >
                 <table className="w-full text-sm text-left">
                   <thead className="bg-muted/50 text-xs uppercase text-muted-foreground">
                     <tr>
@@ -548,19 +582,10 @@ function OSPage() {
                       </th>
                       <th className="px-5 py-3 font-semibold">Status</th>
                       <th className="px-5 py-3 font-semibold">Data</th>
-                      <th className="px-5 py-3 font-semibold">Conclusão</th>
-                      <th className="px-5 py-3 font-semibold">Título</th>
+                      <th className="px-5 py-3 font-semibold">Horário</th>
                       <th className="px-5 py-3 font-semibold">Cliente</th>
                       <th className="px-5 py-3 font-semibold">Técnico</th>
                       <th className="px-5 py-3 font-semibold">Valor</th>
-                      {dynamicHeaders.map((key) => (
-                        <th
-                          key={key}
-                          className="px-4 py-2 font-semibold text-[10px] text-muted-foreground uppercase tracking-wider whitespace-nowrap bg-muted/20"
-                        >
-                          {key}
-                        </th>
-                      ))}
                       <th className="px-5 py-3"></th>
                     </tr>
                   </thead>
@@ -587,13 +612,9 @@ function OSPage() {
                           <td className="px-5 py-3 whitespace-nowrap">
                             {formatDate(o.data_agendamento || o.dados_adicionais?.Data)}
                           </td>
-                          <td className="px-5 py-3 whitespace-nowrap">
-                            {o.status?.toLowerCase() === "concluido" ||
-                            o.status?.toLowerCase() === "concluído"
-                              ? formatDate(o.data_agendamento || o.dados_adicionais?.Data)
-                              : "-"}
+                          <td className="px-5 py-3 whitespace-nowrap text-muted-foreground">
+                            {o.horario_atendimento || "—"}
                           </td>
-                          <td className="px-5 py-3 font-medium min-w-[200px]">{o.titulo}</td>
                           <td className="px-5 py-3 text-muted-foreground whitespace-nowrap">
                             <span className="flex items-center gap-1.5">
                               <User className="w-3.5 h-3.5" />
@@ -610,14 +631,6 @@ function OSPage() {
                           <td className="px-5 py-3 font-semibold whitespace-nowrap">
                             R$ {o.valor.toLocaleString("pt-BR")}
                           </td>
-                          {dynamicHeaders.map((key) => (
-                            <td
-                              key={key}
-                              className="px-4 py-3 text-xs text-muted-foreground whitespace-nowrap max-w-[150px] truncate"
-                            >
-                              {(o.dados_adicionais as Record<string, any>)?.[key] || "—"}
-                            </td>
-                          ))}
                           <td className="px-5 py-3 text-right" onClick={(e) => e.stopPropagation()}>
                             <div className="flex items-center justify-end gap-1">
                               <RatGallery osId={o.id} />

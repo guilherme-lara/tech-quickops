@@ -506,10 +506,13 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         cliente_id: o.clienteId,
         tecnico_id: o.tecnicoId || null,
         titulo: o.titulo,
-        descricao_problema: o.titulo,
+        descricao_problema: o.descricao_problema ?? null,
+        data_agendamento: o.data_agendamento ?? null,
+        horario_atendimento: o.horario_atendimento ?? null,
         status: uiToDbStatus[o.status] as any,
         valor: o.valor,
         custo_viagem: o.custo_viagem ?? 0,
+        dados_adicionais: o.dados_adicionais ?? {},
       });
       if (error) throw error;
     },
@@ -527,6 +530,11 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       if (patch.tecnicoId !== undefined) dbPatch.tecnico_id = patch.tecnicoId || null;
       if (patch.clienteId !== undefined) dbPatch.cliente_id = patch.clienteId;
       if (patch.dados_adicionais !== undefined) dbPatch.dados_adicionais = patch.dados_adicionais;
+      if (patch.descricao_problema !== undefined)
+        dbPatch.descricao_problema = patch.descricao_problema;
+      if (patch.data_agendamento !== undefined) dbPatch.data_agendamento = patch.data_agendamento;
+      if (patch.horario_atendimento !== undefined)
+        dbPatch.horario_atendimento = patch.horario_atendimento;
       const { error } = await (supabase.from("ordens_servico") as any).update(dbPatch).eq("id", id);
       if (error) throw error;
     },
