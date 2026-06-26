@@ -77,6 +77,15 @@ function FiltrosBar() {
     setOsFilterStatus,
     tecnicos,
   } = useStore();
+  const [searchTerm, setSearchTerm] = useState(osSearchCliente);
+
+  // Debounce: atualiza o store apenas após 500ms de inatividade
+  useEffect(() => {
+    const delayDebounceFn = setTimeout(() => {
+      setOsSearchCliente(searchTerm);
+    }, 500);
+    return () => clearTimeout(delayDebounceFn);
+  }, [searchTerm, setOsSearchCliente]);
 
   const hasFilters = osSearchCliente || osSearchTecnico || osFilterStatus;
 
@@ -94,13 +103,13 @@ function FiltrosBar() {
           <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input
             placeholder="Buscar por cliente..."
-            value={osSearchCliente}
-            onChange={(e) => setOsSearchCliente(e.target.value)}
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-8 h-9 text-sm rounded-xl"
           />
-          {osSearchCliente && (
+          {searchTerm && (
             <button
-              onClick={() => setOsSearchCliente("")}
+              onClick={() => setSearchTerm("")}
               className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
             >
               <X className="w-4 h-4" />

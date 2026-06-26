@@ -352,16 +352,18 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         .select("*", { count: "exact" })
         .eq("empresa_id", empresaId!);
 
-      // Filter by creation date (month/year)
+      // Filter by appointment date (month/year) using YYYY-MM-DD format
       if (osYear > 0) {
         if (osMonth > 0) {
-          const start = new Date(Date.UTC(osYear, osMonth - 1, 1));
-          const end = new Date(Date.UTC(osYear, osMonth, 1));
-          q = q.gte("created_at", start.toISOString()).lt("created_at", end.toISOString());
+          const start = `${osYear}-${String(osMonth).padStart(2, "0")}-01`;
+          const endMonth = osMonth === 12 ? 1 : osMonth + 1;
+          const endYear = osMonth === 12 ? osYear + 1 : osYear;
+          const end = `${endYear}-${String(endMonth).padStart(2, "0")}-01`;
+          q = q.gte("data_agendamento", start).lt("data_agendamento", end);
         } else {
-          const start = new Date(Date.UTC(osYear, 0, 1));
-          const end = new Date(Date.UTC(osYear + 1, 0, 1));
-          q = q.gte("created_at", start.toISOString()).lt("created_at", end.toISOString());
+          const start = `${osYear}-01-01`;
+          const end = `${osYear + 1}-01-01`;
+          q = q.gte("data_agendamento", start).lt("data_agendamento", end);
         }
       }
 
@@ -495,7 +497,6 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       const dbPatch: Record<string, any> = {};
       if (patch.nome !== undefined) dbPatch.nome = patch.nome;
       if (patch.perfil !== undefined) dbPatch.perfil = patch.perfil;
-      if (patch.telefone !== undefined) dbPatch.telefone = patch.telefone;
       if (patch.ativo !== undefined) dbPatch.ativo = patch.ativo;
       if (patch.comissao !== undefined) dbPatch.comissao = patch.comissao;
       if (patch.tipo_comissao !== undefined) dbPatch.tipo_comissao = patch.tipo_comissao;
