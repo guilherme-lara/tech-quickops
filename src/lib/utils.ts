@@ -64,10 +64,24 @@ export function formatDate(
 ): string {
   if (!date) return "—";
   try {
+    // Se for string YYYY-MM-DD, extraímos os pedaços para evitar o shift de timezone
+    if (typeof date === "string" && date.includes("-")) {
+      const parts = date.split("T")[0].split("-");
+      if (parts.length === 3) {
+        const [y, m, d] = parts;
+        if (options?.showTime) {
+          const timePart = date.includes("T") ? date.split("T")[1].slice(0, 5) : "";
+          return timePart ? `${d}/${m}/${y} ${timePart}` : `${d}/${m}/${y}`;
+        }
+        return `${d}/${m}/${y}`;
+      }
+    }
     const d = typeof date === "string" ? new Date(date) : date;
     if (isNaN(d.getTime())) return "—";
+    // Fallback seguro com correção de timezone
+    const corrected = new Date(d.getTime() + Math.abs(d.getTimezoneOffset() * 60000));
     if (options?.showTime) {
-      return d.toLocaleDateString("pt-BR", {
+      return corrected.toLocaleDateString("pt-BR", {
         day: "2-digit",
         month: "2-digit",
         year: "numeric",
@@ -75,7 +89,7 @@ export function formatDate(
         minute: "2-digit",
       });
     }
-    return d.toLocaleDateString("pt-BR", {
+    return corrected.toLocaleDateString("pt-BR", {
       day: "2-digit",
       month: "2-digit",
       year: "numeric",

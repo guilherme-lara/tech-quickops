@@ -29,21 +29,52 @@ interface Props {
 // ───────────────────────────── Parsers ─────────────────────────────
 function parseDate(v: any): string | null {
   if (v == null || v === "") return null;
+
+  // 1) É número serial do Excel
   if (typeof v === "number") {
-    const d = XLSX.SSF.parse_date_code(v);
-    if (!d) return null;
-    return `${d.y}-${String(d.m).padStart(2, "0")}-${String(d.d).padStart(2, "0")}`;
+    try {
+      const d = XLSX.SSF.parse_date_code(v);
+      if (d && d.y && d.m && d.d) {
+        return `${d.y}-${String(d.m).padStart(2, "0")}-${String(d.d).padStart(2, "0")}`;
+      }
+    } catch {
+      // fallback manual: Excel serial -> dias desde 30/12/1899
+      const excelEpoch = new Date(Date.UTC(1899, 11, 30));
+      const ms = (v - 0) * 86400 * 1000;
+      const dateObj = new Date(excelEpoch.getTime() + ms);
+      const y = dateObj.getUTCFullYear();
+      const m = String(dateObj.getUTCMonth() + 1).padStart(2, "0");
+      const d = String(dateObj.getUTCDate()).padStart(2, "0");
+      return `${y}-${m}-${d}`;
+    }
+    return null;
   }
+
   const s = String(v).trim();
+
+  // 2) Formato brasileiro DD/MM/YYYY ou DD/MM/YY
   const br = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})/);
   if (br) {
     const y = br[3].length === 2 ? `20${br[3]}` : br[3];
     return `${y}-${br[2].padStart(2, "0")}-${br[1].padStart(2, "0")}`;
   }
+
+  // 3) Formato ISO YYYY-MM-DD
   const iso = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
   if (iso) return iso[0];
+
+  // 4) Data ISO com horário (ex: 2026-06-02T00:00:00) - pegar só a parte da data
+  const isoFull = s.match(/^(\d{4})-(\d{2})-(\d{2})T/);
+  if (isoFull) return `${isoFull[1]}-${isoFull[2]}-${isoFull[3]}`;
+
+  // 5) Fallback: deixar o Date do JS tentar, mas isolar apenas YYYY-MM-DD
   const d = new Date(s);
-  if (!isNaN(d.getTime())) return d.toISOString().slice(0, 10);
+  if (!isNaN(d.getTime())) {
+    const y = d.getUTCFullYear();
+    const m = String(d.getUTCMonth() + 1).padStart(2, "0");
+    const day = String(d.getUTCDate()).padStart(2, "0");
+    return `${y}-${m}-${day}`;
+  }
   return null;
 }
 
