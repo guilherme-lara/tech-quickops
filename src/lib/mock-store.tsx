@@ -421,7 +421,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       q = q.range(from, to).order("created_at", { ascending: false });
 
       const { data, error, count } = await q;
-      if (error) throw error;
+      if (error) {
+        console.error("Erro na query de OS:", error);
+        throw error;
+      }
 
       // Update total count
       if (count !== null) setOsTotal(count);
