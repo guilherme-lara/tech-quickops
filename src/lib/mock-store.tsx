@@ -361,73 +361,20 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     ],
     enabled,
     queryFn: async (): Promise<OS[]> => {
-      let q = (supabase.from("ordens_servico") as any)
-        .select("*, tecnico:tecnicos(tecnico_id, id, nome, perfil, telefone, ativo)", {
-          count: "exact",
-        })
-        .eq("empresa_id", empresaId!);
+      if (!empresaId) return [];
 
-      // Filter by appointment date (month/year) using YYYY-MM-DD format
-      if (osYear > 0) {
-        if (osMonth > 0) {
-          const start = `${osYear}-${String(osMonth).padStart(2, "0")}-01`;
-          const endMonth = osMonth === 12 ? 1 : osMonth + 1;
-          const endYear = osMonth === 12 ? osYear + 1 : osYear;
-          const end = `${endYear}-${String(endMonth).padStart(2, "0")}-01`;
-          q = q.gte("data_agendamento", start).lt("data_agendamento", end);
-        } else {
-          const start = `${osYear}-01-01`;
-          const end = `${osYear + 1}-01-01`;
-          q = q.gte("data_agendamento", start).lt("data_agendamento", end);
-        }
-      }
+      const { data, error } = await supabase
+        .from("ordens_servico")
+        .select("*, tecnico:tecnicos(id, nome, perfil, telefone, ativo)")
+        .eq("empresa_id", empresaId)
+        .order("created_at", { ascending: false });
 
-      // Filter by status
-      if (osFilterStatus && osFilterStatus !== " ") {
-        if (uiToDbStatus[osFilterStatus as OSStatus]) {
-          q = q.eq("status", uiToDbStatus[osFilterStatus as OSStatus]);
-        } else {
-          q = q.ilike("status", `%${osFilterStatus}%`);
-        }
-      }
-
-      // Filter by client name (resolve to IDs)
-      if (osSearchCliente && osSearchCliente !== " ") {
-        const term = osSearchCliente.toLowerCase();
-        const clientesData = clientesQ.data ?? [];
-        const matchingIds = clientesData
-          .filter((c) => c.nomeFantasia.toLowerCase().includes(term))
-          .map((c) => c.id);
-        if (matchingIds.length > 0) {
-          q = q.in("cliente_id", matchingIds);
-        }
-      }
-
-      // Filter by technician name (resolve to IDs)
-      if (osSearchTecnico && osSearchTecnico !== " ") {
-        const term = osSearchTecnico.toLowerCase();
-        const tecnicosData = tecnicosQ.data ?? [];
-        const matchingIds = tecnicosData
-          .filter((t) => t.nome.toLowerCase().includes(term))
-          .map((t) => t.id);
-        if (matchingIds.length > 0) {
-          q = q.in("tecnico_id", matchingIds);
-        }
-      }
-
-      // Pagination: 10 items per page
-      const from = osPage * OS_PAGE_SIZE;
-      const to = from + OS_PAGE_SIZE - 1;
-      q = q.range(from, to).order("created_at", { ascending: false });
-
-      const { data, error, count } = await q;
       if (error) {
-        console.error("Erro na query de OS:", error);
+        console.error("🔥 ERRO SUPABASE OS:", error);
         throw error;
+      } else {
+        console.log("✅ TOTAL DE OS RETORNADAS:", data?.length);
       }
-
-      // Update total count
-      if (count !== null) setOsTotal(count);
 
       return ((data ?? []) as any[]).map((r) => ({
         id: r.id,

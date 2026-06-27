@@ -695,15 +695,12 @@ function OSPage() {
                             </span>
                           </td>
 
-                          <td className="px-5 py-3 text-muted-foreground whitespace-nowrap">
-                            <span className="flex items-center gap-1.5">
-                              <HardHat className="w-3.5 h-3.5" />
-                              {tecnico?.nome ? (
-                                <span>{tecnico.nome.split(" ")[0]}</span>
-                              ) : (
-                                <span className="text-gray-400">Sem técnico</span>
-                              )}
-                            </span>
+                          <td>
+                            {o.tecnico?.nome ? (
+                              <span>{o.tecnico.nome.split(" ")[0]}</span>
+                            ) : (
+                              <span className="text-gray-400">Sem técnico</span>
+                            )}
                           </td>
                           <td className="px-5 py-3 font-semibold whitespace-nowrap">
                             R$ {o.valor.toLocaleString("pt-BR")}
