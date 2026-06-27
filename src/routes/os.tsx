@@ -698,7 +698,11 @@ function OSPage() {
                           <td className="px-5 py-3 text-muted-foreground whitespace-nowrap">
                             <span className="flex items-center gap-1.5">
                               <HardHat className="w-3.5 h-3.5" />
-                              {tecnico?.nome?.split(" ")[0] ?? "—"}
+                              {tecnico?.nome ? (
+                                <span>{tecnico.nome.split(" ")[0]}</span>
+                              ) : (
+                                <span className="text-gray-400">Sem técnico</span>
+                              )}
                             </span>
                           </td>
                           <td className="px-5 py-3 font-semibold whitespace-nowrap">
@@ -893,7 +897,7 @@ function OSCard({ ordem, cliente, tecnico }: { ordem: OS; cliente: any; tecnico:
       <div className="flex items-center justify-between mt-3 pt-3 border-t border-border/60">
         <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
           <HardHat className="w-3 h-3" />
-          {tecnico?.nome.split(" ")[0]}
+          {tecnico?.nome?.split(" ")[0] ?? <span className="text-gray-400">Sem técnico</span>}
         </div>
         <span className="text-xs font-bold">R$ {ordem.valor.toLocaleString("pt-BR")}</span>
       </div>

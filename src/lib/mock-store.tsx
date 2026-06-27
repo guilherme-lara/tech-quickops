@@ -362,7 +362,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     enabled,
     queryFn: async (): Promise<OS[]> => {
       let q = (supabase.from("ordens_servico") as any)
-        .select("*, tecnico:tecnicos!tecnico_id(id, nome, perfil, telefone, ativo)", {
+        .select("*, tecnico:tecnicos(tecnico_id, id, nome, perfil, telefone, ativo)", {
           count: "exact",
         })
         .eq("empresa_id", empresaId!);
