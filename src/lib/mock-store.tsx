@@ -325,13 +325,19 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     queryKey: ["tecnicos", empresaId],
     enabled,
     queryFn: async (): Promise<Tecnico[]> => {
-      const { data, error } = await (supabase.from("tecnicos") as any)
-        .select(
-          "id, nome, perfil, telefone, ativo, comissao, tipo_comissao, chave_pix, username, email, dados_adicionais",
-        )
-        .eq("empresa_id", empresaId!)
-        .order("nome");
-      if (error) throw error;
+      if (!empresaId) return [];
+      const { data, error } = await supabase
+        .from("tecnicos")
+        .select("*")
+        .eq("empresa_id", empresaId)
+        .order("created_at", { ascending: false });
+
+      if (error) {
+        console.error("🔥 ERRO SUPABASE TÉCNICOS:", error.message, error.hint, error.details);
+        throw error;
+      } else {
+        console.log("✅ TOTAL DE TÉCNICOS RETORNADOS:", data?.length);
+      }
       return ((data ?? []) as any[]).map((r) => ({
         id: r.id,
         nome: r.nome,
