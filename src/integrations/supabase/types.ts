@@ -14,6 +14,48 @@ export type Database = {
   }
   public: {
     Tables: {
+      analistas_cliente: {
+        Row: {
+          cliente_id: string
+          created_at: string
+          empresa_id: string
+          id: string
+          nome: string
+          whatsapp: string | null
+        }
+        Insert: {
+          cliente_id: string
+          created_at?: string
+          empresa_id: string
+          id?: string
+          nome: string
+          whatsapp?: string | null
+        }
+        Update: {
+          cliente_id?: string
+          created_at?: string
+          empresa_id?: string
+          id?: string
+          nome?: string
+          whatsapp?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "analistas_cliente_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "analistas_cliente_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: false
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clientes: {
         Row: {
           created_at: string
@@ -116,6 +158,7 @@ export type Database = {
       }
       ordens_servico: {
         Row: {
+          analista_id: string | null
           cliente_id: string
           created_at: string
           custo_viagem: number
@@ -134,6 +177,7 @@ export type Database = {
           valor: number
         }
         Insert: {
+          analista_id?: string | null
           cliente_id: string
           created_at?: string
           custo_viagem?: number
@@ -152,6 +196,7 @@ export type Database = {
           valor?: number
         }
         Update: {
+          analista_id?: string | null
           cliente_id?: string
           created_at?: string
           custo_viagem?: number
@@ -170,6 +215,13 @@ export type Database = {
           valor?: number
         }
         Relationships: [
+          {
+            foreignKeyName: "ordens_servico_analista_id_fkey"
+            columns: ["analista_id"]
+            isOneToOne: false
+            referencedRelation: "analistas_cliente"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "ordens_servico_cliente_id_fkey"
             columns: ["cliente_id"]
