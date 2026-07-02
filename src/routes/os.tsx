@@ -1023,6 +1023,7 @@ function EditOSDialog({
         titulo: form.titulo,
         clienteId: form.clienteId,
         tecnicoId: form.tecnicoId,
+        analistaId: form.analistaId || undefined,
         valor: Number(form.valor) || 0,
         custo_viagem: Number(form.custo_viagem) || 0,
         data_agendamento: dataAgendamento,
