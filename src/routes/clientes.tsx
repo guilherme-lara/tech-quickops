@@ -32,10 +32,12 @@ import {
   Edit2,
   Trash2,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { EmptyState } from "@/components/EmptyState";
-import { validarDocumento } from "@/lib/utils";
+import { validarDocumento, maskPhoneBR } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
+import { Trash2 as TrashIcon, Plus as PlusIcon } from "lucide-react";
 
 export const Route = createFileRoute("/clientes")({
   component: () => (
