@@ -121,6 +121,7 @@ export type Database = {
           custo_viagem: number
           dados_adicionais: Json
           data_agendamento: string | null
+          data_atendimento: string | null
           descricao_problema: string
           empresa_id: string
           horario_atendimento: string | null
@@ -138,6 +139,7 @@ export type Database = {
           custo_viagem?: number
           dados_adicionais?: Json
           data_agendamento?: string | null
+          data_atendimento?: string | null
           descricao_problema?: string
           empresa_id: string
           horario_atendimento?: string | null
@@ -155,6 +157,7 @@ export type Database = {
           custo_viagem?: number
           dados_adicionais?: Json
           data_agendamento?: string | null
+          data_atendimento?: string | null
           descricao_problema?: string
           empresa_id?: string
           horario_atendimento?: string | null
@@ -322,6 +325,7 @@ export type Database = {
           chave_pix: string | null
           comissao: number | null
           created_at: string
+          dados_adicionais: Json | null
           empresa_id: string
           id: string
           nome: string
@@ -336,6 +340,7 @@ export type Database = {
           chave_pix?: string | null
           comissao?: number | null
           created_at?: string
+          dados_adicionais?: Json | null
           empresa_id: string
           id?: string
           nome: string
@@ -350,6 +355,7 @@ export type Database = {
           chave_pix?: string | null
           comissao?: number | null
           created_at?: string
+          dados_adicionais?: Json | null
           empresa_id?: string
           id?: string
           nome?: string
@@ -398,19 +404,33 @@ export type Database = {
       }
     }
     Functions: {
-      criar_tecnico: {
-        Args: {
-          p_chave_pix?: string
-          p_comissao: number
-          p_dominio?: string
-          p_nome: string
-          p_senha: string
-          p_telefone?: string
-          p_tipo_comissao: Database["public"]["Enums"]["tipo_comissao_enum"]
-          p_username: string
-        }
-        Returns: string
-      }
+      criar_tecnico:
+        | {
+            Args: {
+              p_chave_pix: string
+              p_comissao: number
+              p_dados_adicionais: Json
+              p_nome: string
+              p_senha: string
+              p_telefone: string
+              p_tipo_comissao: string
+              p_username: string
+            }
+            Returns: string
+          }
+        | {
+            Args: {
+              p_chave_pix?: string
+              p_comissao: number
+              p_dominio?: string
+              p_nome: string
+              p_senha: string
+              p_telefone?: string
+              p_tipo_comissao: Database["public"]["Enums"]["tipo_comissao_enum"]
+              p_username: string
+            }
+            Returns: string
+          }
       get_current_empresa_id: { Args: never; Returns: string }
       has_role: {
         Args: {
@@ -428,6 +448,8 @@ export type Database = {
         | "em_andamento"
         | "concluido"
         | "cancelado"
+        | "agendamento"
+        | "reagendado"
       tipo_comissao_enum: "fixo" | "porcentagem"
     }
     CompositeTypes: {
@@ -563,6 +585,8 @@ export const Constants = {
         "em_andamento",
         "concluido",
         "cancelado",
+        "agendamento",
+        "reagendado",
       ],
       tipo_comissao_enum: ["fixo", "porcentagem"],
     },
