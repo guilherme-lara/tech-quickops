@@ -367,12 +367,23 @@ function EquipePage() {
                 {form.id && (
                   <div>
                     <Label>Nova Senha (deixe em branco para manter a atual)</Label>
-                    <Input
-                      type="password"
-                      value={form.senha}
-                      onChange={(e) => setForm({ ...form, senha: e.target.value })}
-                      placeholder="Mín. 6 caracteres"
-                    />
+                    <div className="relative">
+                      <Input
+                        type={showPassword ? "text" : "password"}
+                        value={form.senha}
+                        onChange={(e) => setForm({ ...form, senha: e.target.value })}
+                        placeholder="Mín. 6 caracteres"
+                        className="pr-10"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword((v) => !v)}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                        aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
+                      >
+                        {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </button>
+                    </div>
                   </div>
                 )}
               </div>
