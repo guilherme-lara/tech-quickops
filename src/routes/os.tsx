@@ -983,6 +983,7 @@ function EditOSDialog({
     titulo: "",
     clienteId: "",
     tecnicoId: "",
+    analistaId: "",
     valor: "",
     custo_viagem: "",
     status: "Orçamento" as OSStatus,
@@ -991,6 +992,7 @@ function EditOSDialog({
   const [dataAgendamento, setDataAgendamento] = useState("");
   const [dadosExtras, setDadosExtras] = useState<Record<string, any>>({});
   const [saving, setSaving] = useState(false);
+  const { analistas: analistasEdit } = useAnalistasByCliente(form.clienteId);
 
   useEffect(() => {
     if (ordem) {
@@ -998,6 +1000,7 @@ function EditOSDialog({
         titulo: ordem.titulo ?? "",
         clienteId: ordem.clienteId ?? "",
         tecnicoId: ordem.tecnicoId ?? "",
+        analistaId: ordem.analistaId ?? "",
         valor: String(ordem.valor ?? 0),
         custo_viagem: String(ordem.custo_viagem ?? 0),
         status: ordem.status,
