@@ -229,12 +229,22 @@ function EquipePage() {
                   />
                 </div>
                 <div>
-                  <Label>Perfil / Especialidade</Label>
-                  <Input
+                  <Label>Perfil</Label>
+                  <Select
                     value={form.perfil}
-                    onChange={(e) => setForm({ ...form, perfil: e.target.value })}
-                    placeholder="Ex.: Refrigeração, Elétrica"
-                  />
+                    onValueChange={(v) => setForm({ ...form, perfil: v })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione o perfil..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {PERFIS_TECNICO.map((p) => (
+                        <SelectItem key={p} value={p}>
+                          {p}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
                 {form.id ? (
                   <div>
