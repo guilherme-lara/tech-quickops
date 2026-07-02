@@ -252,9 +252,9 @@ function Dashboard() {
         />
         <KpiCard
           icon={Activity}
-          label={profile?.role === "tecnico" ? "OS Ativas" : "Em Campo Agora"}
+          label={(profile?.role as string) === "tecnico" ? "OS Ativas" : "Em Campo Agora"}
           value={osAtivasCount}
-          trend={profile?.role === "tecnico" ? "Suas atribuições" : `${tecnicos.filter((t) => t.ativo).length} técnicos`}
+          trend={(profile?.role as string) === "tecnico" ? "Suas atribuições" : `${tecnicos.filter((t) => t.ativo).length} técnicos`}
           tone="warning"
         />
       </div>

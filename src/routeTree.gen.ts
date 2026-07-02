@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as OsRouteImport } from './routes/os'
+import { Route as LogsRouteImport } from './routes/logs'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as EstoqueRouteImport } from './routes/estoque'
 import { Route as EquipeRouteImport } from './routes/equipe'
@@ -25,6 +26,11 @@ import { Route as TecnicoOsIdRatRouteImport } from './routes/tecnico.os.$id.rat'
 const OsRoute = OsRouteImport.update({
   id: '/os',
   path: '/os',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LogsRoute = LogsRouteImport.update({
+  id: '/logs',
+  path: '/logs',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -91,6 +97,7 @@ export interface FileRoutesByFullPath {
   '/equipe': typeof EquipeRoute
   '/estoque': typeof EstoqueRoute
   '/login': typeof LoginRoute
+  '/logs': typeof LogsRoute
   '/os': typeof OsRoute
   '/tecnico/historico': typeof TecnicoHistoricoRoute
   '/tecnico/os': typeof TecnicoOsRouteWithChildren
@@ -105,6 +112,7 @@ export interface FileRoutesByTo {
   '/equipe': typeof EquipeRoute
   '/estoque': typeof EstoqueRoute
   '/login': typeof LoginRoute
+  '/logs': typeof LogsRoute
   '/os': typeof OsRoute
   '/tecnico/historico': typeof TecnicoHistoricoRoute
   '/tecnico/os': typeof TecnicoOsRouteWithChildren
@@ -120,6 +128,7 @@ export interface FileRoutesById {
   '/equipe': typeof EquipeRoute
   '/estoque': typeof EstoqueRoute
   '/login': typeof LoginRoute
+  '/logs': typeof LogsRoute
   '/os': typeof OsRoute
   '/tecnico/historico': typeof TecnicoHistoricoRoute
   '/tecnico/os': typeof TecnicoOsRouteWithChildren
@@ -136,6 +145,7 @@ export interface FileRouteTypes {
     | '/equipe'
     | '/estoque'
     | '/login'
+    | '/logs'
     | '/os'
     | '/tecnico/historico'
     | '/tecnico/os'
@@ -150,6 +160,7 @@ export interface FileRouteTypes {
     | '/equipe'
     | '/estoque'
     | '/login'
+    | '/logs'
     | '/os'
     | '/tecnico/historico'
     | '/tecnico/os'
@@ -164,6 +175,7 @@ export interface FileRouteTypes {
     | '/equipe'
     | '/estoque'
     | '/login'
+    | '/logs'
     | '/os'
     | '/tecnico/historico'
     | '/tecnico/os'
@@ -179,6 +191,7 @@ export interface RootRouteChildren {
   EquipeRoute: typeof EquipeRoute
   EstoqueRoute: typeof EstoqueRoute
   LoginRoute: typeof LoginRoute
+  LogsRoute: typeof LogsRoute
   OsRoute: typeof OsRoute
   TecnicoHistoricoRoute: typeof TecnicoHistoricoRoute
   TecnicoOsRoute: typeof TecnicoOsRouteWithChildren
@@ -192,6 +205,13 @@ declare module '@tanstack/react-router' {
       path: '/os'
       fullPath: '/os'
       preLoaderRoute: typeof OsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/logs': {
+      id: '/logs'
+      path: '/logs'
+      fullPath: '/logs'
+      preLoaderRoute: typeof LogsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -294,6 +314,7 @@ const rootRouteChildren: RootRouteChildren = {
   EquipeRoute: EquipeRoute,
   EstoqueRoute: EstoqueRoute,
   LoginRoute: LoginRoute,
+  LogsRoute: LogsRoute,
   OsRoute: OsRoute,
   TecnicoHistoricoRoute: TecnicoHistoricoRoute,
   TecnicoOsRoute: TecnicoOsRouteWithChildren,

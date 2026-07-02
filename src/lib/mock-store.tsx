@@ -55,6 +55,7 @@ export interface OS {
   numero: string;
   clienteId: string;
   tecnicoId: string;
+  analistaId?: string;
   titulo: string;
   status: OSStatus;
   criadaEm: string;
@@ -387,6 +388,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         numero: r.numero ?? "OS-?",
         clienteId: r.cliente_id,
         tecnicoId: r.tecnico_id ?? "",
+        analistaId: r.analista_id ?? "",
         titulo: r.titulo || r.descricao_problema || "",
         descricao_problema: r.descricao_problema ?? "",
         status: dbToUiStatus[r.status] ?? "Orçamento",
@@ -506,6 +508,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         empresa_id: empresaId!,
         cliente_id: o.clienteId,
         tecnico_id: o.tecnicoId || null,
+        analista_id: o.analistaId || null,
         titulo: o.titulo,
         descricao_problema: o.descricao_problema ?? null,
         data_agendamento: o.data_agendamento ?? null,
@@ -529,6 +532,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       if (patch.valor !== undefined) dbPatch.valor = patch.valor;
       if (patch.custo_viagem !== undefined) dbPatch.custo_viagem = patch.custo_viagem;
       if (patch.tecnicoId !== undefined) dbPatch.tecnico_id = patch.tecnicoId || null;
+      if (patch.analistaId !== undefined) dbPatch.analista_id = patch.analistaId || null;
       if (patch.clienteId !== undefined) dbPatch.cliente_id = patch.clienteId;
       if (patch.dados_adicionais !== undefined) dbPatch.dados_adicionais = patch.dados_adicionais;
       if (patch.descricao_problema !== undefined)

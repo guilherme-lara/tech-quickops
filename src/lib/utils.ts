@@ -115,3 +115,28 @@ export function isOverdue(date: string | Date | null | undefined): boolean {
     return false;
   }
 }
+
+/**
+ * Aplica máscara de telefone BR: (XX) XXXXX-XXXX ou (XX) XXXX-XXXX
+ */
+export function maskPhoneBR(value: string): string {
+  const d = (value || "").replace(/\D/g, "").slice(0, 11);
+  if (d.length <= 2) return d.length ? `(${d}` : "";
+  if (d.length <= 6) return `(${d.slice(0, 2)}) ${d.slice(2)}`;
+  if (d.length <= 10) return `(${d.slice(0, 2)}) ${d.slice(2, 6)}-${d.slice(6)}`;
+  return `(${d.slice(0, 2)}) ${d.slice(2, 7)}-${d.slice(7)}`;
+}
+
+/**
+ * Formata a comissão de acordo com o tipo: 'fixo' → R$; 'porcentagem' → %
+ */
+export function formatComissao(
+  valor: number | null | undefined,
+  tipo: "fixo" | "porcentagem" | string | null | undefined,
+): string {
+  const n = Number(valor ?? 0);
+  if (tipo === "fixo") {
+    return n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+  }
+  return `${n.toLocaleString("pt-BR", { maximumFractionDigits: 2 })}%`;
+}

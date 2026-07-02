@@ -14,6 +14,48 @@ export type Database = {
   }
   public: {
     Tables: {
+      analistas_cliente: {
+        Row: {
+          cliente_id: string
+          created_at: string
+          empresa_id: string
+          id: string
+          nome: string
+          whatsapp: string | null
+        }
+        Insert: {
+          cliente_id: string
+          created_at?: string
+          empresa_id: string
+          id?: string
+          nome: string
+          whatsapp?: string | null
+        }
+        Update: {
+          cliente_id?: string
+          created_at?: string
+          empresa_id?: string
+          id?: string
+          nome?: string
+          whatsapp?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "analistas_cliente_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "analistas_cliente_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: false
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clientes: {
         Row: {
           created_at: string
@@ -116,11 +158,13 @@ export type Database = {
       }
       ordens_servico: {
         Row: {
+          analista_id: string | null
           cliente_id: string
           created_at: string
           custo_viagem: number
           dados_adicionais: Json
           data_agendamento: string | null
+          data_atendimento: string | null
           descricao_problema: string
           empresa_id: string
           horario_atendimento: string | null
@@ -133,11 +177,13 @@ export type Database = {
           valor: number
         }
         Insert: {
+          analista_id?: string | null
           cliente_id: string
           created_at?: string
           custo_viagem?: number
           dados_adicionais?: Json
           data_agendamento?: string | null
+          data_atendimento?: string | null
           descricao_problema?: string
           empresa_id: string
           horario_atendimento?: string | null
@@ -150,11 +196,13 @@ export type Database = {
           valor?: number
         }
         Update: {
+          analista_id?: string | null
           cliente_id?: string
           created_at?: string
           custo_viagem?: number
           dados_adicionais?: Json
           data_agendamento?: string | null
+          data_atendimento?: string | null
           descricao_problema?: string
           empresa_id?: string
           horario_atendimento?: string | null
@@ -167,6 +215,13 @@ export type Database = {
           valor?: number
         }
         Relationships: [
+          {
+            foreignKeyName: "ordens_servico_analista_id_fkey"
+            columns: ["analista_id"]
+            isOneToOne: false
+            referencedRelation: "analistas_cliente"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "ordens_servico_cliente_id_fkey"
             columns: ["cliente_id"]
@@ -322,6 +377,7 @@ export type Database = {
           chave_pix: string | null
           comissao: number | null
           created_at: string
+          dados_adicionais: Json | null
           empresa_id: string
           id: string
           nome: string
@@ -336,6 +392,7 @@ export type Database = {
           chave_pix?: string | null
           comissao?: number | null
           created_at?: string
+          dados_adicionais?: Json | null
           empresa_id: string
           id?: string
           nome: string
@@ -350,6 +407,7 @@ export type Database = {
           chave_pix?: string | null
           comissao?: number | null
           created_at?: string
+          dados_adicionais?: Json | null
           empresa_id?: string
           id?: string
           nome?: string
@@ -398,19 +456,33 @@ export type Database = {
       }
     }
     Functions: {
-      criar_tecnico: {
-        Args: {
-          p_chave_pix?: string
-          p_comissao: number
-          p_dominio?: string
-          p_nome: string
-          p_senha: string
-          p_telefone?: string
-          p_tipo_comissao: Database["public"]["Enums"]["tipo_comissao_enum"]
-          p_username: string
-        }
-        Returns: string
-      }
+      criar_tecnico:
+        | {
+            Args: {
+              p_chave_pix: string
+              p_comissao: number
+              p_dados_adicionais: Json
+              p_nome: string
+              p_senha: string
+              p_telefone: string
+              p_tipo_comissao: string
+              p_username: string
+            }
+            Returns: string
+          }
+        | {
+            Args: {
+              p_chave_pix?: string
+              p_comissao: number
+              p_dominio?: string
+              p_nome: string
+              p_senha: string
+              p_telefone?: string
+              p_tipo_comissao: Database["public"]["Enums"]["tipo_comissao_enum"]
+              p_username: string
+            }
+            Returns: string
+          }
       get_current_empresa_id: { Args: never; Returns: string }
       has_role: {
         Args: {
@@ -428,6 +500,8 @@ export type Database = {
         | "em_andamento"
         | "concluido"
         | "cancelado"
+        | "agendamento"
+        | "reagendado"
       tipo_comissao_enum: "fixo" | "porcentagem"
     }
     CompositeTypes: {
@@ -563,6 +637,8 @@ export const Constants = {
         "em_andamento",
         "concluido",
         "cancelado",
+        "agendamento",
+        "reagendado",
       ],
       tipo_comissao_enum: ["fixo", "porcentagem"],
     },

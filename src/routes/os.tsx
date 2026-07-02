@@ -59,6 +59,35 @@ import { Badge } from "@/components/ui/badge";
 import { RatGallery } from "@/components/RatGallery";
 import { MesAnoFilter } from "@/components/MesAnoFilter";
 
+type AnalistaOpt = { id: string; nome: string; whatsapp: string | null };
+
+function useAnalistasByCliente(clienteId: string | undefined) {
+  const [analistas, setAnalistas] = useState<AnalistaOpt[]>([]);
+  const [loading, setLoading] = useState(false);
+  useEffect(() => {
+    if (!clienteId) {
+      setAnalistas([]);
+      return;
+    }
+    let cancel = false;
+    setLoading(true);
+    (async () => {
+      const { data, error } = await (supabase.from("analistas_cliente" as any) as any)
+        .select("id, nome, whatsapp")
+        .eq("cliente_id", clienteId)
+        .order("nome");
+      if (!cancel) {
+        if (!error) setAnalistas((data ?? []) as AnalistaOpt[]);
+        setLoading(false);
+      }
+    })();
+    return () => {
+      cancel = true;
+    };
+  }, [clienteId]);
+  return { analistas, loading };
+}
+
 export const Route = createFileRoute("/os")({
   component: () => (
     <ProtectedRoute>
@@ -196,6 +225,7 @@ function OSPage() {
     titulo: "",
     clienteId: "",
     tecnicoId: "",
+    analistaId: "",
     valor: "",
     custo_viagem: "",
     data_agendamento: "",
@@ -203,6 +233,7 @@ function OSPage() {
     descricao_problema: "",
     status: "Orçamento" as OSStatus,
   });
+  const { analistas: analistasNovaOS } = useAnalistasByCliente(form.clienteId);
   const [novosDadosExtras, setNovosDadosExtras] = useState<Record<string, any>>({});
   const [novoCampoNome, setNovoCampoNome] = useState("");
   const [novoCampoValor, setNovoCampoValor] = useState("");
@@ -259,6 +290,7 @@ function OSPage() {
       titulo: form.titulo,
       clienteId: form.clienteId,
       tecnicoId: form.tecnicoId,
+      analistaId: form.analistaId || undefined,
       valor: Number(form.valor) || 0,
       custo_viagem: Number(form.custo_viagem) || 0,
       data_agendamento: form.data_agendamento || undefined,
@@ -273,6 +305,7 @@ function OSPage() {
       titulo: "",
       clienteId: "",
       tecnicoId: "",
+      analistaId: "",
       valor: "",
       custo_viagem: "",
       data_agendamento: "",
@@ -419,6 +452,34 @@ function OSPage() {
                       </SelectContent>
                     </Select>
                   </div>
+                </div>
+                <div>
+                  <Label>Analista / Suporte Responsável</Label>
+                  <Select
+                    value={form.analistaId || undefined}
+                    onValueChange={(v) => setForm({ ...form, analistaId: v })}
+                    disabled={!form.clienteId}
+                  >
+                    <SelectTrigger className="h-10">
+                      <SelectValue
+                        placeholder={
+                          !form.clienteId
+                            ? "Selecione um cliente primeiro"
+                            : analistasNovaOS.length === 0
+                              ? "Nenhum analista cadastrado para este cliente"
+                              : "Selecione um analista..."
+                        }
+                      />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {analistasNovaOS.map((a) => (
+                        <SelectItem key={a.id} value={a.id}>
+                          {a.nome}
+                          {a.whatsapp ? ` — ${a.whatsapp}` : ""}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
@@ -922,6 +983,7 @@ function EditOSDialog({
     titulo: "",
     clienteId: "",
     tecnicoId: "",
+    analistaId: "",
     valor: "",
     custo_viagem: "",
     status: "Orçamento" as OSStatus,
@@ -930,6 +992,7 @@ function EditOSDialog({
   const [dataAgendamento, setDataAgendamento] = useState("");
   const [dadosExtras, setDadosExtras] = useState<Record<string, any>>({});
   const [saving, setSaving] = useState(false);
+  const { analistas: analistasEdit } = useAnalistasByCliente(form.clienteId);
 
   useEffect(() => {
     if (ordem) {
@@ -937,6 +1000,7 @@ function EditOSDialog({
         titulo: ordem.titulo ?? "",
         clienteId: ordem.clienteId ?? "",
         tecnicoId: ordem.tecnicoId ?? "",
+        analistaId: ordem.analistaId ?? "",
         valor: String(ordem.valor ?? 0),
         custo_viagem: String(ordem.custo_viagem ?? 0),
         status: ordem.status,
@@ -959,6 +1023,7 @@ function EditOSDialog({
         titulo: form.titulo,
         clienteId: form.clienteId,
         tecnicoId: form.tecnicoId,
+        analistaId: form.analistaId || undefined,
         valor: Number(form.valor) || 0,
         custo_viagem: Number(form.custo_viagem) || 0,
         data_agendamento: dataAgendamento,
@@ -1026,7 +1091,35 @@ function EditOSDialog({
                   ))}
                 </SelectContent>
               </Select>
-            </div>
+          </div>
+          <div>
+            <Label>Analista / Suporte Responsável</Label>
+            <Select
+              disabled={isView || !form.clienteId}
+              value={form.analistaId || undefined}
+              onValueChange={(v) => setForm({ ...form, analistaId: v })}
+            >
+              <SelectTrigger>
+                <SelectValue
+                  placeholder={
+                    !form.clienteId
+                      ? "Selecione um cliente primeiro"
+                      : analistasEdit.length === 0
+                        ? "Nenhum analista cadastrado para este cliente"
+                        : "Selecione um analista..."
+                  }
+                />
+              </SelectTrigger>
+              <SelectContent>
+                {analistasEdit.map((a) => (
+                  <SelectItem key={a.id} value={a.id}>
+                    {a.nome}
+                    {a.whatsapp ? ` — ${a.whatsapp}` : ""}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
           </div>
           <div className="grid grid-cols-3 gap-3">
             <div>

@@ -40,9 +40,15 @@ import {
   MoreVertical,
   Edit2,
   Ban,
+  Eye,
+  EyeOff,
+  Copy,
 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import { maskPhoneBR, formatComissao } from "@/lib/utils";
+
+const PERFIS_TECNICO = ["Técnico de Campo", "Instalador", "Suporte", "Manutenção"];
 
 export const Route = createFileRoute("/equipe")({
   component: () => (
@@ -57,6 +63,7 @@ function EquipePage() {
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const emptyForm = {
     id: "",
     nome: "",
@@ -76,6 +83,7 @@ function EquipePage() {
 
   const openNew = () => {
     setForm(emptyForm);
+    setShowPassword(false);
     setOpen(true);
   };
 
@@ -151,7 +159,21 @@ function EquipePage() {
         });
         if (error) throw error;
         qc.invalidateQueries({ queryKey: ["tecnicos"] });
-        toast.success("Técnico cadastrado! Login: " + form.username.toLowerCase());
+        const login = form.username.toLowerCase();
+        const senha = form.senha;
+        toast.success(`Técnico cadastrado! Login: ${login}`, {
+          duration: 15000,
+          action: {
+            label: "Copiar Credenciais",
+            onClick: () => {
+              const text = `Usuário: ${login}\nSenha: ${senha}`;
+              navigator.clipboard
+                .writeText(text)
+                .then(() => toast.success("Credenciais copiadas!"))
+                .catch(() => toast.error("Não foi possível copiar"));
+            },
+          },
+        });
       }
       setOpen(false);
       setForm(emptyForm);
@@ -207,12 +229,22 @@ function EquipePage() {
                   />
                 </div>
                 <div>
-                  <Label>Perfil / Especialidade</Label>
-                  <Input
+                  <Label>Perfil</Label>
+                  <Select
                     value={form.perfil}
-                    onChange={(e) => setForm({ ...form, perfil: e.target.value })}
-                    placeholder="Ex.: Refrigeração, Elétrica"
-                  />
+                    onValueChange={(v) => setForm({ ...form, perfil: v })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione o perfil..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {PERFIS_TECNICO.map((p) => (
+                        <SelectItem key={p} value={p}>
+                          {p}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
                 {form.id ? (
                   <div>
@@ -245,12 +277,23 @@ function EquipePage() {
                 {!form.id && (
                   <div>
                     <Label>Senha inicial</Label>
-                    <Input
-                      type="password"
-                      value={form.senha}
-                      onChange={(e) => setForm({ ...form, senha: e.target.value })}
-                      placeholder="Mín. 6 caracteres"
-                    />
+                    <div className="relative">
+                      <Input
+                        type={showPassword ? "text" : "password"}
+                        value={form.senha}
+                        onChange={(e) => setForm({ ...form, senha: e.target.value })}
+                        placeholder="Mín. 6 caracteres"
+                        className="pr-10"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword((v) => !v)}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                        aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
+                      >
+                        {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </button>
+                    </div>
                   </div>
                 )}
                 <div className="grid grid-cols-2 gap-3">
@@ -258,8 +301,9 @@ function EquipePage() {
                     <Label>Telefone</Label>
                     <Input
                       value={form.telefone}
-                      onChange={(e) => setForm({ ...form, telefone: e.target.value })}
+                      onChange={(e) => setForm({ ...form, telefone: maskPhoneBR(e.target.value) })}
                       placeholder="(11) 99999-0000"
+                      inputMode="numeric"
                     />
                   </div>
                   <div>
@@ -323,12 +367,23 @@ function EquipePage() {
                 {form.id && (
                   <div>
                     <Label>Nova Senha (deixe em branco para manter a atual)</Label>
-                    <Input
-                      type="password"
-                      value={form.senha}
-                      onChange={(e) => setForm({ ...form, senha: e.target.value })}
-                      placeholder="Mín. 6 caracteres"
-                    />
+                    <div className="relative">
+                      <Input
+                        type={showPassword ? "text" : "password"}
+                        value={form.senha}
+                        onChange={(e) => setForm({ ...form, senha: e.target.value })}
+                        placeholder="Mín. 6 caracteres"
+                        className="pr-10"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword((v) => !v)}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                        aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
+                      >
+                        {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </button>
+                    </div>
                   </div>
                 )}
               </div>
@@ -412,7 +467,7 @@ function EquipePage() {
                           )}
                         </div>
                       </td>
-                      <td className="px-5 py-3 font-medium text-primary">{t.comissao || 0}%</td>
+                      <td className="px-5 py-3 font-medium text-primary">{formatComissao(t.comissao, t.tipo_comissao)}</td>
                       <td className="px-5 py-3 font-medium">{ativas}</td>
                       <td className="px-5 py-3">
                         <span
@@ -506,7 +561,7 @@ function EquipePage() {
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-muted-foreground">Comissão</span>
-                    <span className="font-semibold text-primary">{t.comissao || 0}%</span>
+                    <span className="font-semibold text-primary">{formatComissao(t.comissao, t.tipo_comissao)}</span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-muted-foreground">OS Ativas</span>

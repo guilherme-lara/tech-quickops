@@ -32,10 +32,12 @@ import {
   Edit2,
   Trash2,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { EmptyState } from "@/components/EmptyState";
-import { validarDocumento } from "@/lib/utils";
+import { validarDocumento, maskPhoneBR } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
+import { Trash2 as TrashIcon, Plus as PlusIcon } from "lucide-react";
 
 export const Route = createFileRoute("/clientes")({
   component: () => (
@@ -44,6 +46,8 @@ export const Route = createFileRoute("/clientes")({
     </ProtectedRoute>
   ),
 });
+
+type Analista = { id?: string; nome: string; whatsapp: string; _new?: boolean };
 
 function ClientesPage() {
   const { clientes, addCliente, updateCliente, deleteCliente, loadingClientes } = useStore();
@@ -55,10 +59,13 @@ function ClientesPage() {
     telefone: "",
     email: "",
   });
+  const [analistas, setAnalistas] = useState<Analista[]>([]);
+  const [loadingAnalistas, setLoadingAnalistas] = useState(false);
   const [viewMode, setViewMode] = useState<"list" | "card">("list");
 
   const openNew = () => {
     setForm({ id: "", nomeFantasia: "", documento: "", telefone: "", email: "" });
+    setAnalistas([]);
     setOpen(true);
   };
 
@@ -70,13 +77,78 @@ function ClientesPage() {
       telefone: c.telefone,
       email: c.email,
     });
+    setAnalistas([]);
     setOpen(true);
   };
+
+  // Carrega analistas do cliente selecionado
+  useEffect(() => {
+    if (!open || !form.id) return;
+    let cancel = false;
+    (async () => {
+      setLoadingAnalistas(true);
+      const { data, error } = await (supabase.from("analistas_cliente" as any) as any)
+        .select("id, nome, whatsapp")
+        .eq("cliente_id", form.id)
+        .order("created_at", { ascending: true });
+      if (!cancel) {
+        if (error) toast.error("Erro ao carregar analistas: " + error.message);
+        setAnalistas(
+          (data ?? []).map((a: any) => ({ id: a.id, nome: a.nome, whatsapp: a.whatsapp ?? "" })),
+        );
+        setLoadingAnalistas(false);
+      }
+    })();
+    return () => {
+      cancel = true;
+    };
+  }, [open, form.id]);
 
   const handleDelete = async (id: string) => {
     if (window.confirm("Deseja realmente excluir este cliente?")) {
       await deleteCliente(id);
       toast.success("Cliente excluído!");
+    }
+  };
+
+  const addAnalista = () =>
+    setAnalistas((prev) => [...prev, { nome: "", whatsapp: "", _new: true }]);
+
+  const removeAnalista = async (idx: number) => {
+    const a = analistas[idx];
+    if (a.id) {
+      const { error } = await (supabase.from("analistas_cliente" as any) as any)
+        .delete()
+        .eq("id", a.id);
+      if (error) return toast.error("Erro ao remover analista: " + error.message);
+    }
+    setAnalistas((prev) => prev.filter((_, i) => i !== idx));
+  };
+
+  const persistAnalistas = async (clienteId: string) => {
+    // Busca empresa_id do cliente para satisfazer a policy
+    const { data: cli } = await supabase
+      .from("clientes")
+      .select("empresa_id")
+      .eq("id", clienteId)
+      .maybeSingle();
+    const empresa_id = cli?.empresa_id;
+    if (!empresa_id) return;
+
+    for (const a of analistas) {
+      if (!a.nome.trim()) continue;
+      if (a.id) {
+        await (supabase.from("analistas_cliente" as any) as any)
+          .update({ nome: a.nome, whatsapp: a.whatsapp })
+          .eq("id", a.id);
+      } else {
+        await (supabase.from("analistas_cliente" as any) as any).insert({
+          cliente_id: clienteId,
+          empresa_id,
+          nome: a.nome,
+          whatsapp: a.whatsapp,
+        });
+      }
     }
   };
 
@@ -89,15 +161,28 @@ function ClientesPage() {
     }
 
     try {
+      let clienteId = form.id;
       if (form.id) {
         await updateCliente(form.id, form);
-        toast.success("Cliente atualizado!");
       } else {
+        // addCliente não retorna id — recuperamos o mais recente do usuário abaixo.
         await addCliente(form);
-        toast.success("Cliente cadastrado!");
+        // Buscar o cliente recém-criado (mesmo nome + documento)
+        const { data: novo } = await supabase
+          .from("clientes")
+          .select("id")
+          .eq("nome", form.nomeFantasia)
+          .order("created_at", { ascending: false })
+          .limit(1);
+        clienteId = novo?.[0]?.id ?? "";
       }
+      if (clienteId && analistas.length > 0) {
+        await persistAnalistas(clienteId);
+      }
+      toast.success(form.id ? "Cliente atualizado!" : "Cliente cadastrado!");
       setOpen(false);
       setForm({ id: "", nomeFantasia: "", documento: "", telefone: "", email: "" });
+      setAnalistas([]);
     } catch (e: any) {
       toast.error(e.message || "Erro ao salvar cliente");
     }
@@ -135,7 +220,7 @@ function ClientesPage() {
                 <Plus className="w-4 h-4" /> Novo Cliente
               </Button>
             </DialogTrigger>
-            <DialogContent>
+            <DialogContent className="w-[95vw] sm:max-w-2xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>{form.id ? "Editar Cliente" : "Novo Cliente"}</DialogTitle>
               </DialogHeader>
@@ -158,7 +243,11 @@ function ClientesPage() {
                   <Label>Telefone</Label>
                   <Input
                     value={form.telefone}
-                    onChange={(e) => setForm({ ...form, telefone: e.target.value })}
+                    onChange={(e) =>
+                      setForm({ ...form, telefone: maskPhoneBR(e.target.value) })
+                    }
+                    placeholder="(11) 99999-0000"
+                    inputMode="numeric"
                   />
                 </div>
                 <div>
@@ -168,6 +257,72 @@ function ClientesPage() {
                     value={form.email}
                     onChange={(e) => setForm({ ...form, email: e.target.value })}
                   />
+                </div>
+
+                {/* Contatos de Suporte / Analistas */}
+                <div className="rounded-xl border border-border/60 bg-muted/30 p-3 mt-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <div>
+                      <div className="text-sm font-semibold">Contatos de Suporte</div>
+                      <div className="text-xs text-muted-foreground">
+                        Analistas vinculados a este cliente
+                      </div>
+                    </div>
+                    <Button type="button" size="sm" variant="outline" onClick={addAnalista}>
+                      <PlusIcon className="w-3.5 h-3.5" /> Adicionar
+                    </Button>
+                  </div>
+                  {loadingAnalistas ? (
+                    <div className="text-xs text-muted-foreground py-2">Carregando…</div>
+                  ) : analistas.length === 0 ? (
+                    <div className="text-xs text-muted-foreground py-2">
+                      Nenhum analista cadastrado.
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      {analistas.map((a, idx) => (
+                        <div key={idx} className="flex gap-2 items-start">
+                          <Input
+                            placeholder="Nome"
+                            value={a.nome}
+                            onChange={(e) =>
+                              setAnalistas((prev) =>
+                                prev.map((x, i) => (i === idx ? { ...x, nome: e.target.value } : x)),
+                              )
+                            }
+                            className="flex-1"
+                          />
+                          <Input
+                            placeholder="WhatsApp"
+                            value={a.whatsapp}
+                            onChange={(e) =>
+                              setAnalistas((prev) =>
+                                prev.map((x, i) =>
+                                  i === idx ? { ...x, whatsapp: maskPhoneBR(e.target.value) } : x,
+                                ),
+                              )
+                            }
+                            className="flex-1"
+                            inputMode="numeric"
+                          />
+                          <Button
+                            type="button"
+                            size="icon"
+                            variant="ghost"
+                            onClick={() => removeAnalista(idx)}
+                            className="h-9 w-9 shrink-0 text-destructive"
+                          >
+                            <TrashIcon className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  {!form.id && (
+                    <div className="text-[11px] text-muted-foreground mt-2">
+                      Dica: você também pode adicionar analistas após salvar o cliente.
+                    </div>
+                  )}
                 </div>
               </div>
               <DialogFooter>
