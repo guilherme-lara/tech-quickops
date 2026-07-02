@@ -453,6 +453,34 @@ function OSPage() {
                     </Select>
                   </div>
                 </div>
+                <div>
+                  <Label>Analista / Suporte Responsável</Label>
+                  <Select
+                    value={form.analistaId || undefined}
+                    onValueChange={(v) => setForm({ ...form, analistaId: v })}
+                    disabled={!form.clienteId}
+                  >
+                    <SelectTrigger className="h-10">
+                      <SelectValue
+                        placeholder={
+                          !form.clienteId
+                            ? "Selecione um cliente primeiro"
+                            : analistasNovaOS.length === 0
+                              ? "Nenhum analista cadastrado para este cliente"
+                              : "Selecione um analista..."
+                        }
+                      />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {analistasNovaOS.map((a) => (
+                        <SelectItem key={a.id} value={a.id}>
+                          {a.nome}
+                          {a.whatsapp ? ` — ${a.whatsapp}` : ""}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <Label>Data do Agendamento</Label>
