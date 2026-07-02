@@ -388,6 +388,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         numero: r.numero ?? "OS-?",
         clienteId: r.cliente_id,
         tecnicoId: r.tecnico_id ?? "",
+        analistaId: r.analista_id ?? "",
         titulo: r.titulo || r.descricao_problema || "",
         descricao_problema: r.descricao_problema ?? "",
         status: dbToUiStatus[r.status] ?? "Orçamento",
