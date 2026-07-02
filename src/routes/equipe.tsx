@@ -159,7 +159,21 @@ function EquipePage() {
         });
         if (error) throw error;
         qc.invalidateQueries({ queryKey: ["tecnicos"] });
-        toast.success("Técnico cadastrado! Login: " + form.username.toLowerCase());
+        const login = form.username.toLowerCase();
+        const senha = form.senha;
+        toast.success(`Técnico cadastrado! Login: ${login}`, {
+          duration: 15000,
+          action: {
+            label: "Copiar Credenciais",
+            onClick: () => {
+              const text = `Usuário: ${login}\nSenha: ${senha}`;
+              navigator.clipboard
+                .writeText(text)
+                .then(() => toast.success("Credenciais copiadas!"))
+                .catch(() => toast.error("Não foi possível copiar"));
+            },
+          },
+        });
       }
       setOpen(false);
       setForm(emptyForm);
