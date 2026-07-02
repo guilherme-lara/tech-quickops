@@ -63,6 +63,7 @@ function EquipePage() {
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const emptyForm = {
     id: "",
     nome: "",
@@ -82,6 +83,7 @@ function EquipePage() {
 
   const openNew = () => {
     setForm(emptyForm);
+    setShowPassword(false);
     setOpen(true);
   };
 
