@@ -40,9 +40,15 @@ import {
   MoreVertical,
   Edit2,
   Ban,
+  Eye,
+  EyeOff,
+  Copy,
 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import { maskPhoneBR, formatComissao } from "@/lib/utils";
+
+const PERFIS_TECNICO = ["Técnico de Campo", "Instalador", "Suporte", "Manutenção"];
 
 export const Route = createFileRoute("/equipe")({
   component: () => (
