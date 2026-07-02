@@ -1091,7 +1091,35 @@ function EditOSDialog({
                   ))}
                 </SelectContent>
               </Select>
-            </div>
+          </div>
+          <div>
+            <Label>Analista / Suporte Responsável</Label>
+            <Select
+              disabled={isView || !form.clienteId}
+              value={form.analistaId || undefined}
+              onValueChange={(v) => setForm({ ...form, analistaId: v })}
+            >
+              <SelectTrigger>
+                <SelectValue
+                  placeholder={
+                    !form.clienteId
+                      ? "Selecione um cliente primeiro"
+                      : analistasEdit.length === 0
+                        ? "Nenhum analista cadastrado para este cliente"
+                        : "Selecione um analista..."
+                  }
+                />
+              </SelectTrigger>
+              <SelectContent>
+                {analistasEdit.map((a) => (
+                  <SelectItem key={a.id} value={a.id}>
+                    {a.nome}
+                    {a.whatsapp ? ` — ${a.whatsapp}` : ""}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
           </div>
           <div className="grid grid-cols-3 gap-3">
             <div>
