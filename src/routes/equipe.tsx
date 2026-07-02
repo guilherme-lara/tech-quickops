@@ -467,7 +467,7 @@ function EquipePage() {
                           )}
                         </div>
                       </td>
-                      <td className="px-5 py-3 font-medium text-primary">{t.comissao || 0}%</td>
+                      <td className="px-5 py-3 font-medium text-primary">{formatComissao(t.comissao, t.tipo_comissao)}</td>
                       <td className="px-5 py-3 font-medium">{ativas}</td>
                       <td className="px-5 py-3">
                         <span
