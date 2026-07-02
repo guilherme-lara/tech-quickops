@@ -508,6 +508,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         empresa_id: empresaId!,
         cliente_id: o.clienteId,
         tecnico_id: o.tecnicoId || null,
+        analista_id: o.analistaId || null,
         titulo: o.titulo,
         descricao_problema: o.descricao_problema ?? null,
         data_agendamento: o.data_agendamento ?? null,
