@@ -561,7 +561,7 @@ function EquipePage() {
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-muted-foreground">Comissão</span>
-                    <span className="font-semibold text-primary">{t.comissao || 0}%</span>
+                    <span className="font-semibold text-primary">{formatComissao(t.comissao, t.tipo_comissao)}</span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-muted-foreground">OS Ativas</span>
