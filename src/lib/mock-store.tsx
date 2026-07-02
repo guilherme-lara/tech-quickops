@@ -55,6 +55,7 @@ export interface OS {
   numero: string;
   clienteId: string;
   tecnicoId: string;
+  analistaId?: string;
   titulo: string;
   status: OSStatus;
   criadaEm: string;
