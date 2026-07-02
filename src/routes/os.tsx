@@ -225,6 +225,7 @@ function OSPage() {
     titulo: "",
     clienteId: "",
     tecnicoId: "",
+    analistaId: "",
     valor: "",
     custo_viagem: "",
     data_agendamento: "",
@@ -232,6 +233,7 @@ function OSPage() {
     descricao_problema: "",
     status: "Orçamento" as OSStatus,
   });
+  const { analistas: analistasNovaOS } = useAnalistasByCliente(form.clienteId);
   const [novosDadosExtras, setNovosDadosExtras] = useState<Record<string, any>>({});
   const [novoCampoNome, setNovoCampoNome] = useState("");
   const [novoCampoValor, setNovoCampoValor] = useState("");
