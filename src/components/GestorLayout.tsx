@@ -14,7 +14,7 @@ import {
   Menu,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 
 import {
@@ -85,6 +85,7 @@ export function GestorLayout({ children }: { children?: ReactNode }) {
     <div className="mt-3 pt-3 border-t border-border/60">
       <div className="flex items-center gap-2 px-2 py-2">
         <Avatar className="w-9 h-9">
+          <AvatarImage src={profile?.avatarUrl} alt={profile?.nome_completo} className="object-cover" />
           <AvatarFallback className="bg-gradient-to-br from-primary to-violet text-primary-foreground text-xs font-semibold">
             {profile?.nome_completo?.[0] || "G"}
           </AvatarFallback>
@@ -111,9 +112,17 @@ export function GestorLayout({ children }: { children?: ReactNode }) {
       <aside className="w-64 fixed h-screen p-4 hidden md:block z-50 bg-background border-r border-border">
         <div className="rounded-3xl h-full flex flex-col p-4 shadow-[var(--shadow-card)]">
           <div className="px-2 py-3 flex items-center gap-2.5">
-            <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-primary to-violet flex items-center justify-center shadow-[var(--shadow-glow)]">
-              <Wrench className="w-5 h-5 text-primary-foreground" />
-            </div>
+            {profile?.empresaLogo ? (
+              <img 
+                src={profile.empresaLogo} 
+                alt="Logo da Empresa" 
+                className="w-10 h-10 rounded-xl object-contain bg-muted" 
+              />
+            ) : (
+              <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-primary to-violet flex items-center justify-center shadow-[var(--shadow-glow)]">
+                <Wrench className="w-5 h-5 text-primary-foreground" />
+              </div>
+            )}
             <div>
               <div className="font-bold text-base leading-tight">QuickOps</div>
               <div className="text-[10px] text-muted-foreground tracking-wider uppercase">
@@ -145,9 +154,17 @@ export function GestorLayout({ children }: { children?: ReactNode }) {
                 </SheetDescription>
 
                 <div className="px-2 py-3 flex items-center gap-2.5">
-                  <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-primary to-violet flex items-center justify-center shadow-[var(--shadow-glow)]">
-                    <Wrench className="w-5 h-5 text-primary-foreground" />
-                  </div>
+                  {profile?.empresaLogo ? (
+                    <img 
+                      src={profile.empresaLogo} 
+                      alt="Logo da Empresa" 
+                      className="w-10 h-10 rounded-xl object-contain bg-muted" 
+                    />
+                  ) : (
+                    <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-primary to-violet flex items-center justify-center shadow-[var(--shadow-glow)]">
+                      <Wrench className="w-5 h-5 text-primary-foreground" />
+                    </div>
+                  )}
                   <div>
                     <div className="font-bold text-base leading-tight">QuickOps</div>
                     <div className="text-[10px] text-muted-foreground tracking-wider uppercase">

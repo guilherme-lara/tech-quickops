@@ -7,6 +7,8 @@ export interface AuthProfile {
   nome_completo: string;
   role: "gestor" | "tecnico";
   empresa_id: string;
+  avatarUrl?: string;
+  empresaLogo?: string;
 }
 
 interface AuthValue {
@@ -26,7 +28,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const value: AuthValue = {
     user: user ? { id: user.id, email: user.email } : null,
     profile: user
-      ? { id: user.id, nome_completo: user.nome, role: user.role, empresa_id: user.empresaId }
+      ? { 
+          id: user.id, 
+          nome_completo: user.nome, 
+          role: user.role, 
+          empresa_id: user.empresaId,
+          avatarUrl: user.avatarUrl,
+          empresaLogo: user.empresaLogo,
+        }
       : null,
     isLoading: loadingAuth,
     signIn: login,
