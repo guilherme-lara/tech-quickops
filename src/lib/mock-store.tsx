@@ -753,7 +753,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     clientes: clientesQ.data ?? [],
     loadingClientes: clientesQ.isLoading,
     addCliente: async (c) => {
-      await addClienteM.mutateAsync(c);
+      return await addClienteM.mutateAsync(c);
     },
     updateCliente: async (id, patch) => {
       await updateClienteM.mutateAsync({ id, patch });
@@ -764,7 +764,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     tecnicos: tecnicosQ.data ?? [],
     loadingTecnicos: tecnicosQ.isLoading,
     addTecnico: async (t) => {
-      await addTecnicoM.mutateAsync(t);
+      return await addTecnicoM.mutateAsync(t);
     },
     updateTecnico: async (id, patch) => {
       await updateTecnicoM.mutateAsync({ id, patch });
