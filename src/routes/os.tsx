@@ -146,6 +146,7 @@ function OSPage() {
     analistaId: "",
     valor: "",
     custo_viagem: "",
+    km_viagem: "",
     data_agendamento: "",
     horario_atendimento: "",
     descricao_problema: "",
@@ -155,6 +156,9 @@ function OSPage() {
   const [novosDadosExtras, setNovosDadosExtras] = useState<Record<string, any>>({});
   const [novoCampoNome, setNovoCampoNome] = useState("");
   const [novoCampoValor, setNovoCampoValor] = useState("");
+  const [despesasSelecionadas, setDespesasSelecionadas] = useState<Array<{ tipo: string; valor: number }>>([]);
+  const [despesaTipo, setDespesaTipo] = useState("Pedágio");
+  const [despesaValor, setDespesaValor] = useState("");
 
   // Fase 4 — Modais "Cadastrar Novo" dentro da OS
   const [quickCliOpen, setQuickCliOpen] = useState(false);
@@ -280,6 +284,8 @@ function OSPage() {
       analistaId: form.analistaId || undefined,
       valor: Number(form.valor) || 0,
       custo_viagem: Number(form.custo_viagem) || 0,
+      km_viagem: Number(form.km_viagem) || 0,
+      despesas: despesasSelecionadas,
       data_agendamento: form.data_agendamento || undefined,
       horario_atendimento: form.horario_atendimento || undefined,
       descricao_problema: form.descricao_problema,
@@ -296,12 +302,15 @@ function OSPage() {
       analistaId: "",
       valor: "",
       custo_viagem: "",
+      km_viagem: "",
       data_agendamento: "",
       horario_atendimento: "",
       descricao_problema: "",
       status: "Orçamento",
     });
     setNovosDadosExtras({});
+    setDespesasSelecionadas([]);
+    setDespesaValor("");
   };
 
   const adicionarCampoPersonalizado = () => {
@@ -312,6 +321,17 @@ function OSPage() {
     }));
     setNovoCampoNome("");
     setNovoCampoValor("");
+  };
+
+  const adicionarDespesa = () => {
+    const valor = Number(despesaValor) || 0;
+    if (valor <= 0) {
+      toast.error("Informe um valor maior que zero para a despesa");
+      return;
+    }
+    setDespesasSelecionadas((prev) => [...prev, { tipo: despesaTipo, valor }]);
+    setDespesaTipo("Pedágio");
+    setDespesaValor("");
   };
 
   const onDragEnd = async (e: DragEndEvent) => {
@@ -411,13 +431,15 @@ function OSPage() {
                   <div>
                     <div className="flex items-center justify-between">
                       <Label>Cliente</Label>
-                      <button
+                      <Button
                         type="button"
+                        variant="outline"
+                        size="sm"
+                        className="h-8"
                         onClick={() => setQuickCliOpen(true)}
-                        className="text-xs text-primary hover:underline inline-flex items-center gap-1"
                       >
-                        <Plus className="w-3 h-3" /> Cadastrar novo
-                      </button>
+                        <Plus className="w-3.5 h-3.5 mr-1" /> Cadastrar novo
+                      </Button>
                     </div>
                     <Select
                       value={form.clienteId}
@@ -438,13 +460,15 @@ function OSPage() {
                   <div>
                     <div className="flex items-center justify-between">
                       <Label>Técnico</Label>
-                      <button
+                      <Button
                         type="button"
+                        variant="outline"
+                        size="sm"
+                        className="h-8"
                         onClick={() => setQuickTecOpen(true)}
-                        className="text-xs text-primary hover:underline inline-flex items-center gap-1"
                       >
-                        <Plus className="w-3 h-3" /> Cadastrar novo
-                      </button>
+                        <Plus className="w-3.5 h-3.5 mr-1" /> Cadastrar novo
+                      </Button>
                     </div>
                     <Select
                       value={form.tecnicoId}
@@ -523,6 +547,19 @@ function OSPage() {
                     />
                   </div>
                   <div>
+                    <Label>Km viagem</Label>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      value={form.km_viagem}
+                      onChange={(e) => setForm({ ...form, km_viagem: e.target.value })}
+                      placeholder="0"
+                      className="h-10"
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
                     <Label>Custo viagem (R$)</Label>
                     <Input
                       type="number"
@@ -533,6 +570,50 @@ function OSPage() {
                       className="h-10"
                     />
                   </div>
+                  <div>
+                    <Label>Adicionar despesa</Label>
+                    <div className="flex gap-2">
+                      <Select value={despesaTipo} onValueChange={setDespesaTipo}>
+                        <SelectTrigger className="h-10 flex-1">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {['Pedágio', 'Insumos', 'Alimentação', 'Outros'].map((tipo) => (
+                            <SelectItem key={tipo} value={tipo}>
+                              {tipo}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <Input
+                        type="number"
+                        step="0.01"
+                        value={despesaValor}
+                        onChange={(e) => setDespesaValor(e.target.value)}
+                        placeholder="R$"
+                        className="h-10 w-24"
+                      />
+                      <Button type="button" size="icon" className="h-10 w-10" onClick={adicionarDespesa}>
+                        <Plus className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+                {despesasSelecionadas.length > 0 && (
+                  <div className="rounded-xl border border-border/60 bg-muted/30 p-3 space-y-2">
+                    <div className="text-[10px] uppercase tracking-wider font-bold text-muted-foreground">
+                      Despesas adicionadas
+                    </div>
+                    {despesasSelecionadas.map((despesa, index) => (
+                      <div key={`${despesa.tipo}-${index}`} className="flex items-center justify-between rounded-lg bg-background/70 px-3 py-2 text-sm">
+                        <span>{despesa.tipo}</span>
+                        <span>R$ {despesa.valor.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                <div className="rounded-xl border border-border/60 bg-primary/5 p-3 text-sm font-medium">
+                  Total estimado: R$ {(Number(form.valor || 0) + Number(form.custo_viagem || 0) + Number(form.km_viagem || 0) + despesasSelecionadas.reduce((sum, item) => sum + item.valor, 0)).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
                 </div>
                 <div>
                   <Label>Status</Label>
@@ -933,14 +1014,12 @@ function OSPage() {
                           </td>
                           <td className="px-5 py-3 font-semibold whitespace-nowrap">
                             <div className="space-y-1">
-                              <div>R$ {Number(o.valor ?? 0).toLocaleString("pt-BR")}</div>
-                              {Number(o.custo_viagem ?? 0) > 0 && (
-                                <div className="text-[11px] text-muted-foreground">
-                                  <span className="inline-flex items-center rounded-full bg-amber-50 px-2 py-0.5 text-amber-700">
-                                    + R$ {Number(o.custo_viagem ?? 0).toLocaleString("pt-BR")} viagem
-                                  </span>
-                                </div>
-                              )}
+                              <div>Serviço: R$ {Number(o.valor ?? 0).toLocaleString("pt-BR")}</div>
+                              <div className="text-[11px] text-muted-foreground">
+                                <span className="inline-flex items-center rounded-full bg-amber-50 px-2 py-0.5 text-amber-700">
+                                  Viagem/Despesas: R$ {(Number(o.custo_viagem ?? 0) + (o.despesas ?? []).reduce((sum, item) => sum + Number(item?.valor ?? 0), 0)).toLocaleString("pt-BR")}
+                                </span>
+                              </div>
                             </div>
                           </td>
                           <td className="px-5 py-3 text-right" onClick={(e) => e.stopPropagation()}>
@@ -1184,12 +1263,16 @@ function EditOSDialog({
     analistaId: "",
     valor: "",
     custo_viagem: "",
+    km_viagem: "",
     status: "Orçamento" as OSStatus,
   });
   const [descricaoProblema, setDescricaoProblema] = useState("");
   const [dataAgendamento, setDataAgendamento] = useState("");
   const [horarioAtendimento, setHorarioAtendimento] = useState("");
   const [dadosExtras, setDadosExtras] = useState<Record<string, any>>({});
+  const [despesasEdit, setDespesasEdit] = useState<Array<{ tipo: string; valor: number }>>([]);
+  const [despesaTipoEdit, setDespesaTipoEdit] = useState("Pedágio");
+  const [despesaValorEdit, setDespesaValorEdit] = useState("");
   const [saving, setSaving] = useState(false);
   const [quickCliOpen, setQuickCliOpen] = useState(false);
   const [quickCliForm, setQuickCliForm] = useState({ nome: "", telefone: "", email: "" });
@@ -1214,12 +1297,14 @@ function EditOSDialog({
         analistaId: ordem.analistaId ?? "",
         valor: String(ordem.valor ?? 0),
         custo_viagem: String(ordem.custo_viagem ?? 0),
+        km_viagem: String(ordem.km_viagem ?? 0),
         status: ordem.status,
       });
       setDescricaoProblema(ordem?.descricao_problema || "");
       setDataAgendamento(ordem?.data_agendamento || "");
       setHorarioAtendimento(ordem?.horario_atendimento || "");
       setDadosExtras((ordem?.dados_adicionais as Record<string, any>) || {});
+      setDespesasEdit(ordem?.despesas ?? []);
     }
   }, [ordem]);
 
@@ -1231,6 +1316,7 @@ function EditOSDialog({
     }
     const valorServico = Number(form.valor) || 0;
     const custoViagem = Number(form.custo_viagem) || 0;
+    const kmViagem = Number(form.km_viagem) || 0;
     const patch: Partial<OS> = {
       titulo: form.titulo,
       clienteId: form.clienteId,
@@ -1238,6 +1324,8 @@ function EditOSDialog({
       analistaId: form.analistaId || undefined,
       valor: valorServico,
       custo_viagem: custoViagem,
+      km_viagem: kmViagem,
+      despesas: despesasEdit,
       data_agendamento: dataAgendamento || ordem?.data_agendamento || undefined,
       horario_atendimento: horarioAtendimento || ordem?.horario_atendimento || undefined,
       descricao_problema: descricaoProblema,
@@ -1251,6 +1339,17 @@ function EditOSDialog({
     } finally {
       setSaving(false);
     }
+  };
+
+  const adicionarDespesaEdit = () => {
+    const valor = Number(despesaValorEdit) || 0;
+    if (valor <= 0) {
+      toast.error("Informe um valor maior que zero para a despesa");
+      return;
+    }
+    setDespesasEdit((prev) => [...prev, { tipo: despesaTipoEdit, valor }]);
+    setDespesaTipoEdit("Pedágio");
+    setDespesaValorEdit("");
   };
 
   const saveQuickCliente = async () => {
@@ -1425,10 +1524,20 @@ function EditOSDialog({
               />
             </div>
             <div>
+              <Label>Km Viagem</Label>
+              <Input
+                disabled={isView}
+                type="number"
+                step="0.01"
+                value={form.km_viagem}
+                onChange={(e) => setForm({ ...form, km_viagem: e.target.value })}
+              />
+            </div>
+            <div>
               <Label>Total da OS</Label>
               <Input
                 disabled
-                value={`R$ ${(Number(form.valor || 0) + Number(form.custo_viagem || 0)).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`}
+                value={`R$ ${(Number(form.valor || 0) + Number(form.custo_viagem || 0) + Number(form.km_viagem || 0) + despesasEdit.reduce((sum, item) => sum + item.valor, 0)).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`}
               />
             </div>
             <div>
@@ -1473,6 +1582,35 @@ function EditOSDialog({
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
+              <Label>Adicionar despesa</Label>
+              <div className="flex gap-2">
+                <Select disabled={isView} value={despesaTipoEdit} onValueChange={setDespesaTipoEdit}>
+                  <SelectTrigger className="h-10 flex-1">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {['Pedágio', 'Insumos', 'Alimentação', 'Outros'].map((tipo) => (
+                      <SelectItem key={tipo} value={tipo}>
+                        {tipo}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Input
+                  disabled={isView}
+                  type="number"
+                  step="0.01"
+                  value={despesaValorEdit}
+                  onChange={(e) => setDespesaValorEdit(e.target.value)}
+                  placeholder="R$"
+                  className="h-10 w-24"
+                />
+                <Button type="button" size="icon" className="h-10 w-10" onClick={adicionarDespesaEdit} disabled={isView}>
+                  <Plus className="w-4 h-4" />
+                </Button>
+              </div>
+            </div>
+            <div>
               <Label>Descrição do Problema</Label>
               <textarea
                 disabled={isView}
@@ -1483,6 +1621,19 @@ function EditOSDialog({
               />
             </div>
           </div>
+          {despesasEdit.length > 0 && (
+            <div className="rounded-xl border border-border/60 bg-muted/30 p-3 space-y-2">
+              <div className="text-[10px] uppercase tracking-wider font-bold text-muted-foreground">
+                Despesas adicionadas
+              </div>
+              {despesasEdit.map((despesa, index) => (
+                <div key={`${despesa.tipo}-${index}`} className="flex items-center justify-between rounded-lg bg-background/70 px-3 py-2 text-sm">
+                  <span>{despesa.tipo}</span>
+                  <span>R$ {despesa.valor.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</span>
+                </div>
+              ))}
+            </div>
+          )}
           {Object.keys(dadosExtras).length > 0 && (
             <div className="rounded-xl border border-border/60 bg-muted/30 p-3">
               <div className="text-[10px] uppercase tracking-wider font-bold text-muted-foreground mb-2">

@@ -71,6 +71,8 @@ function ClientesPage() {
     documento: "",
     telefone: "",
     email: "",
+    cidade: "",
+    base_km: "",
   });
   const [analistas, setAnalistas] = useState<Analista[]>([]);
   const [loadingAnalistas, setLoadingAnalistas] = useState(false);
@@ -79,7 +81,7 @@ function ClientesPage() {
   const totalClientesPages = Math.max(1, Math.ceil(clientesTotal / PAGE_SIZE));
 
   const openNew = () => {
-    setForm({ id: "", nomeFantasia: "", documento: "", telefone: "", email: "" });
+    setForm({ id: "", nomeFantasia: "", documento: "", telefone: "", email: "", cidade: "", base_km: "" });
     setAnalistas([]);
     setOpen(true);
   };
@@ -91,6 +93,8 @@ function ClientesPage() {
       documento: c.documento,
       telefone: c.telefone,
       email: c.email,
+      cidade: c.cidade ?? "",
+      base_km: c.base_km != null ? String(c.base_km) : "",
     });
     setAnalistas([]);
     setOpen(true);
@@ -181,12 +185,16 @@ function ClientesPage() {
     }
 
     try {
+      const payload = {
+        ...form,
+        base_km: form.base_km ? Number(form.base_km) : undefined,
+      };
       let clienteId = form.id;
       if (form.id) {
-        await updateCliente(form.id, form);
+        await updateCliente(form.id, payload as any);
       } else {
         // addCliente não retorna id — recuperamos o mais recente do usuário abaixo.
-        await addCliente(form);
+        await addCliente(payload as any);
         // Buscar o cliente recém-criado (mesmo nome + documento)
         const { data: novo } = await supabase
           .from("clientes")
@@ -202,7 +210,7 @@ function ClientesPage() {
       }
       toast.success(form.id ? "Cliente atualizado!" : "Cliente cadastrado!");
       setOpen(false);
-      setForm({ id: "", nomeFantasia: "", documento: "", telefone: "", email: "" });
+      setForm({ id: "", nomeFantasia: "", documento: "", telefone: "", email: "", cidade: "", base_km: "" });
       setAnalistas([]);
     } catch (e: any) {
       toast.error(e.message || "Erro ao salvar cliente");
@@ -278,6 +286,24 @@ function ClientesPage() {
                     value={form.email}
                     onChange={(e) => setForm({ ...form, email: e.target.value })}
                   />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <Label>Cidade</Label>
+                    <Input
+                      value={form.cidade}
+                      onChange={(e) => setForm({ ...form, cidade: e.target.value })}
+                    />
+                  </div>
+                  <div>
+                    <Label>Quilometragem Base (km)</Label>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      value={form.base_km}
+                      onChange={(e) => setForm({ ...form, base_km: e.target.value })}
+                    />
+                  </div>
                 </div>
 
                 {/* Contatos de Suporte / Analistas */}

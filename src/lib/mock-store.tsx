@@ -15,6 +15,8 @@ export interface Cliente {
   documento: string;
   telefone: string;
   email: string;
+  cidade?: string;
+  base_km?: number;
 }
 export type TipoComissao = "fixo" | "porcentagem";
 export interface Tecnico {
@@ -65,6 +67,8 @@ export interface OS {
   updatedAt?: string;
   valor: number;
   custo_viagem?: number;
+  km_viagem?: number;
+  despesas?: Array<{ tipo: string; valor: number }>;
   rat: RAT;
   dados_adicionais?: Record<string, any>;
   descricao_problema?: string;
@@ -104,6 +108,27 @@ const uiToDbStatus: Record<OSStatus, string> = {
   "Em Execução": "em_andamento",
   Concluído: "concluido",
   Cancelado: "cancelado",
+};
+
+const parseDespesas = (value: any): Array<{ tipo: string; valor: number }> => {
+  if (Array.isArray(value)) {
+    return value
+      .filter((item): item is { tipo: string; valor: number } => !!item && typeof item === "object")
+      .map((item) => ({
+        tipo: String(item.tipo ?? "Outros"),
+        valor: Number(item.valor ?? 0),
+      }));
+  }
+
+  if (typeof value === "string") {
+    try {
+      return parseDespesas(JSON.parse(value));
+    } catch {
+      return [];
+    }
+  }
+
+  return [];
 };
 
 // ============================================================
@@ -334,7 +359,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     queryFn: async (): Promise<Cliente[]> => {
       let query = supabase
         .from("clientes")
-        .select("id, nome, documento, telefone, email", { count: "exact" })
+        .select("id, nome, documento, telefone, email, cidade, base_km", { count: "exact" })
         .eq("empresa_id", empresaId!);
 
       if (clientesSearch) {
@@ -354,6 +379,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         documento: r.documento ?? "",
         telefone: r.telefone ?? "",
         email: r.email ?? "",
+        cidade: r.cidade ?? "",
+        base_km: Number(r.base_km ?? 0),
       }));
     },
   });
@@ -488,6 +515,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
           horario_atendimento: horarioAtendimento ?? undefined,
           valor: Number(r.valor ?? 0),
           custo_viagem: Number(r.custo_viagem ?? 0),
+          km_viagem: Number(r.km_viagem ?? 0),
+          despesas: parseDespesas(r.despesas),
           rat: ratLocal[r.id] ?? { itens: [], evidencias: [] },
           dados_adicionais: r.dados_adicionais ?? {},
           tecnico: r.tecnico
@@ -545,6 +574,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
           documento: c.documento,
           telefone: c.telefone,
           email: c.email,
+          cidade: c.cidade ?? null,
+          base_km: c.base_km != null ? Number(c.base_km) : null,
         })
         .select("id")
         .single();
@@ -562,6 +593,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       if (patch.documento !== undefined) dbPatch.documento = patch.documento;
       if (patch.telefone !== undefined) dbPatch.telefone = patch.telefone;
       if (patch.email !== undefined) dbPatch.email = patch.email;
+      if (patch.cidade !== undefined) dbPatch.cidade = patch.cidade ?? null;
+      if (patch.base_km !== undefined) dbPatch.base_km = patch.base_km != null ? Number(patch.base_km) : null;
       const { error } = await supabase
         .from("clientes")
         .update(dbPatch as any)
@@ -646,6 +679,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         status: uiToDbStatus[o.status] as any,
         valor: o.valor,
         custo_viagem: o.custo_viagem ?? 0,
+        km_viagem: o.km_viagem ?? 0,
+        despesas: o.despesas ?? [],
         dados_adicionais: o.dados_adicionais ?? {},
       });
       if (error) throw error;
@@ -661,6 +696,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       if (patch.titulo !== undefined) dbPatch.titulo = patch.titulo;
       if (patch.valor !== undefined) dbPatch.valor = patch.valor;
       if (patch.custo_viagem !== undefined) dbPatch.custo_viagem = patch.custo_viagem;
+      if (patch.km_viagem !== undefined) dbPatch.km_viagem = patch.km_viagem;
+      if (patch.despesas !== undefined) dbPatch.despesas = patch.despesas;
       if (patch.tecnicoId !== undefined) dbPatch.tecnico_id = patch.tecnicoId || null;
       if (patch.analistaId !== undefined) dbPatch.analista_id = patch.analistaId || null;
       if (patch.clienteId !== undefined) dbPatch.cliente_id = patch.clienteId;

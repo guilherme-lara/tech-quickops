@@ -58,6 +58,8 @@ export type Database = {
       }
       clientes: {
         Row: {
+          base_km: number | null
+          cidade: string | null
           created_at: string
           documento: string | null
           email: string | null
@@ -69,6 +71,8 @@ export type Database = {
           valor_km: number
         }
         Insert: {
+          base_km?: number | null
+          cidade?: string | null
           created_at?: string
           documento?: string | null
           email?: string | null
@@ -80,6 +84,8 @@ export type Database = {
           valor_km?: number
         }
         Update: {
+          base_km?: number | null
+          cidade?: string | null
           created_at?: string
           documento?: string | null
           email?: string | null
@@ -173,6 +179,7 @@ export type Database = {
           empresa_id: string
           horario_atendimento: string | null
           id: string
+          km_viagem: number
           numero: string | null
           solucao: string | null
           status: Database["public"]["Enums"]["os_status"]
@@ -193,6 +200,7 @@ export type Database = {
           empresa_id: string
           horario_atendimento?: string | null
           id?: string
+          km_viagem?: number
           numero?: string | null
           solucao?: string | null
           status?: Database["public"]["Enums"]["os_status"]
@@ -213,6 +221,7 @@ export type Database = {
           empresa_id?: string
           horario_atendimento?: string | null
           id?: string
+          km_viagem?: number
           numero?: string | null
           solucao?: string | null
           status?: Database["public"]["Enums"]["os_status"]

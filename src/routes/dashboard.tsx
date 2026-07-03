@@ -89,7 +89,7 @@ function Dashboard() {
       // Busca todas as OS da empresa (sem paginação, pois é para KPIs)
       let query = supabase
         .from("ordens_servico")
-        .select("status, valor, data_agendamento")
+        .select("status, valor, km_viagem, despesas, data_agendamento")
         .eq("empresa_id", eid);
 
       if (dataInicio && dataFim) {
@@ -102,13 +102,22 @@ function Dashboard() {
       const rows = (data ?? []) as any[];
       const hoje = new Date();
 
+      const totalFinanceiro = (r: any) => {
+        const valorServico = Number(r.valor ?? 0);
+        const kmViagem = Number(r.km_viagem ?? 0);
+        const despesas = Array.isArray(r.despesas)
+          ? r.despesas.reduce((sum: number, item: any) => sum + Number(item?.valor ?? 0), 0)
+          : 0;
+        return valorServico + kmViagem + despesas;
+      };
+
       const faturamentoPrevisto = rows
         .filter((r: any) => ["aprovado", "em_andamento"].includes(r.status))
-        .reduce((s: number, r: any) => s + Number(r.valor ?? 0), 0);
+        .reduce((s: number, r: any) => s + totalFinanceiro(r), 0);
 
       const receitaMes = rows
         .filter((r: any) => r.status === "concluido")
-        .reduce((s: number, r: any) => s + Number(r.valor ?? 0), 0);
+        .reduce((s: number, r: any) => s + totalFinanceiro(r), 0);
 
       const pendenciasPagamento = rows.filter((r: any) => {
         if (!r.data_agendamento || r.status !== "concluido") return false;
@@ -208,7 +217,7 @@ function Dashboard() {
 
       let q = supabase
         .from("ordens_servico")
-        .select("tecnico_id, status, valor, custo_viagem, tecnico:tecnicos(id, nome)")
+        .select("tecnico_id, status, valor, custo_viagem, km_viagem, despesas, tecnico:tecnicos(id, nome)")
         .eq("empresa_id", eid);
 
       if (dataInicio && dataFim) {
@@ -242,7 +251,12 @@ function Dashboard() {
         row.os_total++;
         if (r.status === "concluido") {
           row.os_concluidas++;
-          row.faturamento += Number(r.valor ?? 0);
+          const valorServico = Number(r.valor ?? 0);
+          const kmViagem = Number(r.km_viagem ?? 0);
+          const despesas = Array.isArray(r.despesas)
+            ? r.despesas.reduce((sum: number, item: any) => sum + Number(item?.valor ?? 0), 0)
+            : 0;
+          row.faturamento += valorServico + kmViagem + despesas;
           row.custos_viagem += Number(r.custo_viagem ?? 0);
         }
       }
