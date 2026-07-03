@@ -916,7 +916,7 @@ function OSPage() {
                   <thead className="bg-muted/50 text-xs uppercase text-muted-foreground">
                     <tr>
                       <th className="px-5 py-3 font-semibold sticky left-0 z-20 bg-muted/50 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">
-                        Número
+                        OS / Título
                       </th>
                       <th className="px-5 py-3 font-semibold">Status</th>
                       <th className="px-5 py-3 font-semibold">Data</th>
@@ -940,12 +940,17 @@ function OSPage() {
                           }}
                           className="hover:bg-muted/50 transition-colors cursor-pointer border-b border-border/40 last:border-b-0"
                         >
-                          <td className="px-5 py-3 font-medium whitespace-nowrap sticky left-0 z-20 bg-background shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">
-                            <div className="flex items-center gap-2">
-                              {o.dados_adicionais?._tecnico_nao_encontrado && (
-                                <AlertTriangle className="w-3.5 h-3.5 text-amber-500" />
-                              )}
-                              {o.numero}
+                          <td className="px-5 py-3 whitespace-nowrap sticky left-0 z-20 bg-background shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">
+                            <div className="flex flex-col">
+                              <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground font-bold tracking-wider mb-0.5">
+                                {o.dados_adicionais?._tecnico_nao_encontrado && (
+                                  <AlertTriangle className="w-3 h-3 text-amber-500" />
+                                )}
+                                {o.numero}
+                              </div>
+                              <div className="font-bold text-sm text-foreground truncate max-w-[250px]" title={o.titulo}>
+                                {o.titulo}
+                              </div>
                             </div>
                           </td>
                           <td className="px-5 py-3 whitespace-nowrap">
@@ -1217,7 +1222,7 @@ function OSCard({ ordem, cliente, tecnico }: { ordem: OS; cliente: any; tecnico:
         </span>
         <MoreVertical className="w-3.5 h-3.5 text-muted-foreground" />
       </div>
-      <div className="font-semibold text-sm mt-1.5 leading-snug">{ordem.titulo}</div>
+      <div className="font-bold text-sm text-foreground mt-1.5 leading-snug">{ordem.titulo}</div>
       <div className="flex items-center gap-1.5 text-xs text-muted-foreground mt-2">
         <User className="w-3 h-3" />
         {cliente?.nomeFantasia}
@@ -1413,11 +1418,15 @@ function EditOSDialog({
         </DialogHeader>
         <div className="space-y-3">
           <div>
-            <Label>Título</Label>
+            <Label className="text-muted-foreground text-xs font-bold uppercase tracking-wider mb-1 block">
+              Título da OS
+            </Label>
             <Input
               disabled={isView}
               value={form.titulo}
               onChange={(e) => setForm({ ...form, titulo: e.target.value })}
+              className="text-lg font-bold h-12"
+              placeholder="Ex: Manutenção de Equipamento"
             />
           </div>
           <div className="grid grid-cols-2 gap-3">
