@@ -484,7 +484,16 @@ function OSPage() {
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label>Cliente</Label>
+                    <div className="flex items-center justify-between">
+                      <Label>Cliente</Label>
+                      <button
+                        type="button"
+                        onClick={() => setQuickCliOpen(true)}
+                        className="text-xs text-primary hover:underline inline-flex items-center gap-1"
+                      >
+                        <Plus className="w-3 h-3" /> Cadastrar novo
+                      </button>
+                    </div>
                     <Select
                       value={form.clienteId}
                       onValueChange={(v) => setForm({ ...form, clienteId: v })}
@@ -502,7 +511,16 @@ function OSPage() {
                     </Select>
                   </div>
                   <div>
-                    <Label>Técnico</Label>
+                    <div className="flex items-center justify-between">
+                      <Label>Técnico</Label>
+                      <button
+                        type="button"
+                        onClick={() => setQuickTecOpen(true)}
+                        className="text-xs text-primary hover:underline inline-flex items-center gap-1"
+                      >
+                        <Plus className="w-3 h-3" /> Cadastrar novo
+                      </button>
+                    </div>
                     <Select
                       value={form.tecnicoId}
                       onValueChange={(v) => setForm({ ...form, tecnicoId: v })}
