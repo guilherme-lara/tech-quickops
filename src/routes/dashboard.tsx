@@ -4,8 +4,9 @@ import { useAuth } from "@/lib/auth-context";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { createFileRoute, Link, Navigate } from "@tanstack/react-router";
 import { GestorLayout } from "@/components/GestorLayout";
-import { useStore, statusColor } from "@/lib/mock-store";
+import { useStore, statusColor, OSStatus, OS } from "@/lib/mock-store";
 import { MesAnoFilter } from "@/components/MesAnoFilter";
+import { EditOSDialog } from "@/routes/os";
 
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
@@ -204,45 +205,39 @@ function PriorityAlerts({ ordens, isLoading }: { ordens: any[]; isLoading: boole
   );
 }
 
-function PendenciasAlerts({ ordens, isLoading }: { ordens: any[]; isLoading: boolean }) {
+function PendingAlertsCard({ ordens, isLoading, onEdit }: { ordens: any[]; isLoading: boolean; onEdit: (os: any) => void }) {
   if (isLoading) {
     return <Skeleton className="h-24 w-full rounded-2xl mb-6" />;
   }
 
-  const pendentes = ordens.filter(
-    (o) => o.pendencias_detalhes && o.pendencias_detalhes.trim() !== ""
-  );
-
-  if (pendentes.length === 0) return null;
+  if (ordens.length === 0) return null;
 
   return (
     <div className="space-y-3 mb-6">
-      <div className="text-[10px] uppercase font-bold tracking-wider text-destructive flex items-center gap-1.5 animate-pulse">
-        <span className="w-2 h-2 rounded-full bg-destructive inline-block animate-ping"></span>
-        Alerta de Pendências (OS Bloqueadas / Atenção Requerida)
+      <div className="text-[10px] uppercase font-bold tracking-wider text-amber-600 flex items-center gap-1.5 animate-pulse">
+        <span className="w-2 h-2 rounded-full bg-amber-500 inline-block animate-ping"></span>
+        Gestão de Pendências (Requer Atenção)
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {pendentes.map((o) => (
+        {ordens.map((o) => (
           <div
             key={o.id}
-            className="rounded-3xl bg-red-500/5 dark:bg-red-500/10 border-2 border-red-500/80 p-4 shadow-[0_4px_20px_-4px_rgba(239,68,68,0.15)] flex flex-col justify-between"
+            onClick={() => onEdit(o)}
+            className="cursor-pointer rounded-3xl bg-amber-50/70 dark:bg-amber-500/10 border-2 border-amber-300 dark:border-amber-500/80 p-4 shadow-[0_4px_20px_-4px_rgba(245,158,11,0.15)] flex flex-col justify-between hover:bg-amber-100 dark:hover:bg-amber-500/20 transition-colors"
           >
             <div className="flex items-start justify-between mb-2">
               <div className="min-w-0">
-                <span className="text-[10px] font-bold text-red-500 tracking-wider">
+                <span className="text-[10px] font-bold text-amber-600 tracking-wider">
                   {o.numero}
                 </span>
                 <h4 className="font-bold text-sm text-foreground truncate mt-0.5">{o.titulo}</h4>
                 <p className="text-muted-foreground text-[10px]">
-                  Cliente: {o.clientes?.nome || "Não informado"}
+                  Cliente: {o.clientes?.nome || o.clientes?.nomeFantasia || "Não informado"}
                 </p>
               </div>
-              <span className="text-[9px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-red-500 text-white dark:bg-red-950 dark:text-red-300">
-                {o.status}
-              </span>
             </div>
-            <div className="mt-2 bg-red-500/10 dark:bg-red-500/20 p-2.5 rounded-xl border border-red-500/20 text-xs font-semibold text-red-700 dark:text-red-300 flex items-start gap-2">
-              <span className="font-bold shrink-0 text-red-600 dark:text-red-400">Pendente:</span>
+            <div className="mt-2 bg-amber-100 dark:bg-amber-500/20 p-2.5 rounded-xl border border-amber-200 text-xs font-semibold text-amber-800 dark:text-amber-300 flex items-start gap-2">
+              <span className="font-bold shrink-0 text-amber-700 dark:text-amber-400">Pendente:</span>
               <span className="italic leading-normal">{o.pendencias_detalhes}</span>
             </div>
           </div>
@@ -254,7 +249,8 @@ function PendenciasAlerts({ ordens, isLoading }: { ordens: any[]; isLoading: boo
 
 function Dashboard() {
   const { profile } = useAuth();
-  const { clientes, tecnicos, loadingOS, loadingClientes, osMonth, osYear, os } = useStore();
+  const { clientes, tecnicos, loadingOS, loadingClientes, osMonth, osYear, os, updateOS } = useStore();
+  const [editingOS, setEditingOS] = React.useState<OS | null>(null);
 
   // Gera dataInicio/dataFim com base no filtro de mês/ano
   const hasMonthFilter = osMonth > 0 && osYear > 0;
@@ -422,16 +418,58 @@ function Dashboard() {
 
   // Alertas de Pendências
   const pendenciasOSQ = useQuery({
-    queryKey: ["pendencias_os", profile?.empresa_id],
+    queryKey: ["pendencias_os_ativas", profile?.empresa_id],
     enabled: !!profile && profile.role !== "tecnico",
-    queryFn: async () => {
+    queryFn: async (): Promise<OS[]> => {
       const { data, error } = await supabase
         .from("ordens_servico")
-        .select("id, numero, titulo, status, data_agendamento, horario_atendimento, pendencias_detalhes, clientes(nome)")
-        .eq("empresa_id", profile?.empresa_id || "");
+        .select("*, clientes(nome, nomeFantasia), tecnico:tecnicos(id, nome, perfil, telefone, ativo)")
+        .eq("empresa_id", profile?.empresa_id || "")
+        .not("pendencias_detalhes", "is", null)
+        .neq("pendencias_detalhes", "")
+        .order("data_agendamento", { ascending: true });
 
       if (error) throw error;
-      return data || [];
+      
+      const parseDespesas = (value: any): Array<{ tipo: string; valor: number }> => {
+        if (Array.isArray(value)) return value;
+        if (typeof value === "string") {
+          try { return JSON.parse(value); } catch { return []; }
+        }
+        return [];
+      };
+
+      const dbToUiStatus: Record<string, OSStatus> = {
+        pendente: "Orçamento",
+        aprovado: "Aprovado",
+        em_andamento: "Em Execução",
+        concluido: "Concluído",
+        cancelado: "Cancelado",
+      };
+
+      return (data || []).map((r: any) => ({
+        id: r.id,
+        numero: r.numero ?? "OS-?",
+        clienteId: r.cliente_id,
+        tecnicoId: r.tecnico_id ?? "",
+        analistaId: r.analista_id ?? "",
+        titulo: r.titulo || r.descricao_problema || "",
+        descricao_problema: r.descricao_problema ?? "",
+        status: dbToUiStatus[r.status] ?? "Orçamento",
+        criadaEm: (r.created_at ?? "").slice(0, 10),
+        data_atendimento: r.data_agendamento ?? r.data_atendimento ?? r.dados_adicionais?.Data ?? undefined,
+        data_agendamento: r.data_agendamento ?? r.data_atendimento ?? r.dados_adicionais?.Data ?? undefined,
+        horario_atendimento: r.horario_atendimento ?? r.dados_adicionais?.Horario ?? undefined,
+        valor: Number(r.valor ?? 0),
+        custo_viagem: Number(r.custo_viagem ?? 0),
+        km_viagem: Number(r.km_viagem ?? 0),
+        despesas: parseDespesas(r.despesas),
+        rat: { itens: [], evidencias: [] },
+        dados_adicionais: r.dados_adicionais ?? {},
+        pendencias_detalhes: r.pendencias_detalhes ?? "",
+        tecnico: r.tecnico ? { id: r.tecnico.id, nome: r.tecnico.nome, perfil: r.tecnico.perfil ?? "", telefone: r.tecnico.telefone ?? "", ativo: r.tecnico.ativo ?? true } : undefined,
+        clientes: r.clientes,
+      })) as OS[];
     },
   });
 
@@ -587,7 +625,7 @@ function Dashboard() {
       </div>
 
       <PriorityAlerts ordens={alertasOSQ.data ?? []} isLoading={alertasOSQ.isLoading} />
-      <PendenciasAlerts ordens={pendenciasOSQ.data ?? []} isLoading={pendenciasOSQ.isLoading} />
+      <PendingAlertsCard ordens={pendenciasOSQ.data ?? []} isLoading={pendenciasOSQ.isLoading} onEdit={(os) => setEditingOS(os)} />
 
       {/* Cards Estratégicos */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
@@ -887,6 +925,27 @@ function Dashboard() {
           </div>
         </div>
       </div>
+
+      <EditOSDialog
+        mode="edit"
+        ordem={editingOS}
+        clientes={clientes}
+        tecnicos={tecnicos}
+        addCliente={async (c) => ""}
+        addTecnico={async (t) => ""}
+        onClose={() => setEditingOS(null)}
+        onSave={async (patch) => {
+          if (!editingOS) return;
+          try {
+            await updateOS(editingOS.id, patch);
+            toast.success("OS atualizada com sucesso");
+            setEditingOS(null);
+            pendenciasOSQ.refetch();
+          } catch (e: any) {
+            toast.error(e?.message ?? "Erro ao atualizar");
+          }
+        }}
+      />
     </GestorLayout>
   );
 }

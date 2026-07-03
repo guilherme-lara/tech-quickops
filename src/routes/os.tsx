@@ -1259,7 +1259,7 @@ function OSCard({ ordem, cliente, tecnico }: { ordem: OS; cliente: any; tecnico:
   );
 }
 
-function EditOSDialog({
+export function EditOSDialog({
   mode,
   ordem,
   clientes,
