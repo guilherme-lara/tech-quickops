@@ -462,18 +462,22 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
   const addTecnicoM = useMutation({
     mutationFn: async (t: Omit<Tecnico, "id">) => {
-      const { error } = await (supabase.from("tecnicos") as any).insert({
-        empresa_id: empresaId!,
-        nome: t.nome,
-        perfil: t.perfil,
-        telefone: t.telefone,
-        ativo: t.ativo,
-        comissao: t.comissao,
-        tipo_comissao: t.tipo_comissao ?? "fixo",
-        chave_pix: t.chave_pix,
-        username: t.username || null,
-      });
+      const { data, error } = await (supabase.from("tecnicos") as any)
+        .insert({
+          empresa_id: empresaId!,
+          nome: t.nome,
+          perfil: t.perfil,
+          telefone: t.telefone,
+          ativo: t.ativo,
+          comissao: t.comissao,
+          tipo_comissao: t.tipo_comissao ?? "fixo",
+          chave_pix: t.chave_pix,
+          username: t.username || null,
+        })
+        .select("id")
+        .single();
       if (error) throw error;
+      return (data as any).id as string;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["tecnicos", empresaId] }),
     onError: (e: Error) => toast.error(e.message),
