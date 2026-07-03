@@ -123,13 +123,13 @@ interface Store {
 
   clientes: Cliente[];
   loadingClientes: boolean;
-  addCliente: (c: Omit<Cliente, "id">) => Promise<void>;
+  addCliente: (c: Omit<Cliente, "id">) => Promise<string>;
   updateCliente: (id: string, patch: Partial<Cliente>) => Promise<void>;
   deleteCliente: (id: string) => Promise<void>;
 
   tecnicos: Tecnico[];
   loadingTecnicos: boolean;
-  addTecnico: (t: Omit<Tecnico, "id">) => Promise<void>;
+  addTecnico: (t: Omit<Tecnico, "id">) => Promise<string>;
   updateTecnico: (id: string, patch: Partial<Tecnico>) => Promise<void>;
   deleteTecnico: (id: string) => Promise<void>;
 
@@ -416,14 +416,19 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   // ---------------- Mutations ----------------
   const addClienteM = useMutation({
     mutationFn: async (c: Omit<Cliente, "id">) => {
-      const { error } = await supabase.from("clientes").insert({
-        empresa_id: empresaId!,
-        nome: c.nomeFantasia,
-        documento: c.documento,
-        telefone: c.telefone,
-        email: c.email,
-      });
+      const { data, error } = await supabase
+        .from("clientes")
+        .insert({
+          empresa_id: empresaId!,
+          nome: c.nomeFantasia,
+          documento: c.documento,
+          telefone: c.telefone,
+          email: c.email,
+        })
+        .select("id")
+        .single();
       if (error) throw error;
+      return data.id as string;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["clientes", empresaId] }),
     onError: (e: Error) => toast.error(e.message),
@@ -457,18 +462,22 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
   const addTecnicoM = useMutation({
     mutationFn: async (t: Omit<Tecnico, "id">) => {
-      const { error } = await (supabase.from("tecnicos") as any).insert({
-        empresa_id: empresaId!,
-        nome: t.nome,
-        perfil: t.perfil,
-        telefone: t.telefone,
-        ativo: t.ativo,
-        comissao: t.comissao,
-        tipo_comissao: t.tipo_comissao ?? "fixo",
-        chave_pix: t.chave_pix,
-        username: t.username || null,
-      });
+      const { data, error } = await (supabase.from("tecnicos") as any)
+        .insert({
+          empresa_id: empresaId!,
+          nome: t.nome,
+          perfil: t.perfil,
+          telefone: t.telefone,
+          ativo: t.ativo,
+          comissao: t.comissao,
+          tipo_comissao: t.tipo_comissao ?? "fixo",
+          chave_pix: t.chave_pix,
+          username: t.username || null,
+        })
+        .select("id")
+        .single();
       if (error) throw error;
+      return (data as any).id as string;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["tecnicos", empresaId] }),
     onError: (e: Error) => toast.error(e.message),
@@ -744,7 +753,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     clientes: clientesQ.data ?? [],
     loadingClientes: clientesQ.isLoading,
     addCliente: async (c) => {
-      await addClienteM.mutateAsync(c);
+      return await addClienteM.mutateAsync(c);
     },
     updateCliente: async (id, patch) => {
       await updateClienteM.mutateAsync({ id, patch });
@@ -755,7 +764,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     tecnicos: tecnicosQ.data ?? [],
     loadingTecnicos: tecnicosQ.isLoading,
     addTecnico: async (t) => {
-      await addTecnicoM.mutateAsync(t);
+      return await addTecnicoM.mutateAsync(t);
     },
     updateTecnico: async (id, patch) => {
       await updateTecnicoM.mutateAsync({ id, patch });

@@ -22,7 +22,7 @@ import {
 import { useStore, statusColor, OSStatus, OS, OS_PAGE_SIZE } from "@/lib/mock-store";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
-import { formatDate } from "@/lib/utils";
+import { formatDate, maskPhoneBR } from "@/lib/utils";
 import {
   Plus,
   User,
@@ -204,6 +204,8 @@ function OSPage() {
     tecnicos,
     addOS,
     updateOS,
+    addCliente,
+    addTecnico,
     loadingOS,
     osPage,
     osTotal,
@@ -237,6 +239,71 @@ function OSPage() {
   const [novosDadosExtras, setNovosDadosExtras] = useState<Record<string, any>>({});
   const [novoCampoNome, setNovoCampoNome] = useState("");
   const [novoCampoValor, setNovoCampoValor] = useState("");
+
+  // Fase 4 — Modais "Cadastrar Novo" dentro da OS
+  const [quickCliOpen, setQuickCliOpen] = useState(false);
+  const [quickCliForm, setQuickCliForm] = useState({ nome: "", telefone: "", email: "" });
+  const [quickCliSaving, setQuickCliSaving] = useState(false);
+  const [quickTecOpen, setQuickTecOpen] = useState(false);
+  const [quickTecForm, setQuickTecForm] = useState({
+    nome: "",
+    perfil: "Técnico de Campo",
+    telefone: "",
+    comissao: "",
+    tipo_comissao: "porcentagem" as "porcentagem" | "fixo",
+  });
+  const [quickTecSaving, setQuickTecSaving] = useState(false);
+
+  const saveQuickCliente = async () => {
+    if (!quickCliForm.nome.trim()) return toast.error("Informe o nome do cliente");
+    setQuickCliSaving(true);
+    try {
+      const id = await addCliente({
+        nomeFantasia: quickCliForm.nome,
+        documento: "",
+        telefone: quickCliForm.telefone,
+        email: quickCliForm.email,
+      });
+      setForm((f) => ({ ...f, clienteId: id }));
+      toast.success("Cliente cadastrado e selecionado");
+      setQuickCliOpen(false);
+      setQuickCliForm({ nome: "", telefone: "", email: "" });
+    } catch (e: any) {
+      toast.error(e?.message ?? "Erro ao cadastrar cliente");
+    } finally {
+      setQuickCliSaving(false);
+    }
+  };
+
+  const saveQuickTecnico = async () => {
+    if (!quickTecForm.nome.trim()) return toast.error("Informe o nome do técnico");
+    setQuickTecSaving(true);
+    try {
+      const id = await addTecnico({
+        nome: quickTecForm.nome,
+        perfil: quickTecForm.perfil,
+        telefone: quickTecForm.telefone,
+        ativo: true,
+        comissao: Number(quickTecForm.comissao) || 0,
+        tipo_comissao: quickTecForm.tipo_comissao,
+        chave_pix: "",
+      } as any);
+      setForm((f) => ({ ...f, tecnicoId: id }));
+      toast.success("Técnico cadastrado e selecionado");
+      setQuickTecOpen(false);
+      setQuickTecForm({
+        nome: "",
+        perfil: "Técnico de Campo",
+        telefone: "",
+        comissao: "",
+        tipo_comissao: "porcentagem",
+      });
+    } catch (e: any) {
+      toast.error(e?.message ?? "Erro ao cadastrar técnico");
+    } finally {
+      setQuickTecSaving(false);
+    }
+  };
   const [viewMode, setViewMode] = useState<"list" | "card">("list");
   const [dialogMode, setDialogMode] = useState<"view" | "edit">("view");
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }));
@@ -417,7 +484,16 @@ function OSPage() {
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label>Cliente</Label>
+                    <div className="flex items-center justify-between">
+                      <Label>Cliente</Label>
+                      <button
+                        type="button"
+                        onClick={() => setQuickCliOpen(true)}
+                        className="text-xs text-primary hover:underline inline-flex items-center gap-1"
+                      >
+                        <Plus className="w-3 h-3" /> Cadastrar novo
+                      </button>
+                    </div>
                     <Select
                       value={form.clienteId}
                       onValueChange={(v) => setForm({ ...form, clienteId: v })}
@@ -435,7 +511,16 @@ function OSPage() {
                     </Select>
                   </div>
                   <div>
-                    <Label>Técnico</Label>
+                    <div className="flex items-center justify-between">
+                      <Label>Técnico</Label>
+                      <button
+                        type="button"
+                        onClick={() => setQuickTecOpen(true)}
+                        className="text-xs text-primary hover:underline inline-flex items-center gap-1"
+                      >
+                        <Plus className="w-3 h-3" /> Cadastrar novo
+                      </button>
+                    </div>
                     <Select
                       value={form.tecnicoId}
                       onValueChange={(v) => setForm({ ...form, tecnicoId: v })}
@@ -610,6 +695,162 @@ function OSPage() {
                   Cancelar
                 </Button>
                 <Button onClick={submit}>Criar OS</Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+
+          {/* Quick-add Cliente */}
+          <Dialog open={quickCliOpen} onOpenChange={setQuickCliOpen}>
+            <DialogContent className="rounded-2xl w-[95vw] sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle>Novo Cliente</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-3">
+                <div>
+                  <Label>Nome / Razão Social</Label>
+                  <Input
+                    value={quickCliForm.nome}
+                    onChange={(e) => setQuickCliForm({ ...quickCliForm, nome: e.target.value })}
+                    placeholder="Ex: Padaria Central"
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <Label>Telefone</Label>
+                    <Input
+                      value={quickCliForm.telefone}
+                      onChange={(e) =>
+                        setQuickCliForm({ ...quickCliForm, telefone: maskPhoneBR(e.target.value) })
+                      }
+                      placeholder="(11) 99999-0000"
+                      inputMode="numeric"
+                    />
+                  </div>
+                  <div>
+                    <Label>E-mail</Label>
+                    <Input
+                      type="email"
+                      value={quickCliForm.email}
+                      onChange={(e) => setQuickCliForm({ ...quickCliForm, email: e.target.value })}
+                      placeholder="contato@empresa.com"
+                    />
+                  </div>
+                </div>
+              </div>
+              <DialogFooter>
+                <Button
+                  variant="outline"
+                  onClick={() => setQuickCliOpen(false)}
+                  disabled={quickCliSaving}
+                >
+                  Cancelar
+                </Button>
+                <Button onClick={saveQuickCliente} disabled={quickCliSaving}>
+                  {quickCliSaving ? "Salvando..." : "Salvar e selecionar"}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+
+          {/* Quick-add Técnico */}
+          <Dialog open={quickTecOpen} onOpenChange={setQuickTecOpen}>
+            <DialogContent className="rounded-2xl w-[95vw] sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle>Novo Técnico</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-3">
+                <div>
+                  <Label>Nome</Label>
+                  <Input
+                    value={quickTecForm.nome}
+                    onChange={(e) => setQuickTecForm({ ...quickTecForm, nome: e.target.value })}
+                    placeholder="Ex: João Silva"
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <Label>Perfil</Label>
+                    <Select
+                      value={quickTecForm.perfil}
+                      onValueChange={(v) => setQuickTecForm({ ...quickTecForm, perfil: v })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {["Técnico de Campo", "Instalador", "Suporte", "Manutenção"].map((p) => (
+                          <SelectItem key={p} value={p}>
+                            {p}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label>Telefone</Label>
+                    <Input
+                      value={quickTecForm.telefone}
+                      onChange={(e) =>
+                        setQuickTecForm({
+                          ...quickTecForm,
+                          telefone: maskPhoneBR(e.target.value),
+                        })
+                      }
+                      placeholder="(11) 99999-0000"
+                      inputMode="numeric"
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <Label>Tipo comissão</Label>
+                    <Select
+                      value={quickTecForm.tipo_comissao}
+                      onValueChange={(v) =>
+                        setQuickTecForm({
+                          ...quickTecForm,
+                          tipo_comissao: v as "porcentagem" | "fixo",
+                        })
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="porcentagem">% sobre OS</SelectItem>
+                        <SelectItem value="fixo">Valor fixo (R$)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label>
+                      {quickTecForm.tipo_comissao === "fixo" ? "Valor (R$)" : "Comissão (%)"}
+                    </Label>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      value={quickTecForm.comissao}
+                      onChange={(e) =>
+                        setQuickTecForm({ ...quickTecForm, comissao: e.target.value })
+                      }
+                    />
+                  </div>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Dica: para configurar login e senha do técnico, use a tela de Equipe.
+                </p>
+              </div>
+              <DialogFooter>
+                <Button
+                  variant="outline"
+                  onClick={() => setQuickTecOpen(false)}
+                  disabled={quickTecSaving}
+                >
+                  Cancelar
+                </Button>
+                <Button onClick={saveQuickTecnico} disabled={quickTecSaving}>
+                  {quickTecSaving ? "Salvando..." : "Salvar e selecionar"}
+                </Button>
               </DialogFooter>
             </DialogContent>
           </Dialog>
