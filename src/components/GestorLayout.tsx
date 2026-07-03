@@ -12,6 +12,7 @@ import {
   Search,
   Settings,
   Menu,
+  FileText,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -33,11 +34,12 @@ const allNavItems = [
   { to: "/clientes", label: "Clientes", icon: Users },
   { to: "/equipe", label: "Equipe", icon: UsersRound },
   { to: "/estoque", label: "Inventário", icon: Package },
+  { to: "/logs", label: "Logs e Auditoria", icon: FileText },
   { to: "/configuracoes", label: "Configurações", icon: Settings },
 ] as const;
 
 // Itens restritos para gestores
-const restrictedItems = ["/clientes", "/equipe"] as const;
+const restrictedItems = ["/clientes", "/equipe", "/logs"] as const;
 
 export function GestorLayout({ children }: { children?: ReactNode }) {
   const path = useRouterState({ select: (s) => s.location.pathname });
