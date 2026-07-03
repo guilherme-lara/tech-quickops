@@ -425,8 +425,7 @@ function Dashboard() {
         .from("ordens_servico")
         .select("*, clientes(nome, nomeFantasia), tecnico:tecnicos(id, nome, perfil, telefone, ativo)")
         .eq("empresa_id", profile?.empresa_id || "")
-        .not("pendencias_detalhes", "is", null)
-        .neq("pendencias_detalhes", "")
+        .or("and(pendencias_detalhes.not.is.null,pendencias_detalhes.neq.)")
         .order("data_agendamento", { ascending: true });
 
       if (error) throw error;
