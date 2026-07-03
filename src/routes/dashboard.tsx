@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth-context";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
@@ -250,7 +250,7 @@ function PendingAlertsCard({ ordens, isLoading, onEdit }: { ordens: any[]; isLoa
 function Dashboard() {
   const { profile } = useAuth();
   const { clientes, tecnicos, loadingOS, loadingClientes, osMonth, osYear, os, updateOS } = useStore();
-  const [editingOS, setEditingOS] = React.useState<OS | null>(null);
+  const [editingOS, setEditingOS] = useState<OS | null>(null);
 
   // Gera dataInicio/dataFim com base no filtro de mês/ano
   const hasMonthFilter = osMonth > 0 && osYear > 0;
