@@ -42,6 +42,8 @@ import { validarDocumento, maskPhoneBR } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { Trash2 as TrashIcon, Plus as PlusIcon } from "lucide-react";
 import { FiltrosBarGlobal } from "@/components/FiltrosBarGlobal";
+import { useAuth } from "@/lib/auth-context";
+import { logActivity } from "@/lib/logger";
 
 export const Route = createFileRoute("/clientes")({
   component: () => (
@@ -55,6 +57,13 @@ type Analista = { id?: string; nome: string; whatsapp: string; _new?: boolean };
 
 function ClientesPage() {
   const { clientes, addCliente, updateCliente, deleteCliente, loadingClientes, clientesPage, clientesTotal, setClientesPage, clientesSearch, setClientesSearch } = useStore();
+  const { profile } = useAuth();
+  const empresaId = profile?.empresa_id;
+  const nomeUsuario = profile?.nome_completo || "usuário";
+  const registrarLog = async (tipo: string, descricao: string) => {
+    if (!empresaId) return;
+    await logActivity(tipo, descricao, empresaId);
+  };
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState({
     id: "",
@@ -112,7 +121,12 @@ function ClientesPage() {
 
   const handleDelete = async (id: string) => {
     if (window.confirm("Deseja realmente excluir este cliente?")) {
+      const cliente = clientes.find((c) => c.id === id);
       await deleteCliente(id);
+      await registrarLog(
+        "cliente_deletado",
+        `Cliente "${cliente?.nomeFantasia || id}" removido por ${nomeUsuario}`,
+      );
       toast.success("Cliente excluído!");
     }
   };
@@ -181,6 +195,7 @@ function ClientesPage() {
           .order("created_at", { ascending: false })
           .limit(1);
         clienteId = novo?.[0]?.id ?? "";
+        await registrarLog("cliente_criado", `Cliente "${form.nomeFantasia}" cadastrado por ${nomeUsuario}`);
       }
       if (clienteId && analistas.length > 0) {
         await persistAnalistas(clienteId);

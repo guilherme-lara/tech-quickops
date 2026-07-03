@@ -21,6 +21,8 @@ import { FiltrosBarGlobal } from "@/components/FiltrosBarGlobal";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { useAuth } from "@/lib/auth-context";
+import { logActivity } from "@/lib/logger";
 
 const itemSchema = z.object({
   nome: z.string().min(1, "Nome é obrigatório").max(255, "Nome muito longo"),
@@ -41,6 +43,13 @@ export const Route = createFileRoute("/estoque")({
 
 function EstoquePage() {
   const { itens, loadingItens, addItem, updateItem, deleteItem, estoquePage, estoqueTotal, setEstoquePage, estoqueSearch, setEstoqueSearch } = useStore();
+  const { profile } = useAuth();
+  const empresaId = profile?.empresa_id;
+  const nomeUsuario = profile?.nome_completo || "usuário";
+  const registrarLog = async (tipo: string, descricao: string) => {
+    if (!empresaId) return;
+    await logActivity(tipo, descricao, empresaId);
+  };
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Item | null>(null);
 
@@ -58,6 +67,7 @@ function EstoquePage() {
     if (!window.confirm(`Excluir "${i.nome}"?`)) return;
     try {
       await deleteItem(i.id);
+      await registrarLog("estoque_deletado", `Item "${i.nome}" removido por ${nomeUsuario}`);
       toast.success("Item excluído");
     } catch (e: any) {
       toast.error(e.message);
@@ -203,9 +213,11 @@ function EstoquePage() {
           try {
             if (editing) {
               await updateItem(editing.id, data);
+              await registrarLog("estoque_editado", `Item "${data.nome}" editado por ${nomeUsuario}`);
               toast.success("Item atualizado");
             } else {
               await addItem(data);
+              await registrarLog("estoque_criado", `Item "${data.nome}" cadastrado por ${nomeUsuario}`);
               toast.success("Item cadastrado");
             }
             setOpen(false);

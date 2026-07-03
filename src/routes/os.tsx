@@ -23,6 +23,8 @@ import { useStore, statusColor, OSStatus, OS, PAGE_SIZE } from "@/lib/mock-store
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 import { formatDate, maskPhoneBR } from "@/lib/utils";
+import { useAuth } from "@/lib/auth-context";
+import { logActivity } from "@/lib/logger";
 import {
   Plus,
   User,
@@ -121,7 +123,14 @@ function OSPage() {
     osMonth,
     osYear,
   } = useStore();
+  const { profile } = useAuth();
   const queryClient = useQueryClient();
+  const empresaId = profile?.empresa_id;
+  const nomeUsuario = profile?.nome_completo || "usuário";
+  const registrarLog = async (tipo: string, descricao: string) => {
+    if (!empresaId) return;
+    await logActivity(tipo, descricao, empresaId);
+  };
 
   // Dispara a busca quando os filtros ou página mudam
   useEffect(() => {
@@ -248,6 +257,10 @@ function OSPage() {
     try {
       const { error } = await supabase.from("ordens_servico").delete().eq("id", id);
       if (error) throw error;
+      await registrarLog(
+        "os_excluida",
+        `OS "${osItem?.titulo || osItem?.numero || id}" excluída por ${nomeUsuario}`,
+      );
       toast.success("OS excluída com sucesso");
       queryClient.invalidateQueries({ queryKey: ["ordens_servico"] });
     } catch (e: any) {
@@ -255,12 +268,12 @@ function OSPage() {
     }
   };
 
-  const submit = () => {
+  const submit = async () => {
     if (!form.titulo || !form.clienteId || !form.tecnicoId) {
       toast.error("Preencha todos os campos");
       return;
     }
-    addOS({
+    await addOS({
       titulo: form.titulo,
       clienteId: form.clienteId,
       tecnicoId: form.tecnicoId,
@@ -273,6 +286,7 @@ function OSPage() {
       status: form.status,
       dados_adicionais: novosDadosExtras,
     });
+    await registrarLog("os_criada", `OS "${form.titulo}" criada por ${nomeUsuario}`);
     toast.success("OS criada com sucesso");
     setOpen(false);
     setForm({
@@ -300,13 +314,17 @@ function OSPage() {
     setNovoCampoValor("");
   };
 
-  const onDragEnd = (e: DragEndEvent) => {
+  const onDragEnd = async (e: DragEndEvent) => {
     const id = e.active.id as string;
     const target = e.over?.id as OSStatus | undefined;
     if (!target) return;
     const cur = os.find((o) => o.id === id);
     if (cur && cur.status !== target) {
-      updateOS(id, { status: target });
+      await updateOS(id, { status: target });
+      await registrarLog(
+        "os_status_alterado",
+        `OS "${cur.titulo}" alterada para status ${target} por ${nomeUsuario}`,
+      );
       toast.success(`Movida para ${target}`);
     }
   };
@@ -1012,6 +1030,21 @@ function OSPage() {
           if (!editing) return;
           try {
             await updateOS(editing.id, patch);
+            const mudouStatus = patch.status !== undefined && patch.status !== editing.status;
+            const mudouTecnico = patch.tecnicoId !== undefined && patch.tecnicoId !== editing.tecnicoId;
+            if (mudouStatus) {
+              await registrarLog(
+                "os_status_alterado",
+                `OS "${editing.titulo}" alterada para status ${patch.status} por ${nomeUsuario}`,
+              );
+            }
+            if (mudouTecnico) {
+              const tecnico = tecnicos.find((t) => t.id === patch.tecnicoId);
+              await registrarLog(
+                "os_tecnico_alterado",
+                `OS "${editing.titulo}" atribuída ao técnico ${tecnico?.nome || "sem técnico"} por ${nomeUsuario}`,
+              );
+            }
             toast.success("OS atualizada");
             setEditing(null);
           } catch (e: any) {

@@ -74,7 +74,9 @@ function LogsPage() {
       }
 
       if (termoBuscaDebounced) {
-        query = query.ilike("descricao", `%${termoBuscaDebounced}%`);
+        query = query.or(
+          `descricao.ilike.%${termoBuscaDebounced}%,usuario_nome.ilike.%${termoBuscaDebounced}%,tipo.ilike.%${termoBuscaDebounced}%`,
+        );
       }
 
       const { data, error } = await query;

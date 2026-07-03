@@ -12,11 +12,18 @@ export async function logActivity(
   empresa_id: string
 ): Promise<void> {
   try {
+    const { data: userData } = await supabase.auth.getUser();
+    const userId = userData.user?.id;
+    if (!userId) {
+      console.error("Não foi possível obter o usuário autenticado para registrar log.");
+      return;
+    }
+
     // Buscar o perfil do usuário autenticado para pegar o nome
     const { data: perfil, error: perfilError } = await supabase
       .from("perfis")
       .select("nome_completo")
-      .eq("id", (await supabase.auth.getUser()).data.user?.id)
+      .eq("id", userId)
       .single();
 
     if (perfilError || !perfil) {

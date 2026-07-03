@@ -50,6 +50,8 @@ import { FiltrosBarGlobal } from "@/components/FiltrosBarGlobal";
 import { useState } from "react";
 import { toast } from "sonner";
 import { maskPhoneBR, formatComissao } from "@/lib/utils";
+import { useAuth } from "@/lib/auth-context";
+import { logActivity } from "@/lib/logger";
 
 const PERFIS_TECNICO = ["Técnico de Campo", "Instalador", "Suporte", "Manutenção"];
 
@@ -63,6 +65,13 @@ export const Route = createFileRoute("/equipe")({
 
 function EquipePage() {
   const { tecnicos, os, updateTecnico, deleteTecnico, loadingTecnicos, tecnicosPage, tecnicosTotal, setTecnicosPage, tecnicosSearch, setTecnicosSearch } = useStore();
+  const { profile } = useAuth();
+  const empresaId = profile?.empresa_id;
+  const nomeUsuario = profile?.nome_completo || "usuário";
+  const registrarLog = async (tipo: string, descricao: string) => {
+    if (!empresaId) return;
+    await logActivity(tipo, descricao, empresaId);
+  };
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -115,7 +124,12 @@ function EquipePage() {
 
   const handleDelete = async (id: string) => {
     if (window.confirm("Deseja inativar/excluir este técnico?")) {
+      const tecnico = tecnicos.find((t) => t.id === id);
       await deleteTecnico(id);
+      await registrarLog(
+        "tecnico_inativado",
+        `Técnico "${tecnico?.nome || id}" inativado por ${nomeUsuario}`,
+      );
       toast.success("Técnico excluído!");
     }
   };
@@ -140,6 +154,7 @@ function EquipePage() {
           ativo: true,
           dados_adicionais: Object.keys(dadosAdicionais).length > 0 ? dadosAdicionais : undefined,
         });
+        await registrarLog("tecnico_editado", `Técnico "${form.nome}" editado por ${nomeUsuario}`);
         toast.success("Técnico atualizado!");
       } else {
         // Novo técnico → cria auth user via RPC (sem perder sessão).
@@ -163,6 +178,7 @@ function EquipePage() {
           p_dados_adicionais: Object.keys(dadosAdicionais).length > 0 ? dadosAdicionais : null,
         });
         if (error) throw error;
+        await registrarLog("tecnico_criado", `Técnico "${form.nome}" cadastrado por ${nomeUsuario}`);
         qc.invalidateQueries({ queryKey: ["tecnicos"] });
         const login = form.username.toLowerCase();
         const senha = form.senha;
