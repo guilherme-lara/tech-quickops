@@ -932,7 +932,16 @@ function OSPage() {
                             )}
                           </td>
                           <td className="px-5 py-3 font-semibold whitespace-nowrap">
-                            R$ {o.valor.toLocaleString("pt-BR")}
+                            <div className="space-y-1">
+                              <div>R$ {Number(o.valor ?? 0).toLocaleString("pt-BR")}</div>
+                              {Number(o.custo_viagem ?? 0) > 0 && (
+                                <div className="text-[11px] text-muted-foreground">
+                                  <span className="inline-flex items-center rounded-full bg-amber-50 px-2 py-0.5 text-amber-700">
+                                    + R$ {Number(o.custo_viagem ?? 0).toLocaleString("pt-BR")} viagem
+                                  </span>
+                                </div>
+                              )}
+                            </div>
                           </td>
                           <td className="px-5 py-3 text-right" onClick={(e) => e.stopPropagation()}>
                             <div className="flex items-center justify-end gap-1">
@@ -1027,6 +1036,8 @@ function OSPage() {
         ordem={editing}
         clientes={clientes}
         tecnicos={tecnicos}
+        addCliente={addCliente}
+        addTecnico={addTecnico}
         onClose={() => setEditing(null)}
         onSave={async (patch) => {
           if (!editing) return;
@@ -1151,6 +1162,8 @@ function EditOSDialog({
   ordem,
   clientes,
   tecnicos,
+  addCliente,
+  addTecnico,
   onClose,
   onSave,
 }: {
@@ -1158,6 +1171,8 @@ function EditOSDialog({
   ordem: OS | null;
   clientes: { id: string; nomeFantasia: string }[];
   tecnicos: { id: string; nome: string }[];
+  addCliente: (c: any) => Promise<string>;
+  addTecnico: (t: any) => Promise<string>;
   onClose: () => void;
   onSave: (patch: Partial<OS>) => Promise<void>;
 }) {
@@ -1176,6 +1191,18 @@ function EditOSDialog({
   const [horarioAtendimento, setHorarioAtendimento] = useState("");
   const [dadosExtras, setDadosExtras] = useState<Record<string, any>>({});
   const [saving, setSaving] = useState(false);
+  const [quickCliOpen, setQuickCliOpen] = useState(false);
+  const [quickCliForm, setQuickCliForm] = useState({ nome: "", telefone: "", email: "" });
+  const [quickCliSaving, setQuickCliSaving] = useState(false);
+  const [quickTecOpen, setQuickTecOpen] = useState(false);
+  const [quickTecForm, setQuickTecForm] = useState({
+    nome: "",
+    perfil: "Técnico de Campo",
+    telefone: "",
+    comissao: "",
+    tipo_comissao: "porcentagem" as "porcentagem" | "fixo",
+  });
+  const [quickTecSaving, setQuickTecSaving] = useState(false);
   const { analistas: analistasEdit } = useAnalistasByCliente(form.clienteId);
 
   useEffect(() => {
@@ -1202,23 +1229,78 @@ function EditOSDialog({
       toast.error("Preencha todos os campos");
       return;
     }
+    const valorServico = Number(form.valor) || 0;
+    const custoViagem = Number(form.custo_viagem) || 0;
+    const patch: Partial<OS> = {
+      titulo: form.titulo,
+      clienteId: form.clienteId,
+      tecnicoId: form.tecnicoId,
+      analistaId: form.analistaId || undefined,
+      valor: valorServico,
+      custo_viagem: custoViagem,
+      data_agendamento: dataAgendamento || ordem?.data_agendamento || undefined,
+      horario_atendimento: horarioAtendimento || ordem?.horario_atendimento || undefined,
+      descricao_problema: descricaoProblema,
+      status: form.status,
+      dados_adicionais: dadosExtras,
+    };
+
     setSaving(true);
     try {
-      await onSave({
-        titulo: form.titulo,
-        clienteId: form.clienteId,
-        tecnicoId: form.tecnicoId,
-        analistaId: form.analistaId || undefined,
-        valor: Number(form.valor) || 0,
-        custo_viagem: Number(form.custo_viagem) || 0,
-        data_agendamento: dataAgendamento,
-        horario_atendimento: horarioAtendimento,
-        descricao_problema: descricaoProblema,
-        status: form.status,
-        dados_adicionais: dadosExtras,
-      });
+      await onSave(patch);
     } finally {
       setSaving(false);
+    }
+  };
+
+  const saveQuickCliente = async () => {
+    if (!quickCliForm.nome.trim()) return toast.error("Informe o nome do cliente");
+    setQuickCliSaving(true);
+    try {
+      const id = await addCliente({
+        nomeFantasia: quickCliForm.nome,
+        documento: "",
+        telefone: quickCliForm.telefone,
+        email: quickCliForm.email,
+      });
+      setForm((prev) => ({ ...prev, clienteId: id }));
+      toast.success("Cliente cadastrado e selecionado");
+      setQuickCliOpen(false);
+      setQuickCliForm({ nome: "", telefone: "", email: "" });
+    } catch (e: any) {
+      toast.error(e?.message ?? "Erro ao cadastrar cliente");
+    } finally {
+      setQuickCliSaving(false);
+    }
+  };
+
+  const saveQuickTecnico = async () => {
+    if (!quickTecForm.nome.trim()) return toast.error("Informe o nome do técnico");
+    setQuickTecSaving(true);
+    try {
+      const id = await addTecnico({
+        nome: quickTecForm.nome,
+        perfil: quickTecForm.perfil,
+        telefone: quickTecForm.telefone,
+        ativo: true,
+        comissao: Number(quickTecForm.comissao) || 0,
+        tipo_comissao: quickTecForm.tipo_comissao,
+        chave_pix: "",
+      } as any);
+      setForm((prev) => ({ ...prev, tecnicoId: id }));
+      toast.success("Técnico cadastrado e selecionado");
+      setQuickTecOpen(false);
+      setQuickTecForm({
+        nome: "",
+        perfil: "Técnico de Campo",
+        telefone: "",
+        comissao: "",
+        tipo_comissao: "porcentagem",
+      });
+    } catch (e: any) {
+      toast.error(e?.message ?? "Erro ao cadastrar técnico");
+    } finally {
+      setQuickTecSaving(false);
     }
   };
 
@@ -1241,7 +1323,14 @@ function EditOSDialog({
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <Label>Cliente</Label>
+              <div className="flex items-center justify-between gap-2 mb-1">
+                <Label>Cliente</Label>
+                {!isView && (
+                  <Button variant="outline" size="sm" className="h-8" onClick={() => setQuickCliOpen(true)}>
+                    <Plus className="w-3.5 h-3.5 mr-1" /> Cadastrar novo
+                  </Button>
+                )}
+              </div>
               <Select
                 disabled={isView}
                 value={form.clienteId}
@@ -1260,7 +1349,14 @@ function EditOSDialog({
               </Select>
             </div>
             <div>
-              <Label>Técnico</Label>
+              <div className="flex items-center justify-between gap-2 mb-1">
+                <Label>Técnico</Label>
+                {!isView && (
+                  <Button variant="outline" size="sm" className="h-8" onClick={() => setQuickTecOpen(true)}>
+                    <Plus className="w-3.5 h-3.5 mr-1" /> Cadastrar novo
+                  </Button>
+                )}
+              </div>
               <Select
                 disabled={isView}
                 value={form.tecnicoId}
@@ -1277,7 +1373,7 @@ function EditOSDialog({
                   ))}
                 </SelectContent>
               </Select>
-          </div>
+            </div>
           <div>
             <Label>Analista / Suporte Responsável</Label>
             <Select
@@ -1307,9 +1403,9 @@ function EditOSDialog({
             </Select>
           </div>
           </div>
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-4 gap-3">
             <div>
-              <Label>Valor</Label>
+              <Label>Valor do Serviço</Label>
               <Input
                 disabled={isView}
                 type="number"
@@ -1319,13 +1415,20 @@ function EditOSDialog({
               />
             </div>
             <div>
-              <Label>Custo viagem</Label>
+              <Label>Custo de Viagem</Label>
               <Input
                 disabled={isView}
                 type="number"
                 step="0.01"
                 value={form.custo_viagem}
                 onChange={(e) => setForm({ ...form, custo_viagem: e.target.value })}
+              />
+            </div>
+            <div>
+              <Label>Total da OS</Label>
+              <Input
+                disabled
+                value={`R$ ${(Number(form.valor || 0) + Number(form.custo_viagem || 0)).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`}
               />
             </div>
             <div>
@@ -1412,6 +1515,89 @@ function EditOSDialog({
           )}
         </DialogFooter>
       </DialogContent>
+      <Dialog open={quickCliOpen} onOpenChange={setQuickCliOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Cadastrar cliente rápido</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div>
+              <Label>Nome</Label>
+              <Input
+                value={quickCliForm.nome}
+                onChange={(e) => setQuickCliForm({ ...quickCliForm, nome: e.target.value })}
+              />
+            </div>
+            <div>
+              <Label>Telefone</Label>
+              <Input
+                value={quickCliForm.telefone}
+                onChange={(e) => setQuickCliForm({ ...quickCliForm, telefone: e.target.value })}
+              />
+            </div>
+            <div>
+              <Label>E-mail</Label>
+              <Input
+                value={quickCliForm.email}
+                onChange={(e) => setQuickCliForm({ ...quickCliForm, email: e.target.value })}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setQuickCliOpen(false)} disabled={quickCliSaving}>
+              Cancelar
+            </Button>
+            <Button onClick={saveQuickCliente} disabled={quickCliSaving}>
+              {quickCliSaving ? "Salvando..." : "Salvar e selecionar"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      <Dialog open={quickTecOpen} onOpenChange={setQuickTecOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Cadastrar técnico rápido</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div>
+              <Label>Nome</Label>
+              <Input
+                value={quickTecForm.nome}
+                onChange={(e) => setQuickTecForm({ ...quickTecForm, nome: e.target.value })}
+              />
+            </div>
+            <div>
+              <Label>Perfil</Label>
+              <Select value={quickTecForm.perfil} onValueChange={(v) => setQuickTecForm({ ...quickTecForm, perfil: v })}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Técnico de Campo">Técnico de Campo</SelectItem>
+                  <SelectItem value="Instalador">Instalador</SelectItem>
+                  <SelectItem value="Suporte">Suporte</SelectItem>
+                  <SelectItem value="Manutenção">Manutenção</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>Telefone</Label>
+              <Input
+                value={quickTecForm.telefone}
+                onChange={(e) => setQuickTecForm({ ...quickTecForm, telefone: e.target.value })}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setQuickTecOpen(false)} disabled={quickTecSaving}>
+              Cancelar
+            </Button>
+            <Button onClick={saveQuickTecnico} disabled={quickTecSaving}>
+              {quickTecSaving ? "Salvando..." : "Salvar e selecionar"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Dialog>
   );
 }
