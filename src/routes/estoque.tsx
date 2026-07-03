@@ -13,10 +13,11 @@ import {
 } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/EmptyState";
-import { useStore, type Item } from "@/lib/mock-store";
-import { Package, Search, AlertTriangle, Plus, Pencil, Trash2 } from "lucide-react";
+import { useStore, type Item, PAGE_SIZE } from "@/lib/mock-store";
+import { Package, AlertTriangle, Plus, Pencil, Trash2, ChevronLeft, ChevronRight } from "lucide-react";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
+import { FiltrosBarGlobal } from "@/components/FiltrosBarGlobal";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -39,16 +40,11 @@ export const Route = createFileRoute("/estoque")({
 });
 
 function EstoquePage() {
-  const { itens, loadingItens, addItem, updateItem, deleteItem } = useStore();
-  const [q, setQ] = useState("");
+  const { itens, loadingItens, addItem, updateItem, deleteItem, estoquePage, estoqueTotal, setEstoquePage, estoqueSearch, setEstoqueSearch } = useStore();
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Item | null>(null);
 
-  const filtrados = itens.filter(
-    (i) =>
-      i.nome.toLowerCase().includes(q.toLowerCase()) ||
-      (i.codigo ?? "").toLowerCase().includes(q.toLowerCase()),
-  );
+  const totalEstoquePages = Math.max(1, Math.ceil(estoqueTotal / PAGE_SIZE));
 
   const openNew = () => {
     setEditing(null);
@@ -71,16 +67,14 @@ function EstoquePage() {
   return (
     <GestorLayout>
       <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 mb-5 justify-between">
-        <div className="relative flex-1 w-full max-w-md">
-          <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            placeholder="Buscar por nome ou código..."
-            className="pl-10 h-11 rounded-xl glass border-0"
-            value={q}
-            onChange={(e) => setQ(e.target.value)}
-          />
-        </div>
-        <Button onClick={openNew} className="h-11 rounded-xl gap-2">
+        <FiltrosBarGlobal
+          showSearch
+          searchValue={estoqueSearch}
+          onSearchChange={setEstoqueSearch}
+          searchLabel="Item"
+          searchPlaceholder="Buscar por nome ou código..."
+        />
+        <Button onClick={openNew} className="h-11 rounded-xl gap-2 shrink-0">
           <Plus className="w-4 h-4" /> Novo item
         </Button>
       </div>
@@ -91,17 +85,17 @@ function EstoquePage() {
             <Skeleton key={i} className="h-12 w-full rounded-lg" />
           ))}
         </div>
-      ) : filtrados.length === 0 ? (
+      ) : itens.length === 0 ? (
         <EmptyState
           icon={Package}
-          title={q ? "Nenhum item encontrado" : "Inventário vazio"}
+          title={estoqueSearch ? "Nenhum item encontrado" : "Inventário vazio"}
           description={
-            q
+            estoqueSearch
               ? "Tente outro termo de busca."
               : "Cadastre o primeiro item para começar a controlar seu inventário."
           }
           action={
-            !q ? (
+            !estoqueSearch ? (
               <Button onClick={openNew} className="gap-2">
                 <Plus className="w-4 h-4" /> Novo item
               </Button>
@@ -124,7 +118,7 @@ function EstoquePage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
-                {filtrados.map((i) => {
+                {itens.map((i) => {
                   const baixo = i.quantidade < 10;
                   const total = i.quantidade * i.valor_unitario;
                   return (
@@ -166,6 +160,38 @@ function EstoquePage() {
               </tbody>
             </table>
           </div>
+          {/* Paginação Estoque */}
+          {itens.length > 0 && (
+            <div className="flex items-center justify-between px-1 py-3 border-t border-border">
+              <p className="text-xs text-muted-foreground">
+                Mostrando {estoquePage * PAGE_SIZE + 1}–{Math.min((estoquePage + 1) * PAGE_SIZE, estoqueTotal)}{" "}
+                de {estoqueTotal} itens
+              </p>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setEstoquePage(Math.max(0, estoquePage - 1))}
+                  disabled={estoquePage === 0}
+                  className="rounded-lg gap-1"
+                >
+                  <ChevronLeft className="w-4 h-4" /> Anterior
+                </Button>
+                <span className="text-xs font-medium tabular-nums px-2">
+                  Página {estoquePage + 1} de {totalEstoquePages}
+                </span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setEstoquePage(Math.min(totalEstoquePages - 1, estoquePage + 1))}
+                  disabled={estoquePage >= totalEstoquePages - 1}
+                  className="rounded-lg gap-1"
+                >
+                  Próxima <ChevronRight className="w-4 h-4" />
+                </Button>
+              </div>
+            </div>
+          )}
         </div>
       )}
 

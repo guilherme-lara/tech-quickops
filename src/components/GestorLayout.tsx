@@ -108,8 +108,8 @@ export function GestorLayout({ children }: { children?: ReactNode }) {
   return (
     <div className="min-h-screen flex bg-background">
       {/* SIDEBAR DESKTOP (Escondida em mobile: hidden md:block) */}
-      <aside className="w-64 fixed h-screen p-4 hidden md:block">
-        <div className="glass rounded-3xl h-full flex flex-col p-4 shadow-[var(--shadow-card)]">
+      <aside className="w-64 fixed h-screen p-4 hidden md:block z-50 bg-background border-r border-border">
+        <div className="rounded-3xl h-full flex flex-col p-4 shadow-[var(--shadow-card)]">
           <div className="px-2 py-3 flex items-center gap-2.5">
             <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-primary to-violet flex items-center justify-center shadow-[var(--shadow-glow)]">
               <Wrench className="w-5 h-5 text-primary-foreground" />
@@ -127,7 +127,7 @@ export function GestorLayout({ children }: { children?: ReactNode }) {
       </aside>
 
       {/* ÁREA DE CONTEÚDO PRINCIPAL */}
-      <div className="flex-1 md:ml-64 flex flex-col min-h-screen w-full">
+      <div className="flex-1 md:ml-64 flex flex-col min-h-screen w-full overflow-x-hidden">
         <header className="px-4 md:px-8 pt-4 md:pt-6 pb-2 flex items-center justify-between gap-4">
           {/* TOPO ESQUERDO: Menu Hambúrguer (Mobile) e Título */}
           <div className="flex items-center gap-3">
@@ -194,7 +194,7 @@ export function GestorLayout({ children }: { children?: ReactNode }) {
         </header>
 
         {/* MAIN: Aqui injetamos as páginas (Dashboard, Clientes, etc) */}
-        <main className="flex-1 px-4 md:px-8 pb-8 pt-4 overflow-x-hidden w-full max-w-[100vw]">
+        <main className="flex-1 px-4 md:px-8 pb-8 pt-4 w-full">
           {children ?? <Outlet />}
         </main>
       </div>

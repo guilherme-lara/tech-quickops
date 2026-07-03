@@ -27,7 +27,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useStore, type TipoComissao } from "@/lib/mock-store";
+import { useStore, type TipoComissao, PAGE_SIZE } from "@/lib/mock-store";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 import {
@@ -43,7 +43,10 @@ import {
   Eye,
   EyeOff,
   Copy,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
+import { FiltrosBarGlobal } from "@/components/FiltrosBarGlobal";
 import { useState } from "react";
 import { toast } from "sonner";
 import { maskPhoneBR, formatComissao } from "@/lib/utils";
@@ -59,7 +62,7 @@ export const Route = createFileRoute("/equipe")({
 });
 
 function EquipePage() {
-  const { tecnicos, os, updateTecnico, deleteTecnico, loadingTecnicos } = useStore();
+  const { tecnicos, os, updateTecnico, deleteTecnico, loadingTecnicos, tecnicosPage, tecnicosTotal, setTecnicosPage, tecnicosSearch, setTecnicosSearch } = useStore();
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -80,6 +83,8 @@ function EquipePage() {
   };
   const [form, setForm] = useState(emptyForm);
   const [viewMode, setViewMode] = useState<"list" | "card">("list");
+
+  const totalTecnicosPages = Math.max(1, Math.ceil(tecnicosTotal / PAGE_SIZE));
 
   const openNew = () => {
     setForm(emptyForm);
@@ -189,7 +194,7 @@ function EquipePage() {
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-5">
         <div>
           <h2 className="text-xl font-bold">Equipe técnica</h2>
-          <p className="text-sm text-muted-foreground">{tecnicos.length} técnicos cadastrados</p>
+          <p className="text-sm text-muted-foreground">{tecnicosTotal} técnicos cadastrados</p>
         </div>
         <div className="flex items-center gap-3 w-full md:w-auto">
           <div className="flex items-center rounded-lg bg-muted/50 p-1">
@@ -400,6 +405,14 @@ function EquipePage() {
         </div>
       </div>
 
+      <FiltrosBarGlobal
+        showSearch
+        searchValue={tecnicosSearch}
+        onSearchChange={setTecnicosSearch}
+        searchLabel="Técnico"
+        searchPlaceholder="Buscar por nome do técnico..."
+      />
+
       {loadingTecnicos ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {[1, 2, 3].map((i) => (
@@ -579,6 +592,39 @@ function EquipePage() {
               </Card>
             );
           })}
+        </div>
+      )}
+
+      {/* Paginação Equipe */}
+      {tecnicos.length > 0 && viewMode === "list" && (
+        <div className="flex items-center justify-between mt-4 px-1">
+          <p className="text-xs text-muted-foreground">
+            Mostrando {tecnicosPage * PAGE_SIZE + 1}–{Math.min((tecnicosPage + 1) * PAGE_SIZE, tecnicosTotal)}{" "}
+            de {tecnicosTotal} técnicos
+          </p>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setTecnicosPage(Math.max(0, tecnicosPage - 1))}
+              disabled={tecnicosPage === 0}
+              className="rounded-lg gap-1"
+            >
+              <ChevronLeft className="w-4 h-4" /> Anterior
+            </Button>
+            <span className="text-xs font-medium tabular-nums px-2">
+              Página {tecnicosPage + 1} de {totalTecnicosPages}
+            </span>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setTecnicosPage(Math.min(totalTecnicosPages - 1, tecnicosPage + 1))}
+              disabled={tecnicosPage >= totalTecnicosPages - 1}
+              className="rounded-lg gap-1"
+            >
+              Próxima <ChevronRight className="w-4 h-4" />
+            </Button>
+          </div>
         </div>
       )}
     </GestorLayout>

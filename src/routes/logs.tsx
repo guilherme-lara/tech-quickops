@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ArrowLeft, FileText, Clock, Filter } from "lucide-react";
 
 export const Route = createFileRoute("/logs")({
@@ -42,9 +42,18 @@ function LogsPage() {
   const [filtroTipo, setFiltroTipo] = useState<string>("todos");
   const [dataInicio, setDataInicio] = useState<string>("");
   const [dataFim, setDataFim] = useState<string>("");
+  const [termoBusca, setTermoBusca] = useState<string>("");
+  const [termoBuscaDebounced, setTermoBuscaDebounced] = useState<string>("");
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setTermoBuscaDebounced(termoBusca);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [termoBusca]);
 
   const logsQ = useQuery({
-    queryKey: ["logs_administrativos", profile?.empresa_id, filtroTipo, dataInicio, dataFim],
+    queryKey: ["logs_administrativos", profile?.empresa_id, filtroTipo, dataInicio, dataFim, termoBuscaDebounced],
     enabled: !!profile && profile.role !== "tecnico",
     queryFn: async (): Promise<LogEntry[]> => {
       let query = (supabase.from("logs_administrativos" as any) as any)
@@ -64,6 +73,10 @@ function LogsPage() {
         query = query.lte("created_at", dataFim + "T23:59:59");
       }
 
+      if (termoBuscaDebounced) {
+        query = query.ilike("descricao", `%${termoBuscaDebounced}%`);
+      }
+
       const { data, error } = await query;
       if (error) throw error;
       return (data ?? []) as LogEntry[];
@@ -74,6 +87,8 @@ function LogsPage() {
     setFiltroTipo("todos");
     setDataInicio("");
     setDataFim("");
+    setTermoBusca("");
+    setTermoBuscaDebounced("");
   };
 
   return (
@@ -99,7 +114,17 @@ function LogsPage() {
           <Filter className="w-4 h-4 text-primary" />
           <h3 className="font-bold text-sm">Filtros</h3>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+          <div className="space-y-2">
+            <Label className="text-xs text-muted-foreground">Buscar nos logs</Label>
+            <Input
+              placeholder="Pesquisar por descrição..."
+              value={termoBusca}
+              onChange={(e) => setTermoBusca(e.target.value)}
+              className="h-9 text-sm"
+            />
+          </div>
+
           <div className="space-y-2">
             <Label className="text-xs text-muted-foreground">Tipo de Evento</Label>
             <Select value={filtroTipo} onValueChange={setFiltroTipo}>

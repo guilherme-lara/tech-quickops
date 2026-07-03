@@ -77,7 +77,7 @@ export interface OS {
   };
 }
 
-export const OS_PAGE_SIZE = 10;
+export const PAGE_SIZE = 10;
 
 interface User {
   id: string;
@@ -123,18 +123,33 @@ interface Store {
 
   clientes: Cliente[];
   loadingClientes: boolean;
+  clientesPage: number;
+  clientesTotal: number;
+  clientesSearch: string;
+  setClientesSearch: (v: string) => void;
+  setClientesPage: (p: number) => void;
   addCliente: (c: Omit<Cliente, "id">) => Promise<string>;
   updateCliente: (id: string, patch: Partial<Cliente>) => Promise<void>;
   deleteCliente: (id: string) => Promise<void>;
 
   tecnicos: Tecnico[];
   loadingTecnicos: boolean;
+  tecnicosPage: number;
+  tecnicosTotal: number;
+  tecnicosSearch: string;
+  setTecnicosSearch: (v: string) => void;
+  setTecnicosPage: (p: number) => void;
   addTecnico: (t: Omit<Tecnico, "id">) => Promise<string>;
   updateTecnico: (id: string, patch: Partial<Tecnico>) => Promise<void>;
   deleteTecnico: (id: string) => Promise<void>;
 
   itens: Item[];
   loadingItens: boolean;
+  estoquePage: number;
+  estoqueTotal: number;
+  estoqueSearch: string;
+  setEstoqueSearch: (v: string) => void;
+  setEstoquePage: (p: number) => void;
   addItem: (i: Omit<Item, "id">) => Promise<void>;
   updateItem: (id: string, patch: Partial<Item>) => Promise<void>;
   deleteItem: (id: string) => Promise<void>;
@@ -177,6 +192,17 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const [osSearchCliente, setOsSearchCliente] = useState("");
   const [osSearchTecnico, setOsSearchTecnico] = useState("");
   const [osFilterStatus, setOsFilterStatus] = useState("");
+
+  // Paginação para Clientes, Técnicos e Estoque
+  const [clientesPage, setClientesPage] = useState(0);
+  const [clientesTotal, setClientesTotal] = useState(0);
+  const [clientesSearch, setClientesSearch] = useState("");
+  const [tecnicosPage, setTecnicosPage] = useState(0);
+  const [tecnicosTotal, setTecnicosTotal] = useState(0);
+  const [tecnicosSearch, setTecnicosSearch] = useState("");
+  const [estoquePage, setEstoquePage] = useState(0);
+  const [estoqueTotal, setEstoqueTotal] = useState(0);
+  const [estoqueSearch, setEstoqueSearch] = useState("");
 
   // Hydrate auth + perfil
   useEffect(() => {
@@ -303,15 +329,25 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const empresaId = user?.empresaId;
 
   const clientesQ = useQuery({
-    queryKey: ["clientes", empresaId],
+    queryKey: ["clientes", empresaId, clientesPage, clientesSearch],
     enabled,
     queryFn: async (): Promise<Cliente[]> => {
-      const { data, error } = await supabase
+      let query = supabase
         .from("clientes")
-        .select("id, nome, documento, telefone, email")
-        .eq("empresa_id", empresaId!)
-        .order("nome");
+        .select("id, nome, documento, telefone, email", { count: "exact" })
+        .eq("empresa_id", empresaId!);
+
+      if (clientesSearch) {
+        query = query.ilike("nome", `%${clientesSearch}%`);
+      }
+
+      const from = clientesPage * PAGE_SIZE;
+      const to = from + PAGE_SIZE - 1;
+      const { data, error, count } = await query
+        .order("nome")
+        .range(from, to);
       if (error) throw error;
+      setClientesTotal(count ?? 0);
       return (data ?? []).map((r) => ({
         id: r.id,
         nomeFantasia: r.nome,
@@ -323,15 +359,24 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   });
 
   const tecnicosQ = useQuery({
-    queryKey: ["tecnicos", empresaId],
+    queryKey: ["tecnicos", empresaId, tecnicosPage, tecnicosSearch],
     enabled,
     queryFn: async (): Promise<Tecnico[]> => {
       if (!empresaId) return [];
-      const { data, error } = await supabase
+      let query = supabase
         .from("tecnicos")
-        .select("*")
-        .eq("empresa_id", empresaId)
-        .order("created_at", { ascending: false });
+        .select("*", { count: "exact" })
+        .eq("empresa_id", empresaId);
+
+      if (tecnicosSearch) {
+        query = query.ilike("nome", `%${tecnicosSearch}%`);
+      }
+
+      const from = tecnicosPage * PAGE_SIZE;
+      const to = from + PAGE_SIZE - 1;
+      const { data, error, count } = await query
+        .order("created_at", { ascending: false })
+        .range(from, to);
 
       if (error) {
         console.error("🔥 ERRO SUPABASE TÉCNICOS:", error.message, error.hint, error.details);
@@ -339,6 +384,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       } else {
         console.log("✅ TOTAL DE TÉCNICOS RETORNADOS:", data?.length);
       }
+      setTecnicosTotal(count ?? 0);
       return ((data ?? []) as any[]).map((r) => ({
         id: r.id,
         nome: r.nome,
@@ -370,11 +416,50 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     queryFn: async (): Promise<OS[]> => {
       if (!empresaId) return [];
 
-      const { data, error } = await supabase
+      let query = supabase
         .from("ordens_servico")
-        .select("*, tecnico:tecnicos(id, nome, perfil, telefone, ativo)")
-        .eq("empresa_id", empresaId)
-        .order("created_at", { ascending: false });
+        .select("*, tecnico:tecnicos(id, nome, perfil, telefone, ativo)", { count: "exact" })
+        .eq("empresa_id", empresaId);
+
+      // Filtro de texto: busca por título
+      if (osSearchCliente) {
+        query = query.ilike("titulo", `%${osSearchCliente}%`);
+      }
+
+      // Filtro de técnico: busca pelo nome do técnico
+      if (osSearchTecnico) {
+        const { data: tecFilter } = await supabase
+          .from("tecnicos")
+          .select("id")
+          .eq("empresa_id", empresaId)
+          .eq("nome", osSearchTecnico);
+        const ids = (tecFilter ?? []).map((t) => t.id);
+        if (ids.length > 0) {
+          query = query.in("tecnico_id", ids);
+        } else {
+          query = query.in("tecnico_id", ["__none__"]);
+        }
+      }
+
+      // Filtro de status: converte o status UI para o valor do banco
+      if (osFilterStatus) {
+        const dbStatus = uiToDbStatus[osFilterStatus as keyof typeof uiToDbStatus] || osFilterStatus;
+        query = (query as any).eq("status", dbStatus);
+      }
+
+      // Filtro de mês/ano: filtra pelo campo data_agendamento
+      if (osMonth > 0 && osYear > 0) {
+        const startDate = `${osYear}-${String(osMonth).padStart(2, "0")}-01`;
+        const lastDay = new Date(osYear, osMonth, 0).getDate();
+        const endDate = `${osYear}-${String(osMonth).padStart(2, "0")}-${String(lastDay).padStart(2, "0")}`;
+        query = query.gte("data_agendamento", startDate).lte("data_agendamento", endDate);
+      }
+
+      const from = osPage * PAGE_SIZE;
+      const to = from + PAGE_SIZE - 1;
+      const { data, error, count } = await query
+        .order("created_at", { ascending: false })
+        .range(from, to);
 
       if (error) {
         console.error("🔥 ERRO SUPABASE OS:", error);
@@ -382,6 +467,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       } else {
         console.log("✅ TOTAL DE OS RETORNADAS:", data?.length);
       }
+      setOsTotal(count ?? 0);
 
       return ((data ?? []) as any[]).map((r) => ({
         id: r.id,
@@ -409,6 +495,36 @@ export function StoreProvider({ children }: { children: ReactNode }) {
               ativo: r.tecnico.ativo ?? true,
             }
           : undefined,
+      }));
+    },
+  });
+
+  // ---------------- Itens estoque ----------------
+  const itensQ = useQuery({
+    queryKey: ["itens_inventario", empresaId, estoquePage, estoqueSearch],
+    enabled,
+    queryFn: async (): Promise<Item[]> => {
+      let query = (supabase.from("itens_inventario" as any) as any)
+        .select("id, nome, codigo, quantidade, valor_unitario", { count: "exact" })
+        .eq("empresa_id", empresaId!);
+
+      if (estoqueSearch) {
+        query = query.or(`nome.ilike.%${estoqueSearch}%,codigo.ilike.%${estoqueSearch}%`);
+      }
+
+      const from = estoquePage * PAGE_SIZE;
+      const to = from + PAGE_SIZE - 1;
+      const { data, error, count } = await query
+        .order("nome")
+        .range(from, to);
+      if (error) throw error;
+      setEstoqueTotal(count ?? 0);
+      return ((data ?? []) as any[]).map((r) => ({
+        id: r.id,
+        nome: r.nome,
+        codigo: r.codigo ?? "",
+        quantidade: Number(r.quantidade ?? 0),
+        valor_unitario: Number(r.valor_unitario ?? 0),
       }));
     },
   });
@@ -554,26 +670,6 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["ordens_servico", empresaId] }),
     onError: (e: Error) => toast.error(e.message),
-  });
-
-  // ---------------- Itens estoque ----------------
-  const itensQ = useQuery({
-    queryKey: ["itens_inventario", empresaId],
-    enabled,
-    queryFn: async (): Promise<Item[]> => {
-      const { data, error } = await (supabase.from("itens_inventario" as any) as any)
-        .select("id, nome, codigo, quantidade, valor_unitario")
-        .eq("empresa_id", empresaId!)
-        .order("nome");
-      if (error) throw error;
-      return ((data ?? []) as any[]).map((r) => ({
-        id: r.id,
-        nome: r.nome,
-        codigo: r.codigo ?? "",
-        quantidade: Number(r.quantidade ?? 0),
-        valor_unitario: Number(r.valor_unitario ?? 0),
-      }));
-    },
   });
 
   const addItemM = useMutation({
@@ -752,6 +848,16 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     logout,
     clientes: clientesQ.data ?? [],
     loadingClientes: clientesQ.isLoading,
+    clientesPage,
+    clientesTotal,
+    clientesSearch,
+    setClientesSearch: (v: string) => {
+      setClientesPage(0);
+      setClientesSearch(v);
+    },
+    setClientesPage: (p: number) => {
+      setClientesPage(p);
+    },
     addCliente: async (c) => {
       return await addClienteM.mutateAsync(c);
     },
@@ -763,6 +869,16 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     },
     tecnicos: tecnicosQ.data ?? [],
     loadingTecnicos: tecnicosQ.isLoading,
+    tecnicosPage,
+    tecnicosTotal,
+    tecnicosSearch,
+    setTecnicosSearch: (v: string) => {
+      setTecnicosPage(0);
+      setTecnicosSearch(v);
+    },
+    setTecnicosPage: (p: number) => {
+      setTecnicosPage(p);
+    },
     addTecnico: async (t) => {
       return await addTecnicoM.mutateAsync(t);
     },
@@ -774,6 +890,16 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     },
     itens: itensQ.data ?? [],
     loadingItens: itensQ.isLoading,
+    estoquePage,
+    estoqueTotal,
+    estoqueSearch,
+    setEstoqueSearch: (v: string) => {
+      setEstoquePage(0);
+      setEstoqueSearch(v);
+    },
+    setEstoquePage: (p: number) => {
+      setEstoquePage(p);
+    },
     addItem: async (i) => {
       await addItemM.mutateAsync(i);
     },

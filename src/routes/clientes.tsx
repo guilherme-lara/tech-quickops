@@ -20,7 +20,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useStore } from "@/lib/mock-store";
+import { useStore, PAGE_SIZE } from "@/lib/mock-store";
 import {
   Plus,
   Mail,
@@ -31,6 +31,9 @@ import {
   MoreVertical,
   Edit2,
   Trash2,
+  ChevronLeft,
+  ChevronRight,
+  Search,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -38,6 +41,7 @@ import { EmptyState } from "@/components/EmptyState";
 import { validarDocumento, maskPhoneBR } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { Trash2 as TrashIcon, Plus as PlusIcon } from "lucide-react";
+import { FiltrosBarGlobal } from "@/components/FiltrosBarGlobal";
 
 export const Route = createFileRoute("/clientes")({
   component: () => (
@@ -50,7 +54,7 @@ export const Route = createFileRoute("/clientes")({
 type Analista = { id?: string; nome: string; whatsapp: string; _new?: boolean };
 
 function ClientesPage() {
-  const { clientes, addCliente, updateCliente, deleteCliente, loadingClientes } = useStore();
+  const { clientes, addCliente, updateCliente, deleteCliente, loadingClientes, clientesPage, clientesTotal, setClientesPage, clientesSearch, setClientesSearch } = useStore();
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState({
     id: "",
@@ -62,6 +66,8 @@ function ClientesPage() {
   const [analistas, setAnalistas] = useState<Analista[]>([]);
   const [loadingAnalistas, setLoadingAnalistas] = useState(false);
   const [viewMode, setViewMode] = useState<"list" | "card">("list");
+
+  const totalClientesPages = Math.max(1, Math.ceil(clientesTotal / PAGE_SIZE));
 
   const openNew = () => {
     setForm({ id: "", nomeFantasia: "", documento: "", telefone: "", email: "" });
@@ -193,7 +199,7 @@ function ClientesPage() {
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-5">
         <div>
           <h2 className="text-xl font-bold">Clientes</h2>
-          <p className="text-sm text-muted-foreground">{clientes.length} cadastrados</p>
+          <p className="text-sm text-muted-foreground">{clientesTotal} cadastrados</p>
         </div>
         <div className="flex items-center gap-3 w-full md:w-auto">
           <div className="flex items-center rounded-lg bg-muted/50 p-1">
@@ -336,6 +342,14 @@ function ClientesPage() {
         </div>
       </div>
 
+      <FiltrosBarGlobal
+        showSearch
+        searchValue={clientesSearch}
+        onSearchChange={setClientesSearch}
+        searchLabel="Cliente"
+        searchPlaceholder="Buscar por nome do cliente..."
+      />
+
       <Card className="p-0 overflow-hidden bg-transparent border-0 shadow-none md:bg-card md:border md:shadow-sm">
         {loadingClientes ? (
           <div className="p-5 space-y-3">
@@ -374,7 +388,6 @@ function ClientesPage() {
                         <th className="px-5 py-3"></th>
                       </tr>
                     </thead>
-                    {/* On mobile, we keep the table for 'list' mode but standard display, overflow handles width */}
                     <thead className="bg-muted/50 text-xs uppercase text-muted-foreground md:hidden">
                       <tr>
                         <th className="px-5 py-3 font-semibold">Nome Fantasia</th>
@@ -487,6 +500,39 @@ function ClientesPage() {
           </>
         )}
       </Card>
+
+      {/* Paginação Clientes */}
+      {clientes.length > 0 && viewMode === "list" && (
+        <div className="flex items-center justify-between mt-4 px-1">
+          <p className="text-xs text-muted-foreground">
+            Mostrando {clientesPage * PAGE_SIZE + 1}–{Math.min((clientesPage + 1) * PAGE_SIZE, clientesTotal)}{" "}
+            de {clientesTotal} clientes
+          </p>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setClientesPage(Math.max(0, clientesPage - 1))}
+              disabled={clientesPage === 0}
+              className="rounded-lg gap-1"
+            >
+              <ChevronLeft className="w-4 h-4" /> Anterior
+            </Button>
+            <span className="text-xs font-medium tabular-nums px-2">
+              Página {clientesPage + 1} de {totalClientesPages}
+            </span>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setClientesPage(Math.min(totalClientesPages - 1, clientesPage + 1))}
+              disabled={clientesPage >= totalClientesPages - 1}
+              className="rounded-lg gap-1"
+            >
+              Próxima <ChevronRight className="w-4 h-4" />
+            </Button>
+          </div>
+        </div>
+      )}
     </GestorLayout>
   );
 }

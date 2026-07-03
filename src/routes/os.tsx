@@ -19,7 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useStore, statusColor, OSStatus, OS, OS_PAGE_SIZE } from "@/lib/mock-store";
+import { useStore, statusColor, OSStatus, OS, PAGE_SIZE } from "@/lib/mock-store";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 import { formatDate, maskPhoneBR } from "@/lib/utils";
@@ -58,6 +58,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { RatGallery } from "@/components/RatGallery";
 import { MesAnoFilter } from "@/components/MesAnoFilter";
+import { FiltrosBarGlobal } from "@/components/FiltrosBarGlobal";
 
 type AnalistaOpt = { id: string; nome: string; whatsapp: string | null };
 
@@ -98,105 +99,6 @@ export const Route = createFileRoute("/os")({
 
 const colunas: OSStatus[] = ["Orçamento", "Aprovado", "Em Execução", "Concluído", "Cancelado"];
 
-function FiltrosBar() {
-  const {
-    osSearchCliente,
-    setOsSearchCliente,
-    osSearchTecnico,
-    setOsSearchTecnico,
-    osFilterStatus,
-    setOsFilterStatus,
-    tecnicos,
-  } = useStore();
-  const [searchTerm, setSearchTerm] = useState(osSearchCliente);
-
-  // Debounce: atualiza o store apenas após 500ms de inatividade
-  useEffect(() => {
-    const delayDebounceFn = setTimeout(() => {
-      setOsSearchCliente(searchTerm);
-    }, 500);
-    return () => clearTimeout(delayDebounceFn);
-  }, [searchTerm, setOsSearchCliente]);
-
-  const hasFilters = osSearchCliente || osSearchTecnico || osFilterStatus;
-
-  const limparFiltros = () => {
-    setOsSearchCliente("");
-    setOsSearchTecnico("");
-    setOsFilterStatus("");
-  };
-
-  return (
-    <div className="flex flex-col md:flex-row items-end gap-4 w-full mb-6">
-      <div className="flex flex-col gap-1.5 min-w-[180px] flex-1">
-        <Label className="text-xs text-muted-foreground">Cliente</Label>
-        <div className="relative">
-          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input
-            placeholder="Buscar por cliente..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-8 h-9 text-sm rounded-xl"
-          />
-          {searchTerm && (
-            <button
-              onClick={() => setSearchTerm("")}
-              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-            >
-              <X className="w-4 h-4" />
-            </button>
-          )}
-        </div>
-      </div>
-
-      <div className="flex flex-col gap-1.5 min-w-[180px] flex-1">
-        <Label className="text-xs text-muted-foreground">Técnico</Label>
-        <Select value={osSearchTecnico} onValueChange={setOsSearchTecnico}>
-          <SelectTrigger className="h-9 text-sm rounded-xl">
-            <SelectValue placeholder="Todos os técnicos" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value=" ">Todos os técnicos</SelectItem>
-            {tecnicos.map((t) => (
-              <SelectItem key={t.id} value={t.nome}>
-                {t.nome}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-
-      <div className="flex flex-col gap-1.5 min-w-[150px] flex-1">
-        <Label className="text-xs text-muted-foreground">Status</Label>
-        <Select value={osFilterStatus} onValueChange={setOsFilterStatus}>
-          <SelectTrigger className="h-9 text-sm rounded-xl">
-            <SelectValue placeholder="Todos os status" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value=" ">Todos os status</SelectItem>
-            {colunas.map((c) => (
-              <SelectItem key={c} value={c}>
-                {c}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-
-      {hasFilters && (
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={limparFiltros}
-          className="h-9 rounded-xl gap-1.5"
-        >
-          <X className="w-4 h-4" /> Limpar filtros
-        </Button>
-      )}
-    </div>
-  );
-}
-
 function OSPage() {
   const {
     os,
@@ -211,16 +113,21 @@ function OSPage() {
     osTotal,
     setOsPage,
     osSearchCliente,
+    setOsSearchCliente,
     osSearchTecnico,
+    setOsSearchTecnico,
     osFilterStatus,
+    setOsFilterStatus,
+    osMonth,
+    osYear,
   } = useStore();
   const queryClient = useQueryClient();
 
   // Dispara a busca quando os filtros ou página mudam
   useEffect(() => {
     queryClient.invalidateQueries({ queryKey: ["ordens_servico"] });
-  }, [osPage, osSearchCliente, osSearchTecnico, osFilterStatus, queryClient]);
-  const totalPages = Math.max(1, Math.ceil(osTotal / OS_PAGE_SIZE));
+  }, [osPage, osSearchCliente, osSearchTecnico, osFilterStatus, osMonth, osYear, queryClient]);
+  const totalPages = Math.max(1, Math.ceil(osTotal / PAGE_SIZE));
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<OS | null>(null);
   const [form, setForm] = useState({
@@ -857,6 +764,7 @@ function OSPage() {
         </div>
       </div>
 
+      {viewMode === "list" && <FiltrosBarGlobal showCliente showTecnico showStatus />}
       {loadingOS ? (
         viewMode === "card" ? (
           <div className="flex md:grid md:grid-cols-2 xl:grid-cols-5 gap-4 overflow-x-auto pb-4 snap-x snap-mandatory w-full">
@@ -884,7 +792,6 @@ function OSPage() {
         )
       ) : viewMode === "list" ? (
         <>
-          <FiltrosBar />
           {os.length === 0 ? (
             <EmptyState
               icon={ClipboardList}
@@ -1066,7 +973,7 @@ function OSPage() {
       {os.length > 0 && viewMode === "list" && (
         <div className="flex items-center justify-between mt-4 px-1">
           <p className="text-xs text-muted-foreground">
-            Mostrando {osPage * OS_PAGE_SIZE + 1}–{Math.min((osPage + 1) * OS_PAGE_SIZE, osTotal)}{" "}
+            Mostrando {osPage * PAGE_SIZE + 1}–{Math.min((osPage + 1) * PAGE_SIZE, osTotal)}{" "}
             de {osTotal} OS
           </p>
           <div className="flex items-center gap-2">

@@ -55,100 +55,208 @@ interface LogEntry {
 
 function Dashboard() {
   const { profile } = useAuth();
-  const { os, clientes, tecnicos, loadingOS, loadingClientes } = useStore();
+  const { clientes, tecnicos, loadingOS, loadingClientes, osMonth, osYear } = useStore();
 
-  // Cards estratégicos
-  const faturamentoPrevisto = os
-    .filter((o) => ["Aprovado", "Em Execução"].includes(o.status))
-    .reduce((s, o) => s + o.valor, 0);
+  // Gera dataInicio/dataFim com base no filtro de mês/ano
+  const hasMonthFilter = osMonth > 0 && osYear > 0;
+  const dataInicio = hasMonthFilter
+    ? `${osYear}-${String(osMonth).padStart(2, "0")}-01`
+    : null;
+  const dataFim = hasMonthFilter
+    ? (() => {
+        const lastDay = new Date(osYear, osMonth, 0).getDate();
+        return `${osYear}-${String(osMonth).padStart(2, "0")}-${String(lastDay).padStart(2, "0")}`;
+      })()
+    : null;
 
-  const receitaMes = os
-    .filter((o) => o.status === "Concluído")
-    .reduce((s, o) => s + o.valor, 0);
-
-  const hoje = new Date();
-  const pendenciasPagamento = os.filter((o) => {
-    if (!o.data_agendamento || o.status !== "Concluído") return false;
-    const dataVencimento = new Date(o.data_agendamento);
-    return dataVencimento < hoje;
-  }).length;
-
-  const abertas = os.filter((o) =>
-    ["Orçamento", "Aprovado", "Em Execução"].includes(o.status),
-  ).length;
-  const concluidas = os.filter((o) => o.status === "Concluído").length;
-  const emCampo = os.filter((o) => o.status === "Em Execução").length;
-
-  const contagemTotalQ = useQuery({
-    queryKey: ["ordens_servico_total", profile?.empresa_id],
+  // ============================================================
+  // KPIs Financeiros — consulta direta no Supabase (sem depender do store paginado)
+  // ============================================================
+  const kpisFinanceirosQ = useQuery({
+    queryKey: ["kpis_financeiros", profile?.empresa_id, osMonth, osYear],
     enabled: !!profile && profile.role !== "tecnico",
-    queryFn: async (): Promise<{ total: number; semTecnico: number }> => {
-      // Contagem total
-      const { count: total, error: errTotal } = await (supabase
-        .from("ordens_servico") as any)
-        .select("id", { count: "exact", head: true })
-        .eq("empresa_id", profile?.empresa_id);
-      if (errTotal) throw errTotal;
+    queryFn: async (): Promise<{
+      faturamentoPrevisto: number;
+      receitaMes: number;
+      pendenciasPagamento: number;
+      abertas: number;
+      concluidas: number;
+      emCampo: number;
+    }> => {
+      const eid = profile?.empresa_id;
+      if (!eid) return { faturamentoPrevisto: 0, receitaMes: 0, pendenciasPagamento: 0, abertas: 0, concluidas: 0, emCampo: 0 };
 
-      // Contagem de OSs sem técnico
-      const { count: semTecnico, error: errSemTecnico } = await (supabase
-        .from("ordens_servico") as any)
-        .select("id", { count: "exact", head: true })
-        .eq("empresa_id", profile?.empresa_id)
-        .is("tecnico_id", null);
-      if (errSemTecnico) throw errSemTecnico;
+      // Busca todas as OS da empresa (sem paginação, pois é para KPIs)
+      let query = supabase
+        .from("ordens_servico")
+        .select("status, valor, data_agendamento")
+        .eq("empresa_id", eid);
 
-      return {
-        total: total ?? 0,
-        semTecnico: semTecnico ?? 0,
-      };
+      if (dataInicio && dataFim) {
+        query = query.gte("data_agendamento", dataInicio).lte("data_agendamento", dataFim);
+      }
+
+      const { data, error } = await query;
+      if (error) throw error;
+
+      const rows = (data ?? []) as any[];
+      const hoje = new Date();
+
+      const faturamentoPrevisto = rows
+        .filter((r: any) => ["aprovado", "em_andamento"].includes(r.status))
+        .reduce((s: number, r: any) => s + Number(r.valor ?? 0), 0);
+
+      const receitaMes = rows
+        .filter((r: any) => r.status === "concluido")
+        .reduce((s: number, r: any) => s + Number(r.valor ?? 0), 0);
+
+      const pendenciasPagamento = rows.filter((r: any) => {
+        if (!r.data_agendamento || r.status !== "concluido") return false;
+        return new Date(r.data_agendamento) < hoje;
+      }).length;
+
+      const abertas = rows.filter((r: any) =>
+        ["pendente", "aprovado", "em_andamento"].includes(r.status),
+      ).length;
+
+      const concluidas = rows.filter((r: any) => r.status === "concluido").length;
+
+      const emCampo = rows.filter((r: any) => r.status === "em_andamento").length;
+
+      return { faturamentoPrevisto, receitaMes, pendenciasPagamento, abertas, concluidas, emCampo };
     },
   });
 
+  const kpis = kpisFinanceirosQ.data ?? {
+    faturamentoPrevisto: 0,
+    receitaMes: 0,
+    pendenciasPagamento: 0,
+    abertas: 0,
+    concluidas: 0,
+    emCampo: 0,
+  };
+
+  // ============================================================
+  // Contagem total de OS (inclui OS sem técnico)
+  // ============================================================
+  const contagemTotalQ = useQuery({
+    queryKey: ["ordens_servico_total", profile?.empresa_id, osMonth, osYear],
+    enabled: !!profile && profile.role !== "tecnico",
+    queryFn: async (): Promise<{ total: number; semTecnico: number }> => {
+      const eid = profile?.empresa_id;
+      if (!eid) return { total: 0, semTecnico: 0 };
+
+      let qTotal = (supabase.from("ordens_servico") as any)
+        .select("id", { count: "exact", head: true })
+        .eq("empresa_id", eid);
+
+      let qSemTec = (supabase.from("ordens_servico") as any)
+        .select("id", { count: "exact", head: true })
+        .eq("empresa_id", eid)
+        .is("tecnico_id", null);
+
+      if (dataInicio && dataFim) {
+        qTotal = qTotal.gte("data_agendamento", dataInicio).lte("data_agendamento", dataFim);
+        qSemTec = qSemTec.gte("data_agendamento", dataInicio).lte("data_agendamento", dataFim);
+      }
+
+      const { count: total, error: errTotal } = await qTotal;
+      if (errTotal) throw errTotal;
+
+      const { count: semTecnico, error: errSemTecnico } = await qSemTec;
+      if (errSemTecnico) throw errSemTecnico;
+
+      return { total: total ?? 0, semTecnico: semTecnico ?? 0 };
+    },
+  });
+
+  // ============================================================
+  // OS ativas para técnico logado
+  // ============================================================
   const osAtivasQ = useQuery({
-    queryKey: ["ordens_servico_ativas_tecnico", profile?.id],
+    queryKey: ["ordens_servico_ativas_tecnico", profile?.id, osMonth, osYear],
     enabled: !!profile && profile.role === "tecnico",
     queryFn: async (): Promise<number> => {
-      const { count, error } = await (supabase
-        .from("ordens_servico") as any)
+      let q = (supabase.from("ordens_servico") as any)
         .select("id", { count: "exact", head: true })
         .eq("tecnico_id", profile?.id || "")
         .eq("empresa_id", profile?.empresa_id || "")
         .neq("status", "Concluído")
         .neq("status", "Cancelado");
+
+      if (dataInicio && dataFim) {
+        q = q.gte("data_agendamento", dataInicio).lte("data_agendamento", dataFim);
+      }
+
+      const { count, error } = await q;
       if (error) throw error;
       return count ?? 0;
     },
   });
 
-  const osAtivasCount = profile?.role === "tecnico" ? (osAtivasQ.data ?? 0) : emCampo;
+  const osAtivasCount = profile?.role === "tecnico" ? (osAtivasQ.data ?? 0) : kpis.emCampo;
 
+  // ============================================================
+  // Produtividade — busca OS brutas do período e agrupa no frontend
+  // ============================================================
   const produtividadeQ = useQuery({
-    queryKey: ["vw_produtividade_tecnico", profile?.empresa_id],
+    queryKey: ["produtividade_tecnico", profile?.empresa_id, osMonth, osYear],
     enabled: !!profile && profile.role !== "tecnico",
     queryFn: async (): Promise<ProdRow[]> => {
-      const { data, error } = await (supabase.from("vw_produtividade_tecnico" as any) as any)
-        .select("*")
-        .order("faturamento", { ascending: false });
+      const eid = profile?.empresa_id;
+      if (!eid) return [];
+
+      let q = supabase
+        .from("ordens_servico")
+        .select("tecnico_id, status, valor, custo_viagem, tecnico:tecnicos(id, nome)")
+        .eq("empresa_id", eid);
+
+      if (dataInicio && dataFim) {
+        q = q.gte("data_agendamento", dataInicio).lte("data_agendamento", dataFim);
+      }
+
+      const { data, error } = await q;
       if (error) throw error;
-      return ((data ?? []) as any[]).map((r) => ({
-        tecnico_id: r.tecnico_id,
-        nome: r.nome ?? "—",
-        os_concluidas: Number(r.os_concluidas ?? 0),
-        os_total: Number(r.os_total ?? 0),
-        faturamento: Number(r.faturamento ?? 0),
-        custos_viagem: Number(r.custos_viagem ?? 0),
-        custos_materiais: Number(r.custos_materiais ?? 0),
-        comissao_pagar: Number(r.comissao_pagar ?? 0),
-        km_rodado: Number(r.km_rodado ?? 0),
-        custo_pedagio: Number(r.custo_pedagio ?? 0),
-      }));
+
+      const rows = (data ?? []) as any[];
+      const mapa = new Map<string, ProdRow>();
+
+      for (const r of rows) {
+        if (!r.tecnico_id) continue;
+        const nome = r.tecnico?.nome ?? "—";
+        if (!mapa.has(r.tecnico_id)) {
+          mapa.set(r.tecnico_id, {
+            tecnico_id: r.tecnico_id,
+            nome,
+            os_concluidas: 0,
+            os_total: 0,
+            faturamento: 0,
+            custos_viagem: 0,
+            custos_materiais: 0,
+            comissao_pagar: 0,
+            km_rodado: 0,
+            custo_pedagio: 0,
+          });
+        }
+        const row = mapa.get(r.tecnico_id)!;
+        row.os_total++;
+        if (r.status === "concluido") {
+          row.os_concluidas++;
+          row.faturamento += Number(r.valor ?? 0);
+          row.custos_viagem += Number(r.custo_viagem ?? 0);
+        }
+      }
+
+      return Array.from(mapa.values()).sort((a, b) => b.faturamento - a.faturamento);
     },
   });
 
+  // ============================================================
+  // Logs Administrativos
+  // ============================================================
   const logsQ = useQuery({
-    queryKey: ["logs_administrativos", profile?.empresa_id],
-    enabled: false, // Desabilitado até criarmos a tabela
+    queryKey: ["logs_administrativos", profile?.empresa_id, osMonth, osYear],
+    enabled: !!profile && profile.role !== "tecnico",
     queryFn: async (): Promise<LogEntry[]> => {
       const { data, error } = await (supabase.from("logs_administrativos" as any) as any)
         .select("*")
@@ -182,7 +290,11 @@ function Dashboard() {
             <span className="text-xs font-medium text-muted-foreground">Faturamento Previsto</span>
           </div>
           <div className="text-2xl font-bold">
-            R$ {faturamentoPrevisto.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+            {kpisFinanceirosQ.isLoading ? (
+              <Skeleton className="h-8 w-28" />
+            ) : (
+              `R$ ${kpis.faturamentoPrevisto.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`
+            )}
           </div>
           <p className="text-xs text-muted-foreground mt-1">OSs Aprovadas + Em Execução</p>
         </div>
@@ -193,7 +305,11 @@ function Dashboard() {
             <span className="text-xs font-medium text-muted-foreground">Receita do Mês</span>
           </div>
           <div className="text-2xl font-bold">
-            R$ {receitaMes.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+            {kpisFinanceirosQ.isLoading ? (
+              <Skeleton className="h-8 w-28" />
+            ) : (
+              `R$ ${kpis.receitaMes.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`
+            )}
           </div>
           <p className="text-xs text-muted-foreground mt-1">OSs Concluídas</p>
         </div>
@@ -203,7 +319,13 @@ function Dashboard() {
             <AlertCircle className="w-4 h-4 text-warning" />
             <span className="text-xs font-medium text-muted-foreground">Pendências de Pagamento</span>
           </div>
-          <div className="text-2xl font-bold">{pendenciasPagamento}</div>
+          <div className="text-2xl font-bold">
+            {kpisFinanceirosQ.isLoading ? (
+              <Skeleton className="h-8 w-16" />
+            ) : (
+              kpis.pendenciasPagamento
+            )}
+          </div>
           <p className="text-xs text-muted-foreground mt-1">OSs com data vencida</p>
         </div>
       </div>
@@ -212,52 +334,52 @@ function Dashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Coluna Esquerda: KPIs + Atividades Recentes */}
         <div className="lg:col-span-2 space-y-6">
-      {/* Aviso de OS Sem Técnico */}
-      {contagemTotalQ.data && contagemTotalQ.data.semTecnico > 0 && (
-        <div className="rounded-2xl bg-amber-50 border border-amber-200 p-4 mb-4 flex items-center gap-3">
-          <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0" />
-          <div className="flex-1">
-            <p className="text-sm font-semibold text-amber-900">
-              {contagemTotalQ.data.semTecnico} OS(s) sem técnico atribuído
-            </p>
-            <p className="text-xs text-amber-700">
-              Verifique as importações ou atribua técnicos manualmente
-            </p>
-          </div>
-        </div>
-      )}
+          {/* Aviso de OS Sem Técnico */}
+          {contagemTotalQ.data && contagemTotalQ.data.semTecnico > 0 && (
+            <div className="rounded-2xl bg-amber-50 border border-amber-200 p-4 mb-4 flex items-center gap-3">
+              <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0" />
+              <div className="flex-1">
+                <p className="text-sm font-semibold text-amber-900">
+                  {contagemTotalQ.data.semTecnico} OS(s) sem técnico atribuído
+                </p>
+                <p className="text-xs text-amber-700">
+                  Verifique as importações ou atribua técnicos manualmente
+                </p>
+              </div>
+            </div>
+          )}
 
-      {/* KPIs Grid */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <KpiCard
-          icon={ClipboardList}
-          label="Total de OS"
-          value={contagemTotalQ.data?.total ?? 0}
-          trend={contagemTotalQ.isLoading ? "..." : "total"}
-          tone="info"
-        />
-        <KpiCard
-          icon={CheckCircle2}
-          label="Concluídas"
-          value={concluidas}
-          trend="+8%"
-          tone="success"
-        />
-        <KpiCard
-          icon={Users}
-          label="Clientes Ativos"
-          value={clientes.length}
-          trend="+3"
-          tone="violet"
-        />
-        <KpiCard
-          icon={Activity}
-          label={(profile?.role as string) === "tecnico" ? "OS Ativas" : "Em Campo Agora"}
-          value={osAtivasCount}
-          trend={(profile?.role as string) === "tecnico" ? "Suas atribuições" : `${tecnicos.filter((t) => t.ativo).length} técnicos`}
-          tone="warning"
-        />
-      </div>
+          {/* KPIs Grid */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <KpiCard
+              icon={ClipboardList}
+              label="Total de OS"
+              value={contagemTotalQ.data?.total ?? 0}
+              trend={contagemTotalQ.isLoading ? "..." : "total"}
+              tone="info"
+            />
+            <KpiCard
+              icon={CheckCircle2}
+              label="Concluídas"
+              value={kpis.concluidas}
+              trend="período"
+              tone="success"
+            />
+            <KpiCard
+              icon={Users}
+              label="Clientes Ativos"
+              value={clientes.length}
+              trend="+3"
+              tone="violet"
+            />
+            <KpiCard
+              icon={Activity}
+              label={(profile?.role as string) === "tecnico" ? "OS Ativas" : "Em Campo Agora"}
+              value={osAtivasCount}
+              trend={(profile?.role as string) === "tecnico" ? "Suas atribuições" : `${tecnicos.filter((t) => t.ativo).length} técnicos`}
+              tone="warning"
+            />
+          </div>
 
           {/* Atividades Recentes */}
           <div className="rounded-3xl bg-card p-4 md:p-6 shadow-[var(--shadow-card)] border border-border/60">
@@ -288,7 +410,7 @@ function Dashboard() {
                   ))}
                 </div>
               )}
-              {!loadingOS && os.length === 0 && (
+              {!loadingOS && (
                 <div className="text-sm text-muted-foreground text-center py-10">
                   Nenhuma OS ainda. Crie a primeira em{" "}
                   <Link to="/os" className="text-primary font-semibold">
@@ -297,34 +419,6 @@ function Dashboard() {
                   .
                 </div>
               )}
-              {!loadingOS &&
-                os.slice(0, 6).map((o) => {
-                  const cliente = clientes.find((c) => c.id === o.clienteId);
-                  const suffix = (o.numero?.split("-")[1] ?? "").slice(-2) || "OS";
-                  return (
-                    <div
-                      key={o.id}
-                      className="flex items-center justify-between p-3 rounded-2xl hover:bg-muted/60 transition-all duration-300 group"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-accent to-muted flex items-center justify-center text-xs font-bold text-primary">
-                          {suffix}
-                        </div>
-                        <div>
-                          <div className="font-semibold text-sm">{o.titulo}</div>
-                          <div className="text-xs text-muted-foreground">
-                            {cliente?.nomeFantasia ?? "—"} · {o.numero}
-                          </div>
-                        </div>
-                      </div>
-                      <span
-                        className={`text-[10px] px-2.5 py-1 rounded-full font-semibold uppercase tracking-wider ${statusColor[o.status]}`}
-                      >
-                        {o.status}
-                      </span>
-                    </div>
-                  );
-                })}
             </div>
           </div>
         </div>
