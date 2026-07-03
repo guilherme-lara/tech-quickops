@@ -416,14 +416,19 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   // ---------------- Mutations ----------------
   const addClienteM = useMutation({
     mutationFn: async (c: Omit<Cliente, "id">) => {
-      const { error } = await supabase.from("clientes").insert({
-        empresa_id: empresaId!,
-        nome: c.nomeFantasia,
-        documento: c.documento,
-        telefone: c.telefone,
-        email: c.email,
-      });
+      const { data, error } = await supabase
+        .from("clientes")
+        .insert({
+          empresa_id: empresaId!,
+          nome: c.nomeFantasia,
+          documento: c.documento,
+          telefone: c.telefone,
+          email: c.email,
+        })
+        .select("id")
+        .single();
       if (error) throw error;
+      return data.id as string;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["clientes", empresaId] }),
     onError: (e: Error) => toast.error(e.message),
