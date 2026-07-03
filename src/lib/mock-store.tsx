@@ -17,6 +17,7 @@ export interface Cliente {
   email: string;
   cidade?: string;
   base_km?: number;
+  valor_por_km?: number;
 }
 export type TipoComissao = "fixo" | "porcentagem";
 export interface Tecnico {
@@ -360,7 +361,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     queryFn: async (): Promise<Cliente[]> => {
       let query = supabase
         .from("clientes")
-        .select("id, nome, documento, telefone, email, cidade, base_km", { count: "exact" })
+        .select("id, nome, documento, telefone, email, cidade, base_km, valor_por_km", { count: "exact" })
         .eq("empresa_id", empresaId!);
 
       if (clientesSearch) {
@@ -382,6 +383,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         email: r.email ?? "",
         cidade: r.cidade ?? "",
         base_km: Number(r.base_km ?? 0),
+        valor_por_km: Number(r.valor_por_km ?? 0),
       }));
     },
   });
@@ -583,6 +585,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
           email: c.email,
           cidade: c.cidade ?? null,
           base_km: c.base_km != null ? Number(c.base_km) : null,
+          valor_por_km: c.valor_por_km != null ? Number(c.valor_por_km) : null,
         })
         .select("id")
         .single();
@@ -602,6 +605,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       if (patch.email !== undefined) dbPatch.email = patch.email;
       if (patch.cidade !== undefined) dbPatch.cidade = patch.cidade ?? null;
       if (patch.base_km !== undefined) dbPatch.base_km = patch.base_km != null ? Number(patch.base_km) : null;
+      if (patch.valor_por_km !== undefined) dbPatch.valor_por_km = patch.valor_por_km != null ? Number(patch.valor_por_km) : null;
       const { error } = await supabase
         .from("clientes")
         .update(dbPatch as any)

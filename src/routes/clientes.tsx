@@ -73,6 +73,7 @@ function ClientesPage() {
     email: "",
     cidade: "",
     base_km: "",
+    valor_por_km: "",
   });
   const [analistas, setAnalistas] = useState<Analista[]>([]);
   const [loadingAnalistas, setLoadingAnalistas] = useState(false);
@@ -81,7 +82,7 @@ function ClientesPage() {
   const totalClientesPages = Math.max(1, Math.ceil(clientesTotal / PAGE_SIZE));
 
   const openNew = () => {
-    setForm({ id: "", nomeFantasia: "", documento: "", telefone: "", email: "", cidade: "", base_km: "" });
+    setForm({ id: "", nomeFantasia: "", documento: "", telefone: "", email: "", cidade: "", base_km: "", valor_por_km: "" });
     setAnalistas([]);
     setOpen(true);
   };
@@ -95,6 +96,7 @@ function ClientesPage() {
       email: c.email,
       cidade: c.cidade ?? "",
       base_km: c.base_km != null ? String(c.base_km) : "",
+      valor_por_km: c.valor_por_km != null ? String(c.valor_por_km) : "",
     });
     setAnalistas([]);
     setOpen(true);
@@ -199,6 +201,7 @@ function ClientesPage() {
       const payload = {
         ...form,
         base_km: form.base_km ? Number(form.base_km) : undefined,
+        valor_por_km: form.valor_por_km ? Number(form.valor_por_km) : undefined,
       };
       let clienteId = form.id;
       if (form.id) {
@@ -221,7 +224,7 @@ function ClientesPage() {
       }
       toast.success(form.id ? "Cliente atualizado!" : "Cliente cadastrado!");
       setOpen(false);
-      setForm({ id: "", nomeFantasia: "", documento: "", telefone: "", email: "", cidade: "", base_km: "" });
+      setForm({ id: "", nomeFantasia: "", documento: "", telefone: "", email: "", cidade: "", base_km: "", valor_por_km: "" });
       setAnalistas([]);
     } catch (e: any) {
       toast.error(e.message || "Erro ao salvar cliente");
@@ -313,6 +316,15 @@ function ClientesPage() {
                       step="0.01"
                       value={form.base_km}
                       onChange={(e) => setForm({ ...form, base_km: e.target.value })}
+                    />
+                  </div>
+                  <div>
+                    <Label>Valor por KM (R$)</Label>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      value={form.valor_por_km}
+                      onChange={(e) => setForm({ ...form, valor_por_km: e.target.value })}
                     />
                   </div>
                 </div>

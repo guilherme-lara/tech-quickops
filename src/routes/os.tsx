@@ -443,7 +443,17 @@ function OSPage() {
                     </div>
                     <Select
                       value={form.clienteId}
-                      onValueChange={(v) => setForm({ ...form, clienteId: v })}
+                      onValueChange={(v) => {
+                        const cliente = clientes.find(c => c.id === v);
+                        const baseKm = cliente?.base_km || 0;
+                        const valorPorKm = cliente?.valor_por_km || 0;
+                        setForm({ 
+                          ...form, 
+                          clienteId: v,
+                          km_viagem: baseKm ? String(baseKm) : "",
+                          custo_viagem: (baseKm && valorPorKm) ? String(baseKm * valorPorKm) : ""
+                        });
+                      }}
                     >
                       <SelectTrigger className="h-10">
                         <SelectValue placeholder="Selecione..." />
@@ -552,7 +562,15 @@ function OSPage() {
                       type="number"
                       step="0.01"
                       value={form.km_viagem}
-                      onChange={(e) => setForm({ ...form, km_viagem: e.target.value })}
+                      onChange={(e) => {
+                        const cliente = clientes.find(c => c.id === form.clienteId);
+                        const valorPorKm = cliente?.valor_por_km || 0;
+                        setForm({ 
+                          ...form, 
+                          km_viagem: e.target.value,
+                          custo_viagem: valorPorKm ? String(Number(e.target.value) * valorPorKm) : form.custo_viagem
+                        });
+                      }}
                       placeholder="0"
                       className="h-10"
                     />
@@ -1253,7 +1271,7 @@ function EditOSDialog({
 }: {
   mode: "view" | "edit";
   ordem: OS | null;
-  clientes: { id: string; nomeFantasia: string }[];
+  clientes: { id: string; nomeFantasia: string; base_km?: number; valor_por_km?: number }[];
   tecnicos: { id: string; nome: string }[];
   addCliente: (c: any) => Promise<string>;
   addTecnico: (t: any) => Promise<string>;
@@ -1445,7 +1463,17 @@ function EditOSDialog({
               <Select
                 disabled={isView}
                 value={form.clienteId}
-                onValueChange={(v) => setForm({ ...form, clienteId: v })}
+                onValueChange={(v) => {
+                  const cliente = clientes.find(c => c.id === v);
+                  const baseKm = cliente?.base_km || 0;
+                  const valorPorKm = cliente?.valor_por_km || 0;
+                  setForm({ 
+                    ...form, 
+                    clienteId: v,
+                    km_viagem: baseKm ? String(baseKm) : "",
+                    custo_viagem: (baseKm && valorPorKm) ? String(baseKm * valorPorKm) : ""
+                  });
+                }}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Selecione..." />
@@ -1542,7 +1570,15 @@ function EditOSDialog({
                 type="number"
                 step="0.01"
                 value={form.km_viagem}
-                onChange={(e) => setForm({ ...form, km_viagem: e.target.value })}
+                onChange={(e) => {
+                  const cliente = clientes.find(c => c.id === form.clienteId);
+                  const valorPorKm = cliente?.valor_por_km || 0;
+                  setForm({ 
+                    ...form, 
+                    km_viagem: e.target.value,
+                    custo_viagem: valorPorKm ? String(Number(e.target.value) * valorPorKm) : form.custo_viagem
+                  });
+                }}
               />
             </div>
             <div>
