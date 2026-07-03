@@ -1270,6 +1270,7 @@ function EditOSDialog({
     custo_viagem: "",
     km_viagem: "",
     status: "Orçamento" as OSStatus,
+    pendencias_detalhes: "",
   });
   const [descricaoProblema, setDescricaoProblema] = useState("");
   const [dataAgendamento, setDataAgendamento] = useState("");
@@ -1295,7 +1296,7 @@ function EditOSDialog({
 
   useEffect(() => {
     if (ordem) {
-      setForm({
+       setForm({
         titulo: ordem.titulo ?? "",
         clienteId: ordem.clienteId ?? "",
         tecnicoId: ordem.tecnicoId ?? "",
@@ -1304,6 +1305,7 @@ function EditOSDialog({
         custo_viagem: String(ordem.custo_viagem ?? 0),
         km_viagem: String(ordem.km_viagem ?? 0),
         status: ordem.status,
+        pendencias_detalhes: ordem.pendencias_detalhes ?? "",
       });
       setDescricaoProblema(ordem?.descricao_problema || "");
       setDataAgendamento(ordem?.data_agendamento || "");
@@ -1336,6 +1338,7 @@ function EditOSDialog({
       descricao_problema: descricaoProblema,
       status: form.status,
       dados_adicionais: dadosExtras,
+      pendencias_detalhes: form.pendencias_detalhes || null as any,
     };
 
     setSaving(true);
@@ -1627,6 +1630,15 @@ function EditOSDialog({
                 onChange={(e) => setDescricaoProblema(e.target.value)}
                 placeholder="Descreva o problema ou serviço a ser executado..."
                 className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              />
+            </div>
+            <div>
+              <Label>Pendências (Motivo de Travamento)</Label>
+              <Input
+                disabled={isView}
+                value={form.pendencias_detalhes}
+                onChange={(e) => setForm({ ...form, pendencias_detalhes: e.target.value })}
+                placeholder="Ex: Aguardando peça X, falta assinatura. Deixe vazio se não houver pendência."
               />
             </div>
           </div>

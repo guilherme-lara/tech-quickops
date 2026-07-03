@@ -79,6 +79,7 @@ export interface OS {
     telefone: string;
     ativo: boolean;
   };
+  pendencias_detalhes?: string;
 }
 
 export const PAGE_SIZE = 10;
@@ -524,6 +525,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
           despesas: parseDespesas(r.despesas),
           rat: ratLocal[r.id] ?? { itens: [], evidencias: [] },
           dados_adicionais: r.dados_adicionais ?? {},
+          pendencias_detalhes: r.pendencias_detalhes ?? "",
           tecnico: r.tecnico
             ? {
                 id: r.tecnico.id,
@@ -587,7 +589,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       if (error) throw error;
       return data.id as string;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["clientes", empresaId] }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["clientes"] }),
     onError: (e: Error) => toast.error(e.message),
   });
 
@@ -606,7 +608,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         .eq("id", id);
       if (error) throw error;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["clientes", empresaId] }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["clientes"] }),
     onError: (e: Error) => toast.error(e.message),
   });
 
@@ -615,7 +617,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       const { error } = await supabase.from("clientes").delete().eq("id", id);
       if (error) throw error;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["clientes", empresaId] }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["clientes"] }),
     onError: (e: Error) => toast.error(e.message),
   });
 
@@ -638,7 +640,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       if (error) throw error;
       return (data as any).id as string;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["tecnicos", empresaId] }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["tecnicos"] }),
     onError: (e: Error) => toast.error(e.message),
   });
 
@@ -657,7 +659,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       const { error } = await (supabase.from("tecnicos") as any).update(dbPatch).eq("id", id);
       if (error) throw error;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["tecnicos", empresaId] }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["tecnicos"] }),
     onError: (e: Error) => toast.error(e.message),
   });
 
@@ -666,7 +668,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       const { error } = await supabase.from("tecnicos").delete().eq("id", id);
       if (error) throw error;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["tecnicos", empresaId] }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["tecnicos"] }),
     onError: (e: Error) => toast.error(e.message),
   });
 
@@ -687,10 +689,11 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         km_viagem: o.km_viagem ?? 0,
         despesas: o.despesas ?? [],
         dados_adicionais: o.dados_adicionais ?? {},
+        pendencias_detalhes: o.pendencias_detalhes ?? null,
       });
       if (error) throw error;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["ordens_servico", empresaId] }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["ordens_servico"] }),
     onError: (e: Error) => toast.error(e.message),
   });
 
@@ -712,10 +715,12 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       if (patch.data_agendamento !== undefined) dbPatch.data_agendamento = patch.data_agendamento;
       if (patch.horario_atendimento !== undefined)
         dbPatch.horario_atendimento = patch.horario_atendimento;
+      if (patch.pendencias_detalhes !== undefined)
+        dbPatch.pendencias_detalhes = patch.pendencias_detalhes;
       const { error } = await (supabase.from("ordens_servico") as any).update(dbPatch).eq("id", id);
       if (error) throw error;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["ordens_servico", empresaId] }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["ordens_servico"] }),
     onError: (e: Error) => toast.error(e.message),
   });
 
@@ -730,7 +735,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       });
       if (error) throw error;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["itens_inventario", empresaId] }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["itens_inventario"] }),
     onError: (e: Error) => toast.error(e.message),
   });
 
@@ -746,7 +751,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         .eq("id", id);
       if (error) throw error;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["itens_inventario", empresaId] }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["itens_inventario"] }),
     onError: (e: Error) => toast.error(e.message),
   });
 
@@ -757,7 +762,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         .eq("id", id);
       if (error) throw error;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["itens_inventario", empresaId] }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["itens_inventario"] }),
     onError: (e: Error) => toast.error(e.message),
   });
 

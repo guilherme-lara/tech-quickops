@@ -204,6 +204,54 @@ function PriorityAlerts({ ordens, isLoading }: { ordens: any[]; isLoading: boole
   );
 }
 
+function PendenciasAlerts({ ordens, isLoading }: { ordens: any[]; isLoading: boolean }) {
+  if (isLoading) {
+    return <Skeleton className="h-24 w-full rounded-2xl mb-6" />;
+  }
+
+  const pendentes = ordens.filter(
+    (o) => o.pendencias_detalhes && o.pendencias_detalhes.trim() !== ""
+  );
+
+  if (pendentes.length === 0) return null;
+
+  return (
+    <div className="space-y-3 mb-6">
+      <div className="text-[10px] uppercase font-bold tracking-wider text-destructive flex items-center gap-1.5 animate-pulse">
+        <span className="w-2 h-2 rounded-full bg-destructive inline-block animate-ping"></span>
+        Alerta de Pendências (OS Bloqueadas / Atenção Requerida)
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {pendentes.map((o) => (
+          <div
+            key={o.id}
+            className="rounded-3xl bg-red-500/5 dark:bg-red-500/10 border-2 border-red-500/80 p-4 shadow-[0_4px_20px_-4px_rgba(239,68,68,0.15)] flex flex-col justify-between"
+          >
+            <div className="flex items-start justify-between mb-2">
+              <div className="min-w-0">
+                <span className="text-[10px] font-bold text-red-500 tracking-wider">
+                  {o.numero}
+                </span>
+                <h4 className="font-bold text-sm text-foreground truncate mt-0.5">{o.titulo}</h4>
+                <p className="text-muted-foreground text-[10px]">
+                  Cliente: {o.clientes?.nome || "Não informado"}
+                </p>
+              </div>
+              <span className="text-[9px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-red-500 text-white dark:bg-red-950 dark:text-red-300">
+                {o.status}
+              </span>
+            </div>
+            <div className="mt-2 bg-red-500/10 dark:bg-red-500/20 p-2.5 rounded-xl border border-red-500/20 text-xs font-semibold text-red-700 dark:text-red-300 flex items-start gap-2">
+              <span className="font-bold shrink-0 text-red-600 dark:text-red-400">Pendente:</span>
+              <span className="italic leading-normal">{o.pendencias_detalhes}</span>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function Dashboard() {
   const { profile } = useAuth();
   const { clientes, tecnicos, loadingOS, loadingClientes, osMonth, osYear, os } = useStore();
@@ -372,6 +420,21 @@ function Dashboard() {
     }
   }, [alertasOSQ.data]);
 
+  // Alertas de Pendências
+  const pendenciasOSQ = useQuery({
+    queryKey: ["pendencias_os", profile?.empresa_id],
+    enabled: !!profile && profile.role !== "tecnico",
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("ordens_servico")
+        .select("id, numero, titulo, status, data_agendamento, horario_atendimento, pendencias_detalhes, clientes(nome)")
+        .eq("empresa_id", profile?.empresa_id || "");
+
+      if (error) throw error;
+      return data || [];
+    },
+  });
+
   // ============================================================
   // Contagem total de OS (inclui OS sem técnico)
   // ============================================================
@@ -524,6 +587,7 @@ function Dashboard() {
       </div>
 
       <PriorityAlerts ordens={alertasOSQ.data ?? []} isLoading={alertasOSQ.isLoading} />
+      <PendenciasAlerts ordens={pendenciasOSQ.data ?? []} isLoading={pendenciasOSQ.isLoading} />
 
       {/* Cards Estratégicos */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
