@@ -443,14 +443,19 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     queryFn: async (): Promise<OS[]> => {
       if (!empresaId) return [];
 
+      let selectStr = "*, tecnico:tecnicos(id, nome, perfil, telefone, ativo)";
+      if (osSearchCliente) {
+        selectStr += ", clientes!inner(id, nome)";
+      }
+
       let query = supabase
         .from("ordens_servico")
-        .select("*, tecnico:tecnicos(id, nome, perfil, telefone, ativo)", { count: "exact" })
+        .select(selectStr, { count: "exact" })
         .eq("empresa_id", empresaId);
 
-      // Filtro de texto: busca por título
+      // Filtro de texto: busca por nome do cliente
       if (osSearchCliente) {
-        query = query.ilike("titulo", `%${osSearchCliente}%`);
+        query = query.ilike("clientes.nome", `%${osSearchCliente}%`);
       }
 
       // Filtro de técnico: busca pelo nome do técnico

@@ -1,3 +1,5 @@
+import { useEffect } from "react";
+import { toast } from "sonner";
 import { useAuth } from "@/lib/auth-context";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { createFileRoute, Link, Navigate } from "@tanstack/react-router";
@@ -53,9 +55,158 @@ interface LogEntry {
   usuario_nome: string;
 }
 
+function getLimitTimeBadge(dataAgendamento: string, horarioAtendimento?: string | null): string | null {
+  if (!horarioAtendimento) return null;
+  
+  const getLocalDateString = (date: Date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
+  const hojeStr = getLocalDateString(new Date());
+  if (dataAgendamento !== hojeStr) return null;
+
+  try {
+    const [h, m] = horarioAtendimento.split(":").map(Number);
+    const agendado = new Date();
+    agendado.setHours(h, m, 0, 0);
+
+    const agora = new Date();
+    const diffMs = agendado.getTime() - agora.getTime();
+    const diffHours = diffMs / (1000 * 60 * 60);
+
+    if (diffHours > 0 && diffHours <= 2) {
+      const minutesLeft = Math.round(diffMs / (1000 * 60));
+      return `Expira em ${minutesLeft} min!`;
+    } else if (diffHours <= 0 && diffHours >= -1) {
+      return `Em andamento/Atrasado!`;
+    }
+  } catch (e) {
+    console.error("Erro ao calcular tempo limite", e);
+  }
+  return null;
+}
+
+function PriorityAlerts({ ordens, isLoading }: { ordens: any[]; isLoading: boolean }) {
+  if (isLoading) {
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+        <Skeleton className="h-28 w-full rounded-2xl" />
+        <Skeleton className="h-28 w-full rounded-2xl" />
+      </div>
+    );
+  }
+
+  const getLocalDateString = (date: Date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
+  const hojeStr = getLocalDateString(new Date());
+
+  const atrasadas = ordens.filter(o => {
+    if (!o.data_agendamento) return false;
+    return o.data_agendamento < hojeStr;
+  });
+
+  const hoje = ordens.filter(o => {
+    if (!o.data_agendamento) return false;
+    return o.data_agendamento === hojeStr;
+  });
+
+  if (atrasadas.length === 0 && hoje.length === 0) return null;
+
+  return (
+    <div className="space-y-3 mb-6">
+      <div className="text-[10px] uppercase font-bold tracking-wider text-muted-foreground">
+        Painel de Controle: Alertas & Prioridades
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Alertas de Atraso */}
+        {atrasadas.length > 0 && (
+          <div className="rounded-3xl bg-red-50/70 dark:bg-red-950/20 border border-red-200 dark:border-red-900/40 p-4 flex flex-col justify-between shadow-[0_4px_20px_-4px_rgba(239,68,68,0.08)]">
+            <div className="flex items-start justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 text-red-600 dark:text-red-400" />
+                <span className="font-bold text-sm text-red-900 dark:text-red-200">
+                  {atrasadas.length} OS Atrasada{atrasadas.length > 1 ? "s" : ""}
+                </span>
+              </div>
+              <span className="text-[9px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-red-100 text-red-800 dark:bg-red-950 dark:text-red-300">
+                Crítico
+              </span>
+            </div>
+            <div className="space-y-2 max-h-[140px] overflow-y-auto pr-1">
+              {atrasadas.map(o => (
+                <div key={o.id} className="text-xs bg-card p-2.5 rounded-2xl border border-border/50 flex items-center justify-between gap-2">
+                  <div className="min-w-0">
+                    <p className="font-bold truncate text-foreground">{o.titulo}</p>
+                    <p className="text-muted-foreground text-[10px] truncate">
+                      {o.numero} • Cliente: {o.clientes?.nome || "Não informado"}
+                    </p>
+                  </div>
+                  <div className="text-right shrink-0">
+                    <span className="text-[10px] font-bold text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950 px-2 py-0.5 rounded-lg border border-red-200 dark:border-red-900">
+                      {o.data_agendamento ? new Date(o.data_agendamento + 'T00:00:00').toLocaleDateString('pt-BR') : '—'}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Prioridades do Dia */}
+        {hoje.length > 0 && (
+          <div className="rounded-3xl bg-amber-50/70 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900/40 p-4 flex flex-col justify-between shadow-[0_4px_20px_-4px_rgba(245,158,11,0.08)]">
+            <div className="flex items-start justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <AlertTriangle className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+                <span className="font-bold text-sm text-amber-900 dark:text-amber-200">
+                  {hoje.length} OS Prioridade do Dia
+                </span>
+              </div>
+              <span className="text-[9px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300">
+                Hoje
+              </span>
+            </div>
+            <div className="space-y-2 max-h-[140px] overflow-y-auto pr-1">
+              {hoje.map(o => {
+                const limitTimeText = getLimitTimeBadge(o.data_agendamento, o.horario_atendimento);
+                return (
+                  <div key={o.id} className="text-xs bg-card p-2.5 rounded-2xl border border-border/50 flex items-center justify-between gap-2">
+                    <div className="min-w-0">
+                      <p className="font-bold truncate text-foreground">{o.titulo}</p>
+                      <p className="text-muted-foreground text-[10px] truncate">
+                        {o.numero} • Cliente: {o.clientes?.nome || "Não informado"}
+                        {o.horario_atendimento && ` • ${o.horario_atendimento}`}
+                      </p>
+                    </div>
+                    {limitTimeText && (
+                      <div className="shrink-0">
+                        <span className="inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-[9px] font-bold text-amber-800 animate-pulse border border-amber-300">
+                          {limitTimeText}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function Dashboard() {
   const { profile } = useAuth();
-  const { clientes, tecnicos, loadingOS, loadingClientes, osMonth, osYear } = useStore();
+  const { clientes, tecnicos, loadingOS, loadingClientes, osMonth, osYear, os } = useStore();
 
   // Gera dataInicio/dataFim com base no filtro de mês/ano
   const hasMonthFilter = osMonth > 0 && osYear > 0;
@@ -82,9 +233,12 @@ function Dashboard() {
       abertas: number;
       concluidas: number;
       emCampo: number;
+      receitaBruta: number;
+      custoTotal: number;
+      resultadoLiquido: number;
     }> => {
       const eid = profile?.empresa_id;
-      if (!eid) return { faturamentoPrevisto: 0, receitaMes: 0, pendenciasPagamento: 0, abertas: 0, concluidas: 0, emCampo: 0 };
+      if (!eid) return { faturamentoPrevisto: 0, receitaMes: 0, pendenciasPagamento: 0, abertas: 0, concluidas: 0, emCampo: 0, receitaBruta: 0, custoTotal: 0, resultadoLiquido: 0 };
 
       // Busca todas as OS da empresa (sem paginação, pois é para KPIs)
       let query = supabase
@@ -119,6 +273,22 @@ function Dashboard() {
         .filter((r: any) => r.status === "concluido")
         .reduce((s: number, r: any) => s + totalFinanceiro(r), 0);
 
+      const receitaBruta = rows
+        .filter((r: any) => r.status === "concluido")
+        .reduce((s: number, r: any) => s + Number(r.valor ?? 0), 0);
+
+      const custoTotal = rows
+        .filter((r: any) => r.status === "concluido")
+        .reduce((s: number, r: any) => {
+          const kmViagem = Number(r.km_viagem ?? 0);
+          const despesas = Array.isArray(r.despesas)
+            ? r.despesas.reduce((sum: number, item: any) => sum + Number(item?.valor ?? 0), 0)
+            : 0;
+          return s + kmViagem + despesas;
+        }, 0);
+
+      const resultadoLiquido = receitaBruta - custoTotal;
+
       const pendenciasPagamento = rows.filter((r: any) => {
         if (!r.data_agendamento || r.status !== "concluido") return false;
         return new Date(r.data_agendamento) < hoje;
@@ -132,7 +302,7 @@ function Dashboard() {
 
       const emCampo = rows.filter((r: any) => r.status === "em_andamento").length;
 
-      return { faturamentoPrevisto, receitaMes, pendenciasPagamento, abertas, concluidas, emCampo };
+      return { faturamentoPrevisto, receitaMes, pendenciasPagamento, abertas, concluidas, emCampo, receitaBruta, custoTotal, resultadoLiquido };
     },
   });
 
@@ -143,7 +313,64 @@ function Dashboard() {
     abertas: 0,
     concluidas: 0,
     emCampo: 0,
+    receitaBruta: 0,
+    custoTotal: 0,
+    resultadoLiquido: 0,
   };
+
+  // Alertas de OS (Atrasadas e Prioridades)
+  const alertasOSQ = useQuery({
+    queryKey: ["alertas_os", profile?.empresa_id],
+    enabled: !!profile && profile.role !== "tecnico",
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("ordens_servico")
+        .select("id, numero, titulo, status, data_agendamento, horario_atendimento, cliente_id, clientes(nome)")
+        .neq("status", "concluido")
+        .neq("status", "cancelado")
+        .eq("empresa_id", profile?.empresa_id || "");
+
+      if (error) throw error;
+      return data || [];
+    },
+  });
+
+  useEffect(() => {
+    if (alertasOSQ.data) {
+      const getLocalDateString = (date: Date) => {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+      };
+      const hojeStr = getLocalDateString(new Date());
+      const proximas = alertasOSQ.data.filter(o => {
+        if (!o.data_agendamento || !o.horario_atendimento) return false;
+        if (o.data_agendamento !== hojeStr) return false;
+        
+        try {
+          const [h, m] = o.horario_atendimento.split(":").map(Number);
+          const agendado = new Date();
+          agendado.setHours(h, m, 0, 0);
+          const agora = new Date();
+          const diffMs = agendado.getTime() - agora.getTime();
+          const diffHours = diffMs / (1000 * 60 * 60);
+          return diffHours > 0 && diffHours <= 2;
+        } catch {
+          return false;
+        }
+      });
+
+      if (proximas.length > 0) {
+        proximas.forEach(o => {
+          toast.warning(`Atenção: OS ${o.numero} ("${o.titulo}") está agendada para hoje às ${o.horario_atendimento} (expira em breve!)`, {
+            duration: 8000,
+            id: `vencimento-${o.id}`,
+          });
+        });
+      }
+    }
+  }, [alertasOSQ.data]);
 
   // ============================================================
   // Contagem total de OS (inclui OS sem técnico)
@@ -296,8 +523,10 @@ function Dashboard() {
         <MesAnoFilter />
       </div>
 
+      <PriorityAlerts ordens={alertasOSQ.data ?? []} isLoading={alertasOSQ.isLoading} />
+
       {/* Cards Estratégicos */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <div className="rounded-3xl bg-gradient-to-br from-primary/10 to-primary/5 p-5 border border-primary/20">
           <div className="flex items-center gap-2 mb-2">
             <TrendingUp className="w-4 h-4 text-primary" />
@@ -326,6 +555,23 @@ function Dashboard() {
             )}
           </div>
           <p className="text-xs text-muted-foreground mt-1">OSs Concluídas</p>
+        </div>
+
+        <div className="rounded-3xl bg-gradient-to-br from-info/10 to-info/5 p-5 border border-info/20">
+          <div className="flex items-center gap-2 mb-2">
+            <Wallet className="w-4 h-4 text-info" />
+            <span className="text-xs font-medium text-muted-foreground">Resultado Líquido</span>
+          </div>
+          <div className="text-2xl font-bold">
+            {kpisFinanceirosQ.isLoading ? (
+              <Skeleton className="h-8 w-28" />
+            ) : (
+              `R$ ${kpis.resultadoLiquido.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`
+            )}
+          </div>
+          <p className="text-xs text-muted-foreground mt-1 truncate">
+            Bruta R$ {kpis.receitaBruta.toLocaleString("pt-BR", { maximumFractionDigits: 0 })} - Custo R$ {kpis.custoTotal.toLocaleString("pt-BR", { maximumFractionDigits: 0 })}
+          </p>
         </div>
 
         <div className="rounded-3xl bg-gradient-to-br from-warning/10 to-warning/5 p-5 border border-warning/20">
@@ -424,7 +670,34 @@ function Dashboard() {
                   ))}
                 </div>
               )}
-              {!loadingOS && (
+              {!loadingOS && os.length > 0 ? (
+                <div className="space-y-2">
+                  {os.slice(0, 5).map((o) => {
+                    const statusColors: Record<string, string> = {
+                      "Orçamento": "bg-slate-500/10 text-slate-500 border-slate-500/20",
+                      "Aprovado": "bg-blue-500/10 text-blue-500 border-blue-500/20",
+                      "Em Execução": "bg-amber-500/10 text-amber-500 border-amber-500/20",
+                      "Concluído": "bg-emerald-500/10 text-emerald-500 border-emerald-500/20",
+                      "Cancelado": "bg-red-500/10 text-red-500 border-red-500/20",
+                    };
+                    return (
+                      <div key={o.id} className="flex items-center justify-between p-3 rounded-2xl border border-border/50 bg-background hover:bg-muted/10 transition-colors">
+                        <div className="min-w-0">
+                          <p className="font-bold text-sm truncate text-foreground">{o.titulo}</p>
+                          <p className="text-[10px] text-muted-foreground flex items-center gap-1.5 mt-0.5">
+                            <span>{o.numero}</span>
+                            <span>•</span>
+                            <span>Valor: R$ {o.valor.toLocaleString("pt-BR")}</span>
+                          </p>
+                        </div>
+                        <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold border ${statusColors[o.status] || "bg-muted text-muted-foreground border-border"}`}>
+                          {o.status}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : !loadingOS && (
                 <div className="text-sm text-muted-foreground text-center py-10">
                   Nenhuma OS ainda. Crie a primeira em{" "}
                   <Link to="/os" className="text-primary font-semibold">
