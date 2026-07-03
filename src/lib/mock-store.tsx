@@ -123,13 +123,13 @@ interface Store {
 
   clientes: Cliente[];
   loadingClientes: boolean;
-  addCliente: (c: Omit<Cliente, "id">) => Promise<void>;
+  addCliente: (c: Omit<Cliente, "id">) => Promise<string>;
   updateCliente: (id: string, patch: Partial<Cliente>) => Promise<void>;
   deleteCliente: (id: string) => Promise<void>;
 
   tecnicos: Tecnico[];
   loadingTecnicos: boolean;
-  addTecnico: (t: Omit<Tecnico, "id">) => Promise<void>;
+  addTecnico: (t: Omit<Tecnico, "id">) => Promise<string>;
   updateTecnico: (id: string, patch: Partial<Tecnico>) => Promise<void>;
   deleteTecnico: (id: string) => Promise<void>;
 
