@@ -1,5 +1,6 @@
 import { createContext, useContext, ReactNode } from "react";
 import { useStore } from "./mock-store";
+import { supabase } from "@/integrations/supabase/client";
 
 export interface AuthProfile {
   id: string;
@@ -14,6 +15,7 @@ interface AuthValue {
   isLoading: boolean;
   signIn: (email: string, password: string) => Promise<{ error?: string }>;
   signOut: () => Promise<void>;
+  changePassword: (newPassword: string) => Promise<{ error?: string }>;
 }
 
 const AuthCtx = createContext<AuthValue | null>(null);
@@ -29,6 +31,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     isLoading: loadingAuth,
     signIn: login,
     signOut: logout,
+    changePassword: async (newPassword: string) => {
+      const { error } = await supabase.auth.updateUser({ password: newPassword });
+      return { error: error?.message };
+    },
   };
 
   return <AuthCtx.Provider value={value}>{children}</AuthCtx.Provider>;

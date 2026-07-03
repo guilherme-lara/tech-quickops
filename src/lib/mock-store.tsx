@@ -92,6 +92,11 @@ interface User {
   role: Role;
   empresaId: string;
   empresaNome: string;
+  avatarUrl?: string;
+  empresaCnpj?: string;
+  empresaEndereco?: string;
+  empresaTelefone?: string;
+  empresaLogo?: string;
 }
 
 // ============================================================
@@ -200,8 +205,9 @@ interface Store {
   updateOS: (id: string, patch: Partial<OS>) => Promise<void>;
   updateRAT: (id: string, patch: Partial<RAT>) => void;
 
-  updateProfile: (nome: string) => Promise<void>;
-  updateEmpresa: (nome: string) => Promise<void>;
+  updateProfile: (nome: string, avatarUrl?: string) => Promise<void>;
+  updateEmpresa: (nome: string, cnpj?: string, endereco?: string, telefone?: string, logoUrl?: string) => Promise<void>;
+  uploadAsset: (file: File, path: string) => Promise<string>;
 }
 
 const Ctx = createContext<Store | null>(null);
@@ -244,7 +250,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       for (let attempt = 1; attempt <= retries; attempt++) {
         const { data, error } = await supabase
           .from("perfis")
-          .select("id, nome_completo, role, empresa_id")
+          .select("id, nome_completo, role, empresa_id, avatar_url")
           .eq("id", uid)
           .maybeSingle();
 
@@ -254,12 +260,22 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         } else if (data) {
           const role: Role = data.role === "tecnico" ? "tecnico" : "gestor";
           let empresaNome = "";
+          let empresaCnpj = "";
+          let empresaEndereco = "";
+          let empresaTelefone = "";
+          let empresaLogo = "";
           const { data: emp } = await supabase
             .from("empresas")
-            .select("nome_fantasia")
+            .select("nome_fantasia, cnpj, endereco_comercial, telefone_empresa, logo_url")
             .eq("id", data.empresa_id)
             .maybeSingle();
-          if (emp) empresaNome = emp.nome_fantasia ?? "";
+          if (emp) {
+            empresaNome = emp.nome_fantasia ?? "";
+            empresaCnpj = emp.cnpj ?? "";
+            empresaEndereco = emp.endereco_comercial ?? "";
+            empresaTelefone = emp.telefone_empresa ?? "";
+            empresaLogo = emp.logo_url ?? "";
+          }
           return {
             id: data.id,
             email,
@@ -267,6 +283,11 @@ export function StoreProvider({ children }: { children: ReactNode }) {
             role,
             empresaId: data.empresa_id,
             empresaNome,
+            avatarUrl: data.avatar_url ?? undefined,
+            empresaCnpj,
+            empresaEndereco,
+            empresaTelefone,
+            empresaLogo,
           };
         }
 
@@ -870,30 +891,59 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   );
 
   const updateProfile = useCallback(
-    async (nome: string) => {
+    async (nome: string, avatarUrl?: string) => {
       if (!user) throw new Error("Não autenticado");
+      const dbPatch: any = { nome_completo: nome };
+      if (avatarUrl !== undefined) dbPatch.avatar_url = avatarUrl;
       const { error } = await supabase
         .from("perfis")
-        .update({ nome_completo: nome })
+        .update(dbPatch)
         .eq("id", user.id);
       if (error) throw error;
-      setUser({ ...user, nome });
+      setUser({ ...user, nome, avatarUrl: avatarUrl !== undefined ? avatarUrl : user.avatarUrl });
     },
     [user],
   );
 
   const updateEmpresa = useCallback(
-    async (nome: string) => {
+    async (nome: string, cnpj?: string, endereco?: string, telefone?: string, logoUrl?: string) => {
       if (!user) throw new Error("Não autenticado");
+      const dbPatch: any = { nome_fantasia: nome };
+      if (cnpj !== undefined) dbPatch.cnpj = cnpj;
+      if (endereco !== undefined) dbPatch.endereco_comercial = endereco;
+      if (telefone !== undefined) dbPatch.telefone_empresa = telefone;
+      if (logoUrl !== undefined) dbPatch.logo_url = logoUrl;
+      
       const { error } = await supabase
         .from("empresas")
-        .update({ nome_fantasia: nome })
+        .update(dbPatch)
         .eq("id", user.empresaId);
       if (error) throw error;
-      setUser({ ...user, empresaNome: nome });
+      setUser({ 
+        ...user, 
+        empresaNome: nome,
+        empresaCnpj: cnpj !== undefined ? cnpj : user.empresaCnpj,
+        empresaEndereco: endereco !== undefined ? endereco : user.empresaEndereco,
+        empresaTelefone: telefone !== undefined ? telefone : user.empresaTelefone,
+        empresaLogo: logoUrl !== undefined ? logoUrl : user.empresaLogo,
+      });
     },
     [user],
   );
+
+  const uploadAsset = useCallback(async (file: File, path: string) => {
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${path}-${Math.random()}.${fileExt}`;
+    
+    const { error: uploadError } = await supabase.storage
+      .from('assets')
+      .upload(fileName, file, { upsert: true });
+
+    if (uploadError) throw uploadError;
+
+    const { data } = supabase.storage.from('assets').getPublicUrl(fileName);
+    return data.publicUrl;
+  }, []);
 
   const logout = useCallback(async () => {
     await supabase.auth.signOut();
@@ -1011,6 +1061,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       })),
     updateProfile,
     updateEmpresa,
+    uploadAsset,
   };
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
