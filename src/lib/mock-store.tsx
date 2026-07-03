@@ -795,12 +795,32 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   });
 
   // ---------------- Auth methods ----------------
-  const login = useCallback(async (email: string, senha: string) => {
+  const login = useCallback(async (emailInput: string, senha: string) => {
+    let email = emailInput.trim();
+    
+    if (!email.includes("@")) {
+      const { data: tecnico, error: searchError } = await supabase
+        .from("tecnicos")
+        .select("email")
+        .eq("username", email)
+        .maybeSingle();
+        
+      if (searchError || !tecnico || !tecnico.email) {
+        return { error: "Usuário não encontrado" };
+      }
+      email = tecnico.email;
+    }
+
     const { data: authData, error } = await supabase.auth.signInWithPassword({
       email,
       password: senha,
     });
-    if (error) return { error: error.message };
+    if (error) {
+      if (error.message.includes("Invalid login credentials")) {
+        return { error: "Senha incorreta" };
+      }
+      return { error: error.message };
+    }
 
     const sessionUser = authData.user;
     if (!sessionUser) return { error: "Sessão não encontrada após o login." };
