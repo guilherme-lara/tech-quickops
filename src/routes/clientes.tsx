@@ -125,17 +125,24 @@ function ClientesPage() {
 
   const handleDelete = async (id: string) => {
     if (window.confirm("Deseja realmente excluir este cliente?")) {
-      const cliente = clientes.find((c) => c.id === id);
-      await deleteCliente(id);
-      if (cliente) {
-        await logActivity(
-          "cliente_excluido",
-          `Cliente ${cliente.nomeFantasia} excluído pelo usuário ${(profile as any)?.nome || profile?.nome_completo || "Sistema"}`,
-          profile?.empresa_id || "",
-          (profile as any)?.nome || profile?.nome_completo || "Sistema"
-        );
+      try {
+        console.log('Tentando excluir cliente:', id);
+        const cliente = clientes.find((c) => c.id === id);
+        await deleteCliente(id);
+        if (cliente) {
+          console.log('Logando exclusão...');
+          await logActivity(
+            "cliente_excluido",
+            `Cliente ${cliente.nomeFantasia} excluído pelo usuário ${(profile as any)?.nome || profile?.nome_completo || "Sistema"}`,
+            profile?.empresa_id || "",
+            (profile as any)?.nome || profile?.nome_completo || "Sistema"
+          );
+        }
+        toast.success("Cliente excluído!");
+      } catch (err: any) {
+        console.error("Erro no fluxo de exclusão de cliente:", err);
+        toast.error("Erro ao excluir cliente: " + err.message);
       }
-      toast.success("Cliente excluído!");
     }
   };
 
