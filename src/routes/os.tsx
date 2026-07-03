@@ -239,6 +239,71 @@ function OSPage() {
   const [novosDadosExtras, setNovosDadosExtras] = useState<Record<string, any>>({});
   const [novoCampoNome, setNovoCampoNome] = useState("");
   const [novoCampoValor, setNovoCampoValor] = useState("");
+
+  // Fase 4 — Modais "Cadastrar Novo" dentro da OS
+  const [quickCliOpen, setQuickCliOpen] = useState(false);
+  const [quickCliForm, setQuickCliForm] = useState({ nome: "", telefone: "", email: "" });
+  const [quickCliSaving, setQuickCliSaving] = useState(false);
+  const [quickTecOpen, setQuickTecOpen] = useState(false);
+  const [quickTecForm, setQuickTecForm] = useState({
+    nome: "",
+    perfil: "Técnico de Campo",
+    telefone: "",
+    comissao: "",
+    tipo_comissao: "porcentagem" as "porcentagem" | "fixo",
+  });
+  const [quickTecSaving, setQuickTecSaving] = useState(false);
+
+  const saveQuickCliente = async () => {
+    if (!quickCliForm.nome.trim()) return toast.error("Informe o nome do cliente");
+    setQuickCliSaving(true);
+    try {
+      const id = await addCliente({
+        nomeFantasia: quickCliForm.nome,
+        documento: "",
+        telefone: quickCliForm.telefone,
+        email: quickCliForm.email,
+      });
+      setForm((f) => ({ ...f, clienteId: id }));
+      toast.success("Cliente cadastrado e selecionado");
+      setQuickCliOpen(false);
+      setQuickCliForm({ nome: "", telefone: "", email: "" });
+    } catch (e: any) {
+      toast.error(e?.message ?? "Erro ao cadastrar cliente");
+    } finally {
+      setQuickCliSaving(false);
+    }
+  };
+
+  const saveQuickTecnico = async () => {
+    if (!quickTecForm.nome.trim()) return toast.error("Informe o nome do técnico");
+    setQuickTecSaving(true);
+    try {
+      const id = await addTecnico({
+        nome: quickTecForm.nome,
+        perfil: quickTecForm.perfil,
+        telefone: quickTecForm.telefone,
+        ativo: true,
+        comissao: Number(quickTecForm.comissao) || 0,
+        tipo_comissao: quickTecForm.tipo_comissao,
+        chave_pix: "",
+      } as any);
+      setForm((f) => ({ ...f, tecnicoId: id }));
+      toast.success("Técnico cadastrado e selecionado");
+      setQuickTecOpen(false);
+      setQuickTecForm({
+        nome: "",
+        perfil: "Técnico de Campo",
+        telefone: "",
+        comissao: "",
+        tipo_comissao: "porcentagem",
+      });
+    } catch (e: any) {
+      toast.error(e?.message ?? "Erro ao cadastrar técnico");
+    } finally {
+      setQuickTecSaving(false);
+    }
+  };
   const [viewMode, setViewMode] = useState<"list" | "card">("list");
   const [dialogMode, setDialogMode] = useState<"view" | "edit">("view");
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }));
