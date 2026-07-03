@@ -204,6 +204,8 @@ function OSPage() {
     tecnicos,
     addOS,
     updateOS,
+    addCliente,
+    addTecnico,
     loadingOS,
     osPage,
     osTotal,
