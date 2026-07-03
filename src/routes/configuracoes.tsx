@@ -9,6 +9,7 @@ import { useStore } from "@/lib/mock-store";
 import { useAuth } from "@/lib/auth-context";
 import { useState, useEffect, useRef } from "react";
 import { toast } from "sonner";
+import { logActivity } from "@/lib/logger";
 import { User, Building2, Save, KeyRound, Upload, Camera, Building } from "lucide-react";
 import {
   Dialog,
@@ -126,8 +127,17 @@ function ConfiguracoesPage() {
     setUploadingAvatar(true);
     try {
       const url = await uploadAsset(file, `avatars/${user.id}`);
+      await updateProfile(nome, url);
       setAvatarUrl(url);
-      toast.success("Foto carregada. Salve para aplicar.");
+      
+      await logActivity(
+        "foto_perfil_atualizada",
+        `O usuário ${user.nome || 'Desconhecido'} atualizou sua foto de perfil`,
+        user.empresaId || "",
+        user.nome || "Sistema"
+      );
+      
+      toast.success("Foto atualizada com sucesso!");
     } catch (e: any) {
       toast.error(e.message ?? "Erro ao fazer upload da imagem");
     } finally {
@@ -140,8 +150,17 @@ function ConfiguracoesPage() {
     setUploadingLogo(true);
     try {
       const url = await uploadAsset(file, `logos/${user.empresaId}`);
+      await updateEmpresa(empresa, cnpj, endereco, telefone, url);
       setLogoUrl(url);
-      toast.success("Logo carregado. Salve para aplicar.");
+      
+      await logActivity(
+        "logo_empresa_atualizada",
+        `A logo da empresa foi atualizada pelo usuário ${user.nome || 'Desconhecido'}`,
+        user.empresaId || "",
+        user.nome || "Sistema"
+      );
+      
+      toast.success("Logo atualizado com sucesso!");
     } catch (e: any) {
       toast.error(e.message ?? "Erro ao fazer upload do logo");
     } finally {
