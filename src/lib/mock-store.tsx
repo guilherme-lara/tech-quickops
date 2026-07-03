@@ -469,33 +469,38 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       }
       setOsTotal(count ?? 0);
 
-      return ((data ?? []) as any[]).map((r) => ({
-        id: r.id,
-        numero: r.numero ?? "OS-?",
-        clienteId: r.cliente_id,
-        tecnicoId: r.tecnico_id ?? "",
-        analistaId: r.analista_id ?? "",
-        titulo: r.titulo || r.descricao_problema || "",
-        descricao_problema: r.descricao_problema ?? "",
-        status: dbToUiStatus[r.status] ?? "Orçamento",
-        criadaEm: (r.created_at ?? "").slice(0, 10),
-        data_atendimento: r.data_agendamento ?? undefined,
-        data_agendamento: r.data_agendamento ?? undefined,
-        horario_atendimento: r.horario_atendimento ?? undefined,
-        valor: Number(r.valor ?? 0),
-        custo_viagem: Number(r.custo_viagem ?? 0),
-        rat: ratLocal[r.id] ?? { itens: [], evidencias: [] },
-        dados_adicionais: r.dados_adicionais ?? {},
-        tecnico: r.tecnico
-          ? {
-              id: r.tecnico.id,
-              nome: r.tecnico.nome,
-              perfil: r.tecnico.perfil ?? "",
-              telefone: r.tecnico.telefone ?? "",
-              ativo: r.tecnico.ativo ?? true,
-            }
-          : undefined,
-      }));
+      return ((data ?? []) as any[]).map((r) => {
+        const dataAgendamento = r.data_agendamento ?? r.data_atendimento ?? r.dados_adicionais?.Data ?? null;
+        const horarioAtendimento = r.horario_atendimento ?? r.dados_adicionais?.Horario ?? null;
+
+        return {
+          id: r.id,
+          numero: r.numero ?? "OS-?",
+          clienteId: r.cliente_id,
+          tecnicoId: r.tecnico_id ?? "",
+          analistaId: r.analista_id ?? "",
+          titulo: r.titulo || r.descricao_problema || "",
+          descricao_problema: r.descricao_problema ?? "",
+          status: dbToUiStatus[r.status] ?? "Orçamento",
+          criadaEm: (r.created_at ?? "").slice(0, 10),
+          data_atendimento: dataAgendamento ?? undefined,
+          data_agendamento: dataAgendamento ?? undefined,
+          horario_atendimento: horarioAtendimento ?? undefined,
+          valor: Number(r.valor ?? 0),
+          custo_viagem: Number(r.custo_viagem ?? 0),
+          rat: ratLocal[r.id] ?? { itens: [], evidencias: [] },
+          dados_adicionais: r.dados_adicionais ?? {},
+          tecnico: r.tecnico
+            ? {
+                id: r.tecnico.id,
+                nome: r.tecnico.nome,
+                perfil: r.tecnico.perfil ?? "",
+                telefone: r.tecnico.telefone ?? "",
+                ativo: r.tecnico.ativo ?? true,
+              }
+            : undefined,
+        };
+      });
     },
   });
 

@@ -910,10 +910,12 @@ function OSPage() {
                             )}
                           </td>
                           <td className="px-5 py-3 whitespace-nowrap">
-                            {formatDate(o.data_agendamento || o.dados_adicionais?.Data)}
+                            {formatDate(
+                              o.data_agendamento ?? o.data_atendimento ?? o.dados_adicionais?.Data,
+                            )}
                           </td>
                           <td className="px-5 py-3 whitespace-nowrap text-muted-foreground">
-                            {o.horario_atendimento || "—"}
+                            {o.horario_atendimento ?? o.dados_adicionais?.Horario ?? "—"}
                           </td>
                           <td className="px-5 py-3 text-muted-foreground whitespace-nowrap">
                             <span className="flex items-center gap-1.5">
@@ -1171,6 +1173,7 @@ function EditOSDialog({
   });
   const [descricaoProblema, setDescricaoProblema] = useState("");
   const [dataAgendamento, setDataAgendamento] = useState("");
+  const [horarioAtendimento, setHorarioAtendimento] = useState("");
   const [dadosExtras, setDadosExtras] = useState<Record<string, any>>({});
   const [saving, setSaving] = useState(false);
   const { analistas: analistasEdit } = useAnalistasByCliente(form.clienteId);
@@ -1188,6 +1191,7 @@ function EditOSDialog({
       });
       setDescricaoProblema(ordem?.descricao_problema || "");
       setDataAgendamento(ordem?.data_agendamento || "");
+      setHorarioAtendimento(ordem?.horario_atendimento || "");
       setDadosExtras((ordem?.dados_adicionais as Record<string, any>) || {});
     }
   }, [ordem]);
@@ -1208,6 +1212,7 @@ function EditOSDialog({
         valor: Number(form.valor) || 0,
         custo_viagem: Number(form.custo_viagem) || 0,
         data_agendamento: dataAgendamento,
+        horario_atendimento: horarioAtendimento,
         descricao_problema: descricaoProblema,
         status: form.status,
         dados_adicionais: dadosExtras,
@@ -1353,6 +1358,17 @@ function EditOSDialog({
                 onChange={(e) => setDataAgendamento(e.target.value)}
               />
             </div>
+            <div>
+              <Label>Horário do Atendimento</Label>
+              <Input
+                disabled={isView}
+                type="time"
+                value={horarioAtendimento}
+                onChange={(e) => setHorarioAtendimento(e.target.value)}
+              />
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
             <div>
               <Label>Descrição do Problema</Label>
               <textarea
