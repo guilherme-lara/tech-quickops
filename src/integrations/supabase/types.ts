@@ -66,6 +66,7 @@ export type Database = {
           id: string
           nome: string
           telefone: string | null
+          valor_km: number
         }
         Insert: {
           created_at?: string
@@ -76,6 +77,7 @@ export type Database = {
           id?: string
           nome: string
           telefone?: string | null
+          valor_km?: number
         }
         Update: {
           created_at?: string
@@ -86,6 +88,7 @@ export type Database = {
           id?: string
           nome?: string
           telefone?: string | null
+          valor_km?: number
         }
         Relationships: [
           {
@@ -166,6 +169,7 @@ export type Database = {
           data_agendamento: string | null
           data_atendimento: string | null
           descricao_problema: string
+          despesas: Json
           empresa_id: string
           horario_atendimento: string | null
           id: string
@@ -185,6 +189,7 @@ export type Database = {
           data_agendamento?: string | null
           data_atendimento?: string | null
           descricao_problema?: string
+          despesas?: Json
           empresa_id: string
           horario_atendimento?: string | null
           id?: string
@@ -204,6 +209,7 @@ export type Database = {
           data_agendamento?: string | null
           data_atendimento?: string | null
           descricao_problema?: string
+          despesas?: Json
           empresa_id?: string
           horario_atendimento?: string | null
           id?: string
