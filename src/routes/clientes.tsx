@@ -127,10 +127,14 @@ function ClientesPage() {
     if (window.confirm("Deseja realmente excluir este cliente?")) {
       const cliente = clientes.find((c) => c.id === id);
       await deleteCliente(id);
-      await registrarLog(
-        "cliente_deletado",
-        `Cliente "${cliente?.nomeFantasia || id}" removido por ${nomeUsuario}`,
-      );
+      if (cliente) {
+        await logActivity(
+          "cliente_excluido",
+          `Cliente ${cliente.nomeFantasia} excluído pelo usuário ${(profile as any)?.nome || profile?.nome_completo || "Sistema"}`,
+          profile?.empresa_id || "",
+          (profile as any)?.nome || profile?.nome_completo || "Sistema"
+        );
+      }
       toast.success("Cliente excluído!");
     }
   };

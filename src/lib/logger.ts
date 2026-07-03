@@ -9,7 +9,8 @@ import { supabase } from "../integrations/supabase/client";
 export async function logActivity(
   tipo: string,
   descricao: string,
-  empresa_id: string
+  empresa_id: string,
+  usuario_nome?: string
 ): Promise<void> {
   try {
     const { data: userData } = await supabase.auth.getUser();
@@ -19,16 +20,18 @@ export async function logActivity(
       return;
     }
 
-    // Buscar o perfil do usuário autenticado para pegar o nome
-    const { data: perfil, error: perfilError } = await supabase
-      .from("perfis")
-      .select("nome_completo")
-      .eq("id", userId)
-      .single();
+    let finalNome = usuario_nome;
+    if (!finalNome) {
+      // Buscar o perfil do usuário autenticado para pegar o nome
+      const { data: perfil, error: perfilError } = await supabase
+        .from("perfis")
+        .select("nome_completo")
+        .eq("id", userId)
+        .single();
 
-    if (perfilError || !perfil) {
-      console.error("Erro ao buscar perfil do usuário:", perfilError);
-      return;
+      if (!perfilError && perfil) {
+        finalNome = perfil.nome_completo;
+      }
     }
 
     // Inserir o log
@@ -36,8 +39,8 @@ export async function logActivity(
       .from("logs_administrativos")
       .insert({
         empresa_id,
-        usuario_id: (await supabase.auth.getUser()).data.user?.id,
-        usuario_nome: perfil.nome_completo,
+        usuario_id: userId,
+        usuario_nome: finalNome || "Sistema",
         tipo,
         descricao,
       });
