@@ -22,7 +22,7 @@ import {
 import { useStore, statusColor, OSStatus, OS, OS_PAGE_SIZE } from "@/lib/mock-store";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
-import { formatDate } from "@/lib/utils";
+import { formatDate, maskPhoneBR } from "@/lib/utils";
 import {
   Plus,
   User,
