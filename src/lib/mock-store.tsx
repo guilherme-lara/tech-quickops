@@ -373,7 +373,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       const { data, error, count } = await query
         .order("nome")
         .range(from, to);
-      if (error) throw error;
+      if (error) {
+        console.error("🔥 ERRO SUPABASE CLIENTES:", error.message, error.hint, error.details);
+        throw error;
+      }
       setClientesTotal(count ?? 0);
       return (data ?? []).map((r) => ({
         id: r.id,
