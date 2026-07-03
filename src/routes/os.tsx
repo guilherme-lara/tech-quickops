@@ -698,6 +698,162 @@ function OSPage() {
               </DialogFooter>
             </DialogContent>
           </Dialog>
+
+          {/* Quick-add Cliente */}
+          <Dialog open={quickCliOpen} onOpenChange={setQuickCliOpen}>
+            <DialogContent className="rounded-2xl w-[95vw] sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle>Novo Cliente</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-3">
+                <div>
+                  <Label>Nome / Razão Social</Label>
+                  <Input
+                    value={quickCliForm.nome}
+                    onChange={(e) => setQuickCliForm({ ...quickCliForm, nome: e.target.value })}
+                    placeholder="Ex: Padaria Central"
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <Label>Telefone</Label>
+                    <Input
+                      value={quickCliForm.telefone}
+                      onChange={(e) =>
+                        setQuickCliForm({ ...quickCliForm, telefone: maskPhoneBR(e.target.value) })
+                      }
+                      placeholder="(11) 99999-0000"
+                      inputMode="numeric"
+                    />
+                  </div>
+                  <div>
+                    <Label>E-mail</Label>
+                    <Input
+                      type="email"
+                      value={quickCliForm.email}
+                      onChange={(e) => setQuickCliForm({ ...quickCliForm, email: e.target.value })}
+                      placeholder="contato@empresa.com"
+                    />
+                  </div>
+                </div>
+              </div>
+              <DialogFooter>
+                <Button
+                  variant="outline"
+                  onClick={() => setQuickCliOpen(false)}
+                  disabled={quickCliSaving}
+                >
+                  Cancelar
+                </Button>
+                <Button onClick={saveQuickCliente} disabled={quickCliSaving}>
+                  {quickCliSaving ? "Salvando..." : "Salvar e selecionar"}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+
+          {/* Quick-add Técnico */}
+          <Dialog open={quickTecOpen} onOpenChange={setQuickTecOpen}>
+            <DialogContent className="rounded-2xl w-[95vw] sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle>Novo Técnico</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-3">
+                <div>
+                  <Label>Nome</Label>
+                  <Input
+                    value={quickTecForm.nome}
+                    onChange={(e) => setQuickTecForm({ ...quickTecForm, nome: e.target.value })}
+                    placeholder="Ex: João Silva"
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <Label>Perfil</Label>
+                    <Select
+                      value={quickTecForm.perfil}
+                      onValueChange={(v) => setQuickTecForm({ ...quickTecForm, perfil: v })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {["Técnico de Campo", "Instalador", "Suporte", "Manutenção"].map((p) => (
+                          <SelectItem key={p} value={p}>
+                            {p}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label>Telefone</Label>
+                    <Input
+                      value={quickTecForm.telefone}
+                      onChange={(e) =>
+                        setQuickTecForm({
+                          ...quickTecForm,
+                          telefone: maskPhoneBR(e.target.value),
+                        })
+                      }
+                      placeholder="(11) 99999-0000"
+                      inputMode="numeric"
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <Label>Tipo comissão</Label>
+                    <Select
+                      value={quickTecForm.tipo_comissao}
+                      onValueChange={(v) =>
+                        setQuickTecForm({
+                          ...quickTecForm,
+                          tipo_comissao: v as "porcentagem" | "fixo",
+                        })
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="porcentagem">% sobre OS</SelectItem>
+                        <SelectItem value="fixo">Valor fixo (R$)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label>
+                      {quickTecForm.tipo_comissao === "fixo" ? "Valor (R$)" : "Comissão (%)"}
+                    </Label>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      value={quickTecForm.comissao}
+                      onChange={(e) =>
+                        setQuickTecForm({ ...quickTecForm, comissao: e.target.value })
+                      }
+                    />
+                  </div>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Dica: para configurar login e senha do técnico, use a tela de Equipe.
+                </p>
+              </div>
+              <DialogFooter>
+                <Button
+                  variant="outline"
+                  onClick={() => setQuickTecOpen(false)}
+                  disabled={quickTecSaving}
+                >
+                  Cancelar
+                </Button>
+                <Button onClick={saveQuickTecnico} disabled={quickTecSaving}>
+                  {quickTecSaving ? "Salvando..." : "Salvar e selecionar"}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
 
