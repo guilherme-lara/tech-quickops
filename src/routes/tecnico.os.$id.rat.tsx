@@ -136,11 +136,11 @@ function StepInfo({ ordem, cliente }: any) {
             <div className="text-[10px] text-muted-foreground uppercase tracking-wider font-bold">
               Cliente
             </div>
-            <div className="font-bold text-base mt-1">{cliente?.nomeFantasia}</div>
+            <div className="font-bold text-base mt-1">{cliente?.nome}</div>
             <div className="text-xs text-muted-foreground">{cliente?.documento}</div>
           </div>
           <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary/15 to-violet/15 flex items-center justify-center text-primary font-bold">
-            {cliente?.nomeFantasia[0]}
+            {cliente?.nome[0]}
           </div>
         </div>
         <div className="mt-4 pt-4 border-t border-border/60 grid grid-cols-1 gap-2 text-xs">

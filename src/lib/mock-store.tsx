@@ -11,7 +11,7 @@ export type OSStatus = "Orçamento" | "Aprovado" | "Em Execução" | "Concluído
 
 export interface Cliente {
   id: string;
-  nomeFantasia: string;
+  nome: string;
   documento: string;
   telefone: string;
   email: string;
@@ -380,7 +380,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       setClientesTotal(count ?? 0);
       return (data ?? []).map((r) => ({
         id: r.id,
-        nomeFantasia: r.nome,
+        nome: r.nome,
         documento: r.documento ?? "",
         telefone: r.telefone ?? "",
         email: r.email ?? "",
@@ -582,7 +582,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         .from("clientes")
         .insert({
           empresa_id: empresaId!,
-          nome: c.nomeFantasia,
+          nome: c.nome,
           documento: c.documento,
           telefone: c.telefone,
           email: c.email,
@@ -602,7 +602,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const updateClienteM = useMutation({
     mutationFn: async ({ id, patch }: { id: string; patch: Partial<Cliente> }) => {
       const dbPatch: Record<string, any> = {};
-      if (patch.nomeFantasia !== undefined) dbPatch.nome = patch.nomeFantasia;
+      if (patch.nome !== undefined) dbPatch.nome = patch.nome;
       if (patch.documento !== undefined) dbPatch.documento = patch.documento;
       if (patch.telefone !== undefined) dbPatch.telefone = patch.telefone;
       if (patch.email !== undefined) dbPatch.email = patch.email;

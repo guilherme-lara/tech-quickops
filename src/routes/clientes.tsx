@@ -67,7 +67,7 @@ function ClientesPage() {
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState({
     id: "",
-    nomeFantasia: "",
+    nome: "",
     documento: "",
     telefone: "",
     email: "",
@@ -82,7 +82,7 @@ function ClientesPage() {
   const totalClientesPages = Math.max(1, Math.ceil(clientesTotal / PAGE_SIZE));
 
   const openNew = () => {
-    setForm({ id: "", nomeFantasia: "", documento: "", telefone: "", email: "", cidade: "", base_km: "", valor_por_km: "" });
+    setForm({ id: "", nome: "", documento: "", telefone: "", email: "", cidade: "", base_km: "", valor_por_km: "" });
     setAnalistas([]);
     setOpen(true);
   };
@@ -90,7 +90,7 @@ function ClientesPage() {
   const openEdit = (c: any) => {
     setForm({
       id: c.id,
-      nomeFantasia: c.nomeFantasia,
+      nome: c.nome,
       documento: c.documento,
       telefone: c.telefone,
       email: c.email,
@@ -135,7 +135,7 @@ function ClientesPage() {
           console.log('Logando exclusão...');
           await logActivity(
             "cliente_excluido",
-            `Cliente ${cliente.nomeFantasia} excluído pelo usuário ${(profile as any)?.nome || profile?.nome_completo || "Sistema"}`,
+            `Cliente ${cliente.nome} excluído pelo usuário ${(profile as any)?.nome || profile?.nome_completo || "Sistema"}`,
             profile?.empresa_id || "",
             (profile as any)?.nome || profile?.nome_completo || "Sistema"
           );
@@ -190,7 +190,7 @@ function ClientesPage() {
   };
 
   const submit = async () => {
-    if (!form.nomeFantasia) {
+    if (!form.nome) {
       return toast.error("Nome fantasia é obrigatório.");
     }
     if (form.documento && !validarDocumento(form.documento)) {
@@ -213,18 +213,18 @@ function ClientesPage() {
         const { data: novo } = await supabase
           .from("clientes")
           .select("id")
-          .eq("nome", form.nomeFantasia)
+          .eq("nome", form.nome)
           .order("created_at", { ascending: false })
           .limit(1);
         clienteId = novo?.[0]?.id ?? "";
-        await registrarLog("cliente_criado", `Cliente "${form.nomeFantasia}" cadastrado por ${nomeUsuario}`);
+        await registrarLog("cliente_criado", `Cliente "${form.nome}" cadastrado por ${nomeUsuario}`);
       }
       if (clienteId && analistas.length > 0) {
         await persistAnalistas(clienteId);
       }
       toast.success(form.id ? "Cliente atualizado!" : "Cliente cadastrado!");
       setOpen(false);
-      setForm({ id: "", nomeFantasia: "", documento: "", telefone: "", email: "", cidade: "", base_km: "", valor_por_km: "" });
+      setForm({ id: "", nome: "", documento: "", telefone: "", email: "", cidade: "", base_km: "", valor_por_km: "" });
       setAnalistas([]);
     } catch (e: any) {
       toast.error(e.message || "Erro ao salvar cliente");
@@ -271,8 +271,8 @@ function ClientesPage() {
                 <div>
                   <Label>Nome Fantasia</Label>
                   <Input
-                    value={form.nomeFantasia}
-                    onChange={(e) => setForm({ ...form, nomeFantasia: e.target.value })}
+                    value={form.nome}
+                    onChange={(e) => setForm({ ...form, nome: e.target.value })}
                   />
                 </div>
                 <div>
@@ -464,7 +464,7 @@ function ClientesPage() {
                       {clientes.map((c) => (
                         <tr key={c.id} className="hover:bg-muted/30 transition-colors">
                           <td className="px-5 py-4 font-medium whitespace-nowrap">
-                            {c.nomeFantasia}
+                            {c.nome}
                           </td>
                           <td className="px-5 py-4 text-muted-foreground whitespace-nowrap">
                             {c.documento}
@@ -538,11 +538,11 @@ function ClientesPage() {
                     </div>
                     <div className="flex items-center gap-3 pr-8">
                       <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center font-bold">
-                        {c.nomeFantasia[0]?.toUpperCase()}
+                        {c.nome[0]?.toUpperCase()}
                       </div>
                       <div>
                         <div className="font-semibold text-base leading-tight">
-                          {c.nomeFantasia}
+                          {c.nome}
                         </div>
                         <div className="text-xs text-muted-foreground">{c.documento}</div>
                       </div>

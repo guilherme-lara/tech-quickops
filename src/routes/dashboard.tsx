@@ -232,7 +232,7 @@ function PendingAlertsCard({ ordens, isLoading, onEdit }: { ordens: any[]; isLoa
                 </span>
                 <h4 className="font-bold text-sm text-foreground truncate mt-0.5">{o.titulo}</h4>
                 <p className="text-muted-foreground text-[10px]">
-                  Cliente: {o.clientes?.nome || o.clientes?.nomeFantasia || "Não informado"}
+                  Cliente: {o.clientes?.nome || "Não informado"}
                 </p>
               </div>
             </div>
@@ -423,7 +423,7 @@ function Dashboard() {
     queryFn: async (): Promise<OS[]> => {
       const { data, error } = await supabase
         .from("ordens_servico")
-        .select("*, clientes(nome, nomeFantasia), tecnico:tecnicos(id, nome, perfil, telefone, ativo)")
+        .select("*, clientes(nome), tecnico:tecnicos(id, nome, perfil, telefone, ativo)")
         .eq("empresa_id", profile?.empresa_id || "")
         .or("and(pendencias_detalhes.not.is.null,pendencias_detalhes.neq.)")
         .order("data_agendamento", { ascending: true });

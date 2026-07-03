@@ -179,7 +179,7 @@ function OSPage() {
     setQuickCliSaving(true);
     try {
       const id = await addCliente({
-        nomeFantasia: quickCliForm.nome,
+        nome: quickCliForm.nome,
         documento: "",
         telefone: quickCliForm.telefone,
         email: quickCliForm.email,
@@ -461,7 +461,7 @@ function OSPage() {
                       <SelectContent>
                         {clientes.map((c) => (
                           <SelectItem key={c.id} value={c.id}>
-                            {c.nomeFantasia}
+                            {c.nome}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -1024,7 +1024,7 @@ function OSPage() {
                           <td className="px-5 py-3 text-muted-foreground whitespace-nowrap">
                             <span className="flex items-center gap-1.5">
                               <User className="w-3.5 h-3.5" />
-                              {cliente?.nomeFantasia ?? "—"}
+                              {cliente?.nome ?? "—"}
                             </span>
                           </td>
 
@@ -1243,7 +1243,7 @@ function OSCard({ ordem, cliente, tecnico }: { ordem: OS; cliente: any; tecnico:
       <div className="font-bold text-sm text-foreground mt-1.5 leading-snug">{ordem.titulo}</div>
       <div className="flex items-center gap-1.5 text-xs text-muted-foreground mt-2">
         <User className="w-3 h-3" />
-        {cliente?.nomeFantasia}
+        {cliente?.nome}
       </div>
       <div className="mt-3">
         <RatGallery osId={ordem.id} />
@@ -1271,7 +1271,7 @@ export function EditOSDialog({
 }: {
   mode: "view" | "edit";
   ordem: OS | null;
-  clientes: { id: string; nomeFantasia: string; base_km?: number; valor_por_km?: number }[];
+  clientes: { id: string; nome: string; base_km?: number; valor_por_km?: number }[];
   tecnicos: { id: string; nome: string }[];
   addCliente: (c: any) => Promise<string>;
   addTecnico: (t: any) => Promise<string>;
@@ -1383,7 +1383,7 @@ export function EditOSDialog({
     setQuickCliSaving(true);
     try {
       const id = await addCliente({
-        nomeFantasia: quickCliForm.nome,
+        nome: quickCliForm.nome,
         documento: "",
         telefone: quickCliForm.telefone,
         email: quickCliForm.email,
@@ -1481,7 +1481,7 @@ export function EditOSDialog({
                 <SelectContent>
                   {clientes.map((c) => (
                     <SelectItem key={c.id} value={c.id}>
-                      {c.nomeFantasia}
+                      {c.nome}
                     </SelectItem>
                   ))}
                 </SelectContent>

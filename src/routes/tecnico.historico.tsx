@@ -40,7 +40,7 @@ function HistoricoPage() {
                 </span>
               </div>
               <div className="font-semibold text-sm mt-1">{o.titulo}</div>
-              <div className="text-xs text-muted-foreground">{cliente?.nomeFantasia}</div>
+              <div className="text-xs text-muted-foreground">{cliente?.nome}</div>
               <div className="mt-3 flex items-center justify-between">
                 <span className="flex items-center gap-1 text-xs text-success font-semibold">
                   <CheckCircle2 className="w-3 h-3" /> {o.criadaEm}
