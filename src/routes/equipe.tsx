@@ -28,6 +28,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useStore, type TipoComissao, PAGE_SIZE } from "@/lib/mock-store";
+import { useTecnicos, useUpdateTecnico, useDeleteTecnico } from "@/hooks/useTecnicos";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 import {
@@ -64,9 +65,18 @@ export const Route = createFileRoute("/equipe")({
 });
 
 function EquipePage() {
-  const { tecnicos, os, updateTecnico, deleteTecnico, loadingTecnicos, tecnicosPage, tecnicosTotal, setTecnicosPage, tecnicosSearch, setTecnicosSearch } = useStore();
+  const { os } = useStore();
+  const [tecnicosPage, setTecnicosPage] = useState(0);
+  const [tecnicosSearch, setTecnicosSearch] = useState("");
   const { profile } = useAuth();
   const empresaId = profile?.empresa_id;
+  
+  const { data: tecnicosData, isLoading: loadingTecnicos } = useTecnicos(empresaId, tecnicosPage, tecnicosSearch);
+  const tecnicos = tecnicosData?.data || [];
+  const tecnicosTotal = tecnicosData?.count || 0;
+
+  const { mutateAsync: updateTecnico } = useUpdateTecnico();
+  const { mutateAsync: deleteTecnico } = useDeleteTecnico();
   const nomeUsuario = profile?.nome_completo || "usuário";
   const registrarLog = async (tipo: string, descricao: string) => {
     if (!empresaId) return;
