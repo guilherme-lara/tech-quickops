@@ -1,3 +1,8 @@
+-- 0. Adicionar colunas faltantes na tabela tecnicos (username e email)
+ALTER TABLE public.tecnicos 
+  ADD COLUMN IF NOT EXISTS username TEXT,
+  ADD COLUMN IF NOT EXISTS email TEXT;
+
 -- 1. Adicionar domínio na tabela de empresas
 ALTER TABLE public.empresas ADD COLUMN IF NOT EXISTS dominio TEXT DEFAULT 'techquickops.com';
 
