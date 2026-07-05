@@ -206,7 +206,13 @@ interface Store {
   updateRAT: (id: string, patch: Partial<RAT>) => void;
 
   updateProfile: (nome: string, avatarUrl?: string) => Promise<void>;
-  updateEmpresa: (nome: string, cnpj?: string, endereco?: string, telefone?: string, logoUrl?: string) => Promise<void>;
+  updateEmpresa: (
+    nome: string,
+    cnpj?: string,
+    endereco?: string,
+    telefone?: string,
+    logoUrl?: string,
+  ) => Promise<void>;
   uploadAsset: (file: File, path: string) => Promise<string>;
 }
 
@@ -382,7 +388,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     queryFn: async (): Promise<Cliente[]> => {
       let query = supabase
         .from("clientes")
-        .select("id, nome, documento, telefone, email, cidade, base_km, valor_por_km", { count: "exact" })
+        .select("id, nome, documento, telefone, email, cidade, base_km, valor_por_km", {
+          count: "exact",
+        })
         .eq("empresa_id", empresaId!);
 
       if (clientesSearch) {
@@ -391,9 +399,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
       const from = clientesPage * PAGE_SIZE;
       const to = from + PAGE_SIZE - 1;
-      const { data, error, count } = await query
-        .order("nome")
-        .range(from, to);
+      const { data, error, count } = await query.order("nome").range(from, to);
       if (error) {
         console.error("🔥 ERRO SUPABASE CLIENTES:", error.message, error.hint, error.details);
         throw error;
@@ -502,7 +508,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
       // Filtro de status: converte o status UI para o valor do banco
       if (osFilterStatus) {
-        const dbStatus = uiToDbStatus[osFilterStatus as keyof typeof uiToDbStatus] || osFilterStatus;
+        const dbStatus =
+          uiToDbStatus[osFilterStatus as keyof typeof uiToDbStatus] || osFilterStatus;
         query = (query as any).eq("status", dbStatus);
       }
 
@@ -529,7 +536,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       setOsTotal(count ?? 0);
 
       return ((data ?? []) as any[]).map((r) => {
-        const dataAgendamento = r.data_agendamento ?? r.data_atendimento ?? r.dados_adicionais?.Data ?? null;
+        const dataAgendamento =
+          r.data_agendamento ?? r.data_atendimento ?? r.dados_adicionais?.Data ?? null;
         const horarioAtendimento = r.horario_atendimento ?? r.dados_adicionais?.Horario ?? null;
 
         return {
@@ -581,9 +589,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
       const from = estoquePage * PAGE_SIZE;
       const to = from + PAGE_SIZE - 1;
-      const { data, error, count } = await query
-        .order("nome")
-        .range(from, to);
+      const { data, error, count } = await query.order("nome").range(from, to);
       if (error) throw error;
       setEstoqueTotal(count ?? 0);
       return ((data ?? []) as any[]).map((r) => ({
@@ -628,8 +634,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       if (patch.telefone !== undefined) dbPatch.telefone = patch.telefone;
       if (patch.email !== undefined) dbPatch.email = patch.email;
       if (patch.cidade !== undefined) dbPatch.cidade = patch.cidade ?? null;
-      if (patch.base_km !== undefined) dbPatch.base_km = patch.base_km != null ? Number(patch.base_km) : null;
-      if (patch.valor_por_km !== undefined) dbPatch.valor_por_km = patch.valor_por_km != null ? Number(patch.valor_por_km) : null;
+      if (patch.base_km !== undefined)
+        dbPatch.base_km = patch.base_km != null ? Number(patch.base_km) : null;
+      if (patch.valor_por_km !== undefined)
+        dbPatch.valor_por_km = patch.valor_por_km != null ? Number(patch.valor_por_km) : null;
       const { error } = await supabase
         .from("clientes")
         .update(dbPatch as any)
@@ -797,7 +805,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   // ---------------- Auth methods ----------------
   const login = useCallback(async (emailInput: string, senha: string) => {
     let email = emailInput.trim();
-    
+
     if (!email.includes("@")) {
       const { data: resolvedEmail, error: searchError } = await (supabase.rpc as any)(
         "get_email_by_username",
@@ -809,7 +817,6 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       }
       email = resolvedEmail as string;
     }
-
 
     const { data: authData, error } = await supabase.auth.signInWithPassword({
       email,
@@ -915,10 +922,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       if (!user) throw new Error("Não autenticado");
       const dbPatch: any = { nome_completo: nome };
       if (avatarUrl !== undefined) dbPatch.avatar_url = avatarUrl;
-      const { error } = await supabase
-        .from("perfis")
-        .update(dbPatch)
-        .eq("id", user.id);
+      const { error } = await supabase.from("perfis").update(dbPatch).eq("id", user.id);
       if (error) throw error;
       setUser({ ...user, nome, avatarUrl: avatarUrl !== undefined ? avatarUrl : user.avatarUrl });
     },
@@ -933,14 +937,11 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       if (endereco !== undefined) dbPatch.endereco_comercial = endereco;
       if (telefone !== undefined) dbPatch.telefone_empresa = telefone;
       if (logoUrl !== undefined) dbPatch.logo_url = logoUrl;
-      
-      const { error } = await supabase
-        .from("empresas")
-        .update(dbPatch)
-        .eq("id", user.empresaId);
+
+      const { error } = await supabase.from("empresas").update(dbPatch).eq("id", user.empresaId);
       if (error) throw error;
-      setUser({ 
-        ...user, 
+      setUser({
+        ...user,
         empresaNome: nome,
         empresaCnpj: cnpj !== undefined ? cnpj : user.empresaCnpj,
         empresaEndereco: endereco !== undefined ? endereco : user.empresaEndereco,
@@ -952,16 +953,16 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   );
 
   const uploadAsset = useCallback(async (file: File, path: string) => {
-    const fileExt = file.name.split('.').pop();
+    const fileExt = file.name.split(".").pop();
     const fileName = `${path}-${Math.random()}.${fileExt}`;
-    
+
     const { error: uploadError } = await supabase.storage
-      .from('assets')
+      .from("assets")
       .upload(fileName, file, { upsert: true });
 
     if (uploadError) throw uploadError;
 
-    const { data } = supabase.storage.from('assets').getPublicUrl(fileName);
+    const { data } = supabase.storage.from("assets").getPublicUrl(fileName);
     return data.publicUrl;
   }, []);
 

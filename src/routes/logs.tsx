@@ -53,7 +53,14 @@ function LogsPage() {
   }, [termoBusca]);
 
   const logsQ = useQuery({
-    queryKey: ["logs_administrativos", profile?.empresa_id, filtroTipo, dataInicio, dataFim, termoBuscaDebounced],
+    queryKey: [
+      "logs_administrativos",
+      profile?.empresa_id,
+      filtroTipo,
+      dataInicio,
+      dataFim,
+      termoBuscaDebounced,
+    ],
     enabled: !!profile && profile.role !== "tecnico",
     queryFn: async (): Promise<LogEntry[]> => {
       let query = (supabase.from("logs_administrativos" as any) as any)
@@ -163,11 +170,7 @@ function LogsPage() {
           </div>
 
           <div className="flex items-end">
-            <Button
-              variant="outline"
-              onClick={limparFiltros}
-              className="h-9 text-sm w-full"
-            >
+            <Button variant="outline" onClick={limparFiltros} className="h-9 text-sm w-full">
               Limpar Filtros
             </Button>
           </div>
@@ -220,9 +223,7 @@ function LogsPage() {
                     <Clock className="w-4 h-4 text-muted-foreground" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium leading-relaxed mb-1">
-                      {log.descricao}
-                    </p>
+                    <p className="text-sm font-medium leading-relaxed mb-1">{log.descricao}</p>
                     <div className="flex items-center gap-3 text-xs text-muted-foreground">
                       <span>{log.usuario_nome}</span>
                       <span>•</span>

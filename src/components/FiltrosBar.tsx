@@ -109,7 +109,10 @@ export function FiltrosBar({ filtros, textoLimpar = "Limpar filtros" }: FiltrosB
           )}
 
           {filtro.tipo === "select" && (
-            <Select value={filtro.valor || "todos"} onValueChange={(val) => filtro.onChange(val === "todos" ? "" : val)}>
+            <Select
+              value={filtro.valor || "todos"}
+              onValueChange={(val) => filtro.onChange(val === "todos" ? "" : val)}
+            >
               <SelectTrigger className="h-9 text-sm rounded-xl">
                 <SelectValue placeholder={filtro.placeholder || "Todos"} />
               </SelectTrigger>
@@ -125,7 +128,10 @@ export function FiltrosBar({ filtros, textoLimpar = "Limpar filtros" }: FiltrosB
           )}
 
           {filtro.tipo === "select-status" && (
-            <Select value={filtro.valor || "todos"} onValueChange={(val) => filtro.onChange(val === "todos" ? "" : val)}>
+            <Select
+              value={filtro.valor || "todos"}
+              onValueChange={(val) => filtro.onChange(val === "todos" ? "" : val)}
+            >
               <SelectTrigger className="h-9 text-sm rounded-xl">
                 <SelectValue placeholder="Todos os status" />
               </SelectTrigger>
@@ -141,7 +147,10 @@ export function FiltrosBar({ filtros, textoLimpar = "Limpar filtros" }: FiltrosB
           )}
 
           {filtro.tipo === "select-tecnicos" && (
-            <Select value={filtro.valor || "todos"} onValueChange={(val) => filtro.onChange(val === "todos" ? "" : val)}>
+            <Select
+              value={filtro.valor || "todos"}
+              onValueChange={(val) => filtro.onChange(val === "todos" ? "" : val)}
+            >
               <SelectTrigger className="h-9 text-sm rounded-xl">
                 <SelectValue placeholder="Todos os técnicos" />
               </SelectTrigger>

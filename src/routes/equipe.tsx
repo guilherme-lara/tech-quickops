@@ -70,8 +70,12 @@ function EquipePage() {
   const [tecnicosSearch, setTecnicosSearch] = useState("");
   const { profile } = useAuth();
   const empresaId = profile?.empresa_id;
-  
-  const { data: tecnicosData, isLoading: loadingTecnicos } = useTecnicos(empresaId, tecnicosPage, tecnicosSearch);
+
+  const { data: tecnicosData, isLoading: loadingTecnicos } = useTecnicos(
+    empresaId,
+    tecnicosPage,
+    tecnicosSearch,
+  );
   const tecnicos = tecnicosData?.data || [];
   const tecnicosTotal = tecnicosData?.count || 0;
 
@@ -153,16 +157,19 @@ function EquipePage() {
         if (form.cidade_atendimento) dadosAdicionais.cidade_atendimento = form.cidade_atendimento;
         if (form.raio_atendimento) dadosAdicionais.raio_atendimento = Number(form.raio_atendimento);
 
-        await updateTecnico(form.id, {
-          nome: form.nome,
-          perfil: form.perfil,
-          telefone: form.telefone,
-          comissao: Number(form.comissao) || 0,
-          tipo_comissao: form.tipo_comissao,
-          chave_pix: form.chave_pix,
-          username: form.username,
-          ativo: true,
-          dados_adicionais: Object.keys(dadosAdicionais).length > 0 ? dadosAdicionais : undefined,
+        await updateTecnico({
+          id: form.id,
+          patch: {
+            nome: form.nome,
+            perfil: form.perfil,
+            telefone: form.telefone,
+            comissao: Number(form.comissao) || 0,
+            tipo_comissao: form.tipo_comissao,
+            chave_pix: form.chave_pix,
+            username: form.username,
+            ativo: true,
+            dados_adicionais: Object.keys(dadosAdicionais).length > 0 ? dadosAdicionais : undefined,
+          },
         });
         await registrarLog("tecnico_editado", `Técnico "${form.nome}" editado por ${nomeUsuario}`);
         toast.success("Técnico atualizado!");
@@ -188,7 +195,10 @@ function EquipePage() {
           p_dados_adicionais: Object.keys(dadosAdicionais).length > 0 ? dadosAdicionais : null,
         });
         if (error) throw error;
-        await registrarLog("tecnico_criado", `Técnico "${form.nome}" cadastrado por ${nomeUsuario}`);
+        await registrarLog(
+          "tecnico_criado",
+          `Técnico "${form.nome}" cadastrado por ${nomeUsuario}`,
+        );
         qc.invalidateQueries({ queryKey: ["tecnicos"] });
         const login = form.username.toLowerCase();
         const senha = form.senha;
@@ -221,7 +231,6 @@ function EquipePage() {
       } else {
         toast.error(msg);
       }
-
     } finally {
       setSaving(false);
     }
@@ -334,7 +343,11 @@ function EquipePage() {
                         className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                         aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
                       >
-                        {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                        {showPassword ? (
+                          <EyeOff className="w-4 h-4" />
+                        ) : (
+                          <Eye className="w-4 h-4" />
+                        )}
                       </button>
                     </div>
                   </div>
@@ -424,7 +437,11 @@ function EquipePage() {
                         className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                         aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
                       >
-                        {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                        {showPassword ? (
+                          <EyeOff className="w-4 h-4" />
+                        ) : (
+                          <Eye className="w-4 h-4" />
+                        )}
                       </button>
                     </div>
                   </div>
@@ -518,7 +535,9 @@ function EquipePage() {
                           )}
                         </div>
                       </td>
-                      <td className="px-5 py-3 font-medium text-primary">{formatComissao(t.comissao, t.tipo_comissao)}</td>
+                      <td className="px-5 py-3 font-medium text-primary">
+                        {formatComissao(t.comissao, t.tipo_comissao)}
+                      </td>
                       <td className="px-5 py-3 font-medium">{ativas}</td>
                       <td className="px-5 py-3">
                         <span
@@ -612,7 +631,9 @@ function EquipePage() {
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-muted-foreground">Comissão</span>
-                    <span className="font-semibold text-primary">{formatComissao(t.comissao, t.tipo_comissao)}</span>
+                    <span className="font-semibold text-primary">
+                      {formatComissao(t.comissao, t.tipo_comissao)}
+                    </span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-muted-foreground">OS Ativas</span>
@@ -637,8 +658,8 @@ function EquipePage() {
       {tecnicos.length > 0 && viewMode === "list" && (
         <div className="flex items-center justify-between mt-4 px-1">
           <p className="text-xs text-muted-foreground">
-            Mostrando {tecnicosPage * PAGE_SIZE + 1}–{Math.min((tecnicosPage + 1) * PAGE_SIZE, tecnicosTotal)}{" "}
-            de {tecnicosTotal} técnicos
+            Mostrando {tecnicosPage * PAGE_SIZE + 1}–
+            {Math.min((tecnicosPage + 1) * PAGE_SIZE, tecnicosTotal)} de {tecnicosTotal} técnicos
           </p>
           <div className="flex items-center gap-2">
             <Button

@@ -9,8 +9,18 @@ import { useStore } from "@/lib/mock-store";
 import { CalendarRange } from "lucide-react";
 
 const MESES = [
-  "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
-  "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro",
+  "Janeiro",
+  "Fevereiro",
+  "Março",
+  "Abril",
+  "Maio",
+  "Junho",
+  "Julho",
+  "Agosto",
+  "Setembro",
+  "Outubro",
+  "Novembro",
+  "Dezembro",
 ];
 
 export function MesAnoFilter() {
@@ -30,7 +40,9 @@ export function MesAnoFilter() {
         <SelectContent>
           <SelectItem value="0">Todos os meses</SelectItem>
           {MESES.map((m, i) => (
-            <SelectItem key={m} value={String(i + 1)}>{m}</SelectItem>
+            <SelectItem key={m} value={String(i + 1)}>
+              {m}
+            </SelectItem>
           ))}
         </SelectContent>
       </Select>

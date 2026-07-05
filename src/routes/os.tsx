@@ -156,7 +156,9 @@ function OSPage() {
   const [novosDadosExtras, setNovosDadosExtras] = useState<Record<string, any>>({});
   const [novoCampoNome, setNovoCampoNome] = useState("");
   const [novoCampoValor, setNovoCampoValor] = useState("");
-  const [despesasSelecionadas, setDespesasSelecionadas] = useState<Array<{ tipo: string; valor: number }>>([]);
+  const [despesasSelecionadas, setDespesasSelecionadas] = useState<
+    Array<{ tipo: string; valor: number }>
+  >([]);
   const [despesaTipo, setDespesaTipo] = useState("Pedágio");
   const [despesaValor, setDespesaValor] = useState("");
 
@@ -444,14 +446,14 @@ function OSPage() {
                     <Select
                       value={form.clienteId}
                       onValueChange={(v) => {
-                        const cliente = clientes.find(c => c.id === v);
+                        const cliente = clientes.find((c) => c.id === v);
                         const baseKm = cliente?.base_km || 0;
                         const valorPorKm = cliente?.valor_por_km || 0;
-                        setForm({ 
-                          ...form, 
+                        setForm({
+                          ...form,
                           clienteId: v,
                           km_viagem: baseKm ? String(baseKm) : "",
-                          custo_viagem: (baseKm && valorPorKm) ? String(baseKm * valorPorKm) : ""
+                          custo_viagem: baseKm && valorPorKm ? String(baseKm * valorPorKm) : "",
                         });
                       }}
                     >
@@ -563,12 +565,14 @@ function OSPage() {
                       step="0.01"
                       value={form.km_viagem}
                       onChange={(e) => {
-                        const cliente = clientes.find(c => c.id === form.clienteId);
+                        const cliente = clientes.find((c) => c.id === form.clienteId);
                         const valorPorKm = cliente?.valor_por_km || 0;
-                        setForm({ 
-                          ...form, 
+                        setForm({
+                          ...form,
                           km_viagem: e.target.value,
-                          custo_viagem: valorPorKm ? String(Number(e.target.value) * valorPorKm) : form.custo_viagem
+                          custo_viagem: valorPorKm
+                            ? String(Number(e.target.value) * valorPorKm)
+                            : form.custo_viagem,
                         });
                       }}
                       placeholder="0"
@@ -596,7 +600,7 @@ function OSPage() {
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          {['Pedágio', 'Insumos', 'Alimentação', 'Outros'].map((tipo) => (
+                          {["Pedágio", "Insumos", "Alimentação", "Outros"].map((tipo) => (
                             <SelectItem key={tipo} value={tipo}>
                               {tipo}
                             </SelectItem>
@@ -611,7 +615,12 @@ function OSPage() {
                         placeholder="R$"
                         className="h-10 w-24"
                       />
-                      <Button type="button" size="icon" className="h-10 w-10" onClick={adicionarDespesa}>
+                      <Button
+                        type="button"
+                        size="icon"
+                        className="h-10 w-10"
+                        onClick={adicionarDespesa}
+                      >
                         <Plus className="w-4 h-4" />
                       </Button>
                     </div>
@@ -622,26 +631,48 @@ function OSPage() {
                     <div className="text-[10px] uppercase tracking-wider font-bold text-muted-foreground">
                       Despesas adicionadas
                     </div>
-                    {(Array.isArray(despesasSelecionadas) ? despesasSelecionadas : []).map((despesa, index) => (
-                      <div key={`${despesa.tipo}-${index}`} className="flex items-center justify-between rounded-lg bg-background/70 px-3 py-2 text-sm">
-                        <span>{despesa.tipo}</span>
-                        <span>R$ {despesa.valor.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</span>
-                      </div>
-                    ))}
+                    {(Array.isArray(despesasSelecionadas) ? despesasSelecionadas : []).map(
+                      (despesa, index) => (
+                        <div
+                          key={`${despesa.tipo}-${index}`}
+                          className="flex items-center justify-between rounded-lg bg-background/70 px-3 py-2 text-sm"
+                        >
+                          <span>{despesa.tipo}</span>
+                          <span>
+                            R$ {despesa.valor.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                          </span>
+                        </div>
+                      ),
+                    )}
                   </div>
                 )}
                 {(() => {
                   const subtotal = Number(form.valor || 0);
                   const custoViagem = Number(form.custo_viagem || 0);
-                  const somaDespesas = despesasSelecionadas.reduce((s, it) => s + Number(it.valor || 0), 0);
+                  const somaDespesas = despesasSelecionadas.reduce(
+                    (s, it) => s + Number(it.valor || 0),
+                    0,
+                  );
                   const custosExtras = custoViagem + somaDespesas;
                   const total = subtotal + custosExtras;
-                  const fmt = (n: number) => n.toLocaleString("pt-BR", { minimumFractionDigits: 2 });
+                  const fmt = (n: number) =>
+                    n.toLocaleString("pt-BR", { minimumFractionDigits: 2 });
                   return (
                     <div className="rounded-xl border border-border/60 bg-primary/5 p-3 text-sm space-y-1">
-                      <div className="flex justify-between"><span className="text-muted-foreground">Subtotal (Serviço)</span><span>R$ {fmt(subtotal)}</span></div>
-                      <div className="flex justify-between"><span className="text-muted-foreground">+ Custos Extras (Viagem + Despesas)</span><span>R$ {fmt(custosExtras)}</span></div>
-                      <div className="flex justify-between font-semibold pt-1 border-t border-border/60"><span>= Valor Total Faturado</span><span>R$ {fmt(total)}</span></div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Subtotal (Serviço)</span>
+                        <span>R$ {fmt(subtotal)}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">
+                          + Custos Extras (Viagem + Despesas)
+                        </span>
+                        <span>R$ {fmt(custosExtras)}</span>
+                      </div>
+                      <div className="flex justify-between font-semibold pt-1 border-t border-border/60">
+                        <span>= Valor Total Faturado</span>
+                        <span>R$ {fmt(total)}</span>
+                      </div>
                     </div>
                   );
                 })()}
@@ -978,7 +1009,10 @@ function OSPage() {
                                 )}
                                 {o.numero}
                               </div>
-                              <div className="font-bold text-sm text-foreground truncate max-w-[250px]" title={o.titulo}>
+                              <div
+                                className="font-bold text-sm text-foreground truncate max-w-[250px]"
+                                title={o.titulo}
+                              >
                                 {o.titulo}
                               </div>
                             </div>
@@ -1052,7 +1086,14 @@ function OSPage() {
                               <div>Serviço: R$ {Number(o.valor ?? 0).toLocaleString("pt-BR")}</div>
                               <div className="text-[11px] text-muted-foreground">
                                 <span className="inline-flex items-center rounded-full bg-amber-50 px-2 py-0.5 text-amber-700">
-                                  Viagem/Despesas: R$ {(Number(o.custo_viagem ?? 0) + (o.despesas ?? []).reduce((sum, item) => sum + Number(item?.valor ?? 0), 0)).toLocaleString("pt-BR")}
+                                  Viagem/Despesas: R${" "}
+                                  {(
+                                    Number(o.custo_viagem ?? 0) +
+                                    (o.despesas ?? []).reduce(
+                                      (sum, item) => sum + Number(item?.valor ?? 0),
+                                      0,
+                                    )
+                                  ).toLocaleString("pt-BR")}
                                 </span>
                               </div>
                             </div>
@@ -1116,8 +1157,8 @@ function OSPage() {
       {os.length > 0 && viewMode === "list" && (
         <div className="flex items-center justify-between mt-4 px-1">
           <p className="text-xs text-muted-foreground">
-            Mostrando {osPage * PAGE_SIZE + 1}–{Math.min((osPage + 1) * PAGE_SIZE, osTotal)}{" "}
-            de {osTotal} OS
+            Mostrando {osPage * PAGE_SIZE + 1}–{Math.min((osPage + 1) * PAGE_SIZE, osTotal)} de{" "}
+            {osTotal} OS
           </p>
           <div className="flex items-center gap-2">
             <Button
@@ -1158,7 +1199,8 @@ function OSPage() {
           try {
             await updateOS(editing.id, patch);
             const mudouStatus = patch.status !== undefined && patch.status !== editing.status;
-            const mudouTecnico = patch.tecnicoId !== undefined && patch.tecnicoId !== editing.tecnicoId;
+            const mudouTecnico =
+              patch.tecnicoId !== undefined && patch.tecnicoId !== editing.tecnicoId;
             if (mudouStatus) {
               await registrarLog(
                 "os_status_alterado",
@@ -1326,7 +1368,7 @@ export function EditOSDialog({
 
   useEffect(() => {
     if (ordem) {
-       setForm({
+      setForm({
         titulo: ordem.titulo ?? "",
         clienteId: ordem.clienteId ?? "",
         tecnicoId: ordem.tecnicoId ?? "",
@@ -1368,7 +1410,7 @@ export function EditOSDialog({
       descricao_problema: descricaoProblema,
       status: form.status,
       dados_adicionais: dadosExtras,
-      pendencias_detalhes: form.pendencias_detalhes || null as any,
+      pendencias_detalhes: form.pendencias_detalhes || (null as any),
     };
 
     setSaving(true);
@@ -1467,7 +1509,12 @@ export function EditOSDialog({
               <div className="flex items-center justify-between gap-2 mb-1">
                 <Label>Cliente</Label>
                 {!isView && (
-                  <Button variant="outline" size="sm" className="h-8" onClick={() => setQuickCliOpen(true)}>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-8"
+                    onClick={() => setQuickCliOpen(true)}
+                  >
                     <Plus className="w-3.5 h-3.5 mr-1" /> Cadastrar novo
                   </Button>
                 )}
@@ -1476,14 +1523,14 @@ export function EditOSDialog({
                 disabled={isView}
                 value={form.clienteId}
                 onValueChange={(v) => {
-                  const cliente = clientes.find(c => c.id === v);
+                  const cliente = clientes.find((c) => c.id === v);
                   const baseKm = cliente?.base_km || 0;
                   const valorPorKm = cliente?.valor_por_km || 0;
-                  setForm({ 
-                    ...form, 
+                  setForm({
+                    ...form,
                     clienteId: v,
                     km_viagem: baseKm ? String(baseKm) : "",
-                    custo_viagem: (baseKm && valorPorKm) ? String(baseKm * valorPorKm) : ""
+                    custo_viagem: baseKm && valorPorKm ? String(baseKm * valorPorKm) : "",
                   });
                 }}
               >
@@ -1503,7 +1550,12 @@ export function EditOSDialog({
               <div className="flex items-center justify-between gap-2 mb-1">
                 <Label>Técnico</Label>
                 {!isView && (
-                  <Button variant="outline" size="sm" className="h-8" onClick={() => setQuickTecOpen(true)}>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-8"
+                    onClick={() => setQuickTecOpen(true)}
+                  >
                     <Plus className="w-3.5 h-3.5 mr-1" /> Cadastrar novo
                   </Button>
                 )}
@@ -1525,34 +1577,34 @@ export function EditOSDialog({
                 </SelectContent>
               </Select>
             </div>
-          <div>
-            <Label>Analista / Suporte Responsável</Label>
-            <Select
-              disabled={isView || !form.clienteId}
-              value={form.analistaId || undefined}
-              onValueChange={(v) => setForm({ ...form, analistaId: v })}
-            >
-              <SelectTrigger>
-                <SelectValue
-                  placeholder={
-                    !form.clienteId
-                      ? "Selecione um cliente primeiro"
-                      : analistasEdit.length === 0
-                        ? "Nenhum analista cadastrado para este cliente"
-                        : "Selecione um analista..."
-                  }
-                />
-              </SelectTrigger>
-              <SelectContent>
-                {(Array.isArray(analistasEdit) ? analistasEdit : []).map((a) => (
-                  <SelectItem key={a.id} value={a.id}>
-                    {a.nome}
-                    {a.whatsapp ? ` — ${a.whatsapp}` : ""}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+            <div>
+              <Label>Analista / Suporte Responsável</Label>
+              <Select
+                disabled={isView || !form.clienteId}
+                value={form.analistaId || undefined}
+                onValueChange={(v) => setForm({ ...form, analistaId: v })}
+              >
+                <SelectTrigger>
+                  <SelectValue
+                    placeholder={
+                      !form.clienteId
+                        ? "Selecione um cliente primeiro"
+                        : analistasEdit.length === 0
+                          ? "Nenhum analista cadastrado para este cliente"
+                          : "Selecione um analista..."
+                    }
+                  />
+                </SelectTrigger>
+                <SelectContent>
+                  {(Array.isArray(analistasEdit) ? analistasEdit : []).map((a) => (
+                    <SelectItem key={a.id} value={a.id}>
+                      {a.nome}
+                      {a.whatsapp ? ` — ${a.whatsapp}` : ""}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
           <div className="grid grid-cols-4 gap-3">
             <div>
@@ -1583,12 +1635,14 @@ export function EditOSDialog({
                 step="0.01"
                 value={form.km_viagem}
                 onChange={(e) => {
-                  const cliente = clientes.find(c => c.id === form.clienteId);
+                  const cliente = clientes.find((c) => c.id === form.clienteId);
                   const valorPorKm = cliente?.valor_por_km || 0;
-                  setForm({ 
-                    ...form, 
+                  setForm({
+                    ...form,
                     km_viagem: e.target.value,
-                    custo_viagem: valorPorKm ? String(Number(e.target.value) * valorPorKm) : form.custo_viagem
+                    custo_viagem: valorPorKm
+                      ? String(Number(e.target.value) * valorPorKm)
+                      : form.custo_viagem,
                   });
                 }}
               />
@@ -1644,12 +1698,16 @@ export function EditOSDialog({
             <div>
               <Label>Adicionar despesa</Label>
               <div className="flex gap-2">
-                <Select disabled={isView} value={despesaTipoEdit} onValueChange={setDespesaTipoEdit}>
+                <Select
+                  disabled={isView}
+                  value={despesaTipoEdit}
+                  onValueChange={setDespesaTipoEdit}
+                >
                   <SelectTrigger className="h-10 flex-1">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {['Pedágio', 'Insumos', 'Alimentação', 'Outros'].map((tipo) => (
+                    {["Pedágio", "Insumos", "Alimentação", "Outros"].map((tipo) => (
                       <SelectItem key={tipo} value={tipo}>
                         {tipo}
                       </SelectItem>
@@ -1665,7 +1723,13 @@ export function EditOSDialog({
                   placeholder="R$"
                   className="h-10 w-24"
                 />
-                <Button type="button" size="icon" className="h-10 w-10" onClick={adicionarDespesaEdit} disabled={isView}>
+                <Button
+                  type="button"
+                  size="icon"
+                  className="h-10 w-10"
+                  onClick={adicionarDespesaEdit}
+                  disabled={isView}
+                >
                   <Plus className="w-4 h-4" />
                 </Button>
               </div>
@@ -1696,9 +1760,14 @@ export function EditOSDialog({
                 Despesas adicionadas
               </div>
               {(Array.isArray(despesasEdit) ? despesasEdit : []).map((despesa, index) => (
-                <div key={`${despesa.tipo}-${index}`} className="flex items-center justify-between rounded-lg bg-background/70 px-3 py-2 text-sm">
+                <div
+                  key={`${despesa.tipo}-${index}`}
+                  className="flex items-center justify-between rounded-lg bg-background/70 px-3 py-2 text-sm"
+                >
                   <span>{despesa.tipo}</span>
-                  <span>R$ {despesa.valor.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</span>
+                  <span>
+                    R$ {despesa.valor.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                  </span>
                 </div>
               ))}
             </div>
@@ -1712,11 +1781,25 @@ export function EditOSDialog({
             const fmt = (n: number) => n.toLocaleString("pt-BR", { minimumFractionDigits: 2 });
             return (
               <div className="rounded-xl border border-border/60 bg-primary/5 p-3 text-sm space-y-1">
-                <div className="text-[10px] uppercase tracking-wider font-bold text-muted-foreground mb-1">Resumo Financeiro</div>
-                <div className="flex justify-between"><span className="text-muted-foreground">Subtotal (Serviço)</span><span>R$ {fmt(subtotal)}</span></div>
-                <div className="flex justify-between"><span className="text-muted-foreground">+ Custo de Viagem</span><span>R$ {fmt(custoViagem)}</span></div>
-                <div className="flex justify-between"><span className="text-muted-foreground">+ Despesas</span><span>R$ {fmt(somaDespesas)}</span></div>
-                <div className="flex justify-between font-semibold pt-1 border-t border-border/60"><span>= Valor Total Faturado</span><span>R$ {fmt(total)}</span></div>
+                <div className="text-[10px] uppercase tracking-wider font-bold text-muted-foreground mb-1">
+                  Resumo Financeiro
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Subtotal (Serviço)</span>
+                  <span>R$ {fmt(subtotal)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">+ Custo de Viagem</span>
+                  <span>R$ {fmt(custoViagem)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">+ Despesas</span>
+                  <span>R$ {fmt(somaDespesas)}</span>
+                </div>
+                <div className="flex justify-between font-semibold pt-1 border-t border-border/60">
+                  <span>= Valor Total Faturado</span>
+                  <span>R$ {fmt(total)}</span>
+                </div>
               </div>
             );
           })()}
@@ -1781,7 +1864,11 @@ export function EditOSDialog({
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setQuickCliOpen(false)} disabled={quickCliSaving}>
+            <Button
+              variant="outline"
+              onClick={() => setQuickCliOpen(false)}
+              disabled={quickCliSaving}
+            >
               Cancelar
             </Button>
             <Button onClick={saveQuickCliente} disabled={quickCliSaving}>
@@ -1805,7 +1892,10 @@ export function EditOSDialog({
             </div>
             <div>
               <Label>Perfil</Label>
-              <Select value={quickTecForm.perfil} onValueChange={(v) => setQuickTecForm({ ...quickTecForm, perfil: v })}>
+              <Select
+                value={quickTecForm.perfil}
+                onValueChange={(v) => setQuickTecForm({ ...quickTecForm, perfil: v })}
+              >
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
@@ -1826,7 +1916,11 @@ export function EditOSDialog({
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setQuickTecOpen(false)} disabled={quickTecSaving}>
+            <Button
+              variant="outline"
+              onClick={() => setQuickTecOpen(false)}
+              disabled={quickTecSaving}
+            >
               Cancelar
             </Button>
             <Button onClick={saveQuickTecnico} disabled={quickTecSaving}>

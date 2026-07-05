@@ -84,7 +84,7 @@ export function RatGallery({ osId, trigger }: { osId: string; trigger?: React.Re
       try {
         const urlObj = new URL(arq.arquivo_url);
         // Exemplo: https://.../storage/v1/object/public/rats/osId/fileName
-        const pathParts = urlObj.pathname.split('/rats/');
+        const pathParts = urlObj.pathname.split("/rats/");
         if (pathParts.length > 1) {
           const filePath = decodeURIComponent(pathParts[1]);
           await supabase.storage.from("rats").remove([filePath]);

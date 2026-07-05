@@ -28,16 +28,16 @@ export const Route = createFileRoute("/configuracoes")({
   ),
 });
 
-function ImageUploader({ 
-  currentUrl, 
-  onUpload, 
-  isUploading, 
-  type 
-}: { 
-  currentUrl?: string, 
-  onUpload: (f: File) => void, 
-  isUploading: boolean,
-  type: "avatar" | "logo"
+function ImageUploader({
+  currentUrl,
+  onUpload,
+  isUploading,
+  type,
+}: {
+  currentUrl?: string;
+  onUpload: (f: File) => void;
+  isUploading: boolean;
+  type: "avatar" | "logo";
 }) {
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -51,7 +51,7 @@ function ImageUploader({
 
   return (
     <div className="flex flex-col items-center gap-3">
-      <div 
+      <div
         onClick={() => !isUploading && fileRef.current?.click()}
         className={`relative group cursor-pointer overflow-hidden bg-muted flex items-center justify-center border-2 border-dashed border-border/60 hover:border-primary/50 transition-colors
           ${isAvatar ? "w-24 h-24 rounded-full" : "w-32 h-24 rounded-xl"}
@@ -59,11 +59,15 @@ function ImageUploader({
       >
         {currentUrl ? (
           <img src={currentUrl} alt="Upload" className="w-full h-full object-cover" />
+        ) : isAvatar ? (
+          <User className="w-8 h-8 text-muted-foreground/50" />
         ) : (
-          isAvatar ? <User className="w-8 h-8 text-muted-foreground/50" /> : <Building className="w-8 h-8 text-muted-foreground/50" />
+          <Building className="w-8 h-8 text-muted-foreground/50" />
         )}
-        
-        <div className={`absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity ${isUploading ? 'opacity-100' : ''}`}>
+
+        <div
+          className={`absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity ${isUploading ? "opacity-100" : ""}`}
+        >
           {isUploading ? (
             <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
           ) : (
@@ -74,12 +78,12 @@ function ImageUploader({
       <div className="text-xs text-muted-foreground">
         {isAvatar ? "Foto de Perfil" : "Logo da Empresa"}
       </div>
-      <input 
-        type="file" 
-        ref={fileRef} 
-        onChange={handleFileChange} 
-        accept="image/*" 
-        className="hidden" 
+      <input
+        type="file"
+        ref={fileRef}
+        onChange={handleFileChange}
+        accept="image/*"
+        className="hidden"
       />
     </div>
   );
@@ -88,7 +92,7 @@ function ImageUploader({
 function ConfiguracoesPage() {
   const { user, updateProfile, updateEmpresa, uploadAsset } = useStore();
   const { changePassword } = useAuth();
-  
+
   // Profile State
   const [nome, setNome] = useState("");
   const [avatarUrl, setAvatarUrl] = useState("");
@@ -129,14 +133,14 @@ function ConfiguracoesPage() {
       const url = await uploadAsset(file, `avatars/${user.id}`);
       await updateProfile(nome, url);
       setAvatarUrl(url);
-      
+
       await logActivity(
         "foto_perfil_atualizada",
-        `O usuário ${user.nome || 'Desconhecido'} atualizou sua foto de perfil`,
+        `O usuário ${user.nome || "Desconhecido"} atualizou sua foto de perfil`,
         user.empresaId || "",
-        user.nome || "Sistema"
+        user.nome || "Sistema",
       );
-      
+
       toast.success("Foto atualizada com sucesso!");
     } catch (e: any) {
       toast.error(e.message ?? "Erro ao fazer upload da imagem");
@@ -152,14 +156,14 @@ function ConfiguracoesPage() {
       const url = await uploadAsset(file, `logos/${user.empresaId}`);
       await updateEmpresa(empresa, cnpj, endereco, telefone, url);
       setLogoUrl(url);
-      
+
       await logActivity(
         "logo_empresa_atualizada",
-        `A logo da empresa foi atualizada pelo usuário ${user.nome || 'Desconhecido'}`,
+        `A logo da empresa foi atualizada pelo usuário ${user.nome || "Desconhecido"}`,
         user.empresaId || "",
-        user.nome || "Sistema"
+        user.nome || "Sistema",
       );
-      
+
       toast.success("Logo atualizado com sucesso!");
     } catch (e: any) {
       toast.error(e.message ?? "Erro ao fazer upload do logo");
@@ -241,22 +245,26 @@ function ConfiguracoesPage() {
                 </div>
               </div>
             </div>
-            
+
             <div className="flex flex-col md:flex-row gap-8">
               <div className="flex-shrink-0 flex justify-center">
-                <ImageUploader 
+                <ImageUploader
                   type="avatar"
                   currentUrl={avatarUrl}
                   isUploading={uploadingAvatar}
                   onUpload={handleAvatarUpload}
                 />
               </div>
-              
+
               <div className="flex-1 space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label>Nome completo</Label>
-                    <Input placeholder="Seu nome" value={nome} onChange={(e) => setNome(e.target.value)} />
+                    <Input
+                      placeholder="Seu nome"
+                      value={nome}
+                      onChange={(e) => setNome(e.target.value)}
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label>E-mail de Acesso</Label>
@@ -282,18 +290,18 @@ function ConfiguracoesPage() {
                       <form onSubmit={handleChangePassword} className="space-y-4 mt-2">
                         <div className="space-y-2">
                           <Label>Nova Senha</Label>
-                          <Input 
-                            type="password" 
-                            value={newPassword} 
-                            onChange={(e) => setNewPassword(e.target.value)} 
+                          <Input
+                            type="password"
+                            value={newPassword}
+                            onChange={(e) => setNewPassword(e.target.value)}
                           />
                         </div>
                         <div className="space-y-2">
                           <Label>Confirmar Nova Senha</Label>
-                          <Input 
-                            type="password" 
-                            value={confirmPassword} 
-                            onChange={(e) => setConfirmPassword(e.target.value)} 
+                          <Input
+                            type="password"
+                            value={confirmPassword}
+                            onChange={(e) => setConfirmPassword(e.target.value)}
                           />
                         </div>
                         <Button type="submit" className="w-full" disabled={savingPassword}>
@@ -303,8 +311,12 @@ function ConfiguracoesPage() {
                     </DialogContent>
                   </Dialog>
 
-                  <Button onClick={saveProfile} disabled={savingNome || uploadingAvatar} className="w-full sm:w-auto">
-                    <Save className="w-4 h-4 mr-2" /> 
+                  <Button
+                    onClick={saveProfile}
+                    disabled={savingNome || uploadingAvatar}
+                    className="w-full sm:w-auto"
+                  >
+                    <Save className="w-4 h-4 mr-2" />
                     {savingNome ? "Salvando..." : "Salvar Perfil"}
                   </Button>
                 </div>
@@ -323,10 +335,10 @@ function ConfiguracoesPage() {
                 <p className="text-xs text-muted-foreground">Informações comerciais e fiscais</p>
               </div>
             </div>
-            
+
             <div className="flex flex-col md:flex-row gap-8">
               <div className="flex-shrink-0 flex justify-center">
-                <ImageUploader 
+                <ImageUploader
                   type="logo"
                   currentUrl={logoUrl}
                   isUploading={uploadingLogo}
@@ -338,25 +350,45 @@ function ConfiguracoesPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2 md:col-span-2">
                     <Label>Nome da Empresa (Fantasia)</Label>
-                    <Input placeholder="Sua empresa" value={empresa} onChange={(e) => setEmpresa(e.target.value)} />
+                    <Input
+                      placeholder="Sua empresa"
+                      value={empresa}
+                      onChange={(e) => setEmpresa(e.target.value)}
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label>CNPJ</Label>
-                    <Input placeholder="00.000.000/0000-00" value={cnpj} onChange={(e) => setCnpj(e.target.value)} />
+                    <Input
+                      placeholder="00.000.000/0000-00"
+                      value={cnpj}
+                      onChange={(e) => setCnpj(e.target.value)}
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label>Telefone Comercial</Label>
-                    <Input placeholder="(00) 0000-0000" value={telefone} onChange={(e) => setTelefone(e.target.value)} />
+                    <Input
+                      placeholder="(00) 0000-0000"
+                      value={telefone}
+                      onChange={(e) => setTelefone(e.target.value)}
+                    />
                   </div>
                   <div className="space-y-2 md:col-span-2">
                     <Label>Endereço Comercial</Label>
-                    <Input placeholder="Rua, Número, Bairro, Cidade - UF" value={endereco} onChange={(e) => setEndereco(e.target.value)} />
+                    <Input
+                      placeholder="Rua, Número, Bairro, Cidade - UF"
+                      value={endereco}
+                      onChange={(e) => setEndereco(e.target.value)}
+                    />
                   </div>
                 </div>
 
                 <div className="pt-4 flex justify-end border-t border-border/50">
-                  <Button onClick={saveEmpresa} disabled={savingEmpresa || uploadingLogo} className="w-full sm:w-auto">
-                    <Save className="w-4 h-4 mr-2" /> 
+                  <Button
+                    onClick={saveEmpresa}
+                    disabled={savingEmpresa || uploadingLogo}
+                    className="w-full sm:w-auto"
+                  >
+                    <Save className="w-4 h-4 mr-2" />
                     {savingEmpresa ? "Salvando..." : "Salvar Empresa"}
                   </Button>
                 </div>

@@ -56,13 +56,16 @@ interface LogEntry {
   usuario_nome: string;
 }
 
-function getLimitTimeBadge(dataAgendamento: string, horarioAtendimento?: string | null): string | null {
+function getLimitTimeBadge(
+  dataAgendamento: string,
+  horarioAtendimento?: string | null,
+): string | null {
   if (!horarioAtendimento) return null;
-  
+
   const getLocalDateString = (date: Date) => {
     const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
     return `${year}-${month}-${day}`;
   };
 
@@ -102,19 +105,19 @@ function PriorityAlerts({ ordens, isLoading }: { ordens: any[]; isLoading: boole
 
   const getLocalDateString = (date: Date) => {
     const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
     return `${year}-${month}-${day}`;
   };
 
   const hojeStr = getLocalDateString(new Date());
 
-  const atrasadas = (Array.isArray(ordens) ? ordens : []).filter(o => {
+  const atrasadas = (Array.isArray(ordens) ? ordens : []).filter((o) => {
     if (!o.data_agendamento) return false;
     return o.data_agendamento < hojeStr;
   });
 
-  const hoje = (Array.isArray(ordens) ? ordens : []).filter(o => {
+  const hoje = (Array.isArray(ordens) ? ordens : []).filter((o) => {
     if (!o.data_agendamento) return false;
     return o.data_agendamento === hojeStr;
   });
@@ -142,8 +145,11 @@ function PriorityAlerts({ ordens, isLoading }: { ordens: any[]; isLoading: boole
               </span>
             </div>
             <div className="space-y-2 max-h-[140px] overflow-y-auto pr-1">
-              {(Array.isArray(atrasadas) ? atrasadas : []).map(o => (
-                <div key={o.id} className="text-xs bg-card p-2.5 rounded-2xl border border-border/50 flex items-center justify-between gap-2">
+              {(Array.isArray(atrasadas) ? atrasadas : []).map((o) => (
+                <div
+                  key={o.id}
+                  className="text-xs bg-card p-2.5 rounded-2xl border border-border/50 flex items-center justify-between gap-2"
+                >
                   <div className="min-w-0">
                     <p className="font-bold truncate text-foreground">{o.titulo}</p>
                     <p className="text-muted-foreground text-[10px] truncate">
@@ -152,7 +158,9 @@ function PriorityAlerts({ ordens, isLoading }: { ordens: any[]; isLoading: boole
                   </div>
                   <div className="text-right shrink-0">
                     <span className="text-[10px] font-bold text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950 px-2 py-0.5 rounded-lg border border-red-200 dark:border-red-900">
-                      {o.data_agendamento ? new Date(o.data_agendamento + 'T00:00:00').toLocaleDateString('pt-BR') : '—'}
+                      {o.data_agendamento
+                        ? new Date(o.data_agendamento + "T00:00:00").toLocaleDateString("pt-BR")
+                        : "—"}
                     </span>
                   </div>
                 </div>
@@ -176,10 +184,13 @@ function PriorityAlerts({ ordens, isLoading }: { ordens: any[]; isLoading: boole
               </span>
             </div>
             <div className="space-y-2 max-h-[140px] overflow-y-auto pr-1">
-              {(Array.isArray(hoje) ? hoje : []).map(o => {
+              {(Array.isArray(hoje) ? hoje : []).map((o) => {
                 const limitTimeText = getLimitTimeBadge(o.data_agendamento, o.horario_atendimento);
                 return (
-                  <div key={o.id} className="text-xs bg-card p-2.5 rounded-2xl border border-border/50 flex items-center justify-between gap-2">
+                  <div
+                    key={o.id}
+                    className="text-xs bg-card p-2.5 rounded-2xl border border-border/50 flex items-center justify-between gap-2"
+                  >
                     <div className="min-w-0">
                       <p className="font-bold truncate text-foreground">{o.titulo}</p>
                       <p className="text-muted-foreground text-[10px] truncate">
@@ -205,7 +216,15 @@ function PriorityAlerts({ ordens, isLoading }: { ordens: any[]; isLoading: boole
   );
 }
 
-function PendingAlertsCard({ ordens, isLoading, onEdit }: { ordens: any[]; isLoading: boolean; onEdit: (os: any) => void }) {
+function PendingAlertsCard({
+  ordens,
+  isLoading,
+  onEdit,
+}: {
+  ordens: any[];
+  isLoading: boolean;
+  onEdit: (os: any) => void;
+}) {
   if (isLoading) {
     return <Skeleton className="h-24 w-full rounded-2xl mb-6" />;
   }
@@ -237,7 +256,9 @@ function PendingAlertsCard({ ordens, isLoading, onEdit }: { ordens: any[]; isLoa
               </div>
             </div>
             <div className="mt-2 bg-amber-100 dark:bg-amber-500/20 p-2.5 rounded-xl border border-amber-200 text-xs font-semibold text-amber-800 dark:text-amber-300 flex items-start gap-2">
-              <span className="font-bold shrink-0 text-amber-700 dark:text-amber-400">Pendente:</span>
+              <span className="font-bold shrink-0 text-amber-700 dark:text-amber-400">
+                Pendente:
+              </span>
               <span className="italic leading-normal">{o.pendencias_detalhes}</span>
             </div>
           </div>
@@ -249,14 +270,13 @@ function PendingAlertsCard({ ordens, isLoading, onEdit }: { ordens: any[]; isLoa
 
 function Dashboard() {
   const { profile } = useAuth();
-  const { clientes, tecnicos, loadingOS, loadingClientes, osMonth, osYear, os, updateOS } = useStore();
+  const { clientes, tecnicos, loadingOS, loadingClientes, osMonth, osYear, os, updateOS } =
+    useStore();
   const [editingOS, setEditingOS] = useState<OS | null>(null);
 
   // Gera dataInicio/dataFim com base no filtro de mês/ano
   const hasMonthFilter = osMonth > 0 && osYear > 0;
-  const dataInicio = hasMonthFilter
-    ? `${osYear}-${String(osMonth).padStart(2, "0")}-01`
-    : null;
+  const dataInicio = hasMonthFilter ? `${osYear}-${String(osMonth).padStart(2, "0")}-01` : null;
   const dataFim = hasMonthFilter
     ? (() => {
         const lastDay = new Date(osYear, osMonth, 0).getDate();
@@ -282,7 +302,18 @@ function Dashboard() {
       resultadoLiquido: number;
     }> => {
       const eid = profile?.empresa_id;
-      if (!eid) return { faturamentoPrevisto: 0, receitaMes: 0, pendenciasPagamento: 0, abertas: 0, concluidas: 0, emCampo: 0, receitaBruta: 0, custoTotal: 0, resultadoLiquido: 0 };
+      if (!eid)
+        return {
+          faturamentoPrevisto: 0,
+          receitaMes: 0,
+          pendenciasPagamento: 0,
+          abertas: 0,
+          concluidas: 0,
+          emCampo: 0,
+          receitaBruta: 0,
+          custoTotal: 0,
+          resultadoLiquido: 0,
+        };
 
       // Busca todas as OS da empresa (sem paginação, pois é para KPIs)
       let query = supabase
@@ -342,11 +373,25 @@ function Dashboard() {
         ["pendente", "aprovado", "em_andamento"].includes(r.status),
       ).length;
 
-      const concluidas = (Array.isArray(rows) ? rows : []).filter((r: any) => r.status === "concluido").length;
+      const concluidas = (Array.isArray(rows) ? rows : []).filter(
+        (r: any) => r.status === "concluido",
+      ).length;
 
-      const emCampo = (Array.isArray(rows) ? rows : []).filter((r: any) => r.status === "em_andamento").length;
+      const emCampo = (Array.isArray(rows) ? rows : []).filter(
+        (r: any) => r.status === "em_andamento",
+      ).length;
 
-      return { faturamentoPrevisto, receitaMes, pendenciasPagamento, abertas, concluidas, emCampo, receitaBruta, custoTotal, resultadoLiquido };
+      return {
+        faturamentoPrevisto,
+        receitaMes,
+        pendenciasPagamento,
+        abertas,
+        concluidas,
+        emCampo,
+        receitaBruta,
+        custoTotal,
+        resultadoLiquido,
+      };
     },
   });
 
@@ -369,7 +414,9 @@ function Dashboard() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("ordens_servico")
-        .select("id, numero, titulo, status, data_agendamento, horario_atendimento, cliente_id, clientes(nome)")
+        .select(
+          "id, numero, titulo, status, data_agendamento, horario_atendimento, cliente_id, clientes(nome)",
+        )
         .neq("status", "concluido")
         .neq("status", "cancelado")
         .eq("empresa_id", profile?.empresa_id || "");
@@ -383,15 +430,15 @@ function Dashboard() {
     if (alertasOSQ.data) {
       const getLocalDateString = (date: Date) => {
         const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const day = String(date.getDate()).padStart(2, '0');
+        const month = String(date.getMonth() + 1).padStart(2, "0");
+        const day = String(date.getDate()).padStart(2, "0");
         return `${year}-${month}-${day}`;
       };
       const hojeStr = getLocalDateString(new Date());
-      const proximas = (Array.isArray(alertasOSQ.data) ? alertasOSQ.data : []).filter(o => {
+      const proximas = (Array.isArray(alertasOSQ.data) ? alertasOSQ.data : []).filter((o) => {
         if (!o.data_agendamento || !o.horario_atendimento) return false;
         if (o.data_agendamento !== hojeStr) return false;
-        
+
         try {
           const [h, m] = o.horario_atendimento.split(":").map(Number);
           const agendado = new Date();
@@ -406,11 +453,14 @@ function Dashboard() {
       });
 
       if (proximas.length > 0) {
-        proximas.forEach(o => {
-          toast.warning(`Atenção: OS ${o.numero} ("${o.titulo}") está agendada para hoje às ${o.horario_atendimento} (expira em breve!)`, {
-            duration: 8000,
-            id: `vencimento-${o.id}`,
-          });
+        proximas.forEach((o) => {
+          toast.warning(
+            `Atenção: OS ${o.numero} ("${o.titulo}") está agendada para hoje às ${o.horario_atendimento} (expira em breve!)`,
+            {
+              duration: 8000,
+              id: `vencimento-${o.id}`,
+            },
+          );
         });
       }
     }
@@ -429,11 +479,15 @@ function Dashboard() {
         .order("data_agendamento", { ascending: true });
 
       if (error) throw error;
-      
+
       const parseDespesas = (value: any): Array<{ tipo: string; valor: number }> => {
         if (Array.isArray(value)) return value;
         if (typeof value === "string") {
-          try { return JSON.parse(value); } catch { return []; }
+          try {
+            return JSON.parse(value);
+          } catch {
+            return [];
+          }
         }
         return [];
       };
@@ -456,8 +510,10 @@ function Dashboard() {
         descricao_problema: r.descricao_problema ?? "",
         status: dbToUiStatus[r.status] ?? "Orçamento",
         criadaEm: (r.created_at ?? "").slice(0, 10),
-        data_atendimento: r.data_agendamento ?? r.data_atendimento ?? r.dados_adicionais?.Data ?? undefined,
-        data_agendamento: r.data_agendamento ?? r.data_atendimento ?? r.dados_adicionais?.Data ?? undefined,
+        data_atendimento:
+          r.data_agendamento ?? r.data_atendimento ?? r.dados_adicionais?.Data ?? undefined,
+        data_agendamento:
+          r.data_agendamento ?? r.data_atendimento ?? r.dados_adicionais?.Data ?? undefined,
         horario_atendimento: r.horario_atendimento ?? r.dados_adicionais?.Horario ?? undefined,
         valor: Number(r.valor ?? 0),
         custo_viagem: Number(r.custo_viagem ?? 0),
@@ -466,7 +522,15 @@ function Dashboard() {
         rat: { itens: [], evidencias: [] },
         dados_adicionais: r.dados_adicionais ?? {},
         pendencias_detalhes: r.pendencias_detalhes ?? "",
-        tecnico: r.tecnico ? { id: r.tecnico.id, nome: r.tecnico.nome, perfil: r.tecnico.perfil ?? "", telefone: r.tecnico.telefone ?? "", ativo: r.tecnico.ativo ?? true } : undefined,
+        tecnico: r.tecnico
+          ? {
+              id: r.tecnico.id,
+              nome: r.tecnico.nome,
+              perfil: r.tecnico.perfil ?? "",
+              telefone: r.tecnico.telefone ?? "",
+              ativo: r.tecnico.ativo ?? true,
+            }
+          : undefined,
         clientes: r.clientes,
       })) as OS[];
     },
@@ -544,7 +608,9 @@ function Dashboard() {
 
       let q = supabase
         .from("ordens_servico")
-        .select("tecnico_id, status, valor, custo_viagem, km_viagem, despesas, tecnico:tecnicos(id, nome)")
+        .select(
+          "tecnico_id, status, valor, custo_viagem, km_viagem, despesas, tecnico:tecnicos(id, nome)",
+        )
         .eq("empresa_id", eid);
 
       if (dataInicio && dataFim) {
@@ -624,7 +690,11 @@ function Dashboard() {
       </div>
 
       <PriorityAlerts ordens={alertasOSQ.data ?? []} isLoading={alertasOSQ.isLoading} />
-      <PendingAlertsCard ordens={pendenciasOSQ.data ?? []} isLoading={pendenciasOSQ.isLoading} onEdit={(os) => setEditingOS(os)} />
+      <PendingAlertsCard
+        ordens={pendenciasOSQ.data ?? []}
+        isLoading={pendenciasOSQ.isLoading}
+        onEdit={(os) => setEditingOS(os)}
+      />
 
       {/* Cards Estratégicos */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
@@ -671,14 +741,17 @@ function Dashboard() {
             )}
           </div>
           <p className="text-xs text-muted-foreground mt-1 truncate">
-            Bruta R$ {kpis.receitaBruta.toLocaleString("pt-BR", { maximumFractionDigits: 0 })} - Custo R$ {kpis.custoTotal.toLocaleString("pt-BR", { maximumFractionDigits: 0 })}
+            Bruta R$ {kpis.receitaBruta.toLocaleString("pt-BR", { maximumFractionDigits: 0 })} -
+            Custo R$ {kpis.custoTotal.toLocaleString("pt-BR", { maximumFractionDigits: 0 })}
           </p>
         </div>
 
         <div className="rounded-3xl bg-gradient-to-br from-warning/10 to-warning/5 p-5 border border-warning/20">
           <div className="flex items-center gap-2 mb-2">
             <AlertCircle className="w-4 h-4 text-warning" />
-            <span className="text-xs font-medium text-muted-foreground">Pendências de Pagamento</span>
+            <span className="text-xs font-medium text-muted-foreground">
+              Pendências de Pagamento
+            </span>
           </div>
           <div className="text-2xl font-bold">
             {kpisFinanceirosQ.isLoading ? (
@@ -737,7 +810,11 @@ function Dashboard() {
               icon={Activity}
               label={(profile?.role as string) === "tecnico" ? "OS Ativas" : "Em Campo Agora"}
               value={osAtivasCount}
-              trend={(profile?.role as string) === "tecnico" ? "Suas atribuições" : `${(Array.isArray(tecnicos) ? tecnicos : []).filter((t) => t.ativo).length} técnicos`}
+              trend={
+                (profile?.role as string) === "tecnico"
+                  ? "Suas atribuições"
+                  : `${(Array.isArray(tecnicos) ? tecnicos : []).filter((t) => t.ativo).length} técnicos`
+              }
               tone="warning"
             />
           </div>
@@ -775,14 +852,17 @@ function Dashboard() {
                 <div className="space-y-2">
                   {os.slice(0, 5).map((o) => {
                     const statusColors: Record<string, string> = {
-                      "Orçamento": "bg-slate-500/10 text-slate-500 border-slate-500/20",
-                      "Aprovado": "bg-blue-500/10 text-blue-500 border-blue-500/20",
+                      Orçamento: "bg-slate-500/10 text-slate-500 border-slate-500/20",
+                      Aprovado: "bg-blue-500/10 text-blue-500 border-blue-500/20",
                       "Em Execução": "bg-amber-500/10 text-amber-500 border-amber-500/20",
-                      "Concluído": "bg-emerald-500/10 text-emerald-500 border-emerald-500/20",
-                      "Cancelado": "bg-red-500/10 text-red-500 border-red-500/20",
+                      Concluído: "bg-emerald-500/10 text-emerald-500 border-emerald-500/20",
+                      Cancelado: "bg-red-500/10 text-red-500 border-red-500/20",
                     };
                     return (
-                      <div key={o.id} className="flex items-center justify-between p-3 rounded-2xl border border-border/50 bg-background hover:bg-muted/10 transition-colors">
+                      <div
+                        key={o.id}
+                        className="flex items-center justify-between p-3 rounded-2xl border border-border/50 bg-background hover:bg-muted/10 transition-colors"
+                      >
                         <div className="min-w-0">
                           <p className="font-bold text-sm truncate text-foreground">{o.titulo}</p>
                           <p className="text-[10px] text-muted-foreground flex items-center gap-1.5 mt-0.5">
@@ -791,21 +871,25 @@ function Dashboard() {
                             <span>Valor: R$ {o.valor.toLocaleString("pt-BR")}</span>
                           </p>
                         </div>
-                        <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold border ${statusColors[o.status] || "bg-muted text-muted-foreground border-border"}`}>
+                        <span
+                          className={`text-[10px] px-2 py-0.5 rounded-full font-bold border ${statusColors[o.status] || "bg-muted text-muted-foreground border-border"}`}
+                        >
                           {o.status}
                         </span>
                       </div>
                     );
                   })}
                 </div>
-              ) : !loadingOS && (
-                <div className="text-sm text-muted-foreground text-center py-10">
-                  Nenhuma OS ainda. Crie a primeira em{" "}
-                  <Link to="/os" className="text-primary font-semibold">
-                    Ordens de Serviço
-                  </Link>
-                  .
-                </div>
+              ) : (
+                !loadingOS && (
+                  <div className="text-sm text-muted-foreground text-center py-10">
+                    Nenhuma OS ainda. Crie a primeira em{" "}
+                    <Link to="/os" className="text-primary font-semibold">
+                      Ordens de Serviço
+                    </Link>
+                    .
+                  </div>
+                )
               )}
             </div>
           </div>
@@ -849,17 +933,26 @@ function Dashboard() {
                   </thead>
                   <tbody className="divide-y divide-border/60">
                     {(produtividadeQ.data ?? []).slice(0, 5).map((p) => {
-                      const eficiencia = p.os_total > 0 ? Math.round((p.os_concluidas / p.os_total) * 100) : 0;
+                      const eficiencia =
+                        p.os_total > 0 ? Math.round((p.os_concluidas / p.os_total) * 100) : 0;
                       return (
                         <tr key={p.tecnico_id} className="hover:bg-muted/30">
-                          <td className="px-2 py-2.5 font-medium text-xs">{p.nome.split(" ")[0]}</td>
+                          <td className="px-2 py-2.5 font-medium text-xs">
+                            {p.nome.split(" ")[0]}
+                          </td>
                           <td className="px-2 py-2.5 text-right text-xs">
-                            <span className={`font-semibold ${eficiencia >= 70 ? "text-success" : eficiencia >= 40 ? "text-warning" : "text-destructive"}`}>
+                            <span
+                              className={`font-semibold ${eficiencia >= 70 ? "text-success" : eficiencia >= 40 ? "text-warning" : "text-destructive"}`}
+                            >
                               {eficiencia}%
                             </span>
                           </td>
                           <td className="px-2 py-2.5 text-right text-xs font-semibold">
-                            R$ {p.faturamento.toLocaleString("pt-BR", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+                            R${" "}
+                            {p.faturamento.toLocaleString("pt-BR", {
+                              minimumFractionDigits: 0,
+                              maximumFractionDigits: 0,
+                            })}
                           </td>
                         </tr>
                       );

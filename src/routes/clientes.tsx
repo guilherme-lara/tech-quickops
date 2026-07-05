@@ -56,7 +56,18 @@ export const Route = createFileRoute("/clientes")({
 type Analista = { id?: string; nome: string; whatsapp: string; _new?: boolean };
 
 function ClientesPage() {
-  const { clientes, addCliente, updateCliente, deleteCliente, loadingClientes, clientesPage, clientesTotal, setClientesPage, clientesSearch, setClientesSearch } = useStore();
+  const {
+    clientes,
+    addCliente,
+    updateCliente,
+    deleteCliente,
+    loadingClientes,
+    clientesPage,
+    clientesTotal,
+    setClientesPage,
+    clientesSearch,
+    setClientesSearch,
+  } = useStore();
   const { profile } = useAuth();
   const empresaId = profile?.empresa_id;
   const nomeUsuario = profile?.nome_completo || "usuário";
@@ -82,7 +93,16 @@ function ClientesPage() {
   const totalClientesPages = Math.max(1, Math.ceil(clientesTotal / PAGE_SIZE));
 
   const openNew = () => {
-    setForm({ id: "", nome: "", documento: "", telefone: "", email: "", cidade: "", base_km: "", valor_por_km: "" });
+    setForm({
+      id: "",
+      nome: "",
+      documento: "",
+      telefone: "",
+      email: "",
+      cidade: "",
+      base_km: "",
+      valor_por_km: "",
+    });
     setAnalistas([]);
     setOpen(true);
   };
@@ -128,16 +148,16 @@ function ClientesPage() {
   const handleDelete = async (id: string) => {
     if (window.confirm("Deseja realmente excluir este cliente?")) {
       try {
-        console.log('Tentando excluir cliente:', id);
+        console.log("Tentando excluir cliente:", id);
         const cliente = clientes.find((c) => c.id === id);
         await deleteCliente(id);
         if (cliente) {
-          console.log('Logando exclusão...');
+          console.log("Logando exclusão...");
           await logActivity(
             "cliente_excluido",
             `Cliente ${cliente.nome} excluído pelo usuário ${(profile as any)?.nome || profile?.nome_completo || "Sistema"}`,
             profile?.empresa_id || "",
-            (profile as any)?.nome || profile?.nome_completo || "Sistema"
+            (profile as any)?.nome || profile?.nome_completo || "Sistema",
           );
         }
         toast.success("Cliente excluído!");
@@ -217,14 +237,26 @@ function ClientesPage() {
           .order("created_at", { ascending: false })
           .limit(1);
         clienteId = novo?.[0]?.id ?? "";
-        await registrarLog("cliente_criado", `Cliente "${form.nome}" cadastrado por ${nomeUsuario}`);
+        await registrarLog(
+          "cliente_criado",
+          `Cliente "${form.nome}" cadastrado por ${nomeUsuario}`,
+        );
       }
       if (clienteId && analistas.length > 0) {
         await persistAnalistas(clienteId);
       }
       toast.success(form.id ? "Cliente atualizado!" : "Cliente cadastrado!");
       setOpen(false);
-      setForm({ id: "", nome: "", documento: "", telefone: "", email: "", cidade: "", base_km: "", valor_por_km: "" });
+      setForm({
+        id: "",
+        nome: "",
+        documento: "",
+        telefone: "",
+        email: "",
+        cidade: "",
+        base_km: "",
+        valor_por_km: "",
+      });
       setAnalistas([]);
     } catch (e: any) {
       toast.error(e.message || "Erro ao salvar cliente");
@@ -286,9 +318,7 @@ function ClientesPage() {
                   <Label>Telefone</Label>
                   <Input
                     value={form.telefone}
-                    onChange={(e) =>
-                      setForm({ ...form, telefone: maskPhoneBR(e.target.value) })
-                    }
+                    onChange={(e) => setForm({ ...form, telefone: maskPhoneBR(e.target.value) })}
                     placeholder="(11) 99999-0000"
                     inputMode="numeric"
                   />
@@ -357,7 +387,9 @@ function ClientesPage() {
                             value={a.nome}
                             onChange={(e) =>
                               setAnalistas((prev) =>
-                                prev.map((x, i) => (i === idx ? { ...x, nome: e.target.value } : x)),
+                                prev.map((x, i) =>
+                                  i === idx ? { ...x, nome: e.target.value } : x,
+                                ),
                               )
                             }
                             className="flex-1"
@@ -463,9 +495,7 @@ function ClientesPage() {
                     <tbody className="divide-y divide-border">
                       {(Array.isArray(clientes) ? clientes : []).map((c) => (
                         <tr key={c.id} className="hover:bg-muted/30 transition-colors">
-                          <td className="px-5 py-4 font-medium whitespace-nowrap">
-                            {c.nome}
-                          </td>
+                          <td className="px-5 py-4 font-medium whitespace-nowrap">{c.nome}</td>
                           <td className="px-5 py-4 text-muted-foreground whitespace-nowrap">
                             {c.documento}
                           </td>
@@ -541,9 +571,7 @@ function ClientesPage() {
                         {c.nome[0]?.toUpperCase()}
                       </div>
                       <div>
-                        <div className="font-semibold text-base leading-tight">
-                          {c.nome}
-                        </div>
+                        <div className="font-semibold text-base leading-tight">{c.nome}</div>
                         <div className="text-xs text-muted-foreground">{c.documento}</div>
                       </div>
                     </div>
@@ -569,8 +597,8 @@ function ClientesPage() {
       {clientes.length > 0 && viewMode === "list" && (
         <div className="flex items-center justify-between mt-4 px-1">
           <p className="text-xs text-muted-foreground">
-            Mostrando {clientesPage * PAGE_SIZE + 1}–{Math.min((clientesPage + 1) * PAGE_SIZE, clientesTotal)}{" "}
-            de {clientesTotal} clientes
+            Mostrando {clientesPage * PAGE_SIZE + 1}–
+            {Math.min((clientesPage + 1) * PAGE_SIZE, clientesTotal)} de {clientesTotal} clientes
           </p>
           <div className="flex items-center gap-2">
             <Button

@@ -28,10 +28,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const value: AuthValue = {
     user: user ? { id: user.id, email: user.email } : null,
     profile: user
-      ? { 
-          id: user.id, 
-          nome_completo: user.nome, 
-          role: user.role, 
+      ? {
+          id: user.id,
+          nome_completo: user.nome,
+          role: user.role,
           empresa_id: user.empresaId,
           avatarUrl: user.avatarUrl,
           empresaLogo: user.empresaLogo,

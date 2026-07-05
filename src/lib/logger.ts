@@ -10,7 +10,7 @@ export async function logActivity(
   tipo: string,
   descricao: string,
   empresa_id: string,
-  usuario_nome?: string
+  usuario_nome?: string,
 ): Promise<void> {
   try {
     const { data: userData } = await supabase.auth.getUser();
@@ -35,15 +35,13 @@ export async function logActivity(
     }
 
     // Inserir o log
-    const { error: insertError } = await supabase
-      .from("logs_administrativos")
-      .insert({
-        empresa_id,
-        usuario_id: userId,
-        usuario_nome: finalNome || "Sistema",
-        tipo,
-        descricao,
-      });
+    const { error: insertError } = await supabase.from("logs_administrativos").insert({
+      empresa_id,
+      usuario_id: userId,
+      usuario_nome: finalNome || "Sistema",
+      tipo,
+      descricao,
+    });
 
     if (insertError) {
       console.error("Erro ao registrar log:", insertError);

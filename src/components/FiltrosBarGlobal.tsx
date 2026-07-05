@@ -70,7 +70,10 @@ export function FiltrosBarGlobal({
       tipo: "select-tecnicos",
       valor: store.osSearchTecnico,
       onChange: store.setOsSearchTecnico,
-      opcoes: (Array.isArray(store.tecnicos) ? store.tecnicos : []).map((t) => ({ value: t.nome, label: t.nome })),
+      opcoes: (Array.isArray(store.tecnicos) ? store.tecnicos : []).map((t) => ({
+        value: t.nome,
+        label: t.nome,
+      })),
     });
   }
 

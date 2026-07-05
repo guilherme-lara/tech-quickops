@@ -14,7 +14,15 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/EmptyState";
 import { useStore, type Item, PAGE_SIZE } from "@/lib/mock-store";
-import { Package, AlertTriangle, Plus, Pencil, Trash2, ChevronLeft, ChevronRight } from "lucide-react";
+import {
+  Package,
+  AlertTriangle,
+  Plus,
+  Pencil,
+  Trash2,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { FiltrosBarGlobal } from "@/components/FiltrosBarGlobal";
@@ -27,7 +35,10 @@ import { logActivity } from "@/lib/logger";
 const itemSchema = z.object({
   nome: z.string().min(1, "Nome é obrigatório").max(255, "Nome muito longo"),
   codigo: z.string().max(100, "Código muito longo").optional(),
-  quantidade: z.coerce.number().int("Quantidade deve ser um número inteiro").min(0, "Quantidade não pode ser negativa"),
+  quantidade: z.coerce
+    .number()
+    .int("Quantidade deve ser um número inteiro")
+    .min(0, "Quantidade não pode ser negativa"),
   valor_unitario: z.coerce.number().min(0, "Valor unitário não pode ser negativo"),
 });
 
@@ -42,7 +53,18 @@ export const Route = createFileRoute("/estoque")({
 });
 
 function EstoquePage() {
-  const { itens, loadingItens, addItem, updateItem, deleteItem, estoquePage, estoqueTotal, setEstoquePage, estoqueSearch, setEstoqueSearch } = useStore();
+  const {
+    itens,
+    loadingItens,
+    addItem,
+    updateItem,
+    deleteItem,
+    estoquePage,
+    estoqueTotal,
+    setEstoquePage,
+    estoqueSearch,
+    setEstoqueSearch,
+  } = useStore();
   const { profile } = useAuth();
   const empresaId = profile?.empresa_id;
   const nomeUsuario = profile?.nome_completo || "usuário";
@@ -112,7 +134,6 @@ function EstoquePage() {
             ) : undefined
           }
         />
-
       ) : (
         <div className="bg-card rounded-xl border border-border shadow-sm overflow-hidden">
           <div className="overflow-x-auto w-full">
@@ -143,9 +164,7 @@ function EstoquePage() {
                           {i.quantidade} un.
                         </span>
                       </td>
-                      <td className="px-5 py-3 font-semibold">
-                        R$ {i.valor_unitario.toFixed(2)}
-                      </td>
+                      <td className="px-5 py-3 font-semibold">R$ {i.valor_unitario.toFixed(2)}</td>
                       <td className="px-5 py-3 font-semibold text-success">
                         R$ {total.toFixed(2)}
                       </td>
@@ -174,8 +193,8 @@ function EstoquePage() {
           {itens.length > 0 && (
             <div className="flex items-center justify-between px-1 py-3 border-t border-border">
               <p className="text-xs text-muted-foreground">
-                Mostrando {estoquePage * PAGE_SIZE + 1}–{Math.min((estoquePage + 1) * PAGE_SIZE, estoqueTotal)}{" "}
-                de {estoqueTotal} itens
+                Mostrando {estoquePage * PAGE_SIZE + 1}–
+                {Math.min((estoquePage + 1) * PAGE_SIZE, estoqueTotal)} de {estoqueTotal} itens
               </p>
               <div className="flex items-center gap-2">
                 <Button
@@ -213,11 +232,17 @@ function EstoquePage() {
           try {
             if (editing) {
               await updateItem(editing.id, data);
-              await registrarLog("estoque_editado", `Item "${data.nome}" editado por ${nomeUsuario}`);
+              await registrarLog(
+                "estoque_editado",
+                `Item "${data.nome}" editado por ${nomeUsuario}`,
+              );
               toast.success("Item atualizado");
             } else {
               await addItem(data);
-              await registrarLog("estoque_criado", `Item "${data.nome}" cadastrado por ${nomeUsuario}`);
+              await registrarLog(
+                "estoque_criado",
+                `Item "${data.nome}" cadastrado por ${nomeUsuario}`,
+              );
               toast.success("Item cadastrado");
             }
             setOpen(false);
@@ -298,9 +323,7 @@ function ItemDialog({
           <div>
             <Label htmlFor="nome">Nome *</Label>
             <Input id="nome" {...register("nome")} />
-            {errors.nome && (
-              <p className="text-sm text-destructive mt-1">{errors.nome.message}</p>
-            )}
+            {errors.nome && <p className="text-sm text-destructive mt-1">{errors.nome.message}</p>}
           </div>
           <div>
             <Label htmlFor="codigo">Código</Label>
@@ -312,13 +335,7 @@ function ItemDialog({
           <div className="grid grid-cols-2 gap-3">
             <div>
               <Label htmlFor="quantidade">Quantidade</Label>
-              <Input
-                id="quantidade"
-                type="number"
-                min="0"
-                step="1"
-                {...register("quantidade")}
-              />
+              <Input id="quantidade" type="number" min="0" step="1" {...register("quantidade")} />
               {errors.quantidade && (
                 <p className="text-sm text-destructive mt-1">{errors.quantidade.message}</p>
               )}

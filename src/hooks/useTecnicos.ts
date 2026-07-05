@@ -8,7 +8,7 @@ export function useTecnicos(empresaId?: string, page: number = 0, search: string
     enabled: !!empresaId,
     queryFn: async () => {
       if (!empresaId) return { data: [], count: 0 };
-      
+
       let query = supabase
         .from("tecnicos")
         .select("*", { count: "exact" })
@@ -20,7 +20,7 @@ export function useTecnicos(empresaId?: string, page: number = 0, search: string
 
       const from = page * PAGE_SIZE;
       const to = from + PAGE_SIZE - 1;
-      
+
       const { data, error, count } = await query
         .order("created_at", { ascending: false })
         .range(from, to);
@@ -51,7 +51,7 @@ export function useTecnicos(empresaId?: string, page: number = 0, search: string
 
 export function useUpdateTecnico() {
   const qc = useQueryClient();
-  
+
   return useMutation({
     mutationFn: async ({ id, patch }: { id: string; patch: Partial<Tecnico> }) => {
       const dbPatch: Record<string, any> = {};
@@ -64,8 +64,11 @@ export function useUpdateTecnico() {
       if (patch.username !== undefined) dbPatch.username = patch.username || null;
       if (patch.email !== undefined) dbPatch.email = patch.email || null;
       if (patch.dados_adicionais !== undefined) dbPatch.dados_adicionais = patch.dados_adicionais;
-      
-      const { error } = await supabase.from("tecnicos").update(dbPatch as any).eq("id", id);
+
+      const { error } = await supabase
+        .from("tecnicos")
+        .update(dbPatch as any)
+        .eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -76,7 +79,7 @@ export function useUpdateTecnico() {
 
 export function useDeleteTecnico() {
   const qc = useQueryClient();
-  
+
   return useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase.from("tecnicos").delete().eq("id", id);
