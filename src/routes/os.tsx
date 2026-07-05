@@ -459,7 +459,7 @@ function OSPage() {
                         <SelectValue placeholder="Selecione..." />
                       </SelectTrigger>
                       <SelectContent>
-                        {clientes.map((c) => (
+                        {(Array.isArray(clientes) ? clientes : []).map((c) => (
                           <SelectItem key={c.id} value={c.id}>
                             {c.nome}
                           </SelectItem>
@@ -488,7 +488,7 @@ function OSPage() {
                         <SelectValue placeholder="Selecione..." />
                       </SelectTrigger>
                       <SelectContent>
-                        {tecnicos.map((t) => (
+                        {(Array.isArray(tecnicos) ? tecnicos : []).map((t) => (
                           <SelectItem key={t.id} value={t.id}>
                             {t.nome}
                           </SelectItem>
@@ -516,7 +516,7 @@ function OSPage() {
                       />
                     </SelectTrigger>
                     <SelectContent>
-                      {analistasNovaOS.map((a) => (
+                      {(Array.isArray(analistasNovaOS) ? analistasNovaOS : []).map((a) => (
                         <SelectItem key={a.id} value={a.id}>
                           {a.nome}
                           {a.whatsapp ? ` — ${a.whatsapp}` : ""}
@@ -622,7 +622,7 @@ function OSPage() {
                     <div className="text-[10px] uppercase tracking-wider font-bold text-muted-foreground">
                       Despesas adicionadas
                     </div>
-                    {despesasSelecionadas.map((despesa, index) => (
+                    {(Array.isArray(despesasSelecionadas) ? despesasSelecionadas : []).map((despesa, index) => (
                       <div key={`${despesa.tipo}-${index}`} className="flex items-center justify-between rounded-lg bg-background/70 px-3 py-2 text-sm">
                         <span>{despesa.tipo}</span>
                         <span>R$ {despesa.valor.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</span>
@@ -958,7 +958,7 @@ function OSPage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border">
-                    {os.map((o) => {
+                    {(Array.isArray(os) ? os : []).map((o) => {
                       const cliente = clientes.find((c) => c.id === o.clienteId);
                       const tecnico = o.tecnico || tecnicos.find((t) => t.id === o.tecnicoId);
                       return (
@@ -1215,7 +1215,7 @@ function Coluna({
         </span>
       </div>
       <div className="space-y-2 mt-2 min-h-[120px]">
-        {cards.map((o) => (
+        {(Array.isArray(cards) ? cards : []).map((o) => (
           <OSCard
             key={o.id}
             ordem={o}
@@ -1491,7 +1491,7 @@ export function EditOSDialog({
                   <SelectValue placeholder="Selecione..." />
                 </SelectTrigger>
                 <SelectContent>
-                  {clientes.map((c) => (
+                  {(Array.isArray(clientes) ? clientes : []).map((c) => (
                     <SelectItem key={c.id} value={c.id}>
                       {c.nome}
                     </SelectItem>
@@ -1517,7 +1517,7 @@ export function EditOSDialog({
                   <SelectValue placeholder="Selecione..." />
                 </SelectTrigger>
                 <SelectContent>
-                  {tecnicos.map((t) => (
+                  {(Array.isArray(tecnicos) ? tecnicos : []).map((t) => (
                     <SelectItem key={t.id} value={t.id}>
                       {t.nome}
                     </SelectItem>
@@ -1544,7 +1544,7 @@ export function EditOSDialog({
                 />
               </SelectTrigger>
               <SelectContent>
-                {analistasEdit.map((a) => (
+                {(Array.isArray(analistasEdit) ? analistasEdit : []).map((a) => (
                   <SelectItem key={a.id} value={a.id}>
                     {a.nome}
                     {a.whatsapp ? ` — ${a.whatsapp}` : ""}
@@ -1695,7 +1695,7 @@ export function EditOSDialog({
               <div className="text-[10px] uppercase tracking-wider font-bold text-muted-foreground">
                 Despesas adicionadas
               </div>
-              {despesasEdit.map((despesa, index) => (
+              {(Array.isArray(despesasEdit) ? despesasEdit : []).map((despesa, index) => (
                 <div key={`${despesa.tipo}-${index}`} className="flex items-center justify-between rounded-lg bg-background/70 px-3 py-2 text-sm">
                   <span>{despesa.tipo}</span>
                   <span>R$ {despesa.valor.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</span>
