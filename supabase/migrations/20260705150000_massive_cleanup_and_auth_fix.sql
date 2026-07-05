@@ -121,6 +121,27 @@ BEGIN
     now()
   );
 
+  -- 5.1 Grava na tabela auth.identities (OBRIGATÓRIO para o GoTrue aceitar login com senha)
+  INSERT INTO auth.identities (
+    id,
+    user_id,
+    provider_id,
+    identity_data,
+    provider,
+    last_sign_in_at,
+    created_at,
+    updated_at
+  ) VALUES (
+    gen_random_uuid(),
+    v_user_id,
+    v_user_id::text,
+    jsonb_build_object('sub', v_user_id, 'email', v_email),
+    'email',
+    now(),
+    now(),
+    now()
+  );
+
   -- 6. Grava na tabela public.tecnicos (SEM A COLUNA EMAIL!)
   INSERT INTO public.tecnicos (
     id,
