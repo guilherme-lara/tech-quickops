@@ -561,6 +561,7 @@ export type Database = {
             Returns: string
           }
       get_current_empresa_id: { Args: never; Returns: string }
+      get_email_by_username: { Args: { _username: string }; Returns: string }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
