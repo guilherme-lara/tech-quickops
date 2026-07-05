@@ -69,6 +69,7 @@ export type Database = {
           nome: string
           telefone: string | null
           valor_km: number
+          valor_por_km: number | null
         }
         Insert: {
           base_km?: number | null
@@ -82,6 +83,7 @@ export type Database = {
           nome: string
           telefone?: string | null
           valor_km?: number
+          valor_por_km?: number | null
         }
         Update: {
           base_km?: number | null
@@ -95,6 +97,7 @@ export type Database = {
           nome?: string
           telefone?: string | null
           valor_km?: number
+          valor_por_km?: number | null
         }
         Relationships: [
           {
@@ -110,20 +113,29 @@ export type Database = {
         Row: {
           cnpj: string | null
           created_at: string
+          endereco_comercial: string | null
           id: string
+          logo_url: string | null
           nome_fantasia: string
+          telefone_empresa: string | null
         }
         Insert: {
           cnpj?: string | null
           created_at?: string
+          endereco_comercial?: string | null
           id?: string
+          logo_url?: string | null
           nome_fantasia: string
+          telefone_empresa?: string | null
         }
         Update: {
           cnpj?: string | null
           created_at?: string
+          endereco_comercial?: string | null
           id?: string
+          logo_url?: string | null
           nome_fantasia?: string
+          telefone_empresa?: string | null
         }
         Relationships: []
       }
@@ -165,6 +177,36 @@ export type Database = {
           },
         ]
       }
+      logs_administrativos: {
+        Row: {
+          created_at: string
+          descricao: string
+          empresa_id: string
+          id: string
+          tipo: string
+          usuario_id: string | null
+          usuario_nome: string | null
+        }
+        Insert: {
+          created_at?: string
+          descricao: string
+          empresa_id: string
+          id?: string
+          tipo: string
+          usuario_id?: string | null
+          usuario_nome?: string | null
+        }
+        Update: {
+          created_at?: string
+          descricao?: string
+          empresa_id?: string
+          id?: string
+          tipo?: string
+          usuario_id?: string | null
+          usuario_nome?: string | null
+        }
+        Relationships: []
+      }
       ordens_servico: {
         Row: {
           analista_id: string | null
@@ -181,6 +223,7 @@ export type Database = {
           id: string
           km_viagem: number
           numero: string | null
+          pendencias_detalhes: string | null
           solucao: string | null
           status: Database["public"]["Enums"]["os_status"]
           tecnico_id: string | null
@@ -202,6 +245,7 @@ export type Database = {
           id?: string
           km_viagem?: number
           numero?: string | null
+          pendencias_detalhes?: string | null
           solucao?: string | null
           status?: Database["public"]["Enums"]["os_status"]
           tecnico_id?: string | null
@@ -223,6 +267,7 @@ export type Database = {
           id?: string
           km_viagem?: number
           numero?: string | null
+          pendencias_detalhes?: string | null
           solucao?: string | null
           status?: Database["public"]["Enums"]["os_status"]
           tecnico_id?: string | null
@@ -324,6 +369,7 @@ export type Database = {
       }
       perfis: {
         Row: {
+          avatar_url: string | null
           created_at: string
           empresa_id: string
           id: string
@@ -331,6 +377,7 @@ export type Database = {
           role: Database["public"]["Enums"]["app_role"]
         }
         Insert: {
+          avatar_url?: string | null
           created_at?: string
           empresa_id: string
           id: string
@@ -338,6 +385,7 @@ export type Database = {
           role?: Database["public"]["Enums"]["app_role"]
         }
         Update: {
+          avatar_url?: string | null
           created_at?: string
           empresa_id?: string
           id?: string
@@ -442,51 +490,6 @@ export type Database = {
           },
         ]
       }
-      logs_administrativos: {
-        Row: {
-          created_at: string
-          descricao: string
-          empresa_id: string
-          id: string
-          tipo: string
-          usuario_id: string | null
-          usuario_nome: string
-        }
-        Insert: {
-          created_at?: string
-          descricao: string
-          empresa_id: string
-          id?: string
-          tipo: string
-          usuario_id?: string | null
-          usuario_nome: string
-        }
-        Update: {
-          created_at?: string
-          descricao?: string
-          empresa_id?: string
-          id?: string
-          tipo?: string
-          usuario_id?: string | null
-          usuario_nome?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "logs_administrativos_empresa_id_fkey"
-            columns: ["empresa_id"]
-            isOneToOne: false
-            referencedRelation: "empresas"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "logs_administrativos_usuario_id_fkey"
-            columns: ["usuario_id"]
-            isOneToOne: false
-            referencedRelation: "perfis"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
     }
     Views: {
       vw_produtividade_tecnico: {
@@ -526,6 +529,20 @@ export type Database = {
               p_senha: string
               p_telefone: string
               p_tipo_comissao: string
+              p_username: string
+            }
+            Returns: string
+          }
+        | {
+            Args: {
+              p_chave_pix?: string
+              p_comissao: number
+              p_dados_adicionais?: Json
+              p_dominio?: string
+              p_nome: string
+              p_senha: string
+              p_telefone?: string
+              p_tipo_comissao: Database["public"]["Enums"]["tipo_comissao_enum"]
               p_username: string
             }
             Returns: string
