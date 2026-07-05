@@ -201,6 +201,7 @@ function EquipePage() {
           `Técnico "${form.nome}" cadastrado por ${nomeUsuario}`,
         );
         qc.invalidateQueries({ queryKey: ["tecnicos"] });
+        qc.invalidateQueries({ queryKey: ["equipe_tecnicos"] });
         const login = form.username.toLowerCase();
         const senha = form.senha;
         toast.success(`Técnico cadastrado! Login: ${login}`, {

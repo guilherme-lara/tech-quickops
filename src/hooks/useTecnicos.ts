@@ -4,7 +4,7 @@ import { Tecnico, TipoComissao, PAGE_SIZE } from "@/lib/mock-store";
 
 export function useTecnicos(empresaId?: string, page: number = 0, search: string = "") {
   return useQuery({
-    queryKey: ["tecnicos", empresaId, page, search],
+    queryKey: ["equipe_tecnicos", empresaId, page, search],
     enabled: !!empresaId,
     queryFn: async () => {
       if (!empresaId) return { data: [], count: 0 };
@@ -96,6 +96,7 @@ export function useUpdateTecnico() {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["tecnicos"] });
+      qc.invalidateQueries({ queryKey: ["equipe_tecnicos"] });
     },
   });
 }
