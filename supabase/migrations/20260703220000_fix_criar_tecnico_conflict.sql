@@ -1,5 +1,8 @@
 -- Fix the criar_tecnico RPC to handle uniqueness conflicts gracefully
 
+-- Drop all conflicting overloads of the function before recreating it
+DROP FUNCTION IF EXISTS public.criar_tecnico(text, text, text, text, numeric, text, text, jsonb);
+DROP FUNCTION IF EXISTS public.criar_tecnico(text, text, text, public.tipo_comissao_enum, numeric, text, text, jsonb, text);
 CREATE OR REPLACE FUNCTION public.criar_tecnico(
   p_nome TEXT,
   p_username TEXT,
