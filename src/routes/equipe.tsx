@@ -199,7 +199,19 @@ function EquipePage() {
       setOpen(false);
       setForm(emptyForm);
     } catch (e: any) {
-      toast.error(e.message ?? "Erro ao salvar");
+      const msg: string = e?.message ?? "Erro ao salvar";
+      const code: string = e?.code ?? "";
+      const isDup =
+        code === "23505" ||
+        /already registered|already exists|duplicate key|já está em uso|já está registrado/i.test(
+          msg,
+        );
+      if (isDup) {
+        toast.error("Este técnico já possui um login cadastrado");
+      } else {
+        toast.error(msg);
+      }
+
     } finally {
       setSaving(false);
     }
