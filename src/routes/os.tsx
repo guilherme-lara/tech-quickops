@@ -1594,10 +1594,10 @@ export function EditOSDialog({
               />
             </div>
             <div>
-              <Label>Total da OS</Label>
+              <Label>Valor Total Faturado</Label>
               <Input
                 disabled
-                value={`R$ ${(Number(form.valor || 0) + Number(form.custo_viagem || 0) + Number(form.km_viagem || 0) + despesasEdit.reduce((sum, item) => sum + item.valor, 0)).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`}
+                value={`R$ ${(Number(form.valor || 0) + Number(form.custo_viagem || 0) + despesasEdit.reduce((sum, item) => sum + Number(item.valor || 0), 0)).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`}
               />
             </div>
             <div>
