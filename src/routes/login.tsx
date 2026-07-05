@@ -39,10 +39,10 @@ function LoginPage() {
         }
       }
 
-      const emailToUse = identifier.includes("@")
-        ? identifier
-        : `${identifier.toLowerCase()}@quickops.com`;
-      const { error } = await login(emailToUse, loginSenha);
+      // Passa o identificador direto: o store resolve username → e-mail real
+      // via RPC get_email_by_username no Supabase.
+      const { error } = await login(identifier, loginSenha);
+
       if (error) {
         toast.error(error);
         return;
