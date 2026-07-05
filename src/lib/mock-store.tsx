@@ -809,7 +809,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     if (!email.includes("@")) {
       const { data: resolvedEmail, error: searchError } = await (supabase.rpc as any)(
         "get_email_by_username",
-        { _username: email },
+        { p_username: email },
       );
 
       if (searchError || !resolvedEmail) {
