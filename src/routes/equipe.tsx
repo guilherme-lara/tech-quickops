@@ -484,8 +484,8 @@ function EquipePage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
-                {tecnicos.map((t) => {
-                  const ativas = os.filter(
+                {(Array.isArray(tecnicos) ? tecnicos : []).map((t) => {
+                  const ativas = (Array.isArray(os) ? os : []).filter(
                     (o) =>
                       o.tecnicoId === t.id && o.status !== "Concluído" && o.status !== "Cancelado",
                   ).length;
@@ -557,8 +557,8 @@ function EquipePage() {
         </Card>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {tecnicos.map((t) => {
-            const ativas = os.filter(
+          {(Array.isArray(tecnicos) ? tecnicos : []).map((t) => {
+            const ativas = (Array.isArray(os) ? os : []).filter(
               (o) => o.tecnicoId === t.id && o.status !== "Concluído" && o.status !== "Cancelado",
             ).length;
             return (

@@ -128,7 +128,7 @@ function EstoquePage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
-                {itens.map((i) => {
+                {(Array.isArray(itens) ? itens : []).map((i) => {
                   const baixo = i.quantidade < 10;
                   const total = i.quantidade * i.valor_unitario;
                   return (

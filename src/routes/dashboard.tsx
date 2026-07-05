@@ -109,12 +109,12 @@ function PriorityAlerts({ ordens, isLoading }: { ordens: any[]; isLoading: boole
 
   const hojeStr = getLocalDateString(new Date());
 
-  const atrasadas = ordens.filter(o => {
+  const atrasadas = (Array.isArray(ordens) ? ordens : []).filter(o => {
     if (!o.data_agendamento) return false;
     return o.data_agendamento < hojeStr;
   });
 
-  const hoje = ordens.filter(o => {
+  const hoje = (Array.isArray(ordens) ? ordens : []).filter(o => {
     if (!o.data_agendamento) return false;
     return o.data_agendamento === hojeStr;
   });
@@ -142,7 +142,7 @@ function PriorityAlerts({ ordens, isLoading }: { ordens: any[]; isLoading: boole
               </span>
             </div>
             <div className="space-y-2 max-h-[140px] overflow-y-auto pr-1">
-              {atrasadas.map(o => (
+              {(Array.isArray(atrasadas) ? atrasadas : []).map(o => (
                 <div key={o.id} className="text-xs bg-card p-2.5 rounded-2xl border border-border/50 flex items-center justify-between gap-2">
                   <div className="min-w-0">
                     <p className="font-bold truncate text-foreground">{o.titulo}</p>
@@ -176,7 +176,7 @@ function PriorityAlerts({ ordens, isLoading }: { ordens: any[]; isLoading: boole
               </span>
             </div>
             <div className="space-y-2 max-h-[140px] overflow-y-auto pr-1">
-              {hoje.map(o => {
+              {(Array.isArray(hoje) ? hoje : []).map(o => {
                 const limitTimeText = getLimitTimeBadge(o.data_agendamento, o.horario_atendimento);
                 return (
                   <div key={o.id} className="text-xs bg-card p-2.5 rounded-2xl border border-border/50 flex items-center justify-between gap-2">
@@ -219,7 +219,7 @@ function PendingAlertsCard({ ordens, isLoading, onEdit }: { ordens: any[]; isLoa
         Gestão de Pendências (Requer Atenção)
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {ordens.map((o) => (
+        {(Array.isArray(ordens) ? ordens : []).map((o) => (
           <div
             key={o.id}
             onClick={() => onEdit(o)}
@@ -333,18 +333,18 @@ function Dashboard() {
 
       const resultadoLiquido = receitaBruta - custoTotal;
 
-      const pendenciasPagamento = rows.filter((r: any) => {
+      const pendenciasPagamento = (Array.isArray(rows) ? rows : []).filter((r: any) => {
         if (!r.data_agendamento || r.status !== "concluido") return false;
         return new Date(r.data_agendamento) < hoje;
       }).length;
 
-      const abertas = rows.filter((r: any) =>
+      const abertas = (Array.isArray(rows) ? rows : []).filter((r: any) =>
         ["pendente", "aprovado", "em_andamento"].includes(r.status),
       ).length;
 
-      const concluidas = rows.filter((r: any) => r.status === "concluido").length;
+      const concluidas = (Array.isArray(rows) ? rows : []).filter((r: any) => r.status === "concluido").length;
 
-      const emCampo = rows.filter((r: any) => r.status === "em_andamento").length;
+      const emCampo = (Array.isArray(rows) ? rows : []).filter((r: any) => r.status === "em_andamento").length;
 
       return { faturamentoPrevisto, receitaMes, pendenciasPagamento, abertas, concluidas, emCampo, receitaBruta, custoTotal, resultadoLiquido };
     },
@@ -388,7 +388,7 @@ function Dashboard() {
         return `${year}-${month}-${day}`;
       };
       const hojeStr = getLocalDateString(new Date());
-      const proximas = alertasOSQ.data.filter(o => {
+      const proximas = (Array.isArray(alertasOSQ.data) ? alertasOSQ.data : []).filter(o => {
         if (!o.data_agendamento || !o.horario_atendimento) return false;
         if (o.data_agendamento !== hojeStr) return false;
         
@@ -737,7 +737,7 @@ function Dashboard() {
               icon={Activity}
               label={(profile?.role as string) === "tecnico" ? "OS Ativas" : "Em Campo Agora"}
               value={osAtivasCount}
-              trend={(profile?.role as string) === "tecnico" ? "Suas atribuições" : `${tecnicos.filter((t) => t.ativo).length} técnicos`}
+              trend={(profile?.role as string) === "tecnico" ? "Suas atribuições" : `${(Array.isArray(tecnicos) ? tecnicos : []).filter((t) => t.ativo).length} técnicos`}
               tone="warning"
             />
           </div>

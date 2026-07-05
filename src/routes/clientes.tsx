@@ -461,7 +461,7 @@ function ClientesPage() {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-border">
-                      {clientes.map((c) => (
+                      {(Array.isArray(clientes) ? clientes : []).map((c) => (
                         <tr key={c.id} className="hover:bg-muted/30 transition-colors">
                           <td className="px-5 py-4 font-medium whitespace-nowrap">
                             {c.nome}
@@ -510,7 +510,7 @@ function ClientesPage() {
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {clientes.map((c) => (
+                {(Array.isArray(clientes) ? clientes : []).map((c) => (
                   <div
                     key={c.id}
                     className="bg-card border border-border p-5 rounded-2xl flex flex-col gap-3 shadow-[var(--shadow-card)] hover:-translate-y-0.5 hover:shadow-md transition-all duration-300 relative"
