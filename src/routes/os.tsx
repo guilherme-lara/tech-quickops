@@ -630,9 +630,21 @@ function OSPage() {
                     ))}
                   </div>
                 )}
-                <div className="rounded-xl border border-border/60 bg-primary/5 p-3 text-sm font-medium">
-                  Total estimado: R$ {(Number(form.valor || 0) + Number(form.custo_viagem || 0) + Number(form.km_viagem || 0) + despesasSelecionadas.reduce((sum, item) => sum + item.valor, 0)).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
-                </div>
+                {(() => {
+                  const subtotal = Number(form.valor || 0);
+                  const custoViagem = Number(form.custo_viagem || 0);
+                  const somaDespesas = despesasSelecionadas.reduce((s, it) => s + Number(it.valor || 0), 0);
+                  const custosExtras = custoViagem + somaDespesas;
+                  const total = subtotal + custosExtras;
+                  const fmt = (n: number) => n.toLocaleString("pt-BR", { minimumFractionDigits: 2 });
+                  return (
+                    <div className="rounded-xl border border-border/60 bg-primary/5 p-3 text-sm space-y-1">
+                      <div className="flex justify-between"><span className="text-muted-foreground">Subtotal (Serviço)</span><span>R$ {fmt(subtotal)}</span></div>
+                      <div className="flex justify-between"><span className="text-muted-foreground">+ Custos Extras (Viagem + Despesas)</span><span>R$ {fmt(custosExtras)}</span></div>
+                      <div className="flex justify-between font-semibold pt-1 border-t border-border/60"><span>= Valor Total Faturado</span><span>R$ {fmt(total)}</span></div>
+                    </div>
+                  );
+                })()}
                 <div>
                   <Label>Status</Label>
                   <Select
@@ -1582,10 +1594,10 @@ export function EditOSDialog({
               />
             </div>
             <div>
-              <Label>Total da OS</Label>
+              <Label>Valor Total Faturado</Label>
               <Input
                 disabled
-                value={`R$ ${(Number(form.valor || 0) + Number(form.custo_viagem || 0) + Number(form.km_viagem || 0) + despesasEdit.reduce((sum, item) => sum + item.valor, 0)).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`}
+                value={`R$ ${(Number(form.valor || 0) + Number(form.custo_viagem || 0) + despesasEdit.reduce((sum, item) => sum + Number(item.valor || 0), 0)).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`}
               />
             </div>
             <div>
@@ -1691,6 +1703,23 @@ export function EditOSDialog({
               ))}
             </div>
           )}
+          {(() => {
+            const subtotal = Number(form.valor || 0);
+            const custoViagem = Number(form.custo_viagem || 0);
+            const somaDespesas = despesasEdit.reduce((s, it) => s + Number(it.valor || 0), 0);
+            const custosExtras = custoViagem + somaDespesas;
+            const total = subtotal + custosExtras;
+            const fmt = (n: number) => n.toLocaleString("pt-BR", { minimumFractionDigits: 2 });
+            return (
+              <div className="rounded-xl border border-border/60 bg-primary/5 p-3 text-sm space-y-1">
+                <div className="text-[10px] uppercase tracking-wider font-bold text-muted-foreground mb-1">Resumo Financeiro</div>
+                <div className="flex justify-between"><span className="text-muted-foreground">Subtotal (Serviço)</span><span>R$ {fmt(subtotal)}</span></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">+ Custo de Viagem</span><span>R$ {fmt(custoViagem)}</span></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">+ Despesas</span><span>R$ {fmt(somaDespesas)}</span></div>
+                <div className="flex justify-between font-semibold pt-1 border-t border-border/60"><span>= Valor Total Faturado</span><span>R$ {fmt(total)}</span></div>
+              </div>
+            );
+          })()}
           {Object.keys(dadosExtras).length > 0 && (
             <div className="rounded-xl border border-border/60 bg-muted/30 p-3">
               <div className="text-[10px] uppercase tracking-wider font-bold text-muted-foreground mb-2">
