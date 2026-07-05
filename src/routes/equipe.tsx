@@ -72,7 +72,7 @@ function EquipePage() {
   
   const { data: activeOS } = useActiveOSCount(empresaId);
 
-  const { data: tecnicosData, isLoading: loadingTecnicos } = useTecnicos(
+  const { data: tecnicosData, isPending: loadingTecnicos } = useTecnicos(
     empresaId,
     tecnicosPage,
     tecnicosSearch,
