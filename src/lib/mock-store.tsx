@@ -799,17 +799,17 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     let email = emailInput.trim();
     
     if (!email.includes("@")) {
-      const { data: tecnico, error: searchError } = await supabase
-        .from("tecnicos")
-        .select("email")
-        .eq("username", email)
-        .maybeSingle();
-        
-      if (searchError || !tecnico || !tecnico.email) {
+      const { data: resolvedEmail, error: searchError } = await (supabase.rpc as any)(
+        "get_email_by_username",
+        { _username: email },
+      );
+
+      if (searchError || !resolvedEmail) {
         return { error: "Usuário não encontrado" };
       }
-      email = tecnico.email;
+      email = resolvedEmail as string;
     }
+
 
     const { data: authData, error } = await supabase.auth.signInWithPassword({
       email,
