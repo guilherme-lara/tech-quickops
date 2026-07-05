@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/EmptyState";
-import { useStore, type Item, PAGE_SIZE } from "@/lib/mock-store";
+import { useStore, type Item, PAGE_SIZE } from "@/lib/useData";
 import {
   Package,
   AlertTriangle,

@@ -1,7 +1,7 @@
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { createFileRoute } from "@tanstack/react-router";
 import { TecnicoLayout } from "@/components/TecnicoLayout";
-import { useStore, statusColor } from "@/lib/mock-store";
+import { useStore, statusColor } from "@/lib/useData";
 import { CheckCircle2 } from "lucide-react";
 
 export const Route = createFileRoute("/tecnico/historico")({

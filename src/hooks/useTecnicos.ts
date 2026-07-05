@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Tecnico, TipoComissao, PAGE_SIZE } from "@/lib/mock-store";
+import { Tecnico, TipoComissao, PAGE_SIZE } from "@/lib/useData";
 
 export function useTecnicos(empresaId?: string, page: number = 0, search: string = "") {
   return useQuery({
@@ -40,7 +40,6 @@ export function useTecnicos(empresaId?: string, page: number = 0, search: string
         tipo_comissao: (r.tipo_comissao as TipoComissao) ?? "fixo",
         chave_pix: r.chave_pix ?? "",
         username: r.username ?? "",
-        email: r.email ?? "",
         dados_adicionais: r.dados_adicionais ?? {},
       }));
 
@@ -85,7 +84,6 @@ export function useUpdateTecnico() {
       if (patch.tipo_comissao !== undefined) dbPatch.tipo_comissao = patch.tipo_comissao;
       if (patch.chave_pix !== undefined) dbPatch.chave_pix = patch.chave_pix;
       if (patch.username !== undefined) dbPatch.username = patch.username || null;
-      if (patch.email !== undefined) dbPatch.email = patch.email || null;
       if (patch.dados_adicionais !== undefined) dbPatch.dados_adicionais = patch.dados_adicionais;
 
       const { error } = await supabase

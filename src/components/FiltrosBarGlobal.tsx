@@ -1,4 +1,4 @@
-import { useStore } from "@/lib/mock-store";
+import { useStore } from "@/lib/useData";
 import { FiltrosBar, type FiltroDef } from "./FiltrosBar";
 
 const COLUNAS_STATUS = ["Orçamento", "Aprovado", "Em Execução", "Concluído", "Cancelado"] as const;

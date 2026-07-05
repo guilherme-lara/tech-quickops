@@ -1,7 +1,7 @@
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { GestorLayout } from "@/components/GestorLayout";
-import { useStore } from "@/lib/mock-store";
+import { useStore } from "@/lib/useData";
 import { useAuth } from "@/lib/auth-context";
 import { MesAnoFilter } from "@/components/MesAnoFilter";
 

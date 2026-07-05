@@ -20,7 +20,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useStore, PAGE_SIZE } from "@/lib/mock-store";
+import { useStore, PAGE_SIZE } from "@/lib/useData";
 import {
   Plus,
   Mail,

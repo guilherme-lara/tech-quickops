@@ -1,7 +1,7 @@
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { createFileRoute } from "@tanstack/react-router";
 import { TecnicoLayout } from "@/components/TecnicoLayout";
-import { useStore } from "@/lib/mock-store";
+import { useStore } from "@/lib/useData";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Card } from "@/components/ui/card";
 import { Mail, Phone, Award } from "lucide-react";

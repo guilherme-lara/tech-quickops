@@ -4,7 +4,7 @@ import { useAuth } from "@/lib/auth-context";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { createFileRoute, Link, Navigate } from "@tanstack/react-router";
 import { GestorLayout } from "@/components/GestorLayout";
-import { useStore, statusColor, OSStatus, OS } from "@/lib/mock-store";
+import { useStore, statusColor, OSStatus, OS } from "@/lib/useData";
 import { MesAnoFilter } from "@/components/MesAnoFilter";
 import { EditOSDialog } from "@/routes/os";
 

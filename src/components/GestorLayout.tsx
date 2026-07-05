@@ -1,5 +1,5 @@
 import { Link, useRouterState, useNavigate, Outlet } from "@tanstack/react-router";
-import { useStore } from "@/lib/mock-store";
+import { useStore } from "@/lib/useData";
 import {
   LayoutDashboard,
   Users,

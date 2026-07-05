@@ -27,7 +27,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { type TipoComissao, PAGE_SIZE } from "@/lib/mock-store";
+import { type TipoComissao, PAGE_SIZE } from "@/lib/useData";
 import { useTecnicos, useUpdateTecnico, useDeleteTecnico, useActiveOSCount } from "@/hooks/useTecnicos";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
@@ -97,7 +97,6 @@ function EquipePage() {
     perfil: "Técnico de Campo",
     telefone: "",
     username: "",
-    email: "",
     senha: "",
     tipo_comissao: "porcentagem" as TipoComissao,
     comissao: "",
@@ -124,7 +123,6 @@ function EquipePage() {
       perfil: t.perfil,
       telefone: t.telefone,
       username: t.username || "",
-      email: t.email || "",
       senha: "",
       tipo_comissao: (t.tipo_comissao as TipoComissao) || "porcentagem",
       comissao: t.comissao ? String(t.comissao) : "",
@@ -302,30 +300,19 @@ function EquipePage() {
                 </div>
                 {form.id ? (
                   <div>
-                    <Label>E-mail / Login (somente leitura)</Label>
-                    <Input value={form.email} disabled className="bg-muted/50" />
+                    <Label>Login do Técnico</Label>
+                    <Input value={form.username} disabled className="bg-muted/50" />
                   </div>
                 ) : (
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <Label>Usuário (login)</Label>
-                      <Input
-                        value={form.username}
-                        onChange={(e) =>
-                          setForm({ ...form, username: e.target.value.toLowerCase() })
-                        }
-                        placeholder="joao.adami"
-                      />
-                    </div>
-                    <div>
-                      <Label>E-mail</Label>
-                      <Input
-                        type="email"
-                        value={form.email}
-                        onChange={(e) => setForm({ ...form, email: e.target.value })}
-                        placeholder="tecnico@empresa.com"
-                      />
-                    </div>
+                  <div>
+                    <Label>Usuário (login)</Label>
+                    <Input
+                      value={form.username}
+                      onChange={(e) =>
+                        setForm({ ...form, username: e.target.value.toLowerCase() })
+                      }
+                      placeholder="joao.adami"
+                    />
                   </div>
                 )}
                 {!form.id && (

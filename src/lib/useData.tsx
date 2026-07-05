@@ -30,7 +30,6 @@ export interface Tecnico {
   tipo_comissao?: TipoComissao;
   chave_pix?: string;
   username?: string;
-  email?: string;
   dados_adicionais?: Record<string, any>;
 }
 export interface Item {
@@ -455,7 +454,6 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         tipo_comissao: (r.tipo_comissao as TipoComissao) ?? "fixo",
         chave_pix: r.chave_pix ?? "",
         username: r.username ?? "",
-        email: r.email ?? "",
         dados_adicionais: r.dados_adicionais ?? {},
       }));
     },

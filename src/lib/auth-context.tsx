@@ -1,5 +1,5 @@
 import { createContext, useContext, ReactNode } from "react";
-import { useStore } from "./mock-store";
+import { useStore } from "./useData";
 import { supabase } from "@/integrations/supabase/client";
 
 export interface AuthProfile {

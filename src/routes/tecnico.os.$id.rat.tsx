@@ -1,7 +1,7 @@
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { TecnicoLayout } from "@/components/TecnicoLayout";
-import { useStore } from "@/lib/mock-store";
+import { useStore } from "@/lib/useData";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
