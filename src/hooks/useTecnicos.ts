@@ -49,6 +49,29 @@ export function useTecnicos(empresaId?: string, page: number = 0, search: string
   });
 }
 
+export function useActiveOSCount(empresaId?: string) {
+  return useQuery({
+    queryKey: ["active_os_count", empresaId],
+    enabled: !!empresaId,
+    queryFn: async () => {
+      if (!empresaId) return [];
+      
+      const { data, error } = await supabase
+        .from("ordens_servico")
+        .select("id, tecnico_id")
+        .eq("empresa_id", empresaId)
+        .in("status", ["pendente", "aprovado", "em_andamento"]);
+        
+      if (error) {
+        console.error("Erro ao buscar OS ativas:", error);
+        throw error;
+      }
+      
+      return data || [];
+    }
+  });
+}
+
 export function useUpdateTecnico() {
   const qc = useQueryClient();
 

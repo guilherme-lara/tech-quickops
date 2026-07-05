@@ -27,8 +27,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useStore, type TipoComissao, PAGE_SIZE } from "@/lib/mock-store";
-import { useTecnicos, useUpdateTecnico, useDeleteTecnico } from "@/hooks/useTecnicos";
+import { type TipoComissao, PAGE_SIZE } from "@/lib/mock-store";
+import { useTecnicos, useUpdateTecnico, useDeleteTecnico, useActiveOSCount } from "@/hooks/useTecnicos";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 import {
@@ -65,11 +65,12 @@ export const Route = createFileRoute("/equipe")({
 });
 
 function EquipePage() {
-  const { os } = useStore();
   const [tecnicosPage, setTecnicosPage] = useState(0);
   const [tecnicosSearch, setTecnicosSearch] = useState("");
   const { profile } = useAuth();
   const empresaId = profile?.empresa_id;
+  
+  const { data: activeOS } = useActiveOSCount(empresaId);
 
   const { data: tecnicosData, isLoading: loadingTecnicos } = useTecnicos(
     empresaId,
@@ -502,10 +503,7 @@ function EquipePage() {
               </thead>
               <tbody className="divide-y divide-border">
                 {(Array.isArray(tecnicos) ? tecnicos : []).map((t) => {
-                  const ativas = (Array.isArray(os) ? os : []).filter(
-                    (o) =>
-                      o.tecnicoId === t.id && o.status !== "Concluído" && o.status !== "Cancelado",
-                  ).length;
+                  const ativas = (activeOS || []).filter((o: any) => o.tecnico_id === t.id).length;
                   return (
                     <tr key={t.id} className="hover:bg-muted/30 transition-colors">
                       <td className="px-5 py-3">
@@ -577,9 +575,7 @@ function EquipePage() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {(Array.isArray(tecnicos) ? tecnicos : []).map((t) => {
-            const ativas = (Array.isArray(os) ? os : []).filter(
-              (o) => o.tecnicoId === t.id && o.status !== "Concluído" && o.status !== "Cancelado",
-            ).length;
+            const ativas = (activeOS || []).filter((o: any) => o.tecnico_id === t.id).length;
             return (
               <Card key={t.id} className="p-4 md:p-5 relative">
                 <div className="absolute top-4 right-4">
