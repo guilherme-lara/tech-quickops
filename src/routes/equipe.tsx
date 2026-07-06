@@ -54,7 +54,7 @@ function UsernameField({ userId, initialUsername, empresaId, nomeCompleto }: { u
   const { data: perfil, isLoading } = useQuery({
     queryKey: ['perfil_username', userId],
     queryFn: async () => {
-      const { data, error } = await supabase.from('perfis').select('username').eq('id', userId).maybeSingle();
+      const { data, error } = await (supabase.from('perfis') as any).select('username').eq('id', userId).maybeSingle();
       if (error) throw error;
       return data;
     },
