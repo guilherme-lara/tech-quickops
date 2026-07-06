@@ -30,7 +30,7 @@ import {
 import { type TipoComissao, PAGE_SIZE } from "@/lib/useData";
 import { useTecnicos, useUpdateTecnico, useDeleteTecnico, useActiveOSCount } from "@/hooks/useTecnicos";
 import { supabase } from "@/integrations/supabase/client";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQueryClient, useQuery, useMutation } from "@tanstack/react-query";
 import {
   Phone,
   BadgeCheck,
@@ -46,7 +46,92 @@ import {
   Copy,
   ChevronLeft,
   ChevronRight,
+  Check,
 } from "lucide-react";
+
+function UsernameField({ userId, initialUsername }: { userId: string, initialUsername?: string }) {
+  const qc = useQueryClient();
+  const { data: perfil, isLoading } = useQuery({
+    queryKey: ['perfil_username', userId],
+    queryFn: async () => {
+      const { data, error } = await supabase.from('perfis').select('username').eq('id', userId).single();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!userId
+  });
+
+  const updateUsername = useMutation({
+    mutationFn: async (newUsername: string) => {
+      if (!newUsername.trim()) throw new Error("Usuário não pode ser vazio");
+      if (!/^[a-z0-9._-]+$/i.test(newUsername)) throw new Error("Usuário inválido (use letras, números, . _ -)");
+      
+      const { error } = await supabase.from('perfis').update({ username: newUsername }).eq('id', userId);
+      if (error) {
+        if (error.code === '23505' || /duplicate key/.test(error.message)) {
+          throw new Error("Este usuário já está em uso");
+        }
+        throw error;
+      }
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['perfil_username', userId] });
+      toast.success("Login salvo com sucesso!");
+    },
+    onError: (e: any) => {
+      toast.error(e.message || "Erro ao salvar username");
+    }
+  });
+
+  const [localUsername, setLocalUsername] = useState("");
+
+  const currentUsername = perfil?.username || initialUsername;
+
+  if (isLoading) {
+    return (
+      <div>
+        <Label>Login do Técnico</Label>
+        <Input disabled placeholder="Carregando..." className="bg-muted/50" />
+      </div>
+    );
+  }
+
+  if (currentUsername) {
+    return (
+      <div>
+        <Label>Login do Técnico</Label>
+        <Input value={currentUsername} disabled className="bg-muted/50" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-1.5">
+      <div className="flex justify-between items-center">
+        <Label>Usuário (login)</Label>
+      </div>
+      <div className="flex gap-2">
+        <Input 
+          value={localUsername} 
+          onChange={e => setLocalUsername(e.target.value.toLowerCase())} 
+          placeholder="ex: joao.adami" 
+          disabled={updateUsername.isPending}
+        />
+        <Button 
+          type="button" 
+          onClick={() => updateUsername.mutateAsync(localUsername)}
+          disabled={!localUsername || updateUsername.isPending}
+        >
+          {updateUsername.isPending ? "..." : <Check className="w-4 h-4 mr-1" />}
+          Salvar
+        </Button>
+      </div>
+      <p className="text-[11px] text-muted-foreground">
+        Crie um nome de usuário para o técnico fazer login
+      </p>
+    </div>
+  );
+}
 import { FiltrosBarGlobal } from "@/components/FiltrosBarGlobal";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -299,10 +384,7 @@ function EquipePage() {
                   </Select>
                 </div>
                 {form.id ? (
-                  <div>
-                    <Label>Login do Técnico</Label>
-                    <Input value={form.username} disabled className="bg-muted/50" />
-                  </div>
+                  <UsernameField userId={form.id} initialUsername={form.username} />
                 ) : (
                   <div>
                     <Label>Usuário (login)</Label>
