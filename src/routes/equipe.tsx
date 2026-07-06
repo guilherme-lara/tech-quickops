@@ -66,9 +66,9 @@ function UsernameField({ userId, initialUsername, empresaId, nomeCompleto }: { u
       if (!newUsername.trim()) throw new Error("Usuário não pode ser vazio");
       if (!/^[a-z0-9._-]+$/i.test(newUsername)) throw new Error("Usuário inválido (use letras, números, . _ -)");
       
-      const { data, error } = await supabase.from('perfis').upsert({ 
+      const { data, error } = await (supabase.from('perfis') as any).upsert({ 
         id: userId,
-        empresa_id: empresaId,
+        empresa_id: empresaId!,
         nome_completo: nomeCompleto || 'Técnico',
         role: 'tecnico',
         username: newUsername 
