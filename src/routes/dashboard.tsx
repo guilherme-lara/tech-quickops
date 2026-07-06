@@ -318,7 +318,7 @@ function Dashboard() {
       // Busca todas as OS da empresa (sem paginação, pois é para KPIs)
       let query = supabase
         .from("ordens_servico")
-        .select("status, valor, km_viagem, despesas, data_agendamento")
+        .select("status, valor, km_viagem, custo_viagem, despesas, data_agendamento")
         .eq("empresa_id", eid);
 
       if (dataInicio && dataFim) {
@@ -333,11 +333,11 @@ function Dashboard() {
 
       const totalFinanceiro = (r: any) => {
         const valorServico = Number(r.valor ?? 0);
-        const kmViagem = Number(r.km_viagem ?? 0);
+        const custoViagem = Number(r.custo_viagem ?? 0);
         const despesas = Array.isArray(r.despesas)
           ? r.despesas.reduce((sum: number, item: any) => sum + Number(item?.valor ?? 0), 0)
           : 0;
-        return valorServico + kmViagem + despesas;
+        return valorServico + custoViagem + despesas;
       };
 
       const faturamentoPrevisto = rows
@@ -355,11 +355,11 @@ function Dashboard() {
       const custoTotal = rows
         .filter((r: any) => r.status === "concluido")
         .reduce((s: number, r: any) => {
-          const kmViagem = Number(r.km_viagem ?? 0);
+          const custoViagem = Number(r.custo_viagem ?? 0);
           const despesas = Array.isArray(r.despesas)
             ? r.despesas.reduce((sum: number, item: any) => sum + Number(item?.valor ?? 0), 0)
             : 0;
-          return s + kmViagem + despesas;
+          return s + custoViagem + despesas;
         }, 0);
 
       const resultadoLiquido = receitaBruta - custoTotal;
