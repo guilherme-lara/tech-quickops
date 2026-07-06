@@ -419,6 +419,30 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     },
   });
 
+  const allClientesQ = useQuery({
+    queryKey: ["all_clientes", empresaId],
+    enabled,
+    queryFn: async (): Promise<Cliente[]> => {
+      if (!empresaId) return [];
+      const { data, error } = await supabase
+        .from("clientes")
+        .select("id, nome, documento, telefone, email, cidade, base_km, valor_por_km")
+        .eq("empresa_id", empresaId)
+        .order("nome");
+      if (error) throw error;
+      return (data ?? []).map((r) => ({
+        id: r.id,
+        nome: r.nome,
+        documento: r.documento ?? "",
+        telefone: r.telefone ?? "",
+        email: r.email ?? "",
+        cidade: r.cidade ?? "",
+        base_km: Number(r.base_km ?? 0),
+        valor_por_km: Number(r.valor_por_km ?? 0),
+      }));
+    },
+  });
+
   const tecnicosQ = useQuery({
     queryKey: ["tecnicos", empresaId, tecnicosPage, tecnicosSearch],
     enabled,
