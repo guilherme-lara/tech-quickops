@@ -672,7 +672,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       if (error) throw error;
       return data.id as string;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["clientes"] }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["clientes"] }); qc.invalidateQueries({ queryKey: ["all_clientes"] }),
     onError: (e: Error) => toast.error(e.message),
   });
 
@@ -694,7 +694,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         .eq("id", id);
       if (error) throw error;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["clientes"] }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["clientes"] }); qc.invalidateQueries({ queryKey: ["all_clientes"] }),
     onError: (e: Error) => toast.error(e.message),
   });
 
@@ -703,7 +703,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       const { error } = await supabase.from("clientes").delete().eq("id", id);
       if (error) throw error;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["clientes"] }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["clientes"] }); qc.invalidateQueries({ queryKey: ["all_clientes"] }),
     onError: (e: Error) => toast.error(e.message),
   });
 
@@ -726,7 +726,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       if (error) throw error;
       return (data as any).id as string;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["tecnicos"] }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["tecnicos"] }); qc.invalidateQueries({ queryKey: ["all_tecnicos"] }),
     onError: (e: Error) => toast.error(e.message),
   });
 
@@ -745,7 +745,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       const { error } = await (supabase.from("tecnicos") as any).update(dbPatch).eq("id", id);
       if (error) throw error;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["tecnicos"] }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["tecnicos"] }); qc.invalidateQueries({ queryKey: ["all_tecnicos"] }),
     onError: (e: Error) => toast.error(e.message),
   });
 
@@ -754,7 +754,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       const { error } = await supabase.from("tecnicos").delete().eq("id", id);
       if (error) throw error;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["tecnicos"] }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["tecnicos"] }); qc.invalidateQueries({ queryKey: ["all_tecnicos"] }),
     onError: (e: Error) => toast.error(e.message),
   });
 
