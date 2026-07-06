@@ -1054,6 +1054,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       await deleteClienteM.mutateAsync(id);
     },
     tecnicos: tecnicosQ.data ?? [],
+    allTecnicos: allTecnicosQ.data ?? [],
     loadingTecnicos: tecnicosQ.isLoading,
     tecnicosPage,
     tecnicosTotal,
