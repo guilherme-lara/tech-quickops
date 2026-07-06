@@ -1032,6 +1032,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     signup,
     logout,
     clientes: clientesQ.data ?? [],
+    allClientes: allClientesQ.data ?? [],
     loadingClientes: clientesQ.isLoading,
     clientesPage,
     clientesTotal,
