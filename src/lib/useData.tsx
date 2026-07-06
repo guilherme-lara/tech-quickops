@@ -802,7 +802,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
   // ---------------- Auth methods ----------------
   const login = useCallback(async (emailInput: string, senha: string) => {
-    let email = emailInput.trim();
+    let email = emailInput.trim().toLowerCase();
 
     if (!email.includes("@")) {
       const { data: resolvedEmail, error: searchError } = await (supabase.rpc as any)(
@@ -810,8 +810,13 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         { p_username: email },
       );
 
-      if (searchError || !resolvedEmail) {
-        return { error: "Usuário não encontrado" };
+      if (searchError) {
+        console.error("RPC get_email_by_username erro:", searchError);
+        return { error: `Erro na busca do usuário: ${searchError.message}` };
+      }
+      if (!resolvedEmail) {
+        console.error("RPC get_email_by_username não encontrou o email para o username:", email);
+        return { error: "Usuário não encontrado (nenhum email vinculado)." };
       }
       email = resolvedEmail as string;
     }
