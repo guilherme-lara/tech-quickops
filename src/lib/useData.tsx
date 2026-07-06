@@ -153,6 +153,7 @@ interface Store {
   logout: () => Promise<void>;
 
   clientes: Cliente[];
+  allClientes: Cliente[];
   loadingClientes: boolean;
   clientesPage: number;
   clientesTotal: number;
@@ -164,6 +165,7 @@ interface Store {
   deleteCliente: (id: string) => Promise<void>;
 
   tecnicos: Tecnico[];
+  allTecnicos: Tecnico[];
   loadingTecnicos: boolean;
   tecnicosPage: number;
   tecnicosTotal: number;
