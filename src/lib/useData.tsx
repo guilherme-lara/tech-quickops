@@ -740,7 +740,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       if (patch.tipo_comissao !== undefined) dbPatch.tipo_comissao = patch.tipo_comissao;
       if (patch.chave_pix !== undefined) dbPatch.chave_pix = patch.chave_pix;
       if (patch.username !== undefined) dbPatch.username = patch.username || null;
-      if (patch.email !== undefined) dbPatch.email = patch.email || null;
+      if ((patch as any).email !== undefined) dbPatch.email = (patch as any).email || null;
       if (patch.dados_adicionais !== undefined) dbPatch.dados_adicionais = patch.dados_adicionais;
       const { error } = await (supabase.from("tecnicos") as any).update(dbPatch).eq("id", id);
       if (error) throw error;
