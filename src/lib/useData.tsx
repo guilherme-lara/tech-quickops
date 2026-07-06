@@ -485,6 +485,32 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     },
   });
 
+  const allTecnicosQ = useQuery({
+    queryKey: ["all_tecnicos", empresaId],
+    enabled,
+    queryFn: async (): Promise<Tecnico[]> => {
+      if (!empresaId) return [];
+      const { data, error } = await supabase
+        .from("tecnicos")
+        .select("*")
+        .eq("empresa_id", empresaId)
+        .order("nome");
+      if (error) throw error;
+      return ((data ?? []) as any[]).map((r) => ({
+        id: r.id,
+        nome: r.nome,
+        perfil: r.perfil ?? "",
+        telefone: r.telefone ?? "",
+        ativo: r.ativo,
+        comissao: Number(r.comissao || 0),
+        tipo_comissao: (r.tipo_comissao as TipoComissao) ?? "fixo",
+        chave_pix: r.chave_pix ?? "",
+        username: r.username ?? "",
+        dados_adicionais: r.dados_adicionais ?? {},
+      }));
+    },
+  });
+
   const osQ = useQuery({
     queryKey: [
       "ordens_servico",
