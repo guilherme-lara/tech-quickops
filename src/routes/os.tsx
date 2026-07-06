@@ -61,6 +61,7 @@ import { Badge } from "@/components/ui/badge";
 import { RatGallery } from "@/components/RatGallery";
 import { MesAnoFilter } from "@/components/MesAnoFilter";
 import { FiltrosBarGlobal } from "@/components/FiltrosBarGlobal";
+import { SearchCombobox } from "@/components/SearchCombobox";
 
 type AnalistaOpt = { id: string; nome: string; whatsapp: string | null };
 
