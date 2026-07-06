@@ -153,6 +153,7 @@ interface Store {
   logout: () => Promise<void>;
 
   clientes: Cliente[];
+  allClientes: Cliente[];
   loadingClientes: boolean;
   clientesPage: number;
   clientesTotal: number;
@@ -164,6 +165,7 @@ interface Store {
   deleteCliente: (id: string) => Promise<void>;
 
   tecnicos: Tecnico[];
+  allTecnicos: Tecnico[];
   loadingTecnicos: boolean;
   tecnicosPage: number;
   tecnicosTotal: number;
@@ -417,6 +419,30 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     },
   });
 
+  const allClientesQ = useQuery({
+    queryKey: ["all_clientes", empresaId],
+    enabled,
+    queryFn: async (): Promise<Cliente[]> => {
+      if (!empresaId) return [];
+      const { data, error } = await supabase
+        .from("clientes")
+        .select("id, nome, documento, telefone, email, cidade, base_km, valor_por_km")
+        .eq("empresa_id", empresaId)
+        .order("nome");
+      if (error) throw error;
+      return (data ?? []).map((r) => ({
+        id: r.id,
+        nome: r.nome,
+        documento: r.documento ?? "",
+        telefone: r.telefone ?? "",
+        email: r.email ?? "",
+        cidade: r.cidade ?? "",
+        base_km: Number(r.base_km ?? 0),
+        valor_por_km: Number(r.valor_por_km ?? 0),
+      }));
+    },
+  });
+
   const tecnicosQ = useQuery({
     queryKey: ["tecnicos", empresaId, tecnicosPage, tecnicosSearch],
     enabled,
@@ -444,6 +470,32 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         console.log("✅ TOTAL DE TÉCNICOS RETORNADOS:", data?.length);
       }
       setTecnicosTotal(count ?? 0);
+      return ((data ?? []) as any[]).map((r) => ({
+        id: r.id,
+        nome: r.nome,
+        perfil: r.perfil ?? "",
+        telefone: r.telefone ?? "",
+        ativo: r.ativo,
+        comissao: Number(r.comissao || 0),
+        tipo_comissao: (r.tipo_comissao as TipoComissao) ?? "fixo",
+        chave_pix: r.chave_pix ?? "",
+        username: r.username ?? "",
+        dados_adicionais: r.dados_adicionais ?? {},
+      }));
+    },
+  });
+
+  const allTecnicosQ = useQuery({
+    queryKey: ["all_tecnicos", empresaId],
+    enabled,
+    queryFn: async (): Promise<Tecnico[]> => {
+      if (!empresaId) return [];
+      const { data, error } = await supabase
+        .from("tecnicos")
+        .select("*")
+        .eq("empresa_id", empresaId)
+        .order("nome");
+      if (error) throw error;
       return ((data ?? []) as any[]).map((r) => ({
         id: r.id,
         nome: r.nome,
@@ -620,7 +672,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       if (error) throw error;
       return data.id as string;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["clientes"] }),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["clientes"] }); qc.invalidateQueries({ queryKey: ["all_clientes"] }); },
     onError: (e: Error) => toast.error(e.message),
   });
 
@@ -642,7 +694,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         .eq("id", id);
       if (error) throw error;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["clientes"] }),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["clientes"] }); qc.invalidateQueries({ queryKey: ["all_clientes"] }); },
     onError: (e: Error) => toast.error(e.message),
   });
 
@@ -651,7 +703,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       const { error } = await supabase.from("clientes").delete().eq("id", id);
       if (error) throw error;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["clientes"] }),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["clientes"] }); qc.invalidateQueries({ queryKey: ["all_clientes"] }); },
     onError: (e: Error) => toast.error(e.message),
   });
 
@@ -674,7 +726,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       if (error) throw error;
       return (data as any).id as string;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["tecnicos"] }),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["tecnicos"] }); qc.invalidateQueries({ queryKey: ["all_tecnicos"] }); },
     onError: (e: Error) => toast.error(e.message),
   });
 
@@ -688,12 +740,12 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       if (patch.tipo_comissao !== undefined) dbPatch.tipo_comissao = patch.tipo_comissao;
       if (patch.chave_pix !== undefined) dbPatch.chave_pix = patch.chave_pix;
       if (patch.username !== undefined) dbPatch.username = patch.username || null;
-      if (patch.email !== undefined) dbPatch.email = patch.email || null;
+      if ((patch as any).email !== undefined) dbPatch.email = (patch as any).email || null;
       if (patch.dados_adicionais !== undefined) dbPatch.dados_adicionais = patch.dados_adicionais;
       const { error } = await (supabase.from("tecnicos") as any).update(dbPatch).eq("id", id);
       if (error) throw error;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["tecnicos"] }),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["tecnicos"] }); qc.invalidateQueries({ queryKey: ["all_tecnicos"] }); },
     onError: (e: Error) => toast.error(e.message),
   });
 
@@ -702,7 +754,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       const { error } = await supabase.from("tecnicos").delete().eq("id", id);
       if (error) throw error;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["tecnicos"] }),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["tecnicos"] }); qc.invalidateQueries({ queryKey: ["all_tecnicos"] }); },
     onError: (e: Error) => toast.error(e.message),
   });
 
@@ -980,6 +1032,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     signup,
     logout,
     clientes: clientesQ.data ?? [],
+    allClientes: allClientesQ.data ?? [],
     loadingClientes: clientesQ.isLoading,
     clientesPage,
     clientesTotal,
@@ -1001,6 +1054,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       await deleteClienteM.mutateAsync(id);
     },
     tecnicos: tecnicosQ.data ?? [],
+    allTecnicos: allTecnicosQ.data ?? [],
     loadingTecnicos: tecnicosQ.isLoading,
     tecnicosPage,
     tecnicosTotal,
