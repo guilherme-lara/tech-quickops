@@ -1519,10 +1519,14 @@ export function EditOSDialog({
                   </Button>
                 )}
               </div>
-              <Select
-                disabled={isView}
+              <SearchCombobox
+                options={(Array.isArray(clientes) ? clientes : []).map((c) => ({
+                  value: c.id,
+                  label: c.nome,
+                }))}
                 value={form.clienteId}
-                onValueChange={(v) => {
+                onChange={(v) => {
+                  if (isView) return;
                   const cliente = clientes.find((c) => c.id === v);
                   const baseKm = cliente?.base_km || 0;
                   const valorPorKm = cliente?.valor_por_km || 0;
@@ -1533,18 +1537,10 @@ export function EditOSDialog({
                     custo_viagem: baseKm && valorPorKm ? String(baseKm * valorPorKm) : "",
                   });
                 }}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {(Array.isArray(clientes) ? clientes : []).map((c) => (
-                    <SelectItem key={c.id} value={c.id}>
-                      {c.nome}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                placeholder="Selecione um cliente..."
+                searchPlaceholder="Buscar cliente..."
+                emptyText="Nenhum cliente encontrado."
+              />
             </div>
             <div>
               <div className="flex items-center justify-between gap-2 mb-1">
@@ -1560,22 +1556,20 @@ export function EditOSDialog({
                   </Button>
                 )}
               </div>
-              <Select
-                disabled={isView}
+              <SearchCombobox
+                options={(Array.isArray(tecnicos) ? tecnicos : []).map((t) => ({
+                  value: t.id,
+                  label: t.nome,
+                }))}
                 value={form.tecnicoId}
-                onValueChange={(v) => setForm({ ...form, tecnicoId: v })}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {(Array.isArray(tecnicos) ? tecnicos : []).map((t) => (
-                    <SelectItem key={t.id} value={t.id}>
-                      {t.nome}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                onChange={(v) => {
+                  if (isView) return;
+                  setForm({ ...form, tecnicoId: v });
+                }}
+                placeholder="Selecione um técnico..."
+                searchPlaceholder="Buscar técnico..."
+                emptyText="Nenhum técnico encontrado."
+              />
             </div>
             <div>
               <Label>Analista / Suporte Responsável</Label>
