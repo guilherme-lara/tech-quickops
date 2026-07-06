@@ -49,12 +49,12 @@ import {
   Check,
 } from "lucide-react";
 
-function UsernameField({ userId, initialUsername }: { userId: string, initialUsername?: string }) {
+function UsernameField({ userId, initialUsername, empresaId, nomeCompleto }: { userId: string, initialUsername?: string, empresaId?: string, nomeCompleto?: string }) {
   const qc = useQueryClient();
   const { data: perfil, isLoading } = useQuery({
     queryKey: ['perfil_username', userId],
     queryFn: async () => {
-      const { data, error } = await supabase.from('perfis').select('username').eq('id', userId).single();
+      const { data, error } = await supabase.from('perfis').select('username').eq('id', userId).maybeSingle();
       if (error) throw error;
       return data;
     },
@@ -66,10 +66,20 @@ function UsernameField({ userId, initialUsername }: { userId: string, initialUse
       if (!newUsername.trim()) throw new Error("Usuário não pode ser vazio");
       if (!/^[a-z0-9._-]+$/i.test(newUsername)) throw new Error("Usuário inválido (use letras, números, . _ -)");
       
-      const { error } = await supabase.from('perfis').update({ username: newUsername }).eq('id', userId);
+      const { data, error } = await supabase.from('perfis').upsert({ 
+        id: userId,
+        empresa_id: empresaId,
+        nome_completo: nomeCompleto || 'Técnico',
+        role: 'tecnico',
+        username: newUsername 
+      }).select();
+      
       if (error) {
         if (error.code === '23505' || /duplicate key/.test(error.message)) {
           throw new Error("Este usuário já está em uso");
+        }
+        if (error.code === '23503' && /auth\.users/.test(error.message)) {
+          throw new Error("Técnico não possui conta de acesso (auth.users).");
         }
         throw error;
       }
@@ -384,7 +394,12 @@ function EquipePage() {
                   </Select>
                 </div>
                 {form.id ? (
-                  <UsernameField userId={form.id} initialUsername={form.username} />
+                  <UsernameField 
+                    userId={form.id} 
+                    initialUsername={form.username} 
+                    empresaId={empresaId} 
+                    nomeCompleto={form.nome} 
+                  />
                 ) : (
                   <div>
                     <Label>Usuário (login)</Label>
