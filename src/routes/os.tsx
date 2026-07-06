@@ -104,8 +104,8 @@ const colunas: OSStatus[] = ["Orçamento", "Aprovado", "Em Execução", "Conclu�
 function OSPage() {
   const {
     os,
-    clientes,
-    tecnicos,
+    allClientes: clientes,
+    allTecnicos: tecnicos,
     addOS,
     updateOS,
     addCliente,
