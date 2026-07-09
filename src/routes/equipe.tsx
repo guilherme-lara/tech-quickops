@@ -47,7 +47,9 @@ import {
   ChevronLeft,
   ChevronRight,
   Check,
+  KeyRound,
 } from "lucide-react";
+import { GerarAcessoDialog } from "@/components/GerarAcessoDialog";
 
 function UsernameField({ userId, initialUsername, empresaId, nomeCompleto }: { userId: string, initialUsername?: string, empresaId?: string, nomeCompleto?: string }) {
   const qc = useQueryClient();
