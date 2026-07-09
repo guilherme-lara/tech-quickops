@@ -45,6 +45,21 @@ function DashboardTecnico() {
     },
   });
 
+  const { data: ultimasOs, isLoading: isLoadingOs } = useQuery({
+    queryKey: ["ultimas_os_tecnico", tecnicoId],
+    enabled: !!tecnicoId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("ordens_servico")
+        .select("id, clientes(nome), created_at, status, valor")
+        .eq("tecnico_id", tecnicoId)
+        .order("created_at", { ascending: false })
+        .limit(5);
+      if (error) throw error;
+      return data;
+    },
+  });
+
   const cards = [
     {
       label: "OS no mês",
@@ -98,6 +113,43 @@ function DashboardTecnico() {
           ))}
         </div>
       )}
+
+      {/* Lista de OSs Recentes */}
+      <div className="px-4 pb-4">
+        <h2 className="text-lg font-bold mb-3">Últimas OS Atribuídas</h2>
+        {isLoadingOs ? (
+          <div className="flex flex-col gap-3">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="h-20 bg-muted/50 animate-pulse rounded-2xl" />
+            ))}
+          </div>
+        ) : !ultimasOs || ultimasOs.length === 0 ? (
+          <Card className="p-6 text-center rounded-2xl border-dashed">
+            <p className="text-muted-foreground text-sm">Nenhuma OS atribuída a você no momento.</p>
+          </Card>
+        ) : (
+          <div className="flex flex-col gap-3">
+            {ultimasOs.map((os) => (
+              <Card key={os.id} className="p-4 rounded-2xl border-border/60 flex flex-col gap-2">
+                <div className="flex justify-between items-start">
+                  <div className="font-semibold text-sm">{(os.clientes as any)?.nome || 'Cliente não informado'}</div>
+                  <div className="text-xs font-medium px-2 py-1 bg-primary/10 text-primary rounded-full">
+                    {os.status}
+                  </div>
+                </div>
+                <div className="flex justify-between items-end mt-1">
+                  <div className="text-xs text-muted-foreground">
+                    {new Date(os.created_at).toLocaleDateString('pt-BR')}
+                  </div>
+                  <div className="text-sm font-bold">
+                    {fmtBRL(Number(os.valor || 0))}
+                  </div>
+                </div>
+              </Card>
+            ))}
+          </div>
+        )}
+      </div>
 
       <div className="px-4 pb-24">
         <Link
