@@ -64,7 +64,7 @@ function DashboardTecnico() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("ordens_servico")
-        .select("id, clientes(nome), created_at, status, valor")
+        .select("id, clientes(nome), created_at, status, valor, tecnicos(comissao, tipo_comissao)")
         .eq("tecnico_id", tecnicoId)
         .order("created_at", { ascending: false })
         .limit(5);
@@ -166,8 +166,12 @@ function DashboardTecnico() {
                   <div className="text-xs text-muted-foreground">
                     {new Date(os.created_at).toLocaleDateString('pt-BR')}
                   </div>
-                  <div className="text-sm font-bold">
-                    {fmtBRL(Number(os.valor || 0))}
+                  <div className="text-sm font-bold text-emerald-500">
+                    {fmtBRL(
+                      (os.tecnicos as any)?.tipo_comissao === 'fixo'
+                        ? Number((os.tecnicos as any)?.comissao || 0)
+                        : (Number(os.valor || 0) * Number((os.tecnicos as any)?.comissao || 0)) / 100
+                    )}
                   </div>
                 </div>
               </Card>

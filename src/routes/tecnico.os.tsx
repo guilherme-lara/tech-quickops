@@ -4,23 +4,12 @@ import { TecnicoLayout } from "@/components/TecnicoLayout";
 import { useAuth } from "@/lib/auth-context";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Link } from "@tanstack/react-router";
 import { MapPin, Calendar, Loader2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+
+
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 
@@ -51,12 +40,6 @@ const statusLabel: Record<string, string> = {
 
 function TecnicoOSPage() {
   const { profile } = useAuth();
-  const queryClient = useQueryClient();
-  const [selectedOS, setSelectedOS] = useState<any>(null);
-  const [newStatus, setNewStatus] = useState<
-    "pendente" | "aprovado" | "em_andamento" | "concluido" | "cancelado"
-  >("em_andamento");
-  const [isUpdating, setIsUpdating] = useState(false);
 
   // 1. Busca REAL no Supabase: Trazendo as OS do técnico + os dados do cliente vinculado
   const { data: minhasOS, isLoading } = useQuery({
@@ -81,29 +64,7 @@ function TecnicoOSPage() {
     enabled: !!profile?.id, // Só roda a query se o perfil estiver carregado
   });
 
-  // 2. Atualização REAL no Supabase
-  const handleUpdateStatus = async () => {
-    if (!selectedOS) return;
-    try {
-      setIsUpdating(true);
-      const { error } = await supabase
-        .from("ordens_servico")
-        .update({ status: newStatus })
-        .eq("id", selectedOS.id);
 
-      if (error) throw error;
-
-      toast.success(`Status atualizado para ${newStatus}`);
-      setSelectedOS(null);
-      // Força a tela a buscar os dados atualizados
-      queryClient.invalidateQueries({ queryKey: ["minhas-os", profile?.id] });
-    } catch (error: any) {
-      console.error(error);
-      toast.error("Erro ao atualizar status: " + error.message);
-    } finally {
-      setIsUpdating(false);
-    }
-  };
 
   return (
     <TecnicoLayout>
@@ -163,69 +124,21 @@ function TecnicoOSPage() {
                   )}
                 </div>
 
-                <Button
-                  className="w-full h-10 rounded-xl font-semibold"
-                  variant={isConcluido ? "outline" : "default"}
-                  disabled={isConcluido}
-                  onClick={() => {
-                    setSelectedOS(ordem);
-                    setNewStatus(ordem.status);
-                  }}
-                >
-                  {isConcluido ? "Serviço Finalizado" : "Atualizar Status"}
-                </Button>
+                <Link to={`/tecnico/os/${ordem.id}`}>
+                  <Button
+                    className="w-full h-10 rounded-xl font-semibold"
+                    variant={isConcluido ? "outline" : "default"}
+                  >
+                    {isConcluido ? "Ver Detalhes do Serviço" : "Acessar Serviço"}
+                  </Button>
+                </Link>
               </Card>
             );
           })
         )}
       </div>
 
-      {/* Drawer Mobile de Atualização de Status */}
-      <Dialog
-        open={!!selectedOS}
-        onOpenChange={(open) => !open && !isUpdating && setSelectedOS(null)}
-      >
-        <DialogContent className="rounded-[2rem] w-[90vw] max-w-sm">
-          <DialogHeader>
-            <DialogTitle>Atualizar Serviço</DialogTitle>
-          </DialogHeader>
-          <div className="py-4">
-            {/* Adicionei o (v: any) aqui no onValueChange para o TypeScript parar de reclamar */}
-            <Select
-              value={newStatus}
-              onValueChange={(v: any) => setNewStatus(v)}
-              disabled={isUpdating}
-            >
-              <SelectTrigger className="h-12 rounded-xl">
-                <SelectValue placeholder="Selecione o novo status" />
-              </SelectTrigger>
-              <SelectContent>
-                {/* Aqui mudamos os values para os nomes exatos do banco de dados (minúsculo e sem espaço) */}
-                <SelectItem value="aprovado">Aprovado (A caminho)</SelectItem>
-                <SelectItem value="em_andamento">Em Execução (No local)</SelectItem>
-                <SelectItem value="concluido">Concluído (Serviço finalizado)</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <DialogFooter className="flex-row gap-2 sm:justify-end">
-            <Button
-              variant="outline"
-              className="flex-1 rounded-xl"
-              onClick={() => setSelectedOS(null)}
-              disabled={isUpdating}
-            >
-              Cancelar
-            </Button>
-            <Button
-              className="flex-1 bg-primary rounded-xl"
-              onClick={handleUpdateStatus}
-              disabled={isUpdating}
-            >
-              {isUpdating ? <Loader2 className="w-4 h-4 animate-spin" /> : "Salvar"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+
     </TecnicoLayout>
   );
 }
