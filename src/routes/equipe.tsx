@@ -780,6 +780,13 @@ function EquipePage() {
           </div>
         </div>
       )}
+
+      <GerarAcessoDialog
+        open={!!gerarAcessoFor}
+        onOpenChange={(v) => !v && setGerarAcessoFor(null)}
+        tecnico={gerarAcessoFor}
+        empresaId={empresaId}
+      />
     </GestorLayout>
   );
 }
