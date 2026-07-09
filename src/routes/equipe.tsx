@@ -47,7 +47,9 @@ import {
   ChevronLeft,
   ChevronRight,
   Check,
+  KeyRound,
 } from "lucide-react";
+import { GerarAcessoDialog } from "@/components/GerarAcessoDialog";
 
 function UsernameField({ userId, initialUsername, empresaId, nomeCompleto }: { userId: string, initialUsername?: string, empresaId?: string, nomeCompleto?: string }) {
   const qc = useQueryClient();
@@ -200,6 +202,7 @@ function EquipePage() {
     raio_atendimento: "",
   };
   const [form, setForm] = useState(emptyForm);
+  const [gerarAcessoFor, setGerarAcessoFor] = useState<any>(null);
   const [viewMode, setViewMode] = useState<"list" | "card">("list");
 
   const totalTecnicosPages = Math.max(1, Math.ceil(tecnicosTotal / PAGE_SIZE));
@@ -641,6 +644,11 @@ function EquipePage() {
                             <DropdownMenuItem onClick={() => openEdit(t)}>
                               <Edit2 className="mr-2 h-4 w-4" /> Editar
                             </DropdownMenuItem>
+                            {!t.user_id && (
+                              <DropdownMenuItem onClick={() => setGerarAcessoFor(t)}>
+                                <KeyRound className="mr-2 h-4 w-4" /> Gerar Acesso
+                              </DropdownMenuItem>
+                            )}
                             <DropdownMenuItem
                               onClick={() => handleDelete(t.id)}
                               className="text-destructive focus:text-destructive"
@@ -675,6 +683,11 @@ function EquipePage() {
                       <DropdownMenuItem onClick={() => openEdit(t)}>
                         <Edit2 className="mr-2 h-4 w-4" /> Editar
                       </DropdownMenuItem>
+                      {!t.user_id && (
+                        <DropdownMenuItem onClick={() => setGerarAcessoFor(t)}>
+                          <KeyRound className="mr-2 h-4 w-4" /> Gerar Acesso
+                        </DropdownMenuItem>
+                      )}
                       <DropdownMenuItem
                         onClick={() => handleDelete(t.id)}
                         className="text-destructive focus:text-destructive"
@@ -767,6 +780,13 @@ function EquipePage() {
           </div>
         </div>
       )}
+
+      <GerarAcessoDialog
+        open={!!gerarAcessoFor}
+        onOpenChange={(v) => !v && setGerarAcessoFor(null)}
+        tecnico={gerarAcessoFor}
+        empresaId={empresaId}
+      />
     </GestorLayout>
   );
 }

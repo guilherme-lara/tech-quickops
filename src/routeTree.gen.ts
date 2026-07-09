@@ -21,6 +21,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as TecnicoPerfilRouteImport } from './routes/tecnico.perfil'
 import { Route as TecnicoOsRouteImport } from './routes/tecnico.os'
 import { Route as TecnicoHistoricoRouteImport } from './routes/tecnico.historico'
+import { Route as TecnicoDashboardRouteImport } from './routes/tecnico.dashboard'
 import { Route as TecnicoOsIdRatRouteImport } from './routes/tecnico.os.$id.rat'
 
 const OsRoute = OsRouteImport.update({
@@ -83,6 +84,11 @@ const TecnicoHistoricoRoute = TecnicoHistoricoRouteImport.update({
   path: '/tecnico/historico',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TecnicoDashboardRoute = TecnicoDashboardRouteImport.update({
+  id: '/tecnico/dashboard',
+  path: '/tecnico/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const TecnicoOsIdRatRoute = TecnicoOsIdRatRouteImport.update({
   id: '/$id/rat',
   path: '/$id/rat',
@@ -99,6 +105,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/logs': typeof LogsRoute
   '/os': typeof OsRoute
+  '/tecnico/dashboard': typeof TecnicoDashboardRoute
   '/tecnico/historico': typeof TecnicoHistoricoRoute
   '/tecnico/os': typeof TecnicoOsRouteWithChildren
   '/tecnico/perfil': typeof TecnicoPerfilRoute
@@ -114,6 +121,7 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/logs': typeof LogsRoute
   '/os': typeof OsRoute
+  '/tecnico/dashboard': typeof TecnicoDashboardRoute
   '/tecnico/historico': typeof TecnicoHistoricoRoute
   '/tecnico/os': typeof TecnicoOsRouteWithChildren
   '/tecnico/perfil': typeof TecnicoPerfilRoute
@@ -130,6 +138,7 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/logs': typeof LogsRoute
   '/os': typeof OsRoute
+  '/tecnico/dashboard': typeof TecnicoDashboardRoute
   '/tecnico/historico': typeof TecnicoHistoricoRoute
   '/tecnico/os': typeof TecnicoOsRouteWithChildren
   '/tecnico/perfil': typeof TecnicoPerfilRoute
@@ -147,6 +156,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/logs'
     | '/os'
+    | '/tecnico/dashboard'
     | '/tecnico/historico'
     | '/tecnico/os'
     | '/tecnico/perfil'
@@ -162,6 +172,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/logs'
     | '/os'
+    | '/tecnico/dashboard'
     | '/tecnico/historico'
     | '/tecnico/os'
     | '/tecnico/perfil'
@@ -177,6 +188,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/logs'
     | '/os'
+    | '/tecnico/dashboard'
     | '/tecnico/historico'
     | '/tecnico/os'
     | '/tecnico/perfil'
@@ -193,6 +205,7 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   LogsRoute: typeof LogsRoute
   OsRoute: typeof OsRoute
+  TecnicoDashboardRoute: typeof TecnicoDashboardRoute
   TecnicoHistoricoRoute: typeof TecnicoHistoricoRoute
   TecnicoOsRoute: typeof TecnicoOsRouteWithChildren
   TecnicoPerfilRoute: typeof TecnicoPerfilRoute
@@ -284,6 +297,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TecnicoHistoricoRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/tecnico/dashboard': {
+      id: '/tecnico/dashboard'
+      path: '/tecnico/dashboard'
+      fullPath: '/tecnico/dashboard'
+      preLoaderRoute: typeof TecnicoDashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/tecnico/os/$id/rat': {
       id: '/tecnico/os/$id/rat'
       path: '/$id/rat'
@@ -316,6 +336,7 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   LogsRoute: LogsRoute,
   OsRoute: OsRoute,
+  TecnicoDashboardRoute: TecnicoDashboardRoute,
   TecnicoHistoricoRoute: TecnicoHistoricoRoute,
   TecnicoOsRoute: TecnicoOsRouteWithChildren,
   TecnicoPerfilRoute: TecnicoPerfilRoute,
@@ -323,12 +344,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { createStart } from '@tanstack/react-start'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-  }
-}

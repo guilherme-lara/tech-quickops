@@ -30,6 +30,7 @@ export interface Tecnico {
   tipo_comissao?: TipoComissao;
   chave_pix?: string;
   username?: string;
+  user_id?: string | null;
   dados_adicionais?: Record<string, any>;
 }
 export interface Item {

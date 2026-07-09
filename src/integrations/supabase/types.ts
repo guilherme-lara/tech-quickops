@@ -495,6 +495,40 @@ export type Database = {
       }
     }
     Views: {
+      view_dashboard_tecnico: {
+        Row: {
+          concluidas: number | null
+          empresa_id: string | null
+          mes: string | null
+          pendentes: number | null
+          tecnico_id: string | null
+          total_mes: number | null
+          valor_recebido: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ordens_servico_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: false
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ordens_servico_tecnico_id_fkey"
+            columns: ["tecnico_id"]
+            isOneToOne: false
+            referencedRelation: "tecnicos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ordens_servico_tecnico_id_fkey"
+            columns: ["tecnico_id"]
+            isOneToOne: false
+            referencedRelation: "vw_produtividade_tecnico"
+            referencedColumns: ["tecnico_id"]
+          },
+        ]
+      }
       vw_produtividade_tecnico: {
         Row: {
           comissao_pagar: number | null
