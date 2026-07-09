@@ -644,6 +644,11 @@ function EquipePage() {
                             <DropdownMenuItem onClick={() => openEdit(t)}>
                               <Edit2 className="mr-2 h-4 w-4" /> Editar
                             </DropdownMenuItem>
+                            {!t.user_id && (
+                              <DropdownMenuItem onClick={() => setGerarAcessoFor(t)}>
+                                <KeyRound className="mr-2 h-4 w-4" /> Gerar Acesso
+                              </DropdownMenuItem>
+                            )}
                             <DropdownMenuItem
                               onClick={() => handleDelete(t.id)}
                               className="text-destructive focus:text-destructive"
