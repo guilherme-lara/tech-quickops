@@ -22,6 +22,7 @@ import { Route as TecnicoPerfilRouteImport } from './routes/tecnico.perfil'
 import { Route as TecnicoOsRouteImport } from './routes/tecnico.os'
 import { Route as TecnicoHistoricoRouteImport } from './routes/tecnico.historico'
 import { Route as TecnicoDashboardRouteImport } from './routes/tecnico.dashboard'
+import { Route as TecnicoOsIdRouteImport } from './routes/tecnico.os.$id'
 import { Route as TecnicoOsIdRatRouteImport } from './routes/tecnico.os.$id.rat'
 
 const OsRoute = OsRouteImport.update({
@@ -89,10 +90,15 @@ const TecnicoDashboardRoute = TecnicoDashboardRouteImport.update({
   path: '/tecnico/dashboard',
   getParentRoute: () => rootRouteImport,
 } as any)
-const TecnicoOsIdRatRoute = TecnicoOsIdRatRouteImport.update({
-  id: '/$id/rat',
-  path: '/$id/rat',
+const TecnicoOsIdRoute = TecnicoOsIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
   getParentRoute: () => TecnicoOsRoute,
+} as any)
+const TecnicoOsIdRatRoute = TecnicoOsIdRatRouteImport.update({
+  id: '/rat',
+  path: '/rat',
+  getParentRoute: () => TecnicoOsIdRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
@@ -109,6 +115,7 @@ export interface FileRoutesByFullPath {
   '/tecnico/historico': typeof TecnicoHistoricoRoute
   '/tecnico/os': typeof TecnicoOsRouteWithChildren
   '/tecnico/perfil': typeof TecnicoPerfilRoute
+  '/tecnico/os/$id': typeof TecnicoOsIdRouteWithChildren
   '/tecnico/os/$id/rat': typeof TecnicoOsIdRatRoute
 }
 export interface FileRoutesByTo {
@@ -125,6 +132,7 @@ export interface FileRoutesByTo {
   '/tecnico/historico': typeof TecnicoHistoricoRoute
   '/tecnico/os': typeof TecnicoOsRouteWithChildren
   '/tecnico/perfil': typeof TecnicoPerfilRoute
+  '/tecnico/os/$id': typeof TecnicoOsIdRouteWithChildren
   '/tecnico/os/$id/rat': typeof TecnicoOsIdRatRoute
 }
 export interface FileRoutesById {
@@ -142,6 +150,7 @@ export interface FileRoutesById {
   '/tecnico/historico': typeof TecnicoHistoricoRoute
   '/tecnico/os': typeof TecnicoOsRouteWithChildren
   '/tecnico/perfil': typeof TecnicoPerfilRoute
+  '/tecnico/os/$id': typeof TecnicoOsIdRouteWithChildren
   '/tecnico/os/$id/rat': typeof TecnicoOsIdRatRoute
 }
 export interface FileRouteTypes {
@@ -160,6 +169,7 @@ export interface FileRouteTypes {
     | '/tecnico/historico'
     | '/tecnico/os'
     | '/tecnico/perfil'
+    | '/tecnico/os/$id'
     | '/tecnico/os/$id/rat'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -176,6 +186,7 @@ export interface FileRouteTypes {
     | '/tecnico/historico'
     | '/tecnico/os'
     | '/tecnico/perfil'
+    | '/tecnico/os/$id'
     | '/tecnico/os/$id/rat'
   id:
     | '__root__'
@@ -192,6 +203,7 @@ export interface FileRouteTypes {
     | '/tecnico/historico'
     | '/tecnico/os'
     | '/tecnico/perfil'
+    | '/tecnico/os/$id'
     | '/tecnico/os/$id/rat'
   fileRoutesById: FileRoutesById
 }
@@ -304,22 +316,41 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TecnicoDashboardRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/tecnico/os/$id': {
+      id: '/tecnico/os/$id'
+      path: '/$id'
+      fullPath: '/tecnico/os/$id'
+      preLoaderRoute: typeof TecnicoOsIdRouteImport
+      parentRoute: typeof TecnicoOsRoute
+    }
     '/tecnico/os/$id/rat': {
       id: '/tecnico/os/$id/rat'
-      path: '/$id/rat'
+      path: '/rat'
       fullPath: '/tecnico/os/$id/rat'
       preLoaderRoute: typeof TecnicoOsIdRatRouteImport
-      parentRoute: typeof TecnicoOsRoute
+      parentRoute: typeof TecnicoOsIdRoute
     }
   }
 }
 
-interface TecnicoOsRouteChildren {
+interface TecnicoOsIdRouteChildren {
   TecnicoOsIdRatRoute: typeof TecnicoOsIdRatRoute
 }
 
-const TecnicoOsRouteChildren: TecnicoOsRouteChildren = {
+const TecnicoOsIdRouteChildren: TecnicoOsIdRouteChildren = {
   TecnicoOsIdRatRoute: TecnicoOsIdRatRoute,
+}
+
+const TecnicoOsIdRouteWithChildren = TecnicoOsIdRoute._addFileChildren(
+  TecnicoOsIdRouteChildren,
+)
+
+interface TecnicoOsRouteChildren {
+  TecnicoOsIdRoute: typeof TecnicoOsIdRouteWithChildren
+}
+
+const TecnicoOsRouteChildren: TecnicoOsRouteChildren = {
+  TecnicoOsIdRoute: TecnicoOsIdRouteWithChildren,
 }
 
 const TecnicoOsRouteWithChildren = TecnicoOsRoute._addFileChildren(
