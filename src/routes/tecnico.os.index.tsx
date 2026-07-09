@@ -13,9 +13,9 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 
-export const Route = createFileRoute("/tecnico/os")({
+export const Route = createFileRoute("/tecnico/os/")({
   component: () => (
-    <ProtectedRoute>
+    <ProtectedRoute requireRole="tecnico">
       <TecnicoOSPage />
     </ProtectedRoute>
   ),

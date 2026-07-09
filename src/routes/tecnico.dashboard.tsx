@@ -65,7 +65,7 @@ function DashboardTecnico() {
       const { data, error } = await supabase
         .from("ordens_servico")
         .select("id, clientes(nome), created_at, status, valor, tecnicos(comissao, tipo_comissao)")
-        .eq("tecnico_id", tecnicoId)
+        .eq("tecnico_id", tecnicoId as string)
         .order("created_at", { ascending: false })
         .limit(5);
       if (error) throw error;

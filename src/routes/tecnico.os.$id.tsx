@@ -241,7 +241,7 @@ function TecnicoOSDetail() {
               <Receipt className="w-4 h-4" /> Despesas Reembolsáveis
             </h2>
             <div className="text-xs font-bold text-emerald-500 bg-emerald-500/10 px-2 py-1 rounded-full">
-              Total: R$ {despesasArray.reduce((acc, d) => acc + Number(d.valor || 0), 0).toFixed(2).replace('.', ',')}
+              Total: R$ {despesasArray.reduce((acc: number, d: any) => acc + Number(d?.valor || 0), 0).toFixed(2).replace('.', ',')}
             </div>
           </div>
           <Card className="p-4 rounded-2xl border-border/60 shadow-[var(--shadow-card)] space-y-4">
