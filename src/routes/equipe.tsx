@@ -202,6 +202,7 @@ function EquipePage() {
     raio_atendimento: "",
   };
   const [form, setForm] = useState(emptyForm);
+  const [gerarAcessoFor, setGerarAcessoFor] = useState<any>(null);
   const [viewMode, setViewMode] = useState<"list" | "card">("list");
 
   const totalTecnicosPages = Math.max(1, Math.ceil(tecnicosTotal / PAGE_SIZE));
