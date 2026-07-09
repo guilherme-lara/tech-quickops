@@ -5,7 +5,9 @@ import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { Card } from "@/components/ui/card";
-import { Loader2, ClipboardList, Clock, CheckCircle2, Wallet } from "lucide-react";
+import { useState } from "react";
+import { Loader2, ClipboardList, Clock, CheckCircle2, Wallet, CalendarDays } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export const Route = createFileRoute("/tecnico/dashboard")({
   component: () => (
@@ -28,22 +30,33 @@ function DashboardTecnico() {
   mesInicio.setHours(0, 0, 0, 0);
   const mesIsoDate = mesInicio.toISOString().slice(0, 10);
 
-  const { data: stats, isLoading } = useQuery({
-    queryKey: ["dashboard_tecnico", tecnicoId, mesIsoDate],
+  const [filtroPeriodo, setFiltroPeriodo] = useState<"mes_atual" | "todo_periodo">("mes_atual");
+
+  const { data: allStats, isLoading } = useQuery({
+    queryKey: ["dashboard_tecnico_all", tecnicoId],
     enabled: !!tecnicoId,
     queryFn: async () => {
       const { data, error } = await (supabase as any)
         .from("view_dashboard_tecnico")
-        .select("total_mes, pendentes, concluidas, valor_recebido")
-        .eq("tecnico_id", tecnicoId)
-        .eq("mes", mesIsoDate)
-        .maybeSingle();
+        .select("mes, total_mes, pendentes, concluidas, valor_recebido")
+        .eq("tecnico_id", tecnicoId);
       if (error) throw error;
-      return (
-        data || { total_mes: 0, pendentes: 0, concluidas: 0, valor_recebido: 0 }
-      );
+      return data || [];
     },
   });
+
+  const stats = allStats?.reduce(
+    (acc: any, row: any) => {
+      if (filtroPeriodo === "mes_atual" && row.mes !== mesIsoDate) return acc;
+      return {
+        total_mes: acc.total_mes + (row.total_mes || 0),
+        pendentes: acc.pendentes + (row.pendentes || 0),
+        concluidas: acc.concluidas + (row.concluidas || 0),
+        valor_recebido: acc.valor_recebido + Number(row.valor_recebido || 0),
+      };
+    },
+    { total_mes: 0, pendentes: 0, concluidas: 0, valor_recebido: 0 }
+  );
 
   const { data: ultimasOs, isLoading: isLoadingOs } = useQuery({
     queryKey: ["ultimas_os_tecnico", tecnicoId],
@@ -62,7 +75,7 @@ function DashboardTecnico() {
 
   const cards = [
     {
-      label: "OS no mês",
+      label: filtroPeriodo === "mes_atual" ? "OS no mês" : "Total de OS",
       value: stats?.total_mes ?? 0,
       icon: ClipboardList,
       color: "from-primary to-violet",
@@ -89,9 +102,21 @@ function DashboardTecnico() {
 
   return (
     <TecnicoLayout>
-      <div className="px-4 pt-4">
-        <h1 className="text-2xl font-bold tracking-tight">Olá, {profile?.nome_completo?.split(" ")[0]}</h1>
-        <p className="text-sm text-muted-foreground">Resumo do mês atual</p>
+      <div className="px-4 pt-4 flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Olá, {profile?.nome_completo?.split(" ")[0]}</h1>
+          <p className="text-sm text-muted-foreground">Seu resumo de desempenho</p>
+        </div>
+        <Select value={filtroPeriodo} onValueChange={(v: any) => setFiltroPeriodo(v)}>
+          <SelectTrigger className="w-[140px] h-9 text-xs font-medium bg-background/50 backdrop-blur-md border-border/60 rounded-xl">
+            <CalendarDays className="w-3.5 h-3.5 mr-2 text-muted-foreground" />
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent className="rounded-xl border-border/60">
+            <SelectItem value="mes_atual" className="text-xs">Mês Atual</SelectItem>
+            <SelectItem value="todo_periodo" className="text-xs">Todo o Período</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       {isLoading ? (
