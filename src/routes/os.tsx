@@ -1554,20 +1554,23 @@ export function EditOSDialog({
                   </Button>
                 )}
               </div>
-              <SearchCombobox
-                options={(Array.isArray(tecnicos) ? tecnicos : []).map((t) => ({
-                  value: t.id,
-                  label: t.nome,
-                }))}
-                value={form.tecnicoId}
-                onChange={(v) => {
-                  if (isView) return;
-                  setForm({ ...form, tecnicoId: v });
-                }}
-                placeholder="Selecione um técnico..."
-                searchPlaceholder="Buscar técnico..."
-                emptyText="Nenhum técnico encontrado."
-              />
+              {isView ? (
+                <div className="h-10 px-3 flex items-center rounded-md border border-input bg-muted/40 text-sm">
+                  {tecnicos.find((t) => t.id === form.tecnicoId)?.nome || "—"}
+                </div>
+              ) : (
+                <SearchCombobox
+                  options={(Array.isArray(tecnicos) ? tecnicos : []).map((t) => ({
+                    value: t.id,
+                    label: t.nome,
+                  }))}
+                  value={form.tecnicoId}
+                  onChange={(v) => setForm({ ...form, tecnicoId: v })}
+                  placeholder="Selecione um técnico..."
+                  searchPlaceholder="Buscar técnico..."
+                  emptyText="Nenhum técnico encontrado."
+                />
+              )}
             </div>
             <div>
               <Label>Analista / Suporte Responsável</Label>
