@@ -1512,28 +1512,33 @@ export function EditOSDialog({
                   </Button>
                 )}
               </div>
-              <SearchCombobox
-                options={(Array.isArray(clientes) ? clientes : []).map((c) => ({
-                  value: c.id,
-                  label: c.nome,
-                }))}
-                value={form.clienteId}
-                onChange={(v) => {
-                  if (isView) return;
-                  const cliente = clientes.find((c) => c.id === v);
-                  const baseKm = cliente?.base_km || 0;
-                  const valorPorKm = cliente?.valor_por_km || 0;
-                  setForm({
-                    ...form,
-                    clienteId: v,
-                    km_viagem: baseKm ? String(baseKm) : "",
-                    custo_viagem: baseKm && valorPorKm ? String(baseKm * valorPorKm) : "",
-                  });
-                }}
-                placeholder="Selecione um cliente..."
-                searchPlaceholder="Buscar cliente..."
-                emptyText="Nenhum cliente encontrado."
-              />
+              {isView ? (
+                <div className="h-10 px-3 flex items-center rounded-md border border-input bg-muted/40 text-sm">
+                  {clientes.find((c) => c.id === form.clienteId)?.nome || "—"}
+                </div>
+              ) : (
+                <SearchCombobox
+                  options={(Array.isArray(clientes) ? clientes : []).map((c) => ({
+                    value: c.id,
+                    label: c.nome,
+                  }))}
+                  value={form.clienteId}
+                  onChange={(v) => {
+                    const cliente = clientes.find((c) => c.id === v);
+                    const baseKm = cliente?.base_km || 0;
+                    const valorPorKm = cliente?.valor_por_km || 0;
+                    setForm({
+                      ...form,
+                      clienteId: v,
+                      km_viagem: baseKm ? String(baseKm) : "",
+                      custo_viagem: baseKm && valorPorKm ? String(baseKm * valorPorKm) : "",
+                    });
+                  }}
+                  placeholder="Selecione um cliente..."
+                  searchPlaceholder="Buscar cliente..."
+                  emptyText="Nenhum cliente encontrado."
+                />
+              )}
             </div>
             <div>
               <div className="flex items-center justify-between gap-2 mb-1">
