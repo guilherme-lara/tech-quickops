@@ -88,21 +88,22 @@ function TecnicoOSPage() {
           </div>
         ) : (
           minhasOS.map((ordem: any) => {
-            const isConcluido = ordem.status === "Concluído";
+            const isConcluido = ordem.status === "concluido";
+            const label = statusLabel[ordem.status] ?? ordem.status;
 
             return (
               <Card
                 key={ordem.id}
-                className={`p-4 shadow-[var(--shadow-card)] border-border/60 rounded-2xl ${isConcluido ? "opacity-70" : ""}`}
+                className={`p-4 shadow-[var(--shadow-card)] border-border/60 rounded-2xl transition hover:shadow-[var(--shadow-glow)] ${isConcluido ? "opacity-70" : ""}`}
               >
                 <div className="flex justify-between items-start mb-3">
                   <span className="text-[10px] font-bold text-muted-foreground tracking-wider">
                     {ordem.id.split("-")[0].toUpperCase()}
                   </span>
                   <span
-                    className={`text-[10px] px-2 py-1 rounded-full font-bold uppercase tracking-wider ${statusColor[ordem.status] || statusColor["Orçamento"]}`}
+                    className={`text-[10px] px-2 py-1 rounded-full font-bold uppercase tracking-wider ${statusColor[ordem.status] ?? statusColor.pendente}`}
                   >
-                    {ordem.status}
+                    {label}
                   </span>
                 </div>
 
@@ -111,7 +112,7 @@ function TecnicoOSPage() {
                   {ordem.descricao_problema || "Sem descrição adicional."}
                 </p>
 
-                <div className="space-y-2 mb-4 bg-muted/30 p-3 rounded-xl">
+                <div className="space-y-2 mb-4 bg-muted/40 p-3 rounded-xl">
                   <div className="flex items-center gap-2 text-xs font-medium">
                     <MapPin className="w-3.5 h-3.5 text-primary" />{" "}
                     {ordem.clientes?.nome || "Cliente não informado"}
