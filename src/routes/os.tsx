@@ -89,7 +89,7 @@ function useAnalistasByCliente(clienteId: string | undefined) {
       cancel = true;
     };
   }, [clienteId]);
-  return { analistas, loading };
+  return { analistas, loading, setAnalistas };
 }
 
 export const Route = createFileRoute("/os")({
@@ -153,7 +153,7 @@ function OSPage() {
     descricao_problema: "",
     status: "Orçamento" as OSStatus,
   });
-  const { analistas: analistasNovaOS } = useAnalistasByCliente(form.clienteId);
+  const { analistas: analistasNovaOS, setAnalistas: setAnalistasNovaOS } = useAnalistasByCliente(form.clienteId);
   const [novosDadosExtras, setNovosDadosExtras] = useState<Record<string, any>>({});
   const [novoCampoNome, setNovoCampoNome] = useState("");
   const [novoCampoValor, setNovoCampoValor] = useState("");
@@ -176,6 +176,36 @@ function OSPage() {
     tipo_comissao: "porcentagem" as "porcentagem" | "fixo",
   });
   const [quickTecSaving, setQuickTecSaving] = useState(false);
+
+  const [quickAnaOpen, setQuickAnaOpen] = useState(false);
+  const [quickAnaForm, setQuickAnaForm] = useState({ nome: "", whatsapp: "" });
+  const [quickAnaSaving, setQuickAnaSaving] = useState(false);
+
+  const saveQuickAnalista = async () => {
+    if (!form.clienteId) return toast.error("Selecione um cliente primeiro para cadastrar o analista");
+    if (!quickAnaForm.nome.trim()) return toast.error("Informe o nome do analista");
+    setQuickAnaSaving(true);
+    try {
+      const { data, error } = await (supabase.from("analistas_cliente" as any) as any)
+        .insert([{
+          nome: quickAnaForm.nome,
+          whatsapp: quickAnaForm.whatsapp,
+          cliente_id: form.clienteId,
+        }])
+        .select()
+        .single();
+      if (error) throw error;
+      setAnalistasNovaOS((prev) => [...prev, data]);
+      setForm((f) => ({ ...f, analistaId: data.id }));
+      toast.success("Analista cadastrado e selecionado");
+      setQuickAnaOpen(false);
+      setQuickAnaForm({ nome: "", whatsapp: "" });
+    } catch (e: any) {
+      toast.error(e?.message ?? "Erro ao cadastrar analista");
+    } finally {
+      setQuickAnaSaving(false);
+    }
+  };
 
   const saveQuickCliente = async () => {
     if (!quickCliForm.nome.trim()) return toast.error("Informe o nome do cliente");
@@ -493,7 +523,22 @@ function OSPage() {
                   </div>
                 </div>
                 <div>
-                  <Label>Analista / Suporte Responsável</Label>
+                  <div className="flex items-center justify-between">
+                    <Label>Analista / Suporte Responsável</Label>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="h-8"
+                      onClick={() => {
+                        if (!form.clienteId) return toast.error("Selecione um cliente primeiro");
+                        setQuickAnaOpen(true);
+                      }}
+                      disabled={!form.clienteId}
+                    >
+                      <Plus className="w-3.5 h-3.5 mr-1" /> Cadastrar novo
+                    </Button>
+                  </div>
                   <Select
                     value={form.analistaId || undefined}
                     onValueChange={(v) => setForm({ ...form, analistaId: v })}
@@ -910,6 +955,48 @@ function OSPage() {
                 </Button>
                 <Button onClick={saveQuickTecnico} disabled={quickTecSaving}>
                   {quickTecSaving ? "Salvando..." : "Salvar e selecionar"}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+
+          {/* Dialog Cadastro Rápido Analista */}
+          <Dialog open={quickAnaOpen} onOpenChange={setQuickAnaOpen}>
+            <DialogContent className="rounded-2xl w-[95vw] sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle>Cadastro Rápido - Analista</DialogTitle>
+                <DialogDescription>
+                  Adicione um analista de suporte para o cliente selecionado.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4 py-2">
+                <div>
+                  <Label>Nome Completo</Label>
+                  <Input
+                    value={quickAnaForm.nome}
+                    onChange={(e) => setQuickAnaForm({ ...quickAnaForm, nome: e.target.value })}
+                    placeholder="Ex: João Silva"
+                  />
+                </div>
+                <div>
+                  <Label>WhatsApp (Opcional)</Label>
+                  <Input
+                    value={quickAnaForm.whatsapp}
+                    onChange={(e) => setQuickAnaForm({ ...quickAnaForm, whatsapp: e.target.value })}
+                    placeholder="(00) 00000-0000"
+                  />
+                </div>
+              </div>
+              <DialogFooter>
+                <Button
+                  variant="outline"
+                  onClick={() => setQuickAnaOpen(false)}
+                  disabled={quickAnaSaving}
+                >
+                  Cancelar
+                </Button>
+                <Button onClick={saveQuickAnalista} disabled={quickAnaSaving}>
+                  {quickAnaSaving ? "Salvando..." : "Salvar e selecionar"}
                 </Button>
               </DialogFooter>
             </DialogContent>
@@ -1357,7 +1444,12 @@ export function EditOSDialog({
     tipo_comissao: "porcentagem" as "porcentagem" | "fixo",
   });
   const [quickTecSaving, setQuickTecSaving] = useState(false);
-  const { analistas: analistasEdit } = useAnalistasByCliente(form.clienteId);
+  
+  const [quickAnaOpen, setQuickAnaOpen] = useState(false);
+  const [quickAnaForm, setQuickAnaForm] = useState({ nome: "", whatsapp: "" });
+  const [quickAnaSaving, setQuickAnaSaving] = useState(false);
+
+  const { analistas: analistasEdit, setAnalistas: setAnalistasEdit } = useAnalistasByCliente(form.clienteId);
 
   useEffect(() => {
     if (ordem) {
@@ -1476,6 +1568,32 @@ export function EditOSDialog({
     }
   };
 
+  const saveQuickAnalista = async () => {
+    if (!form.clienteId) return toast.error("Selecione um cliente primeiro para cadastrar o analista");
+    if (!quickAnaForm.nome.trim()) return toast.error("Informe o nome do analista");
+    setQuickAnaSaving(true);
+    try {
+      const { data, error } = await (supabase.from("analistas_cliente" as any) as any)
+        .insert([{
+          nome: quickAnaForm.nome,
+          whatsapp: quickAnaForm.whatsapp,
+          cliente_id: form.clienteId,
+        }])
+        .select()
+        .single();
+      if (error) throw error;
+      setAnalistasEdit((prev) => [...prev, data]);
+      setForm((f) => ({ ...f, analistaId: data.id }));
+      toast.success("Analista cadastrado e selecionado");
+      setQuickAnaOpen(false);
+      setQuickAnaForm({ nome: "", whatsapp: "" });
+    } catch (e: any) {
+      toast.error(e?.message ?? "Erro ao cadastrar analista");
+    } finally {
+      setQuickAnaSaving(false);
+    }
+  };
+
   return (
     <Dialog open={!!ordem} onOpenChange={(v) => !v && onClose()}>
       <DialogContent className="rounded-2xl w-[95vw] sm:max-w-4xl max-h-[90vh] overflow-y-auto">
@@ -1573,7 +1691,24 @@ export function EditOSDialog({
               )}
             </div>
             <div>
-              <Label>Analista / Suporte Responsável</Label>
+              <div className="flex items-center justify-between">
+                <Label>Analista / Suporte Responsável</Label>
+                {!isView && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="h-8"
+                    onClick={() => {
+                      if (!form.clienteId) return toast.error("Selecione um cliente primeiro");
+                      setQuickAnaOpen(true);
+                    }}
+                    disabled={!form.clienteId}
+                  >
+                    <Plus className="w-3.5 h-3.5 mr-1" /> Cadastrar novo
+                  </Button>
+                )}
+              </div>
               <Select
                 disabled={isView || !form.clienteId}
                 value={form.analistaId || undefined}
@@ -1920,6 +2055,48 @@ export function EditOSDialog({
             </Button>
             <Button onClick={saveQuickTecnico} disabled={quickTecSaving}>
               {quickTecSaving ? "Salvando..." : "Salvar e selecionar"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog Cadastro Rápido Analista EditOS */}
+      <Dialog open={quickAnaOpen} onOpenChange={setQuickAnaOpen}>
+        <DialogContent className="rounded-2xl w-[95vw] sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Cadastro Rápido - Analista</DialogTitle>
+            <DialogDescription>
+              Adicione um analista de suporte para o cliente selecionado.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div>
+              <Label>Nome Completo</Label>
+              <Input
+                value={quickAnaForm.nome}
+                onChange={(e) => setQuickAnaForm({ ...quickAnaForm, nome: e.target.value })}
+                placeholder="Ex: João Silva"
+              />
+            </div>
+            <div>
+              <Label>WhatsApp (Opcional)</Label>
+              <Input
+                value={quickAnaForm.whatsapp}
+                onChange={(e) => setQuickAnaForm({ ...quickAnaForm, whatsapp: e.target.value })}
+                placeholder="(00) 00000-0000"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setQuickAnaOpen(false)}
+              disabled={quickAnaSaving}
+            >
+              Cancelar
+            </Button>
+            <Button onClick={saveQuickAnalista} disabled={quickAnaSaving}>
+              {quickAnaSaving ? "Salvando..." : "Salvar e selecionar"}
             </Button>
           </DialogFooter>
         </DialogContent>
