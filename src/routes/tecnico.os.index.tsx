@@ -21,13 +21,13 @@ export const Route = createFileRoute("/tecnico/os/")({
   ),
 });
 
-// Cores dos status (trazidas para cá para não dependermos do mock)
+// Mapeamento por valor bruto do enum no banco
 const statusColor: Record<string, string> = {
-  Orçamento: "bg-slate-500/10 text-slate-500",
-  Aprovado: "bg-blue-500/10 text-blue-500",
-  "Em Execução": "bg-amber-500/10 text-amber-500",
-  Concluído: "bg-emerald-500/10 text-emerald-500",
-  Cancelado: "bg-red-500/10 text-red-500",
+  pendente: "bg-slate-500/10 text-slate-600 dark:text-slate-300",
+  aprovado: "bg-blue-500/10 text-blue-600 dark:text-blue-300",
+  em_andamento: "bg-amber-500/10 text-amber-600 dark:text-amber-300",
+  concluido: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-300",
+  cancelado: "bg-red-500/10 text-red-600 dark:text-red-300",
 };
 
 const statusLabel: Record<string, string> = {
@@ -88,21 +88,22 @@ function TecnicoOSPage() {
           </div>
         ) : (
           minhasOS.map((ordem: any) => {
-            const isConcluido = ordem.status === "Concluído";
+            const isConcluido = ordem.status === "concluido";
+            const label = statusLabel[ordem.status] ?? ordem.status;
 
             return (
               <Card
                 key={ordem.id}
-                className={`p-4 shadow-[var(--shadow-card)] border-border/60 rounded-2xl ${isConcluido ? "opacity-70" : ""}`}
+                className={`p-4 shadow-[var(--shadow-card)] border-border/60 rounded-2xl transition hover:shadow-[var(--shadow-glow)] ${isConcluido ? "opacity-70" : ""}`}
               >
                 <div className="flex justify-between items-start mb-3">
                   <span className="text-[10px] font-bold text-muted-foreground tracking-wider">
                     {ordem.id.split("-")[0].toUpperCase()}
                   </span>
                   <span
-                    className={`text-[10px] px-2 py-1 rounded-full font-bold uppercase tracking-wider ${statusColor[ordem.status] || statusColor["Orçamento"]}`}
+                    className={`text-[10px] px-2 py-1 rounded-full font-bold uppercase tracking-wider ${statusColor[ordem.status] ?? statusColor.pendente}`}
                   >
-                    {ordem.status}
+                    {label}
                   </span>
                 </div>
 
@@ -111,7 +112,7 @@ function TecnicoOSPage() {
                   {ordem.descricao_problema || "Sem descrição adicional."}
                 </p>
 
-                <div className="space-y-2 mb-4 bg-muted/30 p-3 rounded-xl">
+                <div className="space-y-2 mb-4 bg-muted/40 p-3 rounded-xl">
                   <div className="flex items-center gap-2 text-xs font-medium">
                     <MapPin className="w-3.5 h-3.5 text-primary" />{" "}
                     {ordem.clientes?.nome || "Cliente não informado"}

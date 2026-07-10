@@ -17,6 +17,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 import {
   Sheet,
@@ -210,6 +211,7 @@ export function GestorLayout({ children }: { children?: ReactNode }) {
             >
               <Search className="w-4 h-4" />
             </Button>
+            <ThemeToggle />
             <Button variant="ghost" size="icon" className="rounded-xl h-10 w-10 glass border-0">
               <Bell className="w-4 h-4" />
             </Button>
