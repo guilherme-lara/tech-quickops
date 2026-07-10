@@ -40,7 +40,7 @@ function TecnicoOSDetail() {
         .from("ordens_servico")
         .select(`
           *,
-          clientes (nome, endereco, cidade, estado)
+          clientes (nome, telefone, email, endereco_completo, cidade)
         `)
         .eq("id", id)
         .maybeSingle();
@@ -219,13 +219,21 @@ function TecnicoOSDetail() {
         {/* Detalhes do Cliente e Problema */}
         <section className="space-y-3">
           <Card className="p-4 rounded-2xl border-border/60 shadow-[var(--shadow-card)]">
-            <h3 className="font-bold mb-1">{(cliente)?.nome || "Cliente não informado"}</h3>
+            <h3 className="font-bold mb-1">{cliente?.nome || "Cliente não informado"}</h3>
             <div className="flex items-start gap-2 text-sm text-muted-foreground mt-2 bg-muted/30 p-2 rounded-lg">
               <MapPin className="w-4 h-4 text-primary shrink-0 mt-0.5" />
               <span>
-                {cliente?.endereco ? `${cliente.endereco}, ${cliente.cidade} - ${cliente.estado}` : "Endereço não cadastrado"}
+                {cliente?.endereco_completo
+                  ? `${cliente.endereco_completo}${cliente.cidade ? ` - ${cliente.cidade}` : ""}`
+                  : "Endereço não cadastrado"}
               </span>
             </div>
+            {(cliente?.telefone || cliente?.email) && (
+              <div className="mt-2 text-xs text-muted-foreground space-y-1">
+                {cliente?.telefone && <div>📞 {cliente.telefone}</div>}
+                {cliente?.email && <div>✉️ {cliente.email}</div>}
+              </div>
+            )}
             
             <div className="mt-4">
               <h4 className="text-xs font-semibold text-muted-foreground mb-1 uppercase tracking-wider">Problema Relatado</h4>
