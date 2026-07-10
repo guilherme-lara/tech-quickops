@@ -1069,7 +1069,7 @@ function OSPage() {
 
                           <td>
                             {o.tecnico?.nome ? (
-                              <span>{o.tecnico.nome.split(" ")[0]}</span>
+                              <span>{o.tecnico.nome}</span>
                             ) : (
                               <span className="text-gray-400">Sem técnico</span>
                             )}
@@ -1298,7 +1298,7 @@ function OSCard({ ordem, cliente, tecnico }: { ordem: OS; cliente: any; tecnico:
       <div className="flex items-center justify-between mt-3 pt-3 border-t border-border/60">
         <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
           <HardHat className="w-3 h-3" />
-          {tecnico?.nome?.split(" ")[0] ?? <span className="text-gray-400">Sem técnico</span>}
+          {tecnico?.nome ?? <span className="text-gray-400">Sem técnico</span>}
         </div>
         <span className="text-xs font-bold">R$ {ordem.valor.toLocaleString("pt-BR")}</span>
       </div>
