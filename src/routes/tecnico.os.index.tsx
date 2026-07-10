@@ -21,13 +21,13 @@ export const Route = createFileRoute("/tecnico/os/")({
   ),
 });
 
-// Cores dos status (trazidas para cá para não dependermos do mock)
+// Mapeamento por valor bruto do enum no banco
 const statusColor: Record<string, string> = {
-  Orçamento: "bg-slate-500/10 text-slate-500",
-  Aprovado: "bg-blue-500/10 text-blue-500",
-  "Em Execução": "bg-amber-500/10 text-amber-500",
-  Concluído: "bg-emerald-500/10 text-emerald-500",
-  Cancelado: "bg-red-500/10 text-red-500",
+  pendente: "bg-slate-500/10 text-slate-600 dark:text-slate-300",
+  aprovado: "bg-blue-500/10 text-blue-600 dark:text-blue-300",
+  em_andamento: "bg-amber-500/10 text-amber-600 dark:text-amber-300",
+  concluido: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-300",
+  cancelado: "bg-red-500/10 text-red-600 dark:text-red-300",
 };
 
 const statusLabel: Record<string, string> = {
