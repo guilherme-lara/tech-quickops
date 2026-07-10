@@ -41,12 +41,15 @@ export function TecnicoLayout({ children }: { children?: ReactNode }) {
                   </div>
                 </div>
               </div>
-              <button
-                onClick={handleLogout}
-                className="w-9 h-9 rounded-xl glass flex items-center justify-center text-muted-foreground active:scale-95 transition"
-              >
-                <LogOut className="w-4 h-4" />
-              </button>
+              <div className="flex items-center gap-2">
+                <ThemeToggle className="h-9 w-9" />
+                <button
+                  onClick={handleLogout}
+                  className="w-9 h-9 rounded-xl glass flex items-center justify-center text-muted-foreground active:scale-95 transition"
+                >
+                  <LogOut className="w-4 h-4" />
+                </button>
+              </div>
             </div>
           </header>
         )}
