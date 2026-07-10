@@ -13,6 +13,7 @@ import {
   Settings,
   Menu,
   FileText,
+  PieChart,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -31,6 +32,7 @@ import { ReactNode, useState } from "react";
 
 const allNavItems = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { to: "/gestor-dashboard", label: "Visão Estratégica", icon: PieChart },
   { to: "/os", label: "Ordens de Serviço", icon: ClipboardList },
   { to: "/clientes", label: "Clientes", icon: Users },
   { to: "/equipe", label: "Equipe", icon: UsersRound },
@@ -40,7 +42,7 @@ const allNavItems = [
 ] as const;
 
 // Itens restritos para gestores
-const restrictedItems = ["/clientes", "/equipe", "/logs"] as const;
+const restrictedItems = ["/gestor-dashboard", "/clientes", "/equipe", "/logs"] as const;
 
 export function GestorLayout({ children }: { children?: ReactNode }) {
   const path = useRouterState({ select: (s) => s.location.pathname });
