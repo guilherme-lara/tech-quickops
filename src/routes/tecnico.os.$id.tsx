@@ -221,18 +221,25 @@ function TecnicoOSDetail() {
           <Card className="p-4 rounded-2xl border-border/60 shadow-[var(--shadow-card)]">
             <h3 className="font-bold mb-1">{cliente?.nome || "Cliente não informado"}</h3>
             {cliente?.endereco_completo ? (
-              <a 
-                href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${cliente.endereco_completo}${cliente.cidade ? `, ${cliente.cidade}` : ""}`)}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-start gap-2 text-sm text-muted-foreground mt-2 bg-muted/30 p-2 rounded-lg hover:bg-muted/50 hover:text-foreground transition-colors cursor-pointer border border-transparent hover:border-border/50"
-              >
-                <MapPin className="w-4 h-4 text-primary shrink-0 mt-0.5" />
-                <span>
-                  {cliente.endereco_completo}{cliente.cidade ? ` - ${cliente.cidade}` : ""}
-                  <span className="block text-xs font-semibold text-primary mt-0.5">Ver no mapa</span>
-                </span>
-              </a>
+              <div className="flex flex-col gap-3 mt-2">
+                <div className="flex items-start gap-2 text-sm text-muted-foreground bg-muted/30 p-2 rounded-lg">
+                  <MapPin className="w-4 h-4 text-primary shrink-0 mt-0.5" />
+                  <span>
+                    {cliente.endereco_completo}{cliente.cidade ? ` - ${cliente.cidade}` : ""}
+                  </span>
+                </div>
+                <a 
+                  href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${cliente.endereco_completo}${cliente.cidade ? `, ${cliente.cidade}` : ""}`)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full"
+                >
+                  <Button className="w-full font-bold shadow-[var(--shadow-glow)] bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white" size="lg">
+                    <MapPin className="w-5 h-5 mr-2" />
+                    Iniciar Rota no Mapa
+                  </Button>
+                </a>
+              </div>
             ) : (
               <div className="flex items-start gap-2 text-sm text-muted-foreground mt-2 bg-muted/30 p-2 rounded-lg">
                 <MapPin className="w-4 h-4 text-muted-foreground shrink-0 mt-0.5" />
