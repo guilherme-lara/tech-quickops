@@ -211,6 +211,7 @@ export function GestorLayout({ children }: { children?: ReactNode }) {
             >
               <Search className="w-4 h-4" />
             </Button>
+            <ThemeToggle />
             <Button variant="ghost" size="icon" className="rounded-xl h-10 w-10 glass border-0">
               <Bell className="w-4 h-4" />
             </Button>
