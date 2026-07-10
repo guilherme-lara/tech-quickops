@@ -4,8 +4,17 @@ import { GestorLayout } from "@/components/GestorLayout";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ClipboardList, AlertCircle, CheckCircle2, DollarSign } from "lucide-react";
+import { ClipboardList, AlertCircle, CheckCircle2, DollarSign, Printer, Download } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import * as XLSX from "xlsx";
 import { toast } from "sonner";
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from "recharts";
 
@@ -24,18 +33,23 @@ function GestorDashboard() {
   const [ranking, setRanking] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const hoje = new Date();
+  const mesAtual = `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, "0")}`;
+  const [mesSelecionado, setMesSelecionado] = useState(mesAtual);
+
   useEffect(() => {
     async function loadData() {
+      setLoading(true);
       try {
         const [resumoRes, rankingRes] = await Promise.all([
-          supabase.from("view_resumo_gestor" as any).select("*").limit(1).single(),
-          supabase.from("view_ranking_tecnicos" as any).select("*"),
+          supabase.from("view_resumo_gestor_mensal" as any).select("*").eq("mes_referencia", mesSelecionado).limit(1).single(),
+          supabase.from("view_ranking_tecnicos_mensal" as any).select("*").eq("mes_referencia", mesSelecionado),
         ]);
 
-        if (resumoRes.error) throw resumoRes.error;
+        if (resumoRes.error && resumoRes.error.code !== 'PGRST116') throw resumoRes.error;
         if (rankingRes.error) throw rankingRes.error;
 
-        setResumo(resumoRes.data);
+        setResumo(resumoRes.data || { os_mes: 0, pendentes_globais: 0, concluidas_mes: 0, faturamento_mes: 0, custos_viagem_mes: 0 });
         setRanking(rankingRes.data || []);
       } catch (e: any) {
         toast.error("Erro ao carregar dados do dashboard: " + e.message);
@@ -44,7 +58,7 @@ function GestorDashboard() {
       }
     }
     loadData();
-  }, []);
+  }, [mesSelecionado]);
 
   const chartData = resumo
     ? [
@@ -73,13 +87,72 @@ function GestorDashboard() {
     );
   }
 
+  const handlePrint = () => window.print();
+
+  const handleExportXLSX = () => {
+    const wb = XLSX.utils.book_new();
+    
+    // Resumo
+    const resumoData = [{
+      "Mês Referência": mesSelecionado,
+      "OS do Mês": resumo?.os_mes ?? 0,
+      "Pendentes Globais": resumo?.pendentes_globais ?? 0,
+      "Concluídas do Mês": resumo?.concluidas_mes ?? 0,
+      "Faturamento (R$)": Number(resumo?.faturamento_mes ?? 0).toFixed(2),
+      "Custos (R$)": Number(resumo?.custos_viagem_mes ?? 0).toFixed(2),
+    }];
+    const wsResumo = XLSX.utils.json_to_sheet(resumoData);
+    XLSX.utils.book_append_sheet(wb, wsResumo, "Resumo");
+
+    // Ranking
+    const rankingData = ranking.map(t => ({
+      "Técnico": t.tecnico_nome || t.nome || "—",
+      "OS Finalizadas": t.os_finalizadas ?? 0,
+      "Faturamento Gerado (R$)": Number(t.faturamento_gerado ?? 0).toFixed(2),
+    }));
+    const wsRanking = XLSX.utils.json_to_sheet(rankingData);
+    XLSX.utils.book_append_sheet(wb, wsRanking, "Ranking");
+
+    XLSX.writeFile(wb, `Gestor_Relatorio_${mesSelecionado}.xlsx`);
+  };
+
   return (
-    <div className="p-6 space-y-6 max-w-7xl mx-auto w-full animate-in fade-in zoom-in-95 duration-500">
-      <div className="mb-8 flex flex-col gap-1">
-        <h1 className="text-3xl font-bold tracking-tight text-foreground">Visão Estratégica</h1>
-        <p className="text-muted-foreground">
-          Resumo operacional e ranking de técnicos.
-        </p>
+    <div className="p-6 space-y-6 max-w-7xl mx-auto w-full animate-in fade-in zoom-in-95 duration-500 print:p-0 print:space-y-4">
+      <div className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4 print:mb-4">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight text-foreground">Visão Estratégica</h1>
+          <p className="text-muted-foreground">
+            Resumo operacional e financeiro
+          </p>
+        </div>
+        <div className="flex flex-col sm:flex-row items-center gap-3 print:hidden">
+          <Select value={mesSelecionado} onValueChange={setMesSelecionado}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Selecione o Mês" />
+            </SelectTrigger>
+            <SelectContent>
+              {Array.from({ length: 12 }).map((_, i) => {
+                const d = new Date();
+                d.setMonth(d.getMonth() - i);
+                const val = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+                const label = d.toLocaleString('pt-BR', { month: 'long', year: 'numeric' });
+                return (
+                  <SelectItem key={val} value={val} className="capitalize">
+                    {label}
+                  </SelectItem>
+                );
+              })}
+            </SelectContent>
+          </Select>
+          <Button variant="outline" onClick={handleExportXLSX}>
+            <Download className="w-4 h-4 mr-2" />
+            Excel
+          </Button>
+          <Button onClick={handlePrint}>
+            <Printer className="w-4 h-4 mr-2" />
+            Imprimir
+          </Button>
+        </div>
       </div>
 
       {/* Cards */}
