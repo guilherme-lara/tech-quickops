@@ -29,7 +29,7 @@ function GestorDashboard() {
       try {
         const [resumoRes, rankingRes] = await Promise.all([
           supabase.from("view_resumo_gestor" as any).select("*").limit(1).single(),
-          supabase.from("view_ranking_tecnicos" as any).select("*").order("os_finalizadas", { ascending: false }),
+          supabase.from("view_ranking_tecnicos" as any).select("*"),
         ]);
 
         if (resumoRes.error) throw resumoRes.error;
