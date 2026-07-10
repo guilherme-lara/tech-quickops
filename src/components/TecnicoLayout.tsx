@@ -1,6 +1,7 @@
 import { Link, useRouterState, useNavigate, Outlet } from "@tanstack/react-router";
 import { ClipboardList, User, History, Wrench, LogOut, LayoutDashboard } from "lucide-react";
-import { useAuth } from "@/lib/auth-context"; // <-- MUDANÇA AQUI
+import { useAuth } from "@/lib/auth-context";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { ReactNode } from "react";
 
 const tabs = [
