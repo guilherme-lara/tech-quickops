@@ -40,7 +40,7 @@ function TecnicoOSDetail() {
         .from("ordens_servico")
         .select(`
           *,
-          clientes (nome, endereco, cidade, estado)
+          clientes (nome, telefone, email, endereco_completo, cidade)
         `)
         .eq("id", id)
         .maybeSingle();
