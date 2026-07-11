@@ -36,10 +36,17 @@ function DashboardTecnico() {
     queryKey: ["dashboard_tecnico_all", tecnicoId],
     enabled: !!tecnicoId,
     queryFn: async () => {
+      const { data: tecData } = await supabase
+        .from("tecnicos")
+        .select("id")
+        .or(`id.eq.${profile?.id},user_id.eq.${profile?.id}`)
+        .maybeSingle();
+      const realTecnicoId = tecData?.id || profile?.id;
+
       const { data, error } = await (supabase as any)
         .from("view_dashboard_tecnico")
         .select("mes, total_mes, pendentes, concluidas, valor_recebido")
-        .eq("tecnico_id", tecnicoId);
+        .eq("tecnico_id", realTecnicoId);
       if (error) throw error;
       return data || [];
     },
@@ -62,10 +69,17 @@ function DashboardTecnico() {
     queryKey: ["ultimas_os_tecnico", tecnicoId],
     enabled: !!tecnicoId,
     queryFn: async () => {
+      const { data: tecData } = await supabase
+        .from("tecnicos")
+        .select("id")
+        .or(`id.eq.${profile?.id},user_id.eq.${profile?.id}`)
+        .maybeSingle();
+      const realTecnicoId = tecData?.id || profile?.id;
+
       const { data, error } = await supabase
         .from("ordens_servico")
         .select("id, clientes(nome), created_at, status, valor, tecnicos(comissao, tipo_comissao)")
-        .eq("tecnico_id", tecnicoId as string)
+        .eq("tecnico_id", realTecnicoId as string)
         .order("created_at", { ascending: false })
         .limit(5);
       if (error) throw error;
