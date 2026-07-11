@@ -10,7 +10,7 @@ import { useAuth } from "@/lib/auth-context";
 import { useState, useEffect, useRef } from "react";
 import { toast } from "sonner";
 import { logActivity } from "@/lib/logger";
-import { User, Building2, Save, KeyRound, Upload, Camera, Building } from "lucide-react";
+import { User, Building2, Save, KeyRound, Upload, Camera, Building, Copy } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -105,6 +105,7 @@ function ConfiguracoesPage() {
   const [endereco, setEndereco] = useState("");
   const [telefone, setTelefone] = useState("");
   const [logoUrl, setLogoUrl] = useState("");
+  const [codigoEmpresa, setCodigoEmpresa] = useState("");
   const [savingEmpresa, setSavingEmpresa] = useState(false);
   const [uploadingLogo, setUploadingLogo] = useState(false);
 
@@ -123,6 +124,7 @@ function ConfiguracoesPage() {
       setEndereco(user.empresaEndereco || "");
       setTelefone(user.empresaTelefone || "");
       setLogoUrl(user.empresaLogo || "");
+      setCodigoEmpresa(user.empresaCodigo || "");
     }
   }, [user]);
 
@@ -187,9 +189,10 @@ function ConfiguracoesPage() {
 
   const saveEmpresa = async () => {
     if (!empresa.trim()) return toast.error("Informe o nome da empresa");
+    if (!codigoEmpresa.trim()) return toast.error("Informe o código da empresa");
     setSavingEmpresa(true);
     try {
-      await updateEmpresa(empresa.trim(), cnpj.trim(), endereco.trim(), telefone.trim(), logoUrl);
+      await updateEmpresa(empresa.trim(), cnpj.trim(), endereco.trim(), telefone.trim(), logoUrl, codigoEmpresa.trim().toLowerCase());
       toast.success("Dados da empresa salvos com sucesso!");
     } catch (e: any) {
       toast.error(e.message ?? "Erro ao atualizar empresa");
@@ -358,7 +361,24 @@ function ConfiguracoesPage() {
                   </div>
                   <div className="space-y-2">
                     <Label>Código da Empresa (Login)</Label>
-                    <Input value={user?.empresaCodigo || ""} disabled className="bg-muted/50 font-mono" />
+                    <div className="flex gap-2">
+                      <Input 
+                        value={codigoEmpresa} 
+                        onChange={(e) => setCodigoEmpresa(e.target.value.toLowerCase())}
+                        className="font-mono bg-muted/20" 
+                        placeholder="ex: minhanet"
+                      />
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        size="icon"
+                        onClick={() => {
+                          navigator.clipboard.writeText(codigoEmpresa).then(() => toast.success("Código copiado!"));
+                        }}
+                      >
+                        <Copy className="w-4 h-4" />
+                      </Button>
+                    </div>
                   </div>
                   <div className="space-y-2">
                     <Label>CNPJ</Label>

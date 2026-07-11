@@ -216,6 +216,7 @@ interface Store {
     endereco?: string,
     telefone?: string,
     logoUrl?: string,
+    codigoEmpresa?: string,
   ) => Promise<void>;
   uploadAsset: (file: File, path: string) => Promise<string>;
 }
@@ -997,16 +998,31 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   );
 
   const updateEmpresa = useCallback(
-    async (nome: string, cnpj?: string, endereco?: string, telefone?: string, logoUrl?: string) => {
+    async (nome: string, cnpj?: string, endereco?: string, telefone?: string, logoUrl?: string, codigoEmpresa?: string) => {
       if (!user) throw new Error("Não autenticado");
+      
+      if (codigoEmpresa !== undefined) {
+        // Validate codigo_empresa format (lowercase, no spaces)
+        if (!/^[a-z0-9_-]+$/.test(codigoEmpresa)) {
+          throw new Error("O código da empresa deve conter apenas letras minúsculas, números, hífens ou underlines.");
+        }
+      }
+
       const dbPatch: any = { nome_fantasia: nome };
       if (cnpj !== undefined) dbPatch.cnpj = cnpj;
       if (endereco !== undefined) dbPatch.endereco_comercial = endereco;
       if (telefone !== undefined) dbPatch.telefone_empresa = telefone;
       if (logoUrl !== undefined) dbPatch.logo_url = logoUrl;
+      if (codigoEmpresa !== undefined) dbPatch.codigo_empresa = codigoEmpresa;
 
       const { error } = await supabase.from("empresas").update(dbPatch).eq("id", user.empresaId);
-      if (error) throw error;
+      if (error) {
+        if (error.code === '23505' || /duplicate key/.test(error.message)) {
+          throw new Error("Este código de empresa já está em uso por outra conta.");
+        }
+        throw error;
+      }
+
       setUser({
         ...user,
         empresaNome: nome,
@@ -1014,6 +1030,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         empresaEndereco: endereco !== undefined ? endereco : user.empresaEndereco,
         empresaTelefone: telefone !== undefined ? telefone : user.empresaTelefone,
         empresaLogo: logoUrl !== undefined ? logoUrl : user.empresaLogo,
+        empresaCodigo: codigoEmpresa !== undefined ? codigoEmpresa : user.empresaCodigo,
       });
     },
     [user],
