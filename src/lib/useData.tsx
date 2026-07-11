@@ -152,6 +152,9 @@ interface Store {
     senha: string,
     nome: string,
     empresa: string,
+    dominio?: string,
+    cnpj?: string,
+    telefone?: string,
   ) => Promise<{ error?: string }>;
   logout: () => Promise<void>;
 
@@ -216,7 +219,6 @@ interface Store {
     endereco?: string,
     telefone?: string,
     logoUrl?: string,
-    codigoEmpresa?: string,
   ) => Promise<void>;
   uploadAsset: (file: File, path: string) => Promise<string>;
 }
@@ -927,7 +929,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const signup = useCallback(
-    async (email: string, senha: string, nome: string, empresa: string) => {
+    async (email: string, senha: string, nome: string, empresa: string, dominio?: string, cnpj?: string, telefone?: string) => {
       try {
         const redirectUrl = `${window.location.origin}/`;
         const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
@@ -947,9 +949,16 @@ export function StoreProvider({ children }: { children: ReactNode }) {
           return { error: "Conta criada! Confirme seu e-mail antes de continuar o cadastro." };
         }
 
+        const codigo_empresa = dominio ? dominio.split('.')[0].toLowerCase() : empresa.toLowerCase().replace(/[^a-z0-9]/g, '');
+
         const { data: empresaRow, error: empresaError } = await supabase
           .from("empresas")
-          .insert({ nome_fantasia: empresa })
+          .insert({ 
+            nome_fantasia: empresa,
+            codigo_empresa,
+            cnpj: cnpj || null,
+            telefone_empresa: telefone || null
+          })
           .select("id")
           .single();
         if (empresaError || !empresaRow) {
@@ -974,6 +983,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
           role: "gestor",
           empresaId: empresaRow.id,
           empresaNome: empresa,
+          empresaCodigo: codigo_empresa,
         });
         return {};
       } catch (err) {
@@ -998,31 +1008,16 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   );
 
   const updateEmpresa = useCallback(
-    async (nome: string, cnpj?: string, endereco?: string, telefone?: string, logoUrl?: string, codigoEmpresa?: string) => {
+    async (nome: string, cnpj?: string, endereco?: string, telefone?: string, logoUrl?: string) => {
       if (!user) throw new Error("Não autenticado");
-      
-      if (codigoEmpresa !== undefined) {
-        // Validate codigo_empresa format (lowercase, no spaces)
-        if (!/^[a-z0-9_-]+$/.test(codigoEmpresa)) {
-          throw new Error("O código da empresa deve conter apenas letras minúsculas, números, hífens ou underlines.");
-        }
-      }
-
       const dbPatch: any = { nome_fantasia: nome };
       if (cnpj !== undefined) dbPatch.cnpj = cnpj;
       if (endereco !== undefined) dbPatch.endereco_comercial = endereco;
       if (telefone !== undefined) dbPatch.telefone_empresa = telefone;
       if (logoUrl !== undefined) dbPatch.logo_url = logoUrl;
-      if (codigoEmpresa !== undefined) dbPatch.codigo_empresa = codigoEmpresa;
 
       const { error } = await supabase.from("empresas").update(dbPatch).eq("id", user.empresaId);
-      if (error) {
-        if (error.code === '23505' || /duplicate key/.test(error.message)) {
-          throw new Error("Este código de empresa já está em uso por outra conta.");
-        }
-        throw error;
-      }
-
+      if (error) throw error;
       setUser({
         ...user,
         empresaNome: nome,
@@ -1030,7 +1025,6 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         empresaEndereco: endereco !== undefined ? endereco : user.empresaEndereco,
         empresaTelefone: telefone !== undefined ? telefone : user.empresaTelefone,
         empresaLogo: logoUrl !== undefined ? logoUrl : user.empresaLogo,
-        empresaCodigo: codigoEmpresa !== undefined ? codigoEmpresa : user.empresaCodigo,
       });
     },
     [user],

@@ -105,7 +105,6 @@ function ConfiguracoesPage() {
   const [endereco, setEndereco] = useState("");
   const [telefone, setTelefone] = useState("");
   const [logoUrl, setLogoUrl] = useState("");
-  const [codigoEmpresa, setCodigoEmpresa] = useState("");
   const [savingEmpresa, setSavingEmpresa] = useState(false);
   const [uploadingLogo, setUploadingLogo] = useState(false);
 
@@ -124,7 +123,6 @@ function ConfiguracoesPage() {
       setEndereco(user.empresaEndereco || "");
       setTelefone(user.empresaTelefone || "");
       setLogoUrl(user.empresaLogo || "");
-      setCodigoEmpresa(user.empresaCodigo || "");
     }
   }, [user]);
 
@@ -189,10 +187,9 @@ function ConfiguracoesPage() {
 
   const saveEmpresa = async () => {
     if (!empresa.trim()) return toast.error("Informe o nome da empresa");
-    if (!codigoEmpresa.trim()) return toast.error("Informe o código da empresa");
     setSavingEmpresa(true);
     try {
-      await updateEmpresa(empresa.trim(), cnpj.trim(), endereco.trim(), telefone.trim(), logoUrl, codigoEmpresa.trim().toLowerCase());
+      await updateEmpresa(empresa.trim(), cnpj.trim(), endereco.trim(), telefone.trim(), logoUrl);
       toast.success("Dados da empresa salvos com sucesso!");
     } catch (e: any) {
       toast.error(e.message ?? "Erro ao atualizar empresa");
@@ -363,17 +360,19 @@ function ConfiguracoesPage() {
                     <Label>Código da Empresa (Login)</Label>
                     <div className="flex gap-2">
                       <Input 
-                        value={codigoEmpresa} 
-                        onChange={(e) => setCodigoEmpresa(e.target.value.toLowerCase())}
-                        className="font-mono bg-muted/20" 
-                        placeholder="ex: minhanet"
+                        value={user?.empresaCodigo || ""} 
+                        disabled
+                        className="font-mono bg-muted/50" 
                       />
                       <Button
                         type="button"
                         variant="secondary"
                         size="icon"
                         onClick={() => {
-                          navigator.clipboard.writeText(codigoEmpresa).then(() => toast.success("Código copiado!"));
+                          const code = user?.empresaCodigo || "";
+                          if(code) {
+                            navigator.clipboard.writeText(code).then(() => toast.success("Código copiado!"));
+                          }
                         }}
                       >
                         <Copy className="w-4 h-4" />

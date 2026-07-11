@@ -23,6 +23,9 @@ function LoginPage() {
   const [suSenha, setSuSenha] = useState("");
   const [suNome, setSuNome] = useState("");
   const [suEmpresa, setSuEmpresa] = useState("");
+  const [suDominio, setSuDominio] = useState("");
+  const [suCnpj, setSuCnpj] = useState("");
+  const [suTelefone, setSuTelefone] = useState("");
 
   const doLogin = async () => {
     setLoading(true);
@@ -58,11 +61,11 @@ function LoginPage() {
   };
 
   const doSignup = async () => {
-    if (!suEmail || !suSenha || !suNome || !suEmpresa)
-      return toast.error("Preencha todos os campos");
+    if (!suEmail || !suSenha || !suNome || !suEmpresa || !suDominio)
+      return toast.error("Preencha todos os campos obrigatórios");
     setLoading(true);
     try {
-      const { error } = await signup(suEmail, suSenha, suNome, suEmpresa);
+      const { error } = await signup(suEmail, suSenha, suNome, suEmpresa, suDominio.toLowerCase(), suCnpj, suTelefone);
       if (error) {
         toast.error(error);
         return;
@@ -187,12 +190,43 @@ function LoginPage() {
                 />
               </div>
               <div className="space-y-1.5">
-                <Label className="text-xs font-semibold">NOME DA EMPRESA</Label>
+                <Label className="text-xs font-semibold">NOME DA EMPRESA *</Label>
                 <Input
                   value={suEmpresa}
                   onChange={(e) => setSuEmpresa(e.target.value)}
                   className="h-12 rounded-xl"
+                  placeholder="Ex: Jota Tech Info"
                 />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs font-semibold">DOMÍNIO DA EMPRESA *</Label>
+                <Input
+                  value={suDominio}
+                  onChange={(e) => setSuDominio(e.target.value.toLowerCase())}
+                  className="h-12 rounded-xl"
+                  placeholder="Ex: jotatechinfo.com.br"
+                />
+                <p className="text-[11px] text-muted-foreground">
+                  Seus técnicos usarão a primeira parte (antes do ponto) para fazer login.
+                </p>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-semibold">CNPJ (Opcional)</Label>
+                  <Input
+                    value={suCnpj}
+                    onChange={(e) => setSuCnpj(e.target.value)}
+                    className="h-12 rounded-xl"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-semibold">TELEFONE (Opcional)</Label>
+                  <Input
+                    value={suTelefone}
+                    onChange={(e) => setSuTelefone(e.target.value)}
+                    className="h-12 rounded-xl"
+                  />
+                </div>
               </div>
               <div className="space-y-1.5">
                 <Label className="text-xs font-semibold">E-MAIL</Label>
