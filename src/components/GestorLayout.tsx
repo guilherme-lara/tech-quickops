@@ -20,6 +20,7 @@ import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { Badge } from "@/components/ui/badge";
 
 import {
   Sheet,
@@ -92,8 +93,17 @@ export function GestorLayout({ children }: { children?: ReactNode }) {
                 : "text-foreground/70 hover:bg-accent hover:text-accent-foreground"
             }`}
           >
-            <item.icon className="w-4 h-4" />
-            {item.label}
+            <div className="flex items-center justify-between w-full">
+              <div className="flex items-center gap-3">
+                <item.icon className="w-4 h-4" />
+                {item.label}
+              </div>
+              {item.to === "/usuarios" && (
+                <Badge variant="outline" className={`text-[9px] px-1.5 py-0 h-4 border-yellow-500/30 bg-yellow-500/10 text-yellow-600 ${active ? 'text-white border-white/30 bg-white/10' : ''}`}>
+                  Em cons.
+                </Badge>
+              )}
+            </div>
           </Link>
         );
       })}
