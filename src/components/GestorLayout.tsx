@@ -93,14 +93,18 @@ export function GestorLayout({ children }: { children?: ReactNode }) {
                 : "text-foreground/70 hover:bg-accent hover:text-accent-foreground"
             }`}
           >
-            <div className="flex items-center gap-3 w-full">
-              <item.icon className="w-4 h-4 shrink-0" />
-              <span className="whitespace-nowrap">{item.label}</span>
+            <div className="flex flex-col w-full">
+              <div className="flex items-center gap-3 w-full">
+                <item.icon className="w-4 h-4 shrink-0" />
+                <span className="whitespace-nowrap">{item.label}</span>
+              </div>
               
               {item.to === "/usuarios" && (
-                <Badge variant="outline" className={`absolute right-2 top-1/2 -translate-y-1/2 text-[9px] px-1.5 py-0 h-4 border-yellow-500/30 bg-yellow-500/10 text-yellow-600 ${active ? 'text-white border-white/30 bg-white/20' : ''}`}>
-                  Em cons.
-                </Badge>
+                <div className="pl-7 mt-1">
+                  <Badge variant="outline" className={`text-[9px] px-1.5 py-0 h-4 border-yellow-500/30 bg-yellow-500/10 text-yellow-600 ${active ? 'text-white border-white/30 bg-white/20' : ''}`}>
+                    Em construção
+                  </Badge>
+                </div>
               )}
             </div>
           </Link>
