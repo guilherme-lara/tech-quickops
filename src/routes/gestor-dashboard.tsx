@@ -329,7 +329,13 @@ function GestorDashboard() {
                   </Pie>
                   <Tooltip
                     formatter={(value) => [value, "OS"]}
-                    contentStyle={{ borderRadius: '12px', border: '1px solid var(--border)', background: 'var(--background)' }}
+                    contentStyle={{ 
+                      borderRadius: '12px', 
+                      border: '1px solid var(--border)', 
+                      background: 'var(--background)',
+                      color: 'var(--foreground)'
+                    }}
+                    itemStyle={{ color: 'var(--foreground)' }}
                   />
                   <Legend verticalAlign="bottom" height={36} />
                 </PieChart>
