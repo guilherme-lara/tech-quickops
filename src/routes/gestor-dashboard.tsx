@@ -41,10 +41,10 @@ function GestorDashboard() {
     async function loadData() {
       setLoading(true);
       try {
+        const [yearStr, monthStr] = mesSelecionado.split("-");
         const startOfMonth = `${mesSelecionado}-01`;
-        const d = new Date(`${mesSelecionado}-01T00:00:00`);
-        d.setMonth(d.getMonth() + 1);
-        const endOfMonth = d.toISOString().substring(0, 7) + '-01';
+        const lastDay = new Date(Number(yearStr), Number(monthStr), 0).getDate();
+        const endOfMonth = `${mesSelecionado}-${String(lastDay).padStart(2, "0")}`;
 
         const [pendentesRes, osMesRes] = await Promise.all([
           supabase
@@ -53,9 +53,9 @@ function GestorDashboard() {
             .in("status", ["pendente", "em_andamento", "agendamento", "reagendado"]),
           supabase
             .from("ordens_servico")
-            .select("id, status, valor, custo_viagem, tecnico_id, tecnicos(nome), created_at")
-            .gte("created_at", startOfMonth)
-            .lt("created_at", endOfMonth)
+            .select("id, status, valor, custo_viagem, km_viagem, despesas, tecnico_id, tecnicos(nome), data_agendamento")
+            .gte("data_agendamento", startOfMonth)
+            .lte("data_agendamento", endOfMonth)
         ]);
 
         if (pendentesRes.error) throw pendentesRes.error;
@@ -68,7 +68,15 @@ function GestorDashboard() {
         const concluidasMes = allOs.filter(os => os.status === 'concluido');
         const concluidas_mes = concluidasMes.length;
         
-        const faturamento_mes = concluidasMes.reduce((acc, os) => acc + (Number(os.valor) || 0), 0);
+        const faturamento_mes = concluidasMes.reduce((acc, os) => {
+          const valorServico = Number(os.valor) || 0;
+          const custoViagem = Number(os.custo_viagem) || 0;
+          let totalDespesas = 0;
+          if (Array.isArray(os.despesas)) {
+            totalDespesas = os.despesas.reduce((s, d: any) => s + (Number(d?.valor) || 0), 0);
+          }
+          return acc + valorServico + custoViagem + totalDespesas;
+        }, 0);
         const custos_viagem_mes = concluidasMes.reduce((acc, os) => acc + (Number(os.custo_viagem) || 0), 0);
 
         setResumo({
@@ -90,7 +98,15 @@ function GestorDashboard() {
             }
             const stat = tecnicosMap.get(tId);
             stat.os_finalizadas += 1;
-            stat.faturamento_gerado += (Number(os.valor) || 0);
+            
+            const valorServico = Number(os.valor) || 0;
+            const kmViagem = Number(os.km_viagem) || 0;
+            let totalDespesas = 0;
+            if (Array.isArray(os.despesas)) {
+              totalDespesas = os.despesas.reduce((s, d: any) => s + (Number(d?.valor) || 0), 0);
+            }
+            
+            stat.faturamento_gerado += valorServico + kmViagem + totalDespesas;
           }
         });
         
@@ -163,7 +179,7 @@ function GestorDashboard() {
   };
 
   return (
-    <div className="p-6 space-y-6 max-w-7xl mx-auto w-full animate-in fade-in zoom-in-95 duration-500 print:p-0 print:space-y-4 bg-white dark:bg-white text-slate-900 dark:text-slate-900 rounded-3xl shadow-sm border border-slate-200">
+    <div className="p-6 space-y-6 max-w-7xl mx-auto w-full animate-in fade-in zoom-in-95 duration-500 print:p-0 print:space-y-4">
       <div className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4 print:mb-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-foreground">Visão Estratégica</h1>
@@ -203,7 +219,7 @@ function GestorDashboard() {
 
       {/* Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="rounded-2xl border-slate-200 bg-white dark:bg-white text-slate-900 dark:text-slate-900 shadow-sm">
+        <Card className="rounded-2xl border-border/60 shadow-[var(--shadow-card)]">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">OS do Mês</CardTitle>
             <ClipboardList className="h-4 w-4 text-blue-500" />
@@ -213,7 +229,7 @@ function GestorDashboard() {
           </CardContent>
         </Card>
 
-        <Card className="rounded-2xl border-slate-200 bg-white dark:bg-white text-slate-900 dark:text-slate-900 shadow-sm">
+        <Card className="rounded-2xl border-border/60 shadow-[var(--shadow-card)]">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">Pendentes Globais</CardTitle>
             <AlertCircle className="h-4 w-4 text-amber-500" />
@@ -223,7 +239,7 @@ function GestorDashboard() {
           </CardContent>
         </Card>
 
-        <Card className="rounded-2xl border-slate-200 bg-white dark:bg-white text-slate-900 dark:text-slate-900 shadow-sm">
+        <Card className="rounded-2xl border-border/60 shadow-[var(--shadow-card)]">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">Concluídas do Mês</CardTitle>
             <CheckCircle2 className="h-4 w-4 text-emerald-500" />
@@ -233,7 +249,7 @@ function GestorDashboard() {
           </CardContent>
         </Card>
 
-        <Card className="rounded-2xl border-slate-200 bg-white dark:bg-white text-slate-900 dark:text-slate-900 shadow-sm">
+        <Card className="rounded-2xl border-border/60 shadow-[var(--shadow-card)]">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">Faturamento do Mês</CardTitle>
             <DollarSign className="h-4 w-4 text-violet-500" />
@@ -258,7 +274,7 @@ function GestorDashboard() {
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-sm text-left">
-                  <thead className="text-xs text-slate-500 dark:text-slate-500 uppercase bg-slate-50 dark:bg-slate-50 rounded-t-lg">
+                  <thead className="text-xs text-muted-foreground uppercase bg-muted/40 rounded-t-lg">
                     <tr>
                       <th className="px-4 py-3 rounded-tl-lg font-medium">Técnico</th>
                       <th className="px-4 py-3 font-medium text-center">OS Finalizadas</th>
@@ -267,7 +283,7 @@ function GestorDashboard() {
                   </thead>
                   <tbody className="divide-y divide-border/60">
                     {ranking.map((t, idx) => (
-                      <tr key={idx} className="hover:bg-slate-50 dark:hover:bg-slate-50 transition-colors border-b border-slate-100 dark:border-slate-100 last:border-0">
+                      <tr key={idx} className="hover:bg-muted/20 transition-colors">
                         <td className="px-4 py-3 font-medium">{t.tecnico_nome || t.nome || "—"}</td>
                         <td className="px-4 py-3 text-center">
                           <span className="inline-flex items-center justify-center bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 px-2.5 py-0.5 rounded-full font-semibold">
@@ -287,7 +303,7 @@ function GestorDashboard() {
         </Card>
 
         {/* Gráfico de Pizza */}
-        <Card className="rounded-2xl border-slate-200 bg-white dark:bg-white text-slate-900 dark:text-slate-900 shadow-sm">
+        <Card className="rounded-2xl border-border/60 shadow-[var(--shadow-card)]">
           <CardHeader>
             <CardTitle className="text-lg">Pendentes vs Concluídas</CardTitle>
           </CardHeader>
