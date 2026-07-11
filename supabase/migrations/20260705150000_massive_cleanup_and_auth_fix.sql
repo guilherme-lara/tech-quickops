@@ -33,8 +33,8 @@ DECLARE
 BEGIN
   SELECT au.email INTO v_email
   FROM public.tecnicos t
-  JOIN auth.users au ON t.id = au.id
-  WHERE t.username = p_username
+  JOIN auth.users au ON (t.user_id = au.id OR t.id = au.id)
+  WHERE lower(t.username) = lower(p_username)
   LIMIT 1;
   
   RETURN v_email;
