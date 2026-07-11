@@ -128,19 +128,6 @@ function LoginPage() {
             </TabsList>
 
             <TabsContent value="login" className="space-y-4 mt-6">
-              <div className="space-y-1.5">
-                <Label className="text-xs font-semibold">E-MAIL OU USUÁRIO</Label>
-                <Input
-                  type="text"
-                  placeholder="seu@email.com  ou  joao.adami"
-                  value={loginEmail}
-                  onChange={(e) => setLoginEmail(e.target.value)}
-                  className="h-12 rounded-xl"
-                />
-                <p className="text-[11px] text-muted-foreground">
-                  Técnicos podem entrar com o usuário (ex.: <code>joao.adami</code>).
-                </p>
-              </div>
               {!loginEmail.includes("@") && (
                 <div className="space-y-1.5 animate-in fade-in slide-in-from-top-2">
                   <Label className="text-xs font-semibold text-primary">CÓDIGO DA EMPRESA</Label>
@@ -156,6 +143,20 @@ function LoginPage() {
                   </p>
                 </div>
               )}
+              <div className="space-y-1.5">
+                <Label className="text-xs font-semibold">E-MAIL OU USUÁRIO</Label>
+                <Input
+                  type="text"
+                  placeholder="seu@email.com  ou  joao.adami"
+                  value={loginEmail}
+                  onChange={(e) => setLoginEmail(e.target.value)}
+                  className="h-12 rounded-xl"
+                />
+                <p className="text-[11px] text-muted-foreground">
+                  Técnicos podem entrar com o usuário (ex.: <code>joao.adami</code>).
+                </p>
+              </div>
+
               <div className="space-y-1.5">
                 <Label className="text-xs font-semibold">SENHA</Label>
                 <Input
