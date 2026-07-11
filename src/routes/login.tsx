@@ -138,7 +138,7 @@ function LoginPage() {
                   Técnicos podem entrar com o usuário (ex.: <code>joao.adami</code>).
                 </p>
               </div>
-              {!loginEmail.includes("@") && loginEmail.length > 0 && (
+              {!loginEmail.includes("@") && (
                 <div className="space-y-1.5 animate-in fade-in slide-in-from-top-2">
                   <Label className="text-xs font-semibold text-primary">CÓDIGO DA EMPRESA</Label>
                   <Input
