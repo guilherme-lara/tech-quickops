@@ -98,6 +98,7 @@ interface User {
   empresaEndereco?: string;
   empresaTelefone?: string;
   empresaLogo?: string;
+  empresaCodigo?: string;
 }
 
 // ============================================================
@@ -145,7 +146,7 @@ const parseDespesas = (value: any): Array<{ tipo: string; valor: number }> => {
 interface Store {
   user: User | null;
   loadingAuth: boolean;
-  login: (email: string, senha: string) => Promise<{ error?: string }>;
+  login: (email: string, senha: string, codigoEmpresa?: string) => Promise<{ error?: string }>;
   signup: (
     email: string,
     senha: string,
@@ -859,13 +860,17 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   });
 
   // ---------------- Auth methods ----------------
-  const login = useCallback(async (emailInput: string, senha: string) => {
+  const login = useCallback(async (emailInput: string, senha: string, codigoEmpresa?: string) => {
     let email = emailInput.trim().toLowerCase();
 
     if (!email.includes("@")) {
+      if (!codigoEmpresa) {
+        return { error: "Código da Empresa é obrigatório para login de técnico." };
+      }
+
       const { data: resolvedEmail, error: searchError } = await (supabase.rpc as any)(
         "get_email_by_username",
-        { p_username: email },
+        { p_username: email, p_codigo_empresa: codigoEmpresa.trim().toLowerCase() },
       );
 
       if (searchError) {
@@ -905,7 +910,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     const role: Role = perfil.role === "tecnico" ? "tecnico" : "gestor";
     const { data: emp } = await supabase
       .from("empresas")
-      .select("nome_fantasia")
+      .select("nome_fantasia, codigo_empresa")
       .eq("id", perfil.empresa_id)
       .maybeSingle();
     setUser({
@@ -915,6 +920,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       role,
       empresaId: perfil.empresa_id,
       empresaNome: emp?.nome_fantasia ?? "",
+      empresaCodigo: emp?.codigo_empresa ?? "",
     });
     return {};
   }, []);

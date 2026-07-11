@@ -16,6 +16,7 @@ function LoginPage() {
   const [loading, setLoading] = useState(false);
 
   const [loginEmail, setLoginEmail] = useState("");
+  const [loginCodigo, setLoginCodigo] = useState("");
   const [loginSenha, setLoginSenha] = useState("");
 
   const [suEmail, setSuEmail] = useState("");
@@ -41,7 +42,7 @@ function LoginPage() {
 
       // Passa o identificador direto: o store resolve username → e-mail real
       // via RPC get_email_by_username no Supabase.
-      const { error } = await login(identifier, loginSenha);
+      const { error } = await login(identifier, loginSenha, loginCodigo);
 
       if (error) {
         toast.error(error);
@@ -134,9 +135,24 @@ function LoginPage() {
                   className="h-12 rounded-xl"
                 />
                 <p className="text-[11px] text-muted-foreground">
-                  Técnicos podem entrar apenas com o usuário (ex.: <code>joao.adami</code>).
+                  Técnicos podem entrar com o usuário (ex.: <code>joao.adami</code>).
                 </p>
               </div>
+              {!loginEmail.includes("@") && loginEmail.length > 0 && (
+                <div className="space-y-1.5 animate-in fade-in slide-in-from-top-2">
+                  <Label className="text-xs font-semibold text-primary">CÓDIGO DA EMPRESA</Label>
+                  <Input
+                    type="text"
+                    placeholder="ex: quickops"
+                    value={loginCodigo}
+                    onChange={(e) => setLoginCodigo(e.target.value.toLowerCase())}
+                    className="h-12 rounded-xl border-primary/50 focus-visible:ring-primary"
+                  />
+                  <p className="text-[11px] text-muted-foreground">
+                    Obrigatório para login de técnico. Peça ao seu gestor.
+                  </p>
+                </div>
+              )}
               <div className="space-y-1.5">
                 <Label className="text-xs font-semibold">SENHA</Label>
                 <Input

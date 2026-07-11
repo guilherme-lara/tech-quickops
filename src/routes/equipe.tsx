@@ -167,6 +167,16 @@ function EquipePage() {
   const { profile } = useAuth();
   const empresaId = profile?.empresa_id;
   
+  const { data: empresaData } = useQuery({
+    queryKey: ["empresa_codigo", empresaId],
+    enabled: !!empresaId,
+    queryFn: async () => {
+      const { data } = await supabase.from("empresas").select("codigo_empresa").eq("id", empresaId as string).single();
+      return data;
+    }
+  });
+  const codigoEmpresa = empresaData?.codigo_empresa || "default";
+  
   const { data: activeOS } = useActiveOSCount(empresaId);
 
   const { data: tecnicosData, isPending: loadingTecnicos } = useTecnicos(
@@ -305,7 +315,7 @@ function EquipePage() {
           action: {
             label: "Copiar Credenciais",
             onClick: () => {
-              const text = `Usuário: ${login}\nSenha: ${senha}`;
+              const text = `Usuário: ${login}\nEmpresa: ${codigoEmpresa}\nSenha: ${senha}`;
               navigator.clipboard
                 .writeText(text)
                 .then(() => toast.success("Credenciais copiadas!"))
@@ -786,6 +796,7 @@ function EquipePage() {
         onOpenChange={(v) => !v && setGerarAcessoFor(null)}
         tecnico={gerarAcessoFor}
         empresaId={empresaId}
+        codigoEmpresa={codigoEmpresa}
       />
     </GestorLayout>
   );

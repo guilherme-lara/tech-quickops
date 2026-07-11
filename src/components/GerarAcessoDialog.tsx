@@ -20,7 +20,7 @@ interface Props {
   onOpenChange: (v: boolean) => void;
   tecnico: { id: string; nome: string; user_id?: string | null } | null;
   empresaId?: string;
-  dominioEmpresa?: string;
+  codigoEmpresa?: string;
 }
 
 /**
@@ -35,7 +35,7 @@ export function GerarAcessoDialog({
   onOpenChange,
   tecnico,
   empresaId,
-  dominioEmpresa = "techquickops.com",
+  codigoEmpresa = "default",
 }: Props) {
   const qc = useQueryClient();
   const [username, setUsername] = useState("");
@@ -60,7 +60,7 @@ export function GerarAcessoDialog({
       const { data: sessData } = await supabase.auth.getSession();
       const adminSession = sessData.session;
 
-      const email = `${u}@${dominioEmpresa}`;
+      const email = `${u}@${codigoEmpresa}.techquickops.com`;
 
       // 2. Cria conta de auth (client-side). Metadata alimenta o trigger handle_new_user.
       const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
@@ -107,7 +107,7 @@ export function GerarAcessoDialog({
           label: "Copiar",
           onClick: () => {
             navigator.clipboard
-              .writeText(`Usuário: ${u}\nSenha: ${senha}`)
+              .writeText(`Usuário: ${u}\nEmpresa: ${codigoEmpresa}\nSenha: ${senha}`)
               .then(() => toast.success("Copiado!"))
               .catch(() => {});
           },
@@ -153,10 +153,10 @@ export function GerarAcessoDialog({
                 placeholder="ex: joao.silva"
                 disabled={saving}
               />
-              <span className="text-xs text-muted-foreground whitespace-nowrap">
-                @{dominioEmpresa}
-              </span>
             </div>
+            <p className="text-[11px] text-muted-foreground mt-1">
+              Código da Empresa: <strong>{codigoEmpresa}</strong>
+            </p>
           </div>
           <div>
             <Label>Senha inicial</Label>

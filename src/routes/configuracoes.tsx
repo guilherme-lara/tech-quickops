@@ -348,13 +348,17 @@ function ConfiguracoesPage() {
 
               <div className="flex-1 space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2 md:col-span-2">
+                  <div className="space-y-2">
                     <Label>Nome da Empresa (Fantasia)</Label>
                     <Input
                       placeholder="Sua empresa"
                       value={empresa}
                       onChange={(e) => setEmpresa(e.target.value)}
                     />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Código da Empresa (Login)</Label>
+                    <Input value={user?.empresaCodigo || ""} disabled className="bg-muted/50 font-mono" />
                   </div>
                   <div className="space-y-2">
                     <Label>CNPJ</Label>

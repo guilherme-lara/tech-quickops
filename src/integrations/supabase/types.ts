@@ -112,6 +112,7 @@ export type Database = {
       empresas: {
         Row: {
           cnpj: string | null
+          codigo_empresa: string | null
           created_at: string
           dominio: string | null
           endereco_comercial: string | null
@@ -122,6 +123,7 @@ export type Database = {
         }
         Insert: {
           cnpj?: string | null
+          codigo_empresa?: string | null
           created_at?: string
           dominio?: string | null
           endereco_comercial?: string | null
@@ -132,6 +134,7 @@ export type Database = {
         }
         Update: {
           cnpj?: string | null
+          codigo_empresa?: string | null
           created_at?: string
           dominio?: string | null
           endereco_comercial?: string | null
