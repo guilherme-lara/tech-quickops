@@ -577,9 +577,16 @@ function Dashboard() {
     queryKey: ["ordens_servico_ativas_tecnico", profile?.id, osMonth, osYear],
     enabled: !!profile && profile.role === "tecnico",
     queryFn: async (): Promise<number> => {
+      const { data: tecData } = await supabase
+        .from("tecnicos")
+        .select("id")
+        .or(`id.eq.${profile?.id},user_id.eq.${profile?.id}`)
+        .maybeSingle();
+      const realTecnicoId = tecData?.id || profile?.id;
+
       let q = (supabase.from("ordens_servico") as any)
         .select("id", { count: "exact", head: true })
-        .eq("tecnico_id", profile?.id || "")
+        .eq("tecnico_id", realTecnicoId || "")
         .eq("empresa_id", profile?.empresa_id || "")
         .neq("status", "Concluído")
         .neq("status", "Cancelado");

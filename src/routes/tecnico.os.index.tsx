@@ -45,6 +45,16 @@ function TecnicoOSPage() {
   const { data: minhasOS, isLoading } = useQuery({
     queryKey: ["minhas-os", profile?.id],
     queryFn: async () => {
+      // 1. Resolve o ID real do técnico (técnicos antigos têm id próprio e auth ID em user_id)
+      const { data: tecData } = await supabase
+        .from("tecnicos")
+        .select("id")
+        .or(`id.eq.${profile?.id},user_id.eq.${profile?.id}`)
+        .maybeSingle();
+
+      const realTecnicoId = tecData?.id || profile?.id;
+
+      // 2. Busca as OS do técnico + os dados do cliente vinculado
       const { data, error } = await supabase
         .from("ordens_servico")
         .select(
@@ -53,7 +63,7 @@ function TecnicoOSPage() {
           clientes ( id, nome )
         `,
         )
-        .eq("tecnico_id", profile?.id || "")
+        .eq("tecnico_id", realTecnicoId || "")
         .eq("empresa_id", profile?.empresa_id || "")
         .neq("status", "cancelado") // Não mostra as canceladas
         .order("created_at", { ascending: false });
