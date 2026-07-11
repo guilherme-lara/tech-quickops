@@ -1,7 +1,7 @@
 import { useStore } from "@/lib/useData";
 import { FiltrosBar, type FiltroDef } from "./FiltrosBar";
 
-const COLUNAS_STATUS = ["Orçamento", "Aprovado", "Em Execução", "Concluído", "Cancelado"] as const;
+const COLUNAS_STATUS = ["Agendamento", "Em Andamento", "Concluído Técnico", "Pendência", "Concluído", "Cancelado"] as const;
 
 interface FiltrosBarGlobalProps {
   /** Exibe filtro de texto para cliente/número da OS (conectado ao store) */

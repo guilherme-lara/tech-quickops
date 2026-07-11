@@ -341,7 +341,7 @@ function Dashboard() {
       };
 
       const faturamentoPrevisto = rows
-        .filter((r: any) => ["aprovado", "em_andamento"].includes(r.status))
+        .filter((r: any) => ["agendamento", "em_andamento", "concluido_tecnico"].includes(r.status))
         .reduce((s: number, r: any) => s + totalFinanceiro(r), 0);
 
       const receitaMes = rows
@@ -370,7 +370,7 @@ function Dashboard() {
       }).length;
 
       const abertas = (Array.isArray(rows) ? rows : []).filter((r: any) =>
-        ["pendente", "aprovado", "em_andamento"].includes(r.status),
+        ["agendamento", "em_andamento", "concluido_tecnico", "pendencia"].includes(r.status),
       ).length;
 
       const concluidas = (Array.isArray(rows) ? rows : []).filter(
@@ -704,72 +704,74 @@ function Dashboard() {
       />
 
       {/* Cards Estratégicos */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <div className="rounded-3xl bg-gradient-to-br from-primary/10 to-primary/5 p-5 border border-primary/20">
-          <div className="flex items-center gap-2 mb-2">
-            <TrendingUp className="w-4 h-4 text-primary" />
-            <span className="text-xs font-medium text-muted-foreground">Faturamento Previsto</span>
+      {profile?.role !== "analista" && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+          <div className="rounded-3xl bg-gradient-to-br from-primary/10 to-primary/5 p-5 border border-primary/20">
+            <div className="flex items-center gap-2 mb-2">
+              <TrendingUp className="w-4 h-4 text-primary" />
+              <span className="text-xs font-medium text-muted-foreground">Faturamento Previsto</span>
+            </div>
+            <div className="text-2xl font-bold">
+              {kpisFinanceirosQ.isLoading ? (
+                <Skeleton className="h-8 w-28" />
+              ) : (
+                `R$ ${kpis.faturamentoPrevisto.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`
+              )}
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">OSs Aprovadas + Em Execução</p>
           </div>
-          <div className="text-2xl font-bold">
-            {kpisFinanceirosQ.isLoading ? (
-              <Skeleton className="h-8 w-28" />
-            ) : (
-              `R$ ${kpis.faturamentoPrevisto.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`
-            )}
-          </div>
-          <p className="text-xs text-muted-foreground mt-1">OSs Aprovadas + Em Execução</p>
-        </div>
 
-        <div className="rounded-3xl bg-gradient-to-br from-success/10 to-success/5 p-5 border border-success/20">
-          <div className="flex items-center gap-2 mb-2">
-            <CheckCircle2 className="w-4 h-4 text-success" />
-            <span className="text-xs font-medium text-muted-foreground">Receita do Mês</span>
+          <div className="rounded-3xl bg-gradient-to-br from-success/10 to-success/5 p-5 border border-success/20">
+            <div className="flex items-center gap-2 mb-2">
+              <CheckCircle2 className="w-4 h-4 text-success" />
+              <span className="text-xs font-medium text-muted-foreground">Receita do Mês</span>
+            </div>
+            <div className="text-2xl font-bold">
+              {kpisFinanceirosQ.isLoading ? (
+                <Skeleton className="h-8 w-28" />
+              ) : (
+                `R$ ${kpis.receitaMes.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`
+              )}
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">OSs Concluídas</p>
           </div>
-          <div className="text-2xl font-bold">
-            {kpisFinanceirosQ.isLoading ? (
-              <Skeleton className="h-8 w-28" />
-            ) : (
-              `R$ ${kpis.receitaMes.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`
-            )}
-          </div>
-          <p className="text-xs text-muted-foreground mt-1">OSs Concluídas</p>
-        </div>
 
-        <div className="rounded-3xl bg-gradient-to-br from-info/10 to-info/5 p-5 border border-info/20">
-          <div className="flex items-center gap-2 mb-2">
-            <Wallet className="w-4 h-4 text-info" />
-            <span className="text-xs font-medium text-muted-foreground">Resultado Líquido</span>
+          <div className="rounded-3xl bg-gradient-to-br from-info/10 to-info/5 p-5 border border-info/20">
+            <div className="flex items-center gap-2 mb-2">
+              <Wallet className="w-4 h-4 text-info" />
+              <span className="text-xs font-medium text-muted-foreground">Resultado Líquido</span>
+            </div>
+            <div className="text-2xl font-bold">
+              {kpisFinanceirosQ.isLoading ? (
+                <Skeleton className="h-8 w-28" />
+              ) : (
+                `R$ ${kpis.resultadoLiquido.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`
+              )}
+            </div>
+            <p className="text-xs text-muted-foreground mt-1 truncate">
+              Bruta R$ {kpis.receitaBruta.toLocaleString("pt-BR", { maximumFractionDigits: 0 })} -
+              Custo R$ {kpis.custoTotal.toLocaleString("pt-BR", { maximumFractionDigits: 0 })}
+            </p>
           </div>
-          <div className="text-2xl font-bold">
-            {kpisFinanceirosQ.isLoading ? (
-              <Skeleton className="h-8 w-28" />
-            ) : (
-              `R$ ${kpis.resultadoLiquido.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`
-            )}
-          </div>
-          <p className="text-xs text-muted-foreground mt-1 truncate">
-            Bruta R$ {kpis.receitaBruta.toLocaleString("pt-BR", { maximumFractionDigits: 0 })} -
-            Custo R$ {kpis.custoTotal.toLocaleString("pt-BR", { maximumFractionDigits: 0 })}
-          </p>
-        </div>
 
-        <div className="rounded-3xl bg-gradient-to-br from-warning/10 to-warning/5 p-5 border border-warning/20">
-          <div className="flex items-center gap-2 mb-2">
-            <AlertCircle className="w-4 h-4 text-warning" />
-            <span className="text-xs font-medium text-muted-foreground">
-              Pendências de Pagamento
-            </span>
+          <div className="rounded-3xl bg-gradient-to-br from-warning/10 to-warning/5 p-5 border border-warning/20">
+            <div className="flex items-center gap-2 mb-2">
+              <AlertCircle className="w-4 h-4 text-warning" />
+              <span className="text-xs font-medium text-muted-foreground">
+                Pendências de Pagamento
+              </span>
+            </div>
+            <div className="text-2xl font-bold">
+              {kpisFinanceirosQ.isLoading ? (
+                <Skeleton className="h-8 w-16" />
+              ) : (
+                kpis.pendenciasPagamento
+              )}
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">OSs com data vencida</p>
           </div>
-          <div className="text-2xl font-bold">
-            {kpisFinanceirosQ.isLoading ? (
-              <Skeleton className="h-8 w-16" />
-            ) : (
-              kpis.pendenciasPagamento
-            )}
-          </div>
-          <p className="text-xs text-muted-foreground mt-1">OSs com data vencida</p>
         </div>
-      </div>
+      )}
 
       {/* Layout Principal: Coluna Esquerda + Direita */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

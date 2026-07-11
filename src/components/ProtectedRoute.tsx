@@ -5,7 +5,7 @@ import { useAuth } from "@/lib/auth-context";
 
 interface Props {
   children: ReactNode;
-  requireRole?: "gestor" | "tecnico";
+  requireRole?: "gestor" | "tecnico" | "analista" | "admin" | "superadmin";
 }
 
 export function ProtectedRoute({ children, requireRole }: Props) {
@@ -18,8 +18,17 @@ export function ProtectedRoute({ children, requireRole }: Props) {
       navigate({ to: "/login" });
       return;
     }
-    if (requireRole && profile && profile.role !== requireRole) {
-      navigate({ to: profile.role === "gestor" ? "/dashboard" : "/tecnico/os" });
+    if (requireRole && profile) {
+      let isAllowed = profile.role === requireRole;
+      
+      // Analistas e Admins têm acesso às telas do Gestor
+      if (requireRole === "gestor" && ["analista", "admin", "superadmin"].includes(profile.role)) {
+        isAllowed = true;
+      }
+
+      if (!isAllowed) {
+        navigate({ to: ["gestor", "analista", "admin", "superadmin"].includes(profile.role) ? "/dashboard" : "/tecnico/os" });
+      }
     }
   }, [user, profile, isLoading, requireRole, navigate]);
 

@@ -7,7 +7,7 @@ import { toast } from "sonner";
 // Types — UI-shape (kept stable so existing components compile)
 // ============================================================
 export type Role = "gestor" | "tecnico";
-export type OSStatus = "Orçamento" | "Aprovado" | "Em Execução" | "Concluído" | "Cancelado";
+export type OSStatus = "Agendamento" | "Em Andamento" | "Concluído Técnico" | "Pendência" | "Concluído" | "Cancelado";
 
 export interface Cliente {
   id: string;
@@ -105,16 +105,18 @@ interface User {
 // DB ↔ UI mappers
 // ============================================================
 const dbToUiStatus: Record<string, OSStatus> = {
-  pendente: "Orçamento",
-  aprovado: "Aprovado",
-  em_andamento: "Em Execução",
+  agendamento: "Agendamento",
+  em_andamento: "Em Andamento",
+  concluido_tecnico: "Concluído Técnico",
+  pendencia: "Pendência",
   concluido: "Concluído",
   cancelado: "Cancelado",
 };
 const uiToDbStatus: Record<OSStatus, string> = {
-  Orçamento: "pendente",
-  Aprovado: "aprovado",
-  "Em Execução": "em_andamento",
+  Agendamento: "agendamento",
+  "Em Andamento": "em_andamento",
+  "Concluído Técnico": "concluido_tecnico",
+  Pendência: "pendencia",
   Concluído: "concluido",
   Cancelado: "cancelado",
 };
@@ -1175,9 +1177,10 @@ export function useStore() {
 }
 
 export const statusColor: Record<OSStatus, string> = {
-  Orçamento: "bg-muted text-muted-foreground",
-  Aprovado: "bg-info/15 text-info",
-  "Em Execução": "bg-warning/20 text-warning-foreground",
-  Concluído: "bg-success/15 text-success",
+  Agendamento: "bg-blue-500/10 text-blue-500 dark:text-blue-400",
+  "Em Andamento": "bg-yellow-500/10 text-yellow-600 dark:text-yellow-400",
+  "Concluído Técnico": "bg-emerald-400/20 text-emerald-600 dark:text-emerald-400",
+  Pendência: "bg-orange-500/10 text-orange-600 dark:text-orange-400",
+  Concluído: "bg-emerald-600/15 text-emerald-700 dark:text-emerald-500",
   Cancelado: "bg-destructive/15 text-destructive",
 };

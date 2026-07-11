@@ -68,6 +68,12 @@ function TecnicoOSDetail() {
   const despesasArray = Array.isArray(os?.despesas) ? os.despesas : [];
 
   const handleUpdateStatus = async (newStatus: string) => {
+    if (newStatus === "concluido_tecnico") {
+      if (!ratArquivos || ratArquivos.length === 0) {
+        toast.error("É obrigatório preencher o RAT antes de concluir o serviço");
+        return;
+      }
+    }
     try {
       setIsUpdatingStatus(true);
       const { error } = await supabase
@@ -208,10 +214,14 @@ function TecnicoOSDetail() {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="pendente">Orçamento (Pendente)</SelectItem>
-              <SelectItem value="aprovado">Aprovado (A caminho)</SelectItem>
-              <SelectItem value="em_andamento">Em Execução (No local)</SelectItem>
-              <SelectItem value="concluido">Concluído</SelectItem>
+              <SelectItem value="agendamento">Agendamento (Pendente)</SelectItem>
+              <SelectItem value="em_andamento">Em Andamento (No local)</SelectItem>
+              <SelectItem value="concluido_tecnico">Concluído Técnico (Aguardando Aprovação)</SelectItem>
+              <SelectItem value="pendencia">Pendência (Falta algo)</SelectItem>
+              {profile?.role !== "tecnico" && (
+                <SelectItem value="concluido">Concluído</SelectItem>
+              )}
+              <SelectItem value="cancelado">Cancelado</SelectItem>
             </SelectContent>
           </Select>
         </section>

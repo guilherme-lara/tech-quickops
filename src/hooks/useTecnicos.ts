@@ -59,7 +59,7 @@ export function useActiveOSCount(empresaId?: string) {
         .from("ordens_servico")
         .select("id, tecnico_id")
         .eq("empresa_id", empresaId)
-        .in("status", ["pendente", "aprovado", "em_andamento"]);
+        .in("status", ["agendamento", "em_andamento", "concluido_tecnico", "pendencia"]);
         
       if (error) {
         console.error("Erro ao buscar OS ativas:", error);

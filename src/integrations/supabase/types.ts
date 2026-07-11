@@ -585,13 +585,12 @@ export type Database = {
     Enums: {
       app_role: "superadmin" | "admin" | "gestor" | "analista" | "tecnico"
       os_status:
-        | "pendente"
-        | "aprovado"
+        | "agendamento"
         | "em_andamento"
+        | "concluido_tecnico"
+        | "pendencia"
         | "concluido"
         | "cancelado"
-        | "agendamento"
-        | "reagendado"
       tipo_comissao_enum: "fixo" | "porcentagem"
     }
     CompositeTypes: {
@@ -722,13 +721,12 @@ export const Constants = {
     Enums: {
       app_role: ["superadmin", "admin", "gestor", "analista", "tecnico"],
       os_status: [
-        "pendente",
-        "aprovado",
+        "agendamento",
         "em_andamento",
+        "concluido_tecnico",
+        "pendencia",
         "concluido",
         "cancelado",
-        "agendamento",
-        "reagendado",
       ],
       tipo_comissao_enum: ["fixo", "porcentagem"],
     },

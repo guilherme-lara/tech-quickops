@@ -101,7 +101,7 @@ export const Route = createFileRoute("/os")({
   ),
 });
 
-const colunas: OSStatus[] = ["Orçamento", "Aprovado", "Em Execução", "Concluído", "Cancelado"];
+const colunas: OSStatus[] = ["Agendamento", "Em Andamento", "Concluído Técnico", "Pendência", "Concluído", "Cancelado"];
 
 function OSPage() {
   const {
@@ -1100,42 +1100,32 @@ function OSPage() {
                           </td>
                           <td className="px-5 py-3 whitespace-nowrap">
                             {o.status === "Concluído" && (
-                              <Badge
-                                variant="outline"
-                                className="bg-emerald-50 text-emerald-700 border-emerald-200"
-                              >
+                              <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200">
                                 {o.status}
                               </Badge>
                             )}
-                            {o.status === "Orçamento" && (
-                              <Badge
-                                variant="outline"
-                                className="bg-amber-50 text-amber-700 border-amber-200"
-                              >
+                            {o.status === "Agendamento" && (
+                              <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
                                 {o.status}
                               </Badge>
                             )}
-                            {o.status === "Em Execução" && (
-                              <Badge
-                                variant="outline"
-                                className="bg-blue-50 text-blue-700 border-blue-200"
-                              >
+                            {o.status === "Em Andamento" && (
+                              <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">
+                                {o.status}
+                              </Badge>
+                            )}
+                            {o.status === "Concluído Técnico" && (
+                              <Badge variant="outline" className="bg-emerald-100 text-emerald-700 border-emerald-300">
+                                {o.status}
+                              </Badge>
+                            )}
+                            {o.status === "Pendência" && (
+                              <Badge variant="outline" className="bg-orange-50 text-orange-700 border-orange-200">
                                 {o.status}
                               </Badge>
                             )}
                             {o.status === "Cancelado" && (
-                              <Badge
-                                variant="outline"
-                                className="bg-red-50 text-red-700 border-red-200"
-                              >
-                                {o.status}
-                              </Badge>
-                            )}
-                            {o.status === "Aprovado" && (
-                              <Badge
-                                variant="outline"
-                                className="bg-violet-50 text-violet-700 border-violet-200"
-                              >
+                              <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200">
                                 {o.status}
                               </Badge>
                             )}
