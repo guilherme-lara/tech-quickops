@@ -93,8 +93,8 @@ export function GestorLayout({ children }: { children?: ReactNode }) {
                 : "text-foreground/70 hover:bg-accent hover:text-accent-foreground"
             }`}
           >
-            <div className="flex items-center justify-between w-full gap-2">
-              <div className="flex items-center gap-3 truncate">
+            <div className="flex items-center justify-between w-full gap-2 min-w-0">
+              <div className="flex items-center gap-3 min-w-0">
                 <item.icon className="w-4 h-4 shrink-0" />
                 <span className="truncate">{item.label}</span>
               </div>
