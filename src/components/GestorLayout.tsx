@@ -87,19 +87,18 @@ export function GestorLayout({ children }: { children?: ReactNode }) {
             key={item.to}
             to={item.to}
             onClick={() => setIsOpen(false)}
-            className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all duration-300 ${
+            className={`relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all duration-300 ${
               active
                 ? "bg-gradient-to-r from-primary to-violet text-primary-foreground font-semibold shadow-[var(--shadow-glow)]"
                 : "text-foreground/70 hover:bg-accent hover:text-accent-foreground"
             }`}
           >
-            <div className="flex items-center justify-between w-full gap-2 min-w-0">
-              <div className="flex items-center gap-3 min-w-0">
-                <item.icon className="w-4 h-4 shrink-0" />
-                <span className="truncate">{item.label}</span>
-              </div>
+            <div className="flex items-center gap-3 w-full">
+              <item.icon className="w-4 h-4 shrink-0" />
+              <span className="whitespace-nowrap">{item.label}</span>
+              
               {item.to === "/usuarios" && (
-                <Badge variant="outline" className={`whitespace-nowrap shrink-0 text-[10px] leading-none px-1.5 py-0.5 h-auto border-yellow-500/30 bg-yellow-500/10 text-yellow-600 ${active ? 'text-white border-white/30 bg-white/20' : ''}`}>
+                <Badge variant="outline" className={`absolute right-2 top-1/2 -translate-y-1/2 text-[9px] px-1.5 py-0 h-4 border-yellow-500/30 bg-yellow-500/10 text-yellow-600 ${active ? 'text-white border-white/30 bg-white/20' : ''}`}>
                   Em cons.
                 </Badge>
               )}
