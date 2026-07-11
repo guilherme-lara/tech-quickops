@@ -16,6 +16,7 @@ export interface Cliente {
   telefone: string;
   email: string;
   cidade?: string;
+  endereco_completo?: string;
   base_km?: number;
   valor_por_km?: number;
 }
@@ -390,7 +391,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     queryFn: async (): Promise<Cliente[]> => {
       let query = supabase
         .from("clientes")
-        .select("id, nome, documento, telefone, email, cidade, base_km, valor_por_km", {
+        .select("id, nome, documento, telefone, email, cidade, endereco_completo, base_km, valor_por_km", {
           count: "exact",
         })
         .eq("empresa_id", empresaId!);
@@ -414,6 +415,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         telefone: r.telefone ?? "",
         email: r.email ?? "",
         cidade: r.cidade ?? "",
+        endereco_completo: r.endereco_completo ?? "",
         base_km: Number(r.base_km ?? 0),
         valor_por_km: Number(r.valor_por_km ?? 0),
       }));
@@ -427,7 +429,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       if (!empresaId) return [];
       const { data, error } = await supabase
         .from("clientes")
-        .select("id, nome, documento, telefone, email, cidade, base_km, valor_por_km")
+        .select("id, nome, documento, telefone, email, cidade, endereco_completo, base_km, valor_por_km")
         .eq("empresa_id", empresaId)
         .order("nome");
       if (error) throw error;
@@ -438,6 +440,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         telefone: r.telefone ?? "",
         email: r.email ?? "",
         cidade: r.cidade ?? "",
+        endereco_completo: r.endereco_completo ?? "",
         base_km: Number(r.base_km ?? 0),
         valor_por_km: Number(r.valor_por_km ?? 0),
       }));
@@ -665,6 +668,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
           telefone: c.telefone,
           email: c.email,
           cidade: c.cidade ?? null,
+          endereco_completo: c.endereco_completo ?? null,
           base_km: c.base_km != null ? Number(c.base_km) : null,
           valor_por_km: c.valor_por_km != null ? Number(c.valor_por_km) : null,
         })
@@ -685,6 +689,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       if (patch.telefone !== undefined) dbPatch.telefone = patch.telefone;
       if (patch.email !== undefined) dbPatch.email = patch.email;
       if (patch.cidade !== undefined) dbPatch.cidade = patch.cidade ?? null;
+      if (patch.endereco_completo !== undefined) dbPatch.endereco_completo = patch.endereco_completo ?? null;
       if (patch.base_km !== undefined)
         dbPatch.base_km = patch.base_km != null ? Number(patch.base_km) : null;
       if (patch.valor_por_km !== undefined)

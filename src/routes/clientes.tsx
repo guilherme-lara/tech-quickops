@@ -82,6 +82,7 @@ function ClientesPage() {
     documento: "",
     telefone: "",
     email: "",
+    endereco_completo: "",
     cidade: "",
     base_km: "",
     valor_por_km: "",
@@ -99,6 +100,7 @@ function ClientesPage() {
       documento: "",
       telefone: "",
       email: "",
+      endereco_completo: "",
       cidade: "",
       base_km: "",
       valor_por_km: "",
@@ -114,6 +116,7 @@ function ClientesPage() {
       documento: c.documento,
       telefone: c.telefone,
       email: c.email,
+      endereco_completo: c.endereco_completo ?? "",
       cidade: c.cidade ?? "",
       base_km: c.base_km != null ? String(c.base_km) : "",
       valor_por_km: c.valor_por_km != null ? String(c.valor_por_km) : "",
@@ -331,12 +334,21 @@ function ClientesPage() {
                     onChange={(e) => setForm({ ...form, email: e.target.value })}
                   />
                 </div>
+                <div>
+                  <Label>Endereço Completo (Rua, Número, Bairro)</Label>
+                  <Input
+                    value={form.endereco_completo}
+                    onChange={(e) => setForm({ ...form, endereco_completo: e.target.value })}
+                    placeholder="Ex: Av Paulista, 1000 - Bela Vista"
+                  />
+                </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <Label>Cidade</Label>
+                    <Label>Cidade/Estado</Label>
                     <Input
                       value={form.cidade}
                       onChange={(e) => setForm({ ...form, cidade: e.target.value })}
+                      placeholder="São Paulo - SP"
                     />
                   </div>
                   <div>
