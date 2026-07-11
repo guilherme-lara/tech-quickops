@@ -68,9 +68,9 @@ function TecnicoOSDetail() {
   const despesasArray = Array.isArray(os?.despesas) ? os.despesas : [];
 
   const handleUpdateStatus = async (newStatus: string) => {
-    if (newStatus === "concluido_tecnico") {
-      if (!ratArquivos || ratArquivos.length === 0) {
-        toast.error("É obrigatório preencher o RAT antes de concluir o serviço");
+    if (newStatus === "concluido_tecnico" && profile?.role === "tecnico") {
+      if (!ratArquivos || ratArquivos.length < 4) {
+        toast.error("É necessário enviar a RAT e pelo menos 3 fotos evidenciando o serviço para concluir.");
         return;
       }
     }

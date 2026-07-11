@@ -14,6 +14,7 @@ import {
   Menu,
   FileText,
   PieChart,
+  Shield,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -32,17 +33,16 @@ import { ReactNode, useState } from "react";
 
 const allNavItems = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { to: "/analista-dashboard", label: "Torre de Controle", icon: LayoutDashboard },
   { to: "/gestor-dashboard", label: "Visão Estratégica", icon: PieChart },
   { to: "/os", label: "Ordens de Serviço", icon: ClipboardList },
   { to: "/clientes", label: "Clientes", icon: Users },
   { to: "/equipe", label: "Equipe", icon: UsersRound },
+  { to: "/usuarios", label: "Acessos do Sistema", icon: Shield },
   { to: "/estoque", label: "Inventário", icon: Package },
   { to: "/logs", label: "Logs e Auditoria", icon: FileText },
   { to: "/configuracoes", label: "Configurações", icon: Settings },
 ] as const;
-
-// Itens restritos para gestores
-const restrictedItems = ["/gestor-dashboard", "/clientes", "/equipe", "/logs"] as const;
 
 export function GestorLayout({ children }: { children?: ReactNode }) {
   const path = useRouterState({ select: (s) => s.location.pathname });
@@ -50,9 +50,22 @@ export function GestorLayout({ children }: { children?: ReactNode }) {
   const { user, profile, signOut } = useAuth();
 
   // RBAC: filtrar itens de menu baseado na role
-  const navItems = allNavItems.filter(
-    (item) => !(profile?.role === "tecnico" && restrictedItems.includes(item.to as any)),
-  );
+  const navItems = allNavItems.filter((item) => {
+    if (profile?.role === "tecnico") {
+      const restrictedForTecnico = ["/gestor-dashboard", "/clientes", "/equipe", "/usuarios", "/logs", "/analista-dashboard"];
+      return !restrictedForTecnico.includes(item.to);
+    }
+    
+    if (profile?.role === "analista") {
+      const allowedForAnalista = ["/analista-dashboard", "/os", "/clientes", "/equipe"];
+      return allowedForAnalista.includes(item.to);
+    }
+    
+    // gestor, admin, superadmin
+    if (item.to === "/analista-dashboard") return false; // Default dashboard is /dashboard
+    
+    return true;
+  });
 
   const current = navItems.find((n) => path.startsWith(n.to))?.label ?? "Dashboard";
   const [isOpen, setIsOpen] = useState(false);

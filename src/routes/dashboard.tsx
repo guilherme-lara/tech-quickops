@@ -270,6 +270,14 @@ function PendingAlertsCard({
 
 function Dashboard() {
   const { profile } = useAuth();
+  
+  if (profile?.role === "tecnico") {
+    return <Navigate to="/tecnico/dashboard" />;
+  }
+
+  if (profile?.role === "analista") {
+    return <Navigate to="/analista-dashboard" />;
+  }
   const { clientes, tecnicos, loadingOS, loadingClientes, osMonth, osYear, os, updateOS } =
     useStore();
   const [editingOS, setEditingOS] = useState<OS | null>(null);
