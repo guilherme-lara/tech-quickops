@@ -279,9 +279,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
           let empresaEndereco = "";
           let empresaTelefone = "";
           let empresaLogo = "";
+          let empresaCodigo = "";
           const { data: emp } = await supabase
             .from("empresas")
-            .select("nome_fantasia, cnpj, endereco_comercial, telefone_empresa, logo_url")
+            .select("nome_fantasia, cnpj, endereco_comercial, telefone_empresa, logo_url, codigo_empresa")
             .eq("id", data.empresa_id)
             .maybeSingle();
           if (emp) {
@@ -290,6 +291,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
             empresaEndereco = emp.endereco_comercial ?? "";
             empresaTelefone = emp.telefone_empresa ?? "";
             empresaLogo = emp.logo_url ?? "";
+            empresaCodigo = emp.codigo_empresa ?? "";
           }
           return {
             id: data.id,
@@ -298,11 +300,12 @@ export function StoreProvider({ children }: { children: ReactNode }) {
             role,
             empresaId: data.empresa_id,
             empresaNome,
-            avatarUrl: data.avatar_url ?? undefined,
             empresaCnpj,
             empresaEndereco,
             empresaTelefone,
             empresaLogo,
+            empresaCodigo,
+            avatarUrl: data.avatar_url ?? undefined,
           };
         }
 
