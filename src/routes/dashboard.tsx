@@ -427,7 +427,7 @@ function Dashboard() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("logs_administrativos")
-        .select("id, tipo, descricao, created_at, perfis(nome_completo)")
+        .select("id, tipo, descricao, created_at, usuario_nome")
         .eq("empresa_id", profile?.empresa_id)
         .order("created_at", { ascending: false })
         .limit(5);
@@ -438,7 +438,7 @@ function Dashboard() {
         created_at: log.created_at,
         tipo: log.tipo,
         descricao: log.descricao,
-        usuario_nome: log.perfis?.nome_completo || "Usuário",
+        usuario_nome: log.usuario_nome || "Usuário",
       }));
     },
   });
