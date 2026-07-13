@@ -27,6 +27,7 @@ import {
   AlertCircle,
   AlertTriangle,
 } from "lucide-react";
+import { formatDate } from "@/lib/utils";
 
 export const Route = createFileRoute("/dashboard")({
   component: () => (
