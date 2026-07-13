@@ -258,7 +258,7 @@ function EquipePage() {
     try {
       const novaSenha = generateRandomPassword();
       const { error } = await supabase.rpc("resetar_senha_tecnico", {
-        p_tecnico_id: t.id,
+        p_tecnico_id: t.user_id || t.id,
         p_nova_senha: novaSenha
       });
       
@@ -639,11 +639,11 @@ function EquipePage() {
                               <Edit2 className="mr-2 h-4 w-4" /> Editar
                             </DropdownMenuItem>
                             <DropdownMenuItem onClick={() => {
-                              if (!t.user_id) setGerarAcessoFor(t);
+                              if (!t.user_id && !t.username) setGerarAcessoFor(t);
                               else handleResetPassword(t);
                             }}>
                               <KeyRound className="mr-2 h-4 w-4" /> 
-                              {!t.user_id ? "Gerar Acesso" : "Gerar Nova Senha"}
+                              {(!t.user_id && !t.username) ? "Gerar Acesso" : "Gerar Nova Senha"}
                             </DropdownMenuItem>
                             <DropdownMenuItem
                               onClick={() => handleDelete(t.id)}
@@ -680,11 +680,11 @@ function EquipePage() {
                         <Edit2 className="mr-2 h-4 w-4" /> Editar
                       </DropdownMenuItem>
                       <DropdownMenuItem onClick={() => {
-                        if (!t.user_id) setGerarAcessoFor(t);
+                        if (!t.user_id && !t.username) setGerarAcessoFor(t);
                         else handleResetPassword(t);
                       }}>
                         <KeyRound className="mr-2 h-4 w-4" /> 
-                        {!t.user_id ? "Gerar Acesso" : "Gerar Nova Senha"}
+                        {(!t.user_id && !t.username) ? "Gerar Acesso" : "Gerar Nova Senha"}
                       </DropdownMenuItem>
                       <DropdownMenuItem
                         onClick={() => handleDelete(t.id)}
