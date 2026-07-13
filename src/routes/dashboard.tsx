@@ -418,6 +418,31 @@ function Dashboard() {
     resultadoLiquido: 0,
   };
 
+  // ============================================================
+  // Atividades Recentes (Logs)
+  // ============================================================
+  const recentLogsQ = useQuery({
+    queryKey: ["logs_administrativos_recentes", profile?.empresa_id],
+    enabled: !!profile?.empresa_id,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("logs_administrativos")
+        .select("id, tipo, descricao, created_at, perfis(nome_completo, email)")
+        .eq("empresa_id", profile?.empresa_id)
+        .order("created_at", { ascending: false })
+        .limit(5);
+
+      if (error) throw error;
+      return (data || []).map((log: any) => ({
+        id: log.id,
+        created_at: log.created_at,
+        tipo: log.tipo,
+        descricao: log.descricao,
+        usuario_nome: log.perfis?.nome_completo || log.perfis?.email || "Usuário",
+      }));
+    },
+  });
+
   // Alertas de OS (Atrasadas e Prioridades)
   const alertasOSQ = useQuery({
     queryKey: ["alertas_os", profile?.empresa_id],
