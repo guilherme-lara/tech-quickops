@@ -7,6 +7,7 @@ SET search_path = public
 AS $$
 DECLARE
     v_nova_chave TEXT;
+    v_codigo_empresa TEXT;
     v_has_access BOOLEAN;
 BEGIN
     -- Verifica se quem chamou é um superadmin
@@ -20,8 +21,18 @@ BEGIN
         RAISE EXCEPTION 'Acesso negado: Apenas Superadmins podem gerar chaves de ativação.';
     END IF;
 
-    -- Gera uma chave criptográfica pseudo-aleatória no formato TECH-XXXX-XXXX-XXXX
-    v_nova_chave := 'TECH-' || 
+    -- Busca o código numérico da empresa
+    SELECT codigo_empresa INTO v_codigo_empresa
+    FROM public.empresas
+    WHERE id = p_empresa_id;
+
+    -- Se por acaso a empresa não tiver código ainda, usa TECH
+    IF v_codigo_empresa IS NULL OR v_codigo_empresa = '' THEN
+        v_codigo_empresa := 'TECH';
+    END IF;
+
+    -- Gera uma chave criptográfica pseudo-aleatória no formato CODIGO-XXXX-XXXX-XXXX
+    v_nova_chave := v_codigo_empresa || '-' || 
                     upper(substring(gen_random_uuid()::text from 1 for 4)) || '-' || 
                     upper(substring(gen_random_uuid()::text from 1 for 4)) || '-' || 
                     upper(substring(gen_random_uuid()::text from 1 for 4));
