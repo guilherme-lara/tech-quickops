@@ -281,6 +281,13 @@ function ConfiguracoesPage() {
             setDiasRestantes(diffDays);
           }
         }
+        
+        await logActivity(
+          "renovacao_assinatura",
+          `A chave de ativação foi validada e a assinatura foi estendida por mais 30 dias.`,
+          user?.empresaId || "",
+          user?.nome || "Sistema"
+        );
       } else {
         toast.error("Chave de ativação inválida ou já utilizada.");
       }

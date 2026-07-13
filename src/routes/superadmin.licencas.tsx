@@ -9,6 +9,8 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { useState } from "react";
+import { logActivity } from "@/lib/logger";
+import { useAuth } from "@/lib/auth-context";
 
 export const Route = createFileRoute("/superadmin/licencas")({
   component: SuperAdminLicencasPage,
@@ -35,6 +37,7 @@ function SuperAdminLicencasPage() {
 
 function LicencasTable() {
   const queryClient = useQueryClient();
+  const { user } = useAuth();
 
   const { data: empresas, isLoading } = useQuery({
     queryKey: ["superadmin-empresas"],
@@ -78,9 +81,17 @@ function LicencasTable() {
       if (error) throw error;
       return { id: empresaId, key };
     },
-    onSuccess: () => {
+    },
+    onSuccess: async (data) => {
       queryClient.invalidateQueries({ queryKey: ["superadmin-empresas"] });
       toast.success("Nova chave gerada com sucesso!");
+      
+      await logActivity(
+        "geracao_chave_licenca",
+        `Nova chave de ativação gerada pelo Super Admin (${user?.nome || 'Sistema'})`,
+        data.id,
+        user?.nome || 'Super Admin'
+      );
     },
     onError: (error) => {
       console.error(error);
@@ -97,9 +108,16 @@ function LicencasTable() {
       if (error) throw error;
       return { id, newStatus };
     },
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       queryClient.invalidateQueries({ queryKey: ["superadmin-empresas"] });
       toast.success(`Empresa ${data.newStatus === 'bloqueado' ? 'bloqueada' : 'desbloqueada'}.`);
+      
+      await logActivity(
+        "alteracao_status_licenca",
+        `Status da licença alterado para ${data.newStatus} pelo Super Admin (${user?.nome || 'Sistema'})`,
+        data.id,
+        user?.nome || 'Super Admin'
+      );
     },
     onError: (error) => {
       console.error(error);
