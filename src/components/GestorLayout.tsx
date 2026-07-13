@@ -50,6 +50,14 @@ export function GestorLayout({ children }: { children?: ReactNode }) {
   const path = useRouterState({ select: (s) => s.location.pathname });
   const navigate = useNavigate();
   const { user, profile, signOut } = useAuth();
+  const { setOsSearchCliente } = useStore();
+
+  const handleGlobalSearch = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      setOsSearchCliente(e.currentTarget.value);
+      navigate({ to: "/os" });
+    }
+  };
 
   // RBAC: filtrar itens de menu baseado na role
   const navItems = allNavItems.filter((item) => {
@@ -229,6 +237,7 @@ export function GestorLayout({ children }: { children?: ReactNode }) {
               <Input
                 placeholder="Buscar OS, cliente..."
                 className="pl-10 w-72 h-10 rounded-xl glass border-0"
+                onKeyDown={handleGlobalSearch}
               />
             </div>
             {/* Ícone de busca substitui a barra grande no telemóvel */}

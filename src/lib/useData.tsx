@@ -542,18 +542,26 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       if (!empresaId) return [];
 
       let selectStr = "*, tecnico:tecnicos(id, nome, perfil, telefone, ativo)";
-      if (osSearchCliente) {
-        selectStr += ", clientes!inner(id, nome)";
-      }
 
       let query = supabase
         .from("ordens_servico")
         .select(selectStr, { count: "exact" })
         .eq("empresa_id", empresaId);
 
-      // Filtro de texto: busca por nome do cliente
+      // Filtro de texto: busca por nome do cliente ou número da OS
       if (osSearchCliente) {
-        query = query.ilike("clientes.nome", `%${osSearchCliente}%`);
+        const { data: matchedClients } = await supabase
+          .from("clientes")
+          .select("id")
+          .eq("empresa_id", empresaId)
+          .ilike("nome", `%${osSearchCliente}%`);
+        
+        const cIds = (matchedClients || []).map((c) => c.id);
+        if (cIds.length > 0) {
+          query = query.or(`numero.ilike.%${osSearchCliente}%,cliente_id.in.(${cIds.join(",")})`);
+        } else {
+          query = query.ilike("numero", `%${osSearchCliente}%`);
+        }
       }
 
       // Filtro de técnico: busca pelo nome do técnico
