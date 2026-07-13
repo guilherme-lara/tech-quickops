@@ -493,6 +493,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         tipo_comissao: (r.tipo_comissao as TipoComissao) ?? "fixo",
         chave_pix: r.chave_pix ?? "",
         username: r.username ?? "",
+        user_id: r.user_id ?? null,
         dados_adicionais: r.dados_adicionais ?? {},
       }));
     },
@@ -519,6 +520,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         tipo_comissao: (r.tipo_comissao as TipoComissao) ?? "fixo",
         chave_pix: r.chave_pix ?? "",
         username: r.username ?? "",
+        user_id: r.user_id ?? null,
         dados_adicionais: r.dados_adicionais ?? {},
       }));
     },
