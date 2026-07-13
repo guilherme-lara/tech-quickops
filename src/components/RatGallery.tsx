@@ -26,6 +26,8 @@ interface RatArquivo {
   nome_arquivo: string;
   arquivo_url: string;
   created_at: string;
+  tipo_arquivo?: string;
+  enviado_por_role?: string;
 }
 
 export function RatGallery({ osId, trigger }: { osId: string; trigger?: React.ReactNode }) {
@@ -33,6 +35,7 @@ export function RatGallery({ osId, trigger }: { osId: string; trigger?: React.Re
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [tipoUpload, setTipoUpload] = useState<'rat_padrao' | 'foto'>('rat_padrao');
 
   const { data: arquivos = [], isLoading } = useQuery({
     queryKey: ["rat_arquivos", osId],
@@ -65,6 +68,8 @@ export function RatGallery({ osId, trigger }: { osId: string; trigger?: React.Re
         ordem_servico_id: osId,
         nome_arquivo: file.name,
         arquivo_url: publicUrlData.publicUrl,
+        tipo_arquivo: tipoUpload,
+        enviado_por_role: "gestor",
       });
 
       if (insertError) throw insertError;
@@ -123,36 +128,54 @@ export function RatGallery({ osId, trigger }: { osId: string; trigger?: React.Re
 
         <div className="space-y-4 py-2">
           {/* Dropzone Area */}
-          <div className="border-2 border-dashed border-border/60 rounded-2xl p-6 text-center hover:bg-muted/40 transition-colors flex flex-col items-center justify-center relative">
-            <input
-              type="file"
-              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-              accept="image/*,.pdf"
-              onChange={(e) => {
-                if (e.target.files && e.target.files[0]) {
-                  uploadFile(e.target.files[0]);
-                }
-              }}
-              disabled={uploading}
-            />
-            {uploading ? (
-              <div className="flex flex-col items-center text-muted-foreground">
-                <Loader2 className="w-8 h-8 mb-2 animate-spin" />
-                <span className="text-sm font-medium">Enviando arquivo...</span>
-              </div>
-            ) : (
-              <div className="flex flex-col items-center text-muted-foreground pointer-events-none">
-                <UploadCloud className="w-8 h-8 mb-2 text-primary" />
-                <span className="text-sm font-medium text-foreground">
-                  Clique ou arraste arquivos aqui
-                </span>
-                <span className="text-xs mt-1">Imagens e PDFs são suportados</span>
-              </div>
-            )}
+          <div className="space-y-3">
+            <div className="flex gap-2 p-1 bg-muted/50 rounded-lg">
+              <button 
+                className={`flex-1 text-xs py-1.5 font-medium rounded-md transition ${tipoUpload === 'rat_padrao' ? 'bg-background shadow-sm' : 'text-muted-foreground'}`}
+                onClick={() => setTipoUpload('rat_padrao')}
+              >
+                Enviar Modelo/RAT
+              </button>
+              <button 
+                className={`flex-1 text-xs py-1.5 font-medium rounded-md transition ${tipoUpload === 'foto' ? 'bg-background shadow-sm' : 'text-muted-foreground'}`}
+                onClick={() => setTipoUpload('foto')}
+              >
+                Enviar Outro/Foto
+              </button>
+            </div>
+            <div className="border-2 border-dashed border-border/60 rounded-2xl p-6 text-center hover:bg-muted/40 transition-colors flex flex-col items-center justify-center relative">
+              <input
+                type="file"
+                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                accept={tipoUpload === 'rat_padrao' ? ".pdf,.doc,.docx" : "image/*,.pdf"}
+                onChange={(e) => {
+                  if (e.target.files && e.target.files[0]) {
+                    uploadFile(e.target.files[0]);
+                  }
+                }}
+                disabled={uploading}
+              />
+              {uploading ? (
+                <div className="flex flex-col items-center text-muted-foreground">
+                  <Loader2 className="w-8 h-8 mb-2 animate-spin" />
+                  <span className="text-sm font-medium">Enviando arquivo...</span>
+                </div>
+              ) : (
+                <div className="flex flex-col items-center text-muted-foreground pointer-events-none">
+                  <UploadCloud className="w-8 h-8 mb-2 text-primary" />
+                  <span className="text-sm font-medium text-foreground">
+                    Clique ou arraste {tipoUpload === 'rat_padrao' ? 'o Documento' : 'a Foto'} aqui
+                  </span>
+                  <span className="text-xs mt-1">
+                    {tipoUpload === 'rat_padrao' ? 'Apenas PDF e Word' : 'Imagens e PDFs são suportados'}
+                  </span>
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Gallery List */}
-          <div className="space-y-2 max-h-[300px] overflow-y-auto pr-1">
+          <div className="space-y-4 max-h-[300px] overflow-y-auto pr-1">
             {isLoading ? (
               <div className="flex justify-center p-4">
                 <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
@@ -162,45 +185,111 @@ export function RatGallery({ osId, trigger }: { osId: string; trigger?: React.Re
                 Nenhum arquivo anexado a esta OS.
               </p>
             ) : (
-              arquivos.map((arq) => {
-                const isImage = arq.nome_arquivo.match(/\.(jpeg|jpg|gif|png)$/i) != null;
-                return (
-                  <div
-                    key={arq.id}
-                    className="flex items-center justify-between p-3 rounded-xl bg-muted/40 border border-border/40 group"
-                  >
-                    <div className="flex items-center gap-3 overflow-hidden flex-1">
-                      <div className="w-10 h-10 shrink-0 rounded-lg bg-background flex items-center justify-center border border-border/60">
-                        {isImage ? (
-                          <ImageIcon className="w-5 h-5 text-violet" />
-                        ) : (
-                          <FileText className="w-5 h-5 text-primary" />
-                        )}
-                      </div>
-                      <a
-                        href={arq.arquivo_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-sm font-medium hover:underline truncate"
+              <>
+                <div className="space-y-2">
+                  <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                    Enviados pelo Técnico
+                  </h4>
+                  {arquivos.filter(a => a.enviado_por_role !== 'gestor').length === 0 ? (
+                    <p className="text-xs text-muted-foreground">Nenhum arquivo enviado pelo técnico.</p>
+                  ) : arquivos.filter(a => a.enviado_por_role !== 'gestor').map((arq) => {
+                    const isImage = arq.nome_arquivo.match(/\.(jpeg|jpg|gif|png)$/i) != null;
+                    return (
+                      <div
+                        key={arq.id}
+                        className="flex items-center justify-between p-3 rounded-xl bg-muted/40 border border-border/40 group"
                       >
-                        {arq.nome_arquivo}
-                      </a>
-                    </div>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="shrink-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10 opacity-0 group-hover:opacity-100 transition-opacity"
-                      onClick={() => {
-                        if (window.confirm("Excluir este arquivo?")) {
-                          deleteM.mutate(arq);
-                        }
-                      }}
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  </div>
-                );
-              })
+                        <div className="flex items-center gap-3 overflow-hidden flex-1">
+                          <div className="w-10 h-10 shrink-0 rounded-lg bg-background flex items-center justify-center border border-border/60">
+                            {isImage ? (
+                              <ImageIcon className="w-5 h-5 text-violet" />
+                            ) : (
+                              <FileText className="w-5 h-5 text-primary" />
+                            )}
+                          </div>
+                          <div className="flex flex-col overflow-hidden">
+                            <a
+                              href={arq.arquivo_url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-sm font-medium hover:underline truncate"
+                            >
+                              {arq.nome_arquivo}
+                            </a>
+                            <span className="text-[10px] text-muted-foreground uppercase">
+                              {arq.tipo_arquivo || "Outro"}
+                            </span>
+                          </div>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="shrink-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10 opacity-0 group-hover:opacity-100 transition-opacity"
+                          onClick={() => {
+                            if (window.confirm("Excluir este arquivo?")) {
+                              deleteM.mutate(arq);
+                            }
+                          }}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                <div className="space-y-2 mt-4">
+                  <h4 className="text-xs font-semibold text-primary uppercase tracking-wider">
+                    Enviados pelo Gestor (Você)
+                  </h4>
+                  {arquivos.filter(a => a.enviado_por_role === 'gestor').length === 0 ? (
+                    <p className="text-xs text-muted-foreground">Nenhum arquivo enviado pelo gestor.</p>
+                  ) : arquivos.filter(a => a.enviado_por_role === 'gestor').map((arq) => {
+                    const isImage = arq.nome_arquivo.match(/\.(jpeg|jpg|gif|png)$/i) != null;
+                    return (
+                      <div
+                        key={arq.id}
+                        className="flex items-center justify-between p-3 rounded-xl bg-primary/5 border border-primary/20 group"
+                      >
+                        <div className="flex items-center gap-3 overflow-hidden flex-1">
+                          <div className="w-10 h-10 shrink-0 rounded-lg bg-background flex items-center justify-center border border-border/60">
+                            {isImage ? (
+                              <ImageIcon className="w-5 h-5 text-violet" />
+                            ) : (
+                              <FileText className="w-5 h-5 text-primary" />
+                            )}
+                          </div>
+                          <div className="flex flex-col overflow-hidden">
+                            <a
+                              href={arq.arquivo_url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-sm font-medium hover:underline truncate"
+                            >
+                              {arq.nome_arquivo}
+                            </a>
+                            <span className="text-[10px] text-primary/70 uppercase">
+                              {arq.tipo_arquivo === 'rat_padrao' ? 'RAT Modelo Padrão' : arq.tipo_arquivo || "Outro"}
+                            </span>
+                          </div>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="shrink-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10 opacity-0 group-hover:opacity-100 transition-opacity"
+                          onClick={() => {
+                            if (window.confirm("Excluir este arquivo?")) {
+                              deleteM.mutate(arq);
+                            }
+                          }}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    );
+                  })}
+                </div>
+              </>
             )}
           </div>
         </div>

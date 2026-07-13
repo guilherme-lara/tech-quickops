@@ -125,7 +125,7 @@ function TecnicoOSDetail() {
     }
   };
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = (tipo_arquivo: string) => async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -152,7 +152,9 @@ function TecnicoOSDetail() {
         .insert({
           ordem_servico_id: id,
           nome_arquivo: file.name,
-          arquivo_url: publicUrlData.publicUrl
+          arquivo_url: publicUrlData.publicUrl,
+          tipo_arquivo: tipo_arquivo,
+          enviado_por_role: 'tecnico'
         });
 
       if (dbError) throw dbError;
@@ -206,26 +208,6 @@ function TecnicoOSDetail() {
       </div>
 
       <div className="p-4 space-y-6 pb-24">
-        {/* Status */}
-        <section>
-          <h2 className="text-sm font-semibold text-muted-foreground mb-2">Status da OS</h2>
-          <Select value={os.status} onValueChange={handleUpdateStatus} disabled={isUpdatingStatus}>
-            <SelectTrigger className="w-full h-12 rounded-xl font-medium bg-card">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="agendamento">Agendamento (Pendente)</SelectItem>
-              <SelectItem value="em_andamento">Em Andamento (No local)</SelectItem>
-              <SelectItem value="concluido_tecnico">Concluído Técnico (Aguardando Aprovação)</SelectItem>
-              <SelectItem value="pendencia">Pendência (Falta algo)</SelectItem>
-              {profile?.role !== "tecnico" && (
-                <SelectItem value="concluido">Concluído</SelectItem>
-              )}
-              <SelectItem value="cancelado">Cancelado</SelectItem>
-            </SelectContent>
-          </Select>
-        </section>
-
         {/* Detalhes do Cliente e Problema */}
         <section className="space-y-3">
           <Card className="p-4 rounded-2xl border-border/60 shadow-[var(--shadow-card)]">
@@ -320,11 +302,11 @@ function TecnicoOSDetail() {
           </Card>
         </section>
 
-        {/* Galeria / RAT */}
+        {/* Documentos (RAT / PDFs) */}
         <section>
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-sm font-semibold text-muted-foreground flex items-center gap-2">
-              <Upload className="w-4 h-4" /> Galeria de Evidências (RAT)
+              <FileText className="w-4 h-4" /> Documentos (RAT / PDFs)
             </h2>
           </div>
           <Card className="p-4 rounded-2xl border-border/60 shadow-[var(--shadow-card)]">
@@ -332,8 +314,8 @@ function TecnicoOSDetail() {
               <input 
                 type="file" 
                 className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" 
-                onChange={handleFileUpload}
-                accept="image/*,.pdf"
+                onChange={handleFileUpload('rat')}
+                accept=".pdf,.doc,.docx"
                 disabled={isUploading}
               />
               {isUploading ? (
@@ -342,17 +324,74 @@ function TecnicoOSDetail() {
                 <Upload className="w-6 h-6 text-muted-foreground mb-2" />
               )}
               <p className="text-xs text-muted-foreground text-center">
-                {isUploading ? "Enviando arquivo..." : "Toque aqui para anexar fotos ou RAT."}
+                {isUploading ? "Enviando arquivo..." : "Toque aqui para anexar RAT preenchida ou documento."}
               </p>
             </div>
 
             <div className="space-y-2">
               {isLoadingRat ? (
                 <div className="flex justify-center"><Loader2 className="w-4 h-4 animate-spin" /></div>
-              ) : !ratArquivos || ratArquivos.length === 0 ? (
-                <p className="text-xs text-muted-foreground text-center">Nenhum arquivo anexado.</p>
+              ) : !ratArquivos || ratArquivos.filter(a => a.tipo_arquivo === 'rat' || a.tipo_arquivo === 'rat_padrao' || (a.tipo_arquivo !== 'foto' && a.tipo_arquivo !== 'evidencia' && a.nome_arquivo.includes('.pdf'))).length === 0 ? (
+                <p className="text-xs text-muted-foreground text-center">Nenhum documento anexado.</p>
               ) : (
-                ratArquivos.map((arq) => (
+                ratArquivos
+                  .filter(a => a.tipo_arquivo === 'rat' || a.tipo_arquivo === 'rat_padrao' || (a.tipo_arquivo !== 'foto' && a.tipo_arquivo !== 'evidencia' && a.nome_arquivo.includes('.pdf')))
+                  .map((arq) => (
+                  <div key={arq.id} className="flex flex-col bg-background p-2 rounded-lg border border-border/50 gap-1">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2 overflow-hidden">
+                        <FileText className="w-4 h-4 text-primary shrink-0" />
+                        <span className="text-xs font-medium truncate">{arq.nome_arquivo}</span>
+                      </div>
+                      <a href={arq.arquivo_url} target="_blank" rel="noreferrer" className="p-2 text-muted-foreground hover:text-primary transition">
+                        <Download className="w-4 h-4" />
+                      </a>
+                    </div>
+                    <span className="text-[10px] text-muted-foreground opacity-70 ml-6">
+                      Enviado por: {arq.enviado_por_role === 'gestor' ? 'Gestor (Modelo Padrão)' : 'Técnico'}
+                    </span>
+                  </div>
+                ))
+              )}
+            </div>
+          </Card>
+        </section>
+
+        {/* Galeria / Fotos e Evidências */}
+        <section>
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-sm font-semibold text-muted-foreground flex items-center gap-2">
+              <Upload className="w-4 h-4" /> Fotos e Evidências
+            </h2>
+          </div>
+          <Card className="p-4 rounded-2xl border-border/60 shadow-[var(--shadow-card)]">
+            <div className="mb-4 flex flex-col items-center justify-center border-2 border-dashed border-border/60 rounded-xl p-6 bg-muted/20 relative overflow-hidden transition-all hover:bg-muted/40">
+              <input 
+                type="file" 
+                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" 
+                onChange={handleFileUpload('foto')}
+                accept="image/*"
+                disabled={isUploading}
+              />
+              {isUploading ? (
+                <Loader2 className="w-6 h-6 animate-spin text-primary mb-2" />
+              ) : (
+                <Upload className="w-6 h-6 text-muted-foreground mb-2" />
+              )}
+              <p className="text-xs text-muted-foreground text-center">
+                {isUploading ? "Enviando arquivo..." : "Toque aqui para anexar fotos."}
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              {isLoadingRat ? (
+                <div className="flex justify-center"><Loader2 className="w-4 h-4 animate-spin" /></div>
+              ) : !ratArquivos || ratArquivos.filter(a => a.tipo_arquivo === 'foto' || a.tipo_arquivo === 'evidencia' || (!a.tipo_arquivo && !a.nome_arquivo.includes('.pdf'))).length === 0 ? (
+                <p className="text-xs text-muted-foreground text-center">Nenhuma foto anexada.</p>
+              ) : (
+                ratArquivos
+                  .filter(a => a.tipo_arquivo === 'foto' || a.tipo_arquivo === 'evidencia' || (!a.tipo_arquivo && !a.nome_arquivo.includes('.pdf')))
+                  .map((arq) => (
                   <div key={arq.id} className="flex items-center justify-between bg-background p-2 rounded-lg border border-border/50">
                     <div className="flex items-center gap-2 overflow-hidden">
                       <FileText className="w-4 h-4 text-primary shrink-0" />
@@ -366,6 +405,26 @@ function TecnicoOSDetail() {
               )}
             </div>
           </Card>
+        </section>
+
+        {/* Status */}
+        <section>
+          <h2 className="text-sm font-semibold text-muted-foreground mb-2">Status da OS</h2>
+          <Select value={os.status} onValueChange={handleUpdateStatus} disabled={isUpdatingStatus}>
+            <SelectTrigger className="w-full h-14 rounded-xl font-bold bg-primary text-primary-foreground border-0 shadow-lg shadow-primary/20">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="agendamento">Agendamento (Pendente)</SelectItem>
+              <SelectItem value="em_andamento">Em Andamento (No local)</SelectItem>
+              <SelectItem value="concluido_tecnico">Concluído Técnico (Aguardando Aprovação)</SelectItem>
+              <SelectItem value="pendencia">Pendência (Falta algo)</SelectItem>
+              {profile?.role !== "tecnico" && (
+                <SelectItem value="concluido">Concluído</SelectItem>
+              )}
+              <SelectItem value="cancelado">Cancelado</SelectItem>
+            </SelectContent>
+          </Select>
         </section>
       </div>
     </TecnicoLayout>
