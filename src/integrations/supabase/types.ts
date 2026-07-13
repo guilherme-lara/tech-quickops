@@ -581,6 +581,13 @@ export type Database = {
         }
         Returns: string
       }
+      resetar_senha_tecnico: {
+        Args: {
+          p_tecnico_id: string
+          p_nova_senha: string
+        }
+        Returns: boolean
+      }
       get_current_empresa_id: { Args: never; Returns: string }
       get_email_by_username: { Args: { p_username: string }; Returns: string }
       gerar_chave_licenca_segura: {

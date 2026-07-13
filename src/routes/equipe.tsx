@@ -204,10 +204,6 @@ function EquipePage() {
     perfil: "Técnico de Campo",
     telefone: "",
     username: "",
-    senha: "",
-    tipo_comissao: "porcentagem" as TipoComissao,
-    comissao: "",
-    chave_pix: "",
     cidade_atendimento: "",
     raio_atendimento: "",
   };
@@ -231,10 +227,6 @@ function EquipePage() {
       perfil: t.perfil,
       telefone: t.telefone,
       username: t.username || "",
-      senha: "",
-      tipo_comissao: (t.tipo_comissao as TipoComissao) || "porcentagem",
-      comissao: t.comissao ? String(t.comissao) : "",
-      chave_pix: t.chave_pix || "",
       cidade_atendimento: dadosAdicionais.cidade_atendimento || "",
       raio_atendimento: dadosAdicionais.raio_atendimento
         ? String(dadosAdicionais.raio_atendimento)
@@ -252,6 +244,47 @@ function EquipePage() {
         `Técnico "${tecnico?.nome || id}" inativado por ${nomeUsuario}`,
       );
       toast.success("Técnico excluído!");
+    }
+  };
+
+  const generateRandomPassword = () => {
+    return Math.random().toString(36).slice(-8).toUpperCase();
+  };
+
+  const handleResetPassword = async (t: any) => {
+    if (!window.confirm(`Deseja gerar uma nova senha para ${t.nome}?`)) return;
+    
+    setSaving(true);
+    try {
+      const novaSenha = generateRandomPassword();
+      const { error } = await supabase.rpc("resetar_senha_tecnico", {
+        p_tecnico_id: t.id,
+        p_nova_senha: novaSenha
+      });
+      
+      if (error) throw error;
+      
+      await registrarLog("senha_resetada", `Senha de "${t.nome}" redefinida por ${nomeUsuario}`);
+      
+      const login = t.username || "—";
+      const text = `Olá ${t.nome}! Bem-vindo(a) à equipe técnica do Tech QuickOps.\n\nAqui estão suas credenciais exclusivas de acesso ao aplicativo:\n\n🏢 Código da Empresa: ${codigoEmpresa}\n👤 Usuário: ${login}\n🔑 Senha: ${novaSenha}\n\nPara acessar, acesse o link do sistema.`;
+      
+      toast.success(`Nova senha gerada para ${t.nome}!`, {
+        duration: 15000,
+        action: {
+          label: "Copiar / WhatsApp",
+          onClick: () => {
+            navigator.clipboard.writeText(text);
+            const wppUrl = `https://wa.me/?text=${encodeURIComponent(text)}`;
+            window.open(wppUrl, '_blank');
+            toast.success("Mensagem copiada e WhatsApp aberto!");
+          },
+        },
+      });
+    } catch (e: any) {
+      toast.error(e?.message ?? "Erro ao resetar senha");
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -285,7 +318,8 @@ function EquipePage() {
         if (!form.username.trim()) return toast.error("Informe o usuário (ex: joao.adami)");
         if (!/^[a-z0-9._-]+$/i.test(form.username))
           return toast.error("Usuário inválido (use letras, números, . _ -)");
-        if (form.senha.length < 6) return toast.error("Senha deve ter ao menos 6 caracteres");
+
+        const novaSenha = generateRandomPassword();
 
         const dadosAdicionais: any = {};
         if (form.cidade_atendimento) dadosAdicionais.cidade_atendimento = form.cidade_atendimento;
@@ -294,7 +328,7 @@ function EquipePage() {
         const { error } = await (supabase.rpc as any)("criar_tecnico", {
           p_nome: form.nome,
           p_username: form.username.toLowerCase(),
-          p_senha: form.senha,
+          p_senha: novaSenha,
           p_tipo_comissao: form.tipo_comissao,
           p_comissao: Number(form.comissao) || 0,
           p_telefone: form.telefone || null,
@@ -309,17 +343,18 @@ function EquipePage() {
         qc.invalidateQueries({ queryKey: ["tecnicos"] });
         qc.invalidateQueries({ queryKey: ["equipe_tecnicos"] });
         const login = form.username.toLowerCase();
-        const senha = form.senha;
-        toast.success(`Técnico cadastrado! Login: ${login}`, {
+        
+        const text = `Olá ${form.nome}! Bem-vindo(a) à nossa equipe técnica.\n\nAqui estão suas credenciais exclusivas de acesso ao aplicativo:\n\n🏢 Código da Empresa: ${codigoEmpresa}\n👤 Usuário: ${login}\n🔑 Senha: ${novaSenha}\n\nPara acessar, acesse o link do sistema.`;
+        
+        toast.success(`Técnico cadastrado com sucesso!`, {
           duration: 15000,
           action: {
-            label: "Copiar Credenciais",
+            label: "Copiar / WhatsApp",
             onClick: () => {
-              const text = `Usuário: ${login}\nEmpresa: ${codigoEmpresa}\nSenha: ${senha}`;
-              navigator.clipboard
-                .writeText(text)
-                .then(() => toast.success("Credenciais copiadas!"))
-                .catch(() => toast.error("Não foi possível copiar"));
+              navigator.clipboard.writeText(text);
+              const wppUrl = `https://wa.me/?text=${encodeURIComponent(text)}`;
+              window.open(wppUrl, '_blank');
+              toast.success("Mensagem copiada e WhatsApp aberto!");
             },
           },
         });
@@ -425,32 +460,6 @@ function EquipePage() {
                     />
                   </div>
                 )}
-                {!form.id && (
-                  <div>
-                    <Label>Senha inicial</Label>
-                    <div className="relative">
-                      <Input
-                        type={showPassword ? "text" : "password"}
-                        value={form.senha}
-                        onChange={(e) => setForm({ ...form, senha: e.target.value })}
-                        placeholder="Mín. 6 caracteres"
-                        className="pr-10"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowPassword((v) => !v)}
-                        className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                        aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
-                      >
-                        {showPassword ? (
-                          <EyeOff className="w-4 h-4" />
-                        ) : (
-                          <Eye className="w-4 h-4" />
-                        )}
-                      </button>
-                    </div>
-                  </div>
-                )}
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <Label>Telefone</Label>
@@ -519,32 +528,6 @@ function EquipePage() {
                     />
                   </div>
                 </div>
-                {form.id && (
-                  <div>
-                    <Label>Nova Senha (deixe em branco para manter a atual)</Label>
-                    <div className="relative">
-                      <Input
-                        type={showPassword ? "text" : "password"}
-                        value={form.senha}
-                        onChange={(e) => setForm({ ...form, senha: e.target.value })}
-                        placeholder="Mín. 6 caracteres"
-                        className="pr-10"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowPassword((v) => !v)}
-                        className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                        aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
-                      >
-                        {showPassword ? (
-                          <EyeOff className="w-4 h-4" />
-                        ) : (
-                          <Eye className="w-4 h-4" />
-                        )}
-                      </button>
-                    </div>
-                  </div>
-                )}
               </div>
               <DialogFooter>
                 <Button variant="outline" onClick={() => setOpen(false)} disabled={saving}>
@@ -659,6 +642,9 @@ function EquipePage() {
                                 <KeyRound className="mr-2 h-4 w-4" /> Gerar Acesso
                               </DropdownMenuItem>
                             )}
+                            <DropdownMenuItem onClick={() => handleResetPassword(t)}>
+                              <KeyRound className="mr-2 h-4 w-4" /> Gerar Nova Senha
+                            </DropdownMenuItem>
                             <DropdownMenuItem
                               onClick={() => handleDelete(t.id)}
                               className="text-destructive focus:text-destructive"
@@ -698,6 +684,9 @@ function EquipePage() {
                           <KeyRound className="mr-2 h-4 w-4" /> Gerar Acesso
                         </DropdownMenuItem>
                       )}
+                      <DropdownMenuItem onClick={() => handleResetPassword(t)}>
+                        <KeyRound className="mr-2 h-4 w-4" /> Gerar Nova Senha
+                      </DropdownMenuItem>
                       <DropdownMenuItem
                         onClick={() => handleDelete(t.id)}
                         className="text-destructive focus:text-destructive"

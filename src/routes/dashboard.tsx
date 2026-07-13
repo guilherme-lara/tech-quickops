@@ -93,7 +93,7 @@ function getLimitTimeBadge(
   return null;
 }
 
-function PriorityAlerts({ ordens, isLoading }: { ordens: any[]; isLoading: boolean }) {
+function PriorityAlerts({ ordens, isLoading, onEdit }: { ordens: any[]; isLoading: boolean; onEdit: (os: any) => void }) {
   if (isLoading) {
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
@@ -148,7 +148,8 @@ function PriorityAlerts({ ordens, isLoading }: { ordens: any[]; isLoading: boole
               {(Array.isArray(atrasadas) ? atrasadas : []).map((o) => (
                 <div
                   key={o.id}
-                  className="text-xs bg-card p-2.5 rounded-2xl border border-border/50 flex items-center justify-between gap-2"
+                  onClick={() => onEdit(o)}
+                  className="text-xs bg-card p-2.5 rounded-2xl border border-border/50 flex items-center justify-between gap-2 cursor-pointer hover:bg-muted/50 transition-colors"
                 >
                   <div className="min-w-0">
                     <p className="font-bold truncate text-foreground">{o.titulo}</p>
@@ -189,7 +190,8 @@ function PriorityAlerts({ ordens, isLoading }: { ordens: any[]; isLoading: boole
                 return (
                   <div
                     key={o.id}
-                    className="text-xs bg-card p-2.5 rounded-2xl border border-border/50 flex items-center justify-between gap-2"
+                    onClick={() => onEdit(o)}
+                    className="text-xs bg-card p-2.5 rounded-2xl border border-border/50 flex items-center justify-between gap-2 cursor-pointer hover:bg-muted/50 transition-colors"
                   >
                     <div className="min-w-0">
                       <p className="font-bold truncate text-foreground">{o.titulo}</p>
@@ -704,7 +706,7 @@ function Dashboard() {
         <MesAnoFilter />
       </div>
 
-      <PriorityAlerts ordens={alertasOSQ.data ?? []} isLoading={alertasOSQ.isLoading} />
+      <PriorityAlerts ordens={alertasOSQ.data ?? []} isLoading={alertasOSQ.isLoading} onEdit={(os) => setEditingOS(os)} />
       <PendingAlertsCard
         ordens={pendenciasOSQ.data ?? []}
         isLoading={pendenciasOSQ.isLoading}
