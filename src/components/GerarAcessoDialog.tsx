@@ -39,12 +39,10 @@ export function GerarAcessoDialog({
 }: Props) {
   const qc = useQueryClient();
   const [username, setUsername] = useState("");
-  const [senha, setSenha] = useState("");
   const [saving, setSaving] = useState(false);
 
   const reset = () => {
     setUsername("");
-    setSenha("");
   };
 
   const submit = async () => {
@@ -52,10 +50,11 @@ export function GerarAcessoDialog({
     const u = username.trim().toLowerCase();
     if (!u || !/^[a-z0-9._-]+$/i.test(u))
       return toast.error("Usuário inválido (use letras, números, . _ -)");
-    if (senha.length < 6) return toast.error("Senha deve ter ao menos 6 caracteres");
 
     setSaving(true);
     try {
+      const novaSenha = Math.random().toString(36).slice(-8).toUpperCase();
+
       // 1. Preserva sessão do admin
       const { data: sessData } = await supabase.auth.getSession();
       const adminSession = sessData.session;
@@ -65,7 +64,7 @@ export function GerarAcessoDialog({
       // 2. Cria conta de auth (client-side). Metadata alimenta o trigger handle_new_user.
       const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
         email,
-        password: senha,
+        password: novaSenha,
         options: {
           data: {
             role: "tecnico",
@@ -101,15 +100,17 @@ export function GerarAcessoDialog({
 
       if (linkError) throw linkError;
 
+      const text = `Olá ${tecnico.nome}! Bem-vindo(a) à nossa equipe técnica.\n\nAqui estão suas credenciais exclusivas de acesso ao aplicativo:\n\n🏢 Código da Empresa: ${codigoEmpresa}\n👤 Usuário: ${u}\n🔑 Senha: ${novaSenha}\n\nPara acessar, acesse o link do sistema.`;
+
       toast.success(`Acesso criado! Login: ${u}`, {
         duration: 15000,
         action: {
-          label: "Copiar",
+          label: "Copiar / WhatsApp",
           onClick: () => {
-            navigator.clipboard
-              .writeText(`Usuário: ${u}\nEmpresa: ${codigoEmpresa}\nSenha: ${senha}`)
-              .then(() => toast.success("Copiado!"))
-              .catch(() => {});
+            navigator.clipboard.writeText(text);
+            const wppUrl = `https://wa.me/?text=${encodeURIComponent(text)}`;
+            window.open(wppUrl, '_blank');
+            toast.success("Mensagem copiada e WhatsApp aberto!");
           },
         },
       });
@@ -157,16 +158,6 @@ export function GerarAcessoDialog({
             <p className="text-[11px] text-muted-foreground mt-1">
               Código da Empresa: <strong>{codigoEmpresa}</strong>
             </p>
-          </div>
-          <div>
-            <Label>Senha inicial</Label>
-            <Input
-              type="text"
-              value={senha}
-              onChange={(e) => setSenha(e.target.value)}
-              placeholder="mínimo 6 caracteres"
-              disabled={saving}
-            />
           </div>
         </div>
         <DialogFooter>

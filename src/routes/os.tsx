@@ -189,6 +189,7 @@ function OSPage() {
     try {
       const { data, error } = await (supabase.from("analistas_cliente" as any) as any)
         .insert([{
+          empresa_id: empresaId,
           nome: quickAnaForm.nome,
           whatsapp: quickAnaForm.whatsapp,
           cliente_id: form.clienteId,
@@ -1566,6 +1567,7 @@ export function EditOSDialog({
     try {
       const { data, error } = await (supabase.from("analistas_cliente" as any) as any)
         .insert([{
+          empresa_id: empresaId,
           nome: quickAnaForm.nome,
           whatsapp: quickAnaForm.whatsapp,
           cliente_id: form.clienteId,

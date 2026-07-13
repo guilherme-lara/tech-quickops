@@ -280,7 +280,7 @@ function Dashboard() {
   if (profile?.role === "analista") {
     return <Navigate to="/analista-dashboard" />;
   }
-  const { clientes, tecnicos, loadingOS, loadingClientes, osMonth, osYear, os, updateOS } =
+  const { allClientes: clientes, allTecnicos: tecnicos, loadingOS, loadingClientes, osMonth, osYear, os, updateOS } =
     useStore();
   const [editingOS, setEditingOS] = useState<OS | null>(null);
 
@@ -424,15 +424,56 @@ function Dashboard() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("ordens_servico")
-        .select(
-          "id, numero, titulo, status, data_agendamento, horario_atendimento, cliente_id, clientes(nome)",
-        )
+        .select("*, clientes(nome), tecnico:tecnicos(id, nome, perfil, telefone, ativo)")
         .neq("status", "concluido")
         .neq("status", "cancelado")
         .eq("empresa_id", profile?.empresa_id || "");
 
       if (error) throw error;
-      return data || [];
+
+      const parseDespesas = (value: any): Array<{ tipo: string; valor: number }> => {
+        if (Array.isArray(value)) return value;
+        if (typeof value === "string") {
+          try {
+            return JSON.parse(value);
+          } catch {
+            return [];
+          }
+        }
+        return [];
+      };
+
+      const dbToUiStatus: Record<string, OSStatus> = {
+        agendamento: "Agendamento",
+        em_andamento: "Em Andamento",
+        concluido_tecnico: "Concluído Técnico",
+        pendencia: "Pendência",
+        concluido: "Concluído",
+        cancelado: "Cancelado",
+      };
+
+      return (data || []).map((r: any) => ({
+        id: r.id,
+        numero: r.numero ?? "OS-?",
+        clienteId: r.cliente_id,
+        tecnicoId: r.tecnico_id ?? "",
+        analistaId: r.analista_id ?? "",
+        titulo: r.titulo || r.descricao_problema || "",
+        descricao_problema: r.descricao_problema ?? "",
+        status: dbToUiStatus[r.status] || r.status,
+        criadaEm: r.created_at,
+        data_agendamento: r.data_agendamento || "",
+        horario_atendimento: r.horario_atendimento || "",
+        valor: Number(r.valor_total) || 0,
+        custo_viagem: Number(r.custo_viagem) || 0,
+        km_viagem: Number(r.km_viagem) || 0,
+        despesas: parseDespesas(r.despesas),
+        rat: r.rat ? (typeof r.rat === "string" ? JSON.parse(r.rat) : r.rat) : { itens: [], evidencias: [] },
+        dados_adicionais: r.dados_adicionais || {},
+        clientes: r.clientes,
+        tecnico: r.tecnico,
+        pendencias_detalhes: r.pendencias_detalhes || "",
+      })) as any[];
     },
   });
 

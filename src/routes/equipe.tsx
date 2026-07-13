@@ -637,13 +637,12 @@ function EquipePage() {
                             <DropdownMenuItem onClick={() => openEdit(t)}>
                               <Edit2 className="mr-2 h-4 w-4" /> Editar
                             </DropdownMenuItem>
-                            {!t.user_id && (
-                              <DropdownMenuItem onClick={() => setGerarAcessoFor(t)}>
-                                <KeyRound className="mr-2 h-4 w-4" /> Gerar Acesso
-                              </DropdownMenuItem>
-                            )}
-                            <DropdownMenuItem onClick={() => handleResetPassword(t)}>
-                              <KeyRound className="mr-2 h-4 w-4" /> Gerar Nova Senha
+                            <DropdownMenuItem onClick={() => {
+                              if (!t.user_id) setGerarAcessoFor(t);
+                              else handleResetPassword(t);
+                            }}>
+                              <KeyRound className="mr-2 h-4 w-4" /> 
+                              {!t.user_id ? "Gerar Acesso" : "Gerar Nova Senha"}
                             </DropdownMenuItem>
                             <DropdownMenuItem
                               onClick={() => handleDelete(t.id)}
@@ -679,13 +678,12 @@ function EquipePage() {
                       <DropdownMenuItem onClick={() => openEdit(t)}>
                         <Edit2 className="mr-2 h-4 w-4" /> Editar
                       </DropdownMenuItem>
-                      {!t.user_id && (
-                        <DropdownMenuItem onClick={() => setGerarAcessoFor(t)}>
-                          <KeyRound className="mr-2 h-4 w-4" /> Gerar Acesso
-                        </DropdownMenuItem>
-                      )}
-                      <DropdownMenuItem onClick={() => handleResetPassword(t)}>
-                        <KeyRound className="mr-2 h-4 w-4" /> Gerar Nova Senha
+                      <DropdownMenuItem onClick={() => {
+                        if (!t.user_id) setGerarAcessoFor(t);
+                        else handleResetPassword(t);
+                      }}>
+                        <KeyRound className="mr-2 h-4 w-4" /> 
+                        {!t.user_id ? "Gerar Acesso" : "Gerar Nova Senha"}
                       </DropdownMenuItem>
                       <DropdownMenuItem
                         onClick={() => handleDelete(t.id)}
