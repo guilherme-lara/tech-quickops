@@ -3,7 +3,7 @@ CREATE OR REPLACE FUNCTION public.resetar_senha_tecnico(p_tecnico_id UUID, p_nov
 RETURNS BOOLEAN
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path = public, auth
+SET search_path = public, auth, extensions
 AS $$
 DECLARE
     v_empresa_id UUID;
