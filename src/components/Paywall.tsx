@@ -107,6 +107,7 @@ export function Paywall() {
             Sair
           </Button>
         </div>
+        </div>
 
       </div>
     </div>
