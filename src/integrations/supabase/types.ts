@@ -120,6 +120,8 @@ export type Database = {
           logo_url: string | null
           nome_fantasia: string
           telefone_empresa: string | null
+          status_licenca: string | null
+          chave_ativacao: string | null
         }
         Insert: {
           cnpj?: string | null
@@ -131,6 +133,8 @@ export type Database = {
           logo_url?: string | null
           nome_fantasia: string
           telefone_empresa?: string | null
+          status_licenca?: string | null
+          chave_ativacao?: string | null
         }
         Update: {
           cnpj?: string | null
@@ -142,6 +146,8 @@ export type Database = {
           logo_url?: string | null
           nome_fantasia?: string
           telefone_empresa?: string | null
+          status_licenca?: string | null
+          chave_ativacao?: string | null
         }
         Relationships: []
       }

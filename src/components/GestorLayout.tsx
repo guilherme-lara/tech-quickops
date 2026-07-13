@@ -15,6 +15,7 @@ import {
   FileText,
   PieChart,
   Shield,
+  ShieldAlert,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -43,6 +44,7 @@ const allNavItems = [
   { to: "/estoque", label: "Inventário", icon: Package },
   { to: "/logs", label: "Logs e Auditoria", icon: FileText },
   { to: "/configuracoes", label: "Configurações", icon: Settings },
+  { to: "/superadmin/licencas", label: "Super Admin", icon: ShieldAlert },
 ] as const;
 
 export function GestorLayout({ children }: { children?: ReactNode }) {
@@ -60,6 +62,11 @@ export function GestorLayout({ children }: { children?: ReactNode }) {
     if (profile?.role === "analista") {
       const allowedForAnalista = ["/analista-dashboard", "/os", "/clientes", "/equipe"];
       return allowedForAnalista.includes(item.to);
+    }
+    
+    // superadmin
+    if (item.to === "/superadmin/licencas") {
+      return profile?.role === "superadmin";
     }
     
     // gestor, admin, superadmin
