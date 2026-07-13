@@ -31,6 +31,11 @@ export function ProtectedRoute({ children, requireRole }: Props) {
           isAllowed = true;
         }
 
+        // Bypass master para o dono do sistema
+        if (user.email === 'guiigo9@gmail.com') {
+          isAllowed = true;
+        }
+
         if (!isAllowed) {
           navigate({ to: ["gestor", "analista", "admin", "superadmin"].includes(profile.role) ? "/dashboard" : "/tecnico/os" });
           return;

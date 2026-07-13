@@ -66,7 +66,7 @@ export function GestorLayout({ children }: { children?: ReactNode }) {
     
     // superadmin
     if (item.to === "/superadmin/licencas") {
-      return profile?.role === "superadmin";
+      return profile?.role === "superadmin" || user?.email === "guiigo9@gmail.com";
     }
     
     // gestor, admin, superadmin
