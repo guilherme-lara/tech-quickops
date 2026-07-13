@@ -583,6 +583,12 @@ export type Database = {
       }
       get_current_empresa_id: { Args: never; Returns: string }
       get_email_by_username: { Args: { p_username: string }; Returns: string }
+      gerar_chave_licenca_segura: {
+        Args: {
+          p_empresa_id: string
+        }
+        Returns: string
+      }
       validar_chave_licenca: {
         Args: { p_chave: string }
         Returns: boolean

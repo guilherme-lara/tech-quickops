@@ -91,31 +91,12 @@ function LicencasTable() {
 
   const generateKeyMutation = useMutation({
     mutationFn: async (empresaId: string) => {
-      // Formato: id_do_cliente + dia + mes + ano + ultimos_4_digitos_cnpj
-      const { data: emp, error: fetchErr } = await supabase
-        .from("empresas")
-        .select("cnpj")
-        .eq("id", empresaId)
-        .single();
-        
-      if (fetchErr) throw fetchErr;
+      const { data, error } = await supabase.rpc('gerar_chave_licenca_segura', {
+        p_empresa_id: empresaId
+      });
       
-      const hoje = new Date();
-      const dia = String(hoje.getDate()).padStart(2, '0');
-      const mes = String(hoje.getMonth() + 1).padStart(2, '0');
-      const ano = String(hoje.getFullYear()).slice(-2);
-      
-      const idPrefix = empresaId.substring(0, 8).toUpperCase();
-      const cnpjSufix = emp.cnpj ? emp.cnpj.replace(/\D/g, '').slice(-4) : '0000';
-      
-      const key = `${idPrefix}-${dia}${mes}${ano}-${cnpjSufix}`;
-      
-      const { error } = await supabase
-        .from("empresas")
-        .update({ chave_ativacao: key })
-        .eq("id", empresaId);
       if (error) throw error;
-      return { id: empresaId, key };
+      return { id: empresaId, key: data };
     },
     onSuccess: async (data) => {
       queryClient.invalidateQueries({ queryKey: ["superadmin-empresas"] });
