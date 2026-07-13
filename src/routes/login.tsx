@@ -141,10 +141,15 @@ function LoginPage() {
                   <Label className="text-xs font-semibold text-primary">CÓDIGO DA EMPRESA</Label>
                   <Input
                     type="text"
-                    placeholder="ex: quickops"
+                    placeholder="ex: 00001"
+                    maxLength={5}
                     value={loginCodigo}
-                    onChange={(e) => setLoginCodigo(e.target.value.toLowerCase())}
-                    className="h-12 rounded-xl border-primary/50 focus-visible:ring-primary"
+                    onChange={(e) => {
+                      // Permite apenas números (máscara)
+                      const onlyNumbers = e.target.value.replace(/\D/g, "");
+                      setLoginCodigo(onlyNumbers);
+                    }}
+                    className="h-12 rounded-xl border-primary/50 focus-visible:ring-primary font-mono text-lg tracking-widest"
                   />
                   <p className="text-[11px] text-muted-foreground">
                     Obrigatório para login de técnico. Peça ao seu gestor.
