@@ -81,7 +81,6 @@ function LicencasTable() {
       if (error) throw error;
       return { id: empresaId, key };
     },
-    },
     onSuccess: async (data) => {
       queryClient.invalidateQueries({ queryKey: ["superadmin-empresas"] });
       toast.success("Nova chave gerada com sucesso!");
