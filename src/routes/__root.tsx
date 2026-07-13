@@ -12,6 +12,7 @@ import { AuthProvider } from "@/lib/auth-context";
 import { Toaster } from "@/components/ui/sonner";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 import appCss from "../styles.css?url";
 
@@ -90,7 +91,34 @@ function AuthGate() {
 }
 
 function RootComponent() {
-  const [qc] = useState(() => new QueryClient());
+  const [qc] = useState(() => new QueryClient({
+    defaultOptions: {
+      queries: {
+        refetchOnWindowFocus: true,
+        staleTime: 1000 * 60 * 5, // 5 minutos, mas será invalidado via realtime
+      },
+    },
+  }));
+
+  useEffect(() => {
+    const channel = supabase
+      .channel("global-db-changes")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public" },
+        (payload) => {
+          console.log("Realtime Update Recebido:", payload);
+          // Invalida todas as queries do React Query, forçando um recarregamento em background suave (sem loaders) nas telas que estiverem abertas
+          qc.invalidateQueries();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [qc]);
+
   return (
     <QueryClientProvider client={qc}>
       <StoreProvider>
