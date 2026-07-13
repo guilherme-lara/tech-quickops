@@ -51,7 +51,26 @@ function LicencasTable() {
 
   const generateKeyMutation = useMutation({
     mutationFn: async (empresaId: string) => {
-      const key = `QOP-${Math.random().toString(36).substring(2, 6).toUpperCase()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
+      // Formato: id_do_cliente + dia + mes + ano + ultimos_4_digitos_cnpj
+      // Buscar a empresa para pegar o CNPJ
+      const { data: emp, error: fetchErr } = await supabase
+        .from("empresas")
+        .select("cnpj")
+        .eq("id", empresaId)
+        .single();
+        
+      if (fetchErr) throw fetchErr;
+      
+      const hoje = new Date();
+      const dia = String(hoje.getDate()).padStart(2, '0');
+      const mes = String(hoje.getMonth() + 1).padStart(2, '0');
+      const ano = String(hoje.getFullYear()).slice(-2);
+      
+      const idPrefix = empresaId.substring(0, 8).toUpperCase();
+      const cnpjSufix = emp.cnpj ? emp.cnpj.replace(/\D/g, '').slice(-4) : '0000';
+      
+      const key = `${idPrefix}-${dia}${mes}${ano}-${cnpjSufix}`;
+      
       const { error } = await supabase
         .from("empresas")
         .update({ chave_ativacao: key })

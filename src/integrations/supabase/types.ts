@@ -122,6 +122,7 @@ export type Database = {
           telefone_empresa: string | null
           status_licenca: string | null
           chave_ativacao: string | null
+          data_vencimento: string | null
         }
         Insert: {
           cnpj?: string | null
@@ -135,6 +136,7 @@ export type Database = {
           telefone_empresa?: string | null
           status_licenca?: string | null
           chave_ativacao?: string | null
+          data_vencimento?: string | null
         }
         Update: {
           cnpj?: string | null
@@ -148,6 +150,7 @@ export type Database = {
           telefone_empresa?: string | null
           status_licenca?: string | null
           chave_ativacao?: string | null
+          data_vencimento?: string | null
         }
         Relationships: []
       }
@@ -580,6 +583,10 @@ export type Database = {
       }
       get_current_empresa_id: { Args: never; Returns: string }
       get_email_by_username: { Args: { p_username: string }; Returns: string }
+      validar_chave_licenca: {
+        Args: { p_chave: string }
+        Returns: boolean
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]

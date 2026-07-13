@@ -10,7 +10,7 @@ import { useAuth } from "@/lib/auth-context";
 import { useState, useEffect, useRef } from "react";
 import { toast } from "sonner";
 import { logActivity } from "@/lib/logger";
-import { User, Building2, Save, KeyRound, Upload, Camera, Building, Copy } from "lucide-react";
+import { User, Building2, Save, KeyRound, Upload, Camera, Building, Copy, ShieldCheck, ShieldAlert, CalendarClock, LockKeyhole } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -114,6 +114,13 @@ function ConfiguracoesPage() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [savingPassword, setSavingPassword] = useState(false);
 
+  // License / Subscription State
+  const [statusLicenca, setStatusLicenca] = useState("");
+  const [dataVencimento, setDataVencimento] = useState<string | null>(null);
+  const [chaveAtivacao, setChaveAtivacao] = useState("");
+  const [validandoChave, setValidandoChave] = useState(false);
+  const [diasRestantes, setDiasRestantes] = useState<number | null>(null);
+
   useEffect(() => {
     if (user) {
       setNome(user.nome || "");
@@ -123,6 +130,30 @@ function ConfiguracoesPage() {
       setEndereco(user.empresaEndereco || "");
       setTelefone(user.empresaTelefone || "");
       setLogoUrl(user.empresaLogo || "");
+      
+      // Fetch data that might not be in useStore (like data_vencimento and status)
+      const fetchLicense = async () => {
+        if (!user.empresaId) return;
+        const { data } = await supabase
+          .from("empresas")
+          .select("status_licenca, data_vencimento")
+          .eq("id", user.empresaId)
+          .single();
+          
+        if (data) {
+          setStatusLicenca(data.status_licenca || "ativo");
+          setDataVencimento(data.data_vencimento);
+          
+          if (data.data_vencimento) {
+            const venc = new Date(data.data_vencimento);
+            const hoje = new Date();
+            const diffTime = venc.getTime() - hoje.getTime();
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            setDiasRestantes(diffDays);
+          }
+        }
+      };
+      fetchLicense();
     }
   }, [user]);
 
@@ -221,6 +252,44 @@ function ConfiguracoesPage() {
     }
   };
 
+  const handleValidarChave = async () => {
+    if (!chaveAtivacao.trim()) {
+      return toast.error("Insira a chave de ativação para validar.");
+    }
+    setValidandoChave(true);
+    try {
+      const { data, error } = await supabase.rpc('validar_chave_licenca', {
+        p_chave: chaveAtivacao.trim()
+      });
+      
+      if (error) throw error;
+      
+      if (data) {
+        toast.success("Chave validada com sucesso! Sua licença foi estendida por mais 30 dias.");
+        setChaveAtivacao("");
+        // Reload data
+        const res = await supabase.from("empresas").select("status_licenca, data_vencimento").eq("id", user?.empresaId).single();
+        if (res.data) {
+          setStatusLicenca(res.data.status_licenca || "ativo");
+          setDataVencimento(res.data.data_vencimento);
+          if (res.data.data_vencimento) {
+            const venc = new Date(res.data.data_vencimento);
+            const hoje = new Date();
+            const diffTime = venc.getTime() - hoje.getTime();
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            setDiasRestantes(diffDays);
+          }
+        }
+      } else {
+        toast.error("Chave de ativação inválida ou já utilizada.");
+      }
+    } catch (e: any) {
+      toast.error(e.message ?? "Erro ao validar chave");
+    } finally {
+      setValidandoChave(false);
+    }
+  };
+
   return (
     <GestorLayout>
       <div className="max-w-3xl mx-auto space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-20">
@@ -232,6 +301,81 @@ function ConfiguracoesPage() {
         </div>
 
         <div className="grid gap-6">
+          {/* ASSINATURA E LICENÇA */}
+          <Card className="p-5 md:p-6 shadow-sm border-border/40 bg-gradient-to-br from-card to-card/50">
+            <div className="flex flex-col md:flex-row md:items-start justify-between gap-6">
+              <div className="space-y-4 flex-1">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-10 h-10 rounded-xl bg-violet-500/10 flex items-center justify-center">
+                    <CalendarClock className="w-5 h-5 text-violet-500" />
+                  </div>
+                  <div>
+                    <h2 className="font-semibold text-lg">Visão Geral da Assinatura</h2>
+                    <p className="text-xs text-muted-foreground">Status e renovação do seu plano</p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1 bg-muted/30 p-3 rounded-lg border border-border/50">
+                    <p className="text-xs text-muted-foreground">Status do Sistema</p>
+                    <div className="flex items-center gap-2">
+                      {statusLicenca === 'bloqueado' ? (
+                        <div className="flex items-center gap-1.5 text-red-500 font-medium">
+                          <ShieldAlert className="w-4 h-4" /> Bloqueado
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-1.5 text-green-500 font-medium">
+                          <ShieldCheck className="w-4 h-4" /> Ativo
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-1 bg-muted/30 p-3 rounded-lg border border-border/50">
+                    <p className="text-xs text-muted-foreground">Renovação</p>
+                    <div className="flex flex-col">
+                      <span className="font-medium">
+                        {dataVencimento ? new Date(dataVencimento).toLocaleDateString('pt-BR') : '--/--/----'}
+                      </span>
+                      {diasRestantes !== null && (
+                        <span className={`text-xs ${diasRestantes <= 5 ? 'text-red-500 font-bold' : 'text-muted-foreground'}`}>
+                          {diasRestantes > 0 ? `Expira em ${diasRestantes} dia(s)` : 'Assinatura expirada'}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex-1 w-full md:max-w-xs space-y-4 bg-muted/20 p-4 rounded-xl border border-border/50">
+                <div className="space-y-2">
+                  <Label className="flex items-center gap-2">
+                    <LockKeyhole className="w-4 h-4 text-primary" />
+                    Renovar Assinatura
+                  </Label>
+                  <p className="text-xs text-muted-foreground leading-relaxed">
+                    Insira a nova chave de ativação para renovar seu acesso por mais 30 dias. Entre em contato pelo WhatsApp para adquirir a chave.
+                  </p>
+                </div>
+                <div className="flex flex-col gap-2 pt-2">
+                  <Input 
+                    placeholder="QOP-XXXX-XXXX-XXXX" 
+                    value={chaveAtivacao}
+                    onChange={(e) => setChaveAtivacao(e.target.value)}
+                    className="font-mono text-xs uppercase"
+                  />
+                  <Button 
+                    onClick={handleValidarChave} 
+                    disabled={validandoChave || !chaveAtivacao.trim()}
+                    className="w-full h-9 text-xs"
+                  >
+                    {validandoChave ? "Validando..." : "Validar Licença"}
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </Card>
+
           {/* PERFIL */}
           <Card className="p-5 md:p-6 shadow-sm border-border/40">
             <div className="flex items-center justify-between mb-6">
