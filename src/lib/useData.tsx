@@ -954,17 +954,14 @@ export function StoreProvider({ children }: { children: ReactNode }) {
           return { error: "Conta criada! Confirme seu e-mail antes de continuar o cadastro." };
         }
 
-        const codigo_empresa = dominio ? dominio.split('.')[0].toLowerCase() : empresa.toLowerCase().replace(/[^a-z0-9]/g, '');
-
         const { data: empresaRow, error: empresaError } = await supabase
           .from("empresas")
           .insert({ 
             nome_fantasia: empresa,
-            codigo_empresa,
             cnpj: cnpj || null,
             telefone_empresa: telefone || null
           })
-          .select("id")
+          .select("id, codigo_empresa")
           .single();
         if (empresaError || !empresaRow) {
           return { error: `Erro ao criar empresa: ${empresaError?.message ?? "desconhecido"}` };
@@ -988,7 +985,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
           role: "gestor",
           empresaId: empresaRow.id,
           empresaNome: empresa,
-          empresaCodigo: codigo_empresa,
+          empresaCodigo: empresaRow.codigo_empresa || "",
         });
         return {};
       } catch (err) {
