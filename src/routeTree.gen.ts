@@ -20,11 +20,11 @@ import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as ConfiguracoesRouteImport } from './routes/configuracoes'
 import { Route as ClientesRouteImport } from './routes/clientes'
 import { Route as AnalistaDashboardRouteImport } from './routes/analista-dashboard'
+import { Route as AdminSistemaRouteImport } from './routes/admin-sistema'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as TecnicoPerfilRouteImport } from './routes/tecnico.perfil'
 import { Route as TecnicoHistoricoRouteImport } from './routes/tecnico.historico'
 import { Route as TecnicoDashboardRouteImport } from './routes/tecnico.dashboard'
-import { Route as SuperadminLicencasRouteImport } from './routes/superadmin.licencas'
 import { Route as TecnicoOsIndexRouteImport } from './routes/tecnico.os.index'
 import { Route as TecnicoOsIdRouteImport } from './routes/tecnico.os.$id'
 import { Route as TecnicoOsIdRatRouteImport } from './routes/tecnico.os.$id.rat'
@@ -84,6 +84,11 @@ const AnalistaDashboardRoute = AnalistaDashboardRouteImport.update({
   path: '/analista-dashboard',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminSistemaRoute = AdminSistemaRouteImport.update({
+  id: '/admin-sistema',
+  path: '/admin-sistema',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -104,11 +109,6 @@ const TecnicoDashboardRoute = TecnicoDashboardRouteImport.update({
   path: '/tecnico/dashboard',
   getParentRoute: () => rootRouteImport,
 } as any)
-const SuperadminLicencasRoute = SuperadminLicencasRouteImport.update({
-  id: '/superadmin/licencas',
-  path: '/superadmin/licencas',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const TecnicoOsIndexRoute = TecnicoOsIndexRouteImport.update({
   id: '/tecnico/os/',
   path: '/tecnico/os/',
@@ -127,6 +127,7 @@ const TecnicoOsIdRatRoute = TecnicoOsIdRatRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/admin-sistema': typeof AdminSistemaRoute
   '/analista-dashboard': typeof AnalistaDashboardRoute
   '/clientes': typeof ClientesRoute
   '/configuracoes': typeof ConfiguracoesRoute
@@ -138,7 +139,6 @@ export interface FileRoutesByFullPath {
   '/logs': typeof LogsRoute
   '/os': typeof OsRoute
   '/usuarios': typeof UsuariosRoute
-  '/superadmin/licencas': typeof SuperadminLicencasRoute
   '/tecnico/dashboard': typeof TecnicoDashboardRoute
   '/tecnico/historico': typeof TecnicoHistoricoRoute
   '/tecnico/perfil': typeof TecnicoPerfilRoute
@@ -148,6 +148,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/admin-sistema': typeof AdminSistemaRoute
   '/analista-dashboard': typeof AnalistaDashboardRoute
   '/clientes': typeof ClientesRoute
   '/configuracoes': typeof ConfiguracoesRoute
@@ -159,7 +160,6 @@ export interface FileRoutesByTo {
   '/logs': typeof LogsRoute
   '/os': typeof OsRoute
   '/usuarios': typeof UsuariosRoute
-  '/superadmin/licencas': typeof SuperadminLicencasRoute
   '/tecnico/dashboard': typeof TecnicoDashboardRoute
   '/tecnico/historico': typeof TecnicoHistoricoRoute
   '/tecnico/perfil': typeof TecnicoPerfilRoute
@@ -170,6 +170,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/admin-sistema': typeof AdminSistemaRoute
   '/analista-dashboard': typeof AnalistaDashboardRoute
   '/clientes': typeof ClientesRoute
   '/configuracoes': typeof ConfiguracoesRoute
@@ -181,7 +182,6 @@ export interface FileRoutesById {
   '/logs': typeof LogsRoute
   '/os': typeof OsRoute
   '/usuarios': typeof UsuariosRoute
-  '/superadmin/licencas': typeof SuperadminLicencasRoute
   '/tecnico/dashboard': typeof TecnicoDashboardRoute
   '/tecnico/historico': typeof TecnicoHistoricoRoute
   '/tecnico/perfil': typeof TecnicoPerfilRoute
@@ -193,6 +193,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/admin-sistema'
     | '/analista-dashboard'
     | '/clientes'
     | '/configuracoes'
@@ -204,7 +205,6 @@ export interface FileRouteTypes {
     | '/logs'
     | '/os'
     | '/usuarios'
-    | '/superadmin/licencas'
     | '/tecnico/dashboard'
     | '/tecnico/historico'
     | '/tecnico/perfil'
@@ -214,6 +214,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/admin-sistema'
     | '/analista-dashboard'
     | '/clientes'
     | '/configuracoes'
@@ -225,7 +226,6 @@ export interface FileRouteTypes {
     | '/logs'
     | '/os'
     | '/usuarios'
-    | '/superadmin/licencas'
     | '/tecnico/dashboard'
     | '/tecnico/historico'
     | '/tecnico/perfil'
@@ -235,6 +235,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/admin-sistema'
     | '/analista-dashboard'
     | '/clientes'
     | '/configuracoes'
@@ -246,7 +247,6 @@ export interface FileRouteTypes {
     | '/logs'
     | '/os'
     | '/usuarios'
-    | '/superadmin/licencas'
     | '/tecnico/dashboard'
     | '/tecnico/historico'
     | '/tecnico/perfil'
@@ -257,6 +257,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AdminSistemaRoute: typeof AdminSistemaRoute
   AnalistaDashboardRoute: typeof AnalistaDashboardRoute
   ClientesRoute: typeof ClientesRoute
   ConfiguracoesRoute: typeof ConfiguracoesRoute
@@ -268,7 +269,6 @@ export interface RootRouteChildren {
   LogsRoute: typeof LogsRoute
   OsRoute: typeof OsRoute
   UsuariosRoute: typeof UsuariosRoute
-  SuperadminLicencasRoute: typeof SuperadminLicencasRoute
   TecnicoDashboardRoute: typeof TecnicoDashboardRoute
   TecnicoHistoricoRoute: typeof TecnicoHistoricoRoute
   TecnicoPerfilRoute: typeof TecnicoPerfilRoute
@@ -355,6 +355,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AnalistaDashboardRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin-sistema': {
+      id: '/admin-sistema'
+      path: '/admin-sistema'
+      fullPath: '/admin-sistema'
+      preLoaderRoute: typeof AdminSistemaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -381,13 +388,6 @@ declare module '@tanstack/react-router' {
       path: '/tecnico/dashboard'
       fullPath: '/tecnico/dashboard'
       preLoaderRoute: typeof TecnicoDashboardRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/superadmin/licencas': {
-      id: '/superadmin/licencas'
-      path: '/superadmin/licencas'
-      fullPath: '/superadmin/licencas'
-      preLoaderRoute: typeof SuperadminLicencasRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/tecnico/os/': {
@@ -428,6 +428,7 @@ const TecnicoOsIdRouteWithChildren = TecnicoOsIdRoute._addFileChildren(
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AdminSistemaRoute: AdminSistemaRoute,
   AnalistaDashboardRoute: AnalistaDashboardRoute,
   ClientesRoute: ClientesRoute,
   ConfiguracoesRoute: ConfiguracoesRoute,
@@ -439,7 +440,6 @@ const rootRouteChildren: RootRouteChildren = {
   LogsRoute: LogsRoute,
   OsRoute: OsRoute,
   UsuariosRoute: UsuariosRoute,
-  SuperadminLicencasRoute: SuperadminLicencasRoute,
   TecnicoDashboardRoute: TecnicoDashboardRoute,
   TecnicoHistoricoRoute: TecnicoHistoricoRoute,
   TecnicoPerfilRoute: TecnicoPerfilRoute,

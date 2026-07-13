@@ -44,7 +44,6 @@ const allNavItems = [
   { to: "/estoque", label: "Inventário", icon: Package },
   { to: "/logs", label: "Logs e Auditoria", icon: FileText },
   { to: "/configuracoes", label: "Configurações", icon: Settings },
-  { to: "/superadmin/licencas", label: "Super Admin", icon: ShieldAlert },
 ] as const;
 
 export function GestorLayout({ children }: { children?: ReactNode }) {
@@ -63,12 +62,6 @@ export function GestorLayout({ children }: { children?: ReactNode }) {
       const allowedForAnalista = ["/analista-dashboard", "/os", "/clientes", "/equipe"];
       return allowedForAnalista.includes(item.to);
     }
-    
-    // superadmin
-    if (item.to === "/superadmin/licencas") {
-      return profile?.role === "superadmin" || user?.email === "guiigo9@gmail.com";
-    }
-    
     // gestor, admin, superadmin
     if (item.to === "/analista-dashboard") return false; // Default dashboard is /dashboard
     
