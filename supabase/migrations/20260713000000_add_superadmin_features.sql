@@ -7,25 +7,29 @@ ADD COLUMN IF NOT EXISTS chave_ativacao VARCHAR(255);
 -- Se o usuário tiver a role 'superadmin', ele pode ver e editar TODAS as empresas.
 
 -- Política para SELECT
+DROP POLICY IF EXISTS "superadmin_select_all" ON public.empresas;
 CREATE POLICY "superadmin_select_all" ON public.empresas 
 FOR SELECT TO authenticated 
-USING (public.has_role(auth.uid(), 'superadmin'::public.app_role));
+USING (EXISTS (SELECT 1 FROM public.perfis WHERE id = auth.uid() AND role = 'superadmin'::public.app_role));
 
 -- Política para INSERT
+DROP POLICY IF EXISTS "superadmin_insert_all" ON public.empresas;
 CREATE POLICY "superadmin_insert_all" ON public.empresas 
 FOR INSERT TO authenticated 
-WITH CHECK (public.has_role(auth.uid(), 'superadmin'::public.app_role));
+WITH CHECK (EXISTS (SELECT 1 FROM public.perfis WHERE id = auth.uid() AND role = 'superadmin'::public.app_role));
 
 -- Política para UPDATE
+DROP POLICY IF EXISTS "superadmin_update_all" ON public.empresas;
 CREATE POLICY "superadmin_update_all" ON public.empresas 
 FOR UPDATE TO authenticated 
-USING (public.has_role(auth.uid(), 'superadmin'::public.app_role))
-WITH CHECK (public.has_role(auth.uid(), 'superadmin'::public.app_role));
+USING (EXISTS (SELECT 1 FROM public.perfis WHERE id = auth.uid() AND role = 'superadmin'::public.app_role))
+WITH CHECK (EXISTS (SELECT 1 FROM public.perfis WHERE id = auth.uid() AND role = 'superadmin'::public.app_role));
 
 -- Política para DELETE
+DROP POLICY IF EXISTS "superadmin_delete_all" ON public.empresas;
 CREATE POLICY "superadmin_delete_all" ON public.empresas 
 FOR DELETE TO authenticated 
-USING (public.has_role(auth.uid(), 'superadmin'::public.app_role));
+USING (EXISTS (SELECT 1 FROM public.perfis WHERE id = auth.uid() AND role = 'superadmin'::public.app_role));
 
 -- Define o usuário 'guiigo9@gmail.com' como superadmin
 UPDATE public.perfis

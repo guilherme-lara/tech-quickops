@@ -22,16 +22,19 @@ export function ProtectedRoute({ children, requireRole }: Props) {
       navigate({ to: "/login" });
       return;
     }
-    if (requireRole && profile) {
-      let isAllowed = profile.role === requireRole;
-      
-      // Analistas e Admins têm acesso às telas do Gestor
-      if (requireRole === "gestor" && ["analista", "admin", "superadmin"].includes(profile.role)) {
-        isAllowed = true;
-      }
+    if (profile) {
+      if (requireRole) {
+        let isAllowed = profile.role === requireRole;
+        
+        // Analistas e Admins têm acesso às telas do Gestor
+        if (requireRole === "gestor" && ["analista", "admin", "superadmin"].includes(profile.role)) {
+          isAllowed = true;
+        }
 
-      if (!isAllowed) {
-        navigate({ to: ["gestor", "analista", "admin", "superadmin"].includes(profile.role) ? "/dashboard" : "/tecnico/os" });
+        if (!isAllowed) {
+          navigate({ to: ["gestor", "analista", "admin", "superadmin"].includes(profile.role) ? "/dashboard" : "/tecnico/os" });
+          return;
+        }
       }
 
       // Verifica o status da licença
@@ -41,8 +44,11 @@ export function ProtectedRoute({ children, requireRole }: Props) {
           .select('status_licenca')
           .eq('id', profile.empresa_id)
           .single()
-          .then(({ data }) => {
-            if (data?.status_licenca === 'bloqueado') {
+          .then(({ data, error }) => {
+            if (error) {
+              console.error(error);
+              setIsBlocked(false);
+            } else if (data?.status_licenca === 'bloqueado') {
               setIsBlocked(true);
             } else {
               setIsBlocked(false);
