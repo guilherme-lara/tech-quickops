@@ -40,6 +40,7 @@ export function useTecnicos(empresaId?: string, page: number = 0, search: string
         tipo_comissao: (r.tipo_comissao as TipoComissao) ?? "fixo",
         chave_pix: r.chave_pix ?? "",
         username: r.username ?? "",
+        user_id: r.user_id ?? null,
         dados_adicionais: r.dados_adicionais ?? {},
       }));
 

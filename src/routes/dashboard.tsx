@@ -12,6 +12,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
+import { logActivity } from "@/lib/logger";
 import {
   ClipboardList,
   CheckCircle2,
@@ -884,17 +885,17 @@ function Dashboard() {
             <div className="flex items-center justify-between mb-5">
               <div>
                 <h3 className="font-bold text-lg">Atividades Recentes</h3>
-                <p className="text-xs text-muted-foreground">Últimas ordens de serviço</p>
+                <p className="text-xs text-muted-foreground">Últimas ações do sistema</p>
               </div>
               <Link
-                to="/os"
+                to="/logs"
                 className="text-xs font-semibold text-primary flex items-center gap-1 hover:gap-2 transition-all"
               >
                 Ver todas <ArrowUpRight className="w-3.5 h-3.5" />
               </Link>
             </div>
             <div className="space-y-1.5">
-              {loadingOS && (
+              {recentLogsQ.isLoading && (
                 <div className="space-y-2">
                   {[1, 2, 3, 4].map((i) => (
                     <div key={i} className="flex items-center gap-3 p-3">
@@ -908,46 +909,39 @@ function Dashboard() {
                   ))}
                 </div>
               )}
-              {!loadingOS && os.length > 0 ? (
+              {!recentLogsQ.isLoading && recentLogsQ.data && recentLogsQ.data.length > 0 ? (
                 <div className="space-y-2">
-                  {os.slice(0, 5).map((o) => {
-                    const statusColors: Record<string, string> = {
-                      Orçamento: "bg-slate-500/10 text-slate-500 border-slate-500/20",
-                      Aprovado: "bg-blue-500/10 text-blue-500 border-blue-500/20",
-                      "Em Execução": "bg-amber-500/10 text-amber-500 border-amber-500/20",
-                      Concluído: "bg-emerald-500/10 text-emerald-500 border-emerald-500/20",
-                      Cancelado: "bg-red-500/10 text-red-500 border-red-500/20",
-                    };
+                  {recentLogsQ.data.map((log: any) => {
                     return (
                       <div
-                        key={o.id}
-                        className="flex items-center justify-between p-3 rounded-2xl border border-border/50 bg-background hover:bg-muted/10 transition-colors"
+                        key={log.id}
+                        className="flex items-center gap-3 p-3 rounded-2xl border border-border/50 bg-background hover:bg-muted/10 transition-colors"
                       >
-                        <div className="min-w-0">
-                          <p className="font-bold text-sm truncate text-foreground">{o.titulo}</p>
-                          <p className="text-[10px] text-muted-foreground flex items-center gap-1.5 mt-0.5">
-                            <span>{o.numero}</span>
-                            <span>•</span>
-                            <span>Valor: R$ {o.valor.toLocaleString("pt-BR")}</span>
+                        <div className="p-2 rounded-lg bg-primary/10 text-primary border border-primary/20 shrink-0">
+                          <Activity className="w-5 h-5" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-bold text-sm text-foreground leading-tight">{log.descricao}</p>
+                          <p className="text-[10px] text-muted-foreground mt-1">
+                            {log.usuario_nome}
                           </p>
                         </div>
-                        <span
-                          className={`text-[10px] px-2 py-0.5 rounded-full font-bold border ${statusColors[o.status] || "bg-muted text-muted-foreground border-border"}`}
-                        >
-                          {o.status}
-                        </span>
+                        <div className="text-right shrink-0">
+                          <span className="text-[10px] px-2 py-0.5 rounded-full font-bold bg-muted text-muted-foreground border border-border">
+                            {log.tipo}
+                          </span>
+                          <p className="text-[10px] text-muted-foreground mt-1 font-medium">
+                            {formatDate(log.created_at)}
+                          </p>
+                        </div>
                       </div>
                     );
                   })}
                 </div>
               ) : (
-                !loadingOS && (
+                !recentLogsQ.isLoading && (
                   <div className="text-sm text-muted-foreground text-center py-10">
-                    Nenhuma OS ainda. Crie a primeira em{" "}
-                    <Link to="/os" className="text-primary font-semibold">
-                      Ordens de Serviço
-                    </Link>
-                    .
+                    Nenhuma atividade registrada ainda.
                   </div>
                 )
               )}
@@ -1090,9 +1084,20 @@ function Dashboard() {
           if (!editingOS) return;
           try {
             await updateOS(editingOS.id, patch);
+            
+            if (profile?.empresa_id) {
+              await logActivity({
+                empresa_id: profile.empresa_id,
+                usuario_id: profile.id,
+                tipo: "os_atualizada",
+                descricao: `OS "${editingOS.titulo}" atualizada rapidamente pelo Dashboard por ${profile?.nome_completo || profile?.email || "Gestor"}`
+              });
+            }
+
             toast.success("OS atualizada com sucesso");
             setEditingOS(null);
             pendenciasOSQ.refetch();
+            recentLogsQ.refetch();
           } catch (e: any) {
             toast.error(e?.message ?? "Erro ao atualizar");
           }

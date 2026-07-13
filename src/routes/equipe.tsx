@@ -209,6 +209,7 @@ function EquipePage() {
   };
   const [form, setForm] = useState(emptyForm);
   const [gerarAcessoFor, setGerarAcessoFor] = useState<any>(null);
+  const [resetSenhaResult, setResetSenhaResult] = useState<{ texto: string; nome: string } | null>(null);
   const [viewMode, setViewMode] = useState<"list" | "card">("list");
 
   const totalTecnicosPages = Math.max(1, Math.ceil(tecnicosTotal / PAGE_SIZE));
@@ -270,18 +271,8 @@ function EquipePage() {
       const empresaStr = profile?.empresaNome || "Tech QuickOps";
       const text = `Olá ${t.nome}!\n\nSua senha de acesso ao sistema da empresa *${empresaStr}* foi redefinida.\n\nAqui estão suas novas credenciais:\n\n🏢 Código da Empresa: ${codigoEmpresa}\n👤 Usuário: ${login}\n🔑 Nova Senha: ${novaSenha}\n\nAcesse o link do sistema para entrar.`;
       
-      toast.success(`Nova senha gerada para ${t.nome}!`, {
-        duration: 15000,
-        action: {
-          label: "Copiar / WhatsApp",
-          onClick: () => {
-            navigator.clipboard.writeText(text);
-            const wppUrl = `https://wa.me/?text=${encodeURIComponent(text)}`;
-            window.open(wppUrl, '_blank');
-            toast.success("Mensagem copiada e WhatsApp aberto!");
-          },
-        },
-      });
+      setResetSenhaResult({ texto: text, nome: t.nome });
+      
     } catch (e: any) {
       toast.error(e?.message ?? "Erro ao resetar senha");
     } finally {
@@ -786,6 +777,47 @@ function EquipePage() {
         empresaId={empresaId}
         codigoEmpresa={codigoEmpresa}
       />
+
+      {/* Dialog de Sucesso de Reset de Senha */}
+      <Dialog open={!!resetSenhaResult} onOpenChange={(v) => !v && setResetSenhaResult(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Senha Redefinida!</DialogTitle>
+          </DialogHeader>
+          {resetSenhaResult && (
+            <div className="space-y-4">
+              <div className="p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-emerald-600 dark:text-emerald-400">
+                <p className="font-semibold mb-2">Nova senha gerada com sucesso para {resetSenhaResult.nome}.</p>
+                <p className="text-sm opacity-90">
+                  Copie as credenciais abaixo e envie para o técnico.
+                </p>
+              </div>
+              <div className="p-4 bg-muted/50 rounded-xl border border-border/50 text-sm whitespace-pre-wrap font-mono">
+                {resetSenhaResult.texto}
+              </div>
+              <DialogFooter className="mt-6 flex gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() => setResetSenhaResult(null)}
+                >
+                  Fechar
+                </Button>
+                <Button
+                  className="bg-[#25D366] hover:bg-[#1ebd5a] text-white"
+                  onClick={() => {
+                    navigator.clipboard.writeText(resetSenhaResult.texto);
+                    const wppUrl = `https://wa.me/?text=${encodeURIComponent(resetSenhaResult.texto)}`;
+                    window.open(wppUrl, "_blank");
+                    toast.success("Mensagem copiada e WhatsApp aberto!");
+                  }}
+                >
+                  Enviar via WhatsApp
+                </Button>
+              </DialogFooter>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </GestorLayout>
   );
 }

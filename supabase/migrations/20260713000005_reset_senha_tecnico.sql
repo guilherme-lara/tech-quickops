@@ -13,7 +13,7 @@ BEGIN
     -- Verifica o gestor atual
     SELECT empresa_id INTO v_empresa_id
     FROM public.perfis
-    WHERE id = auth.uid() AND role IN ('gestor'::public.app_role, 'superadmin'::public.app_role);
+    WHERE id = auth.uid() AND role IN ('gestor'::public.app_role, 'admin'::public.app_role, 'superadmin'::public.app_role);
 
     -- Verifica o admin (pode não ter empresa_id)
     IF v_empresa_id IS NULL THEN
