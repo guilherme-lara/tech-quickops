@@ -1405,6 +1405,8 @@ export function EditOSDialog({
   onSave: (patch: Partial<OS>) => Promise<void>;
 }) {
   const isView = mode === "view";
+  const { profile } = useAuth();
+  const empresaId = profile?.empresa_id;
   const [form, setForm] = useState({
     titulo: "",
     clienteId: "",

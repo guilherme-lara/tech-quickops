@@ -267,7 +267,8 @@ function EquipePage() {
       await registrarLog("senha_resetada", `Senha de "${t.nome}" redefinida por ${nomeUsuario}`);
       
       const login = t.username || "—";
-      const text = `Olá ${t.nome}! Bem-vindo(a) à equipe técnica do Tech QuickOps.\n\nAqui estão suas credenciais exclusivas de acesso ao aplicativo:\n\n🏢 Código da Empresa: ${codigoEmpresa}\n👤 Usuário: ${login}\n🔑 Senha: ${novaSenha}\n\nPara acessar, acesse o link do sistema.`;
+      const empresaStr = profile?.empresaNome || "Tech QuickOps";
+      const text = `Olá ${t.nome}!\n\nSua senha de acesso ao sistema da empresa *${empresaStr}* foi redefinida.\n\nAqui estão suas novas credenciais:\n\n🏢 Código da Empresa: ${codigoEmpresa}\n👤 Usuário: ${login}\n🔑 Nova Senha: ${novaSenha}\n\nAcesse o link do sistema para entrar.`;
       
       toast.success(`Nova senha gerada para ${t.nome}!`, {
         duration: 15000,

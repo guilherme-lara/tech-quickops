@@ -7,6 +7,7 @@ export interface AuthProfile {
   nome_completo: string;
   role: "gestor" | "tecnico";
   empresa_id: string;
+  empresaNome?: string;
   avatarUrl?: string;
   empresaLogo?: string;
 }
@@ -33,6 +34,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           nome_completo: user.nome,
           role: user.role,
           empresa_id: user.empresaId,
+          empresaNome: user.empresaNome,
           avatarUrl: user.avatarUrl,
           empresaLogo: user.empresaLogo,
         }
