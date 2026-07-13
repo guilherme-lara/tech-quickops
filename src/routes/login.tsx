@@ -16,7 +16,9 @@ function LoginPage() {
   const [loading, setLoading] = useState(false);
 
   const [loginEmail, setLoginEmail] = useState("");
-  const [loginCodigo, setLoginCodigo] = useState("");
+  const [loginCodigo, setLoginCodigo] = useState(
+    () => localStorage.getItem("tqo_last_company_code") || ""
+  );
   const [loginSenha, setLoginSenha] = useState("");
 
   const [suEmail, setSuEmail] = useState("");
@@ -51,6 +53,12 @@ function LoginPage() {
         toast.error(error);
         return;
       }
+      
+      // Salva o código da empresa para o próximo login ser mais rápido
+      if (loginCodigo.trim()) {
+        localStorage.setItem("tqo_last_company_code", loginCodigo.trim());
+      }
+      
       toast.success("Bem-vindo!");
       window.location.href = "/dashboard";
     } catch (err: any) {
