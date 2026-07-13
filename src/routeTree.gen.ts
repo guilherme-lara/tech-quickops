@@ -9,22 +9,31 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as UsuariosRouteImport } from './routes/usuarios'
 import { Route as OsRouteImport } from './routes/os'
 import { Route as LogsRouteImport } from './routes/logs'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as GestorDashboardRouteImport } from './routes/gestor-dashboard'
 import { Route as EstoqueRouteImport } from './routes/estoque'
 import { Route as EquipeRouteImport } from './routes/equipe'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as ConfiguracoesRouteImport } from './routes/configuracoes'
 import { Route as ClientesRouteImport } from './routes/clientes'
+import { Route as AnalistaDashboardRouteImport } from './routes/analista-dashboard'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as TecnicoPerfilRouteImport } from './routes/tecnico.perfil'
 import { Route as TecnicoHistoricoRouteImport } from './routes/tecnico.historico'
 import { Route as TecnicoDashboardRouteImport } from './routes/tecnico.dashboard'
+import { Route as SuperadminLicencasRouteImport } from './routes/superadmin.licencas'
 import { Route as TecnicoOsIndexRouteImport } from './routes/tecnico.os.index'
 import { Route as TecnicoOsIdRouteImport } from './routes/tecnico.os.$id'
 import { Route as TecnicoOsIdRatRouteImport } from './routes/tecnico.os.$id.rat'
 
+const UsuariosRoute = UsuariosRouteImport.update({
+  id: '/usuarios',
+  path: '/usuarios',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const OsRoute = OsRouteImport.update({
   id: '/os',
   path: '/os',
@@ -38,6 +47,11 @@ const LogsRoute = LogsRouteImport.update({
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GestorDashboardRoute = GestorDashboardRouteImport.update({
+  id: '/gestor-dashboard',
+  path: '/gestor-dashboard',
   getParentRoute: () => rootRouteImport,
 } as any)
 const EstoqueRoute = EstoqueRouteImport.update({
@@ -65,6 +79,11 @@ const ClientesRoute = ClientesRouteImport.update({
   path: '/clientes',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AnalistaDashboardRoute = AnalistaDashboardRouteImport.update({
+  id: '/analista-dashboard',
+  path: '/analista-dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -85,6 +104,11 @@ const TecnicoDashboardRoute = TecnicoDashboardRouteImport.update({
   path: '/tecnico/dashboard',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SuperadminLicencasRoute = SuperadminLicencasRouteImport.update({
+  id: '/superadmin/licencas',
+  path: '/superadmin/licencas',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const TecnicoOsIndexRoute = TecnicoOsIndexRouteImport.update({
   id: '/tecnico/os/',
   path: '/tecnico/os/',
@@ -103,14 +127,18 @@ const TecnicoOsIdRatRoute = TecnicoOsIdRatRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/analista-dashboard': typeof AnalistaDashboardRoute
   '/clientes': typeof ClientesRoute
   '/configuracoes': typeof ConfiguracoesRoute
   '/dashboard': typeof DashboardRoute
   '/equipe': typeof EquipeRoute
   '/estoque': typeof EstoqueRoute
+  '/gestor-dashboard': typeof GestorDashboardRoute
   '/login': typeof LoginRoute
   '/logs': typeof LogsRoute
   '/os': typeof OsRoute
+  '/usuarios': typeof UsuariosRoute
+  '/superadmin/licencas': typeof SuperadminLicencasRoute
   '/tecnico/dashboard': typeof TecnicoDashboardRoute
   '/tecnico/historico': typeof TecnicoHistoricoRoute
   '/tecnico/perfil': typeof TecnicoPerfilRoute
@@ -120,14 +148,18 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/analista-dashboard': typeof AnalistaDashboardRoute
   '/clientes': typeof ClientesRoute
   '/configuracoes': typeof ConfiguracoesRoute
   '/dashboard': typeof DashboardRoute
   '/equipe': typeof EquipeRoute
   '/estoque': typeof EstoqueRoute
+  '/gestor-dashboard': typeof GestorDashboardRoute
   '/login': typeof LoginRoute
   '/logs': typeof LogsRoute
   '/os': typeof OsRoute
+  '/usuarios': typeof UsuariosRoute
+  '/superadmin/licencas': typeof SuperadminLicencasRoute
   '/tecnico/dashboard': typeof TecnicoDashboardRoute
   '/tecnico/historico': typeof TecnicoHistoricoRoute
   '/tecnico/perfil': typeof TecnicoPerfilRoute
@@ -138,14 +170,18 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/analista-dashboard': typeof AnalistaDashboardRoute
   '/clientes': typeof ClientesRoute
   '/configuracoes': typeof ConfiguracoesRoute
   '/dashboard': typeof DashboardRoute
   '/equipe': typeof EquipeRoute
   '/estoque': typeof EstoqueRoute
+  '/gestor-dashboard': typeof GestorDashboardRoute
   '/login': typeof LoginRoute
   '/logs': typeof LogsRoute
   '/os': typeof OsRoute
+  '/usuarios': typeof UsuariosRoute
+  '/superadmin/licencas': typeof SuperadminLicencasRoute
   '/tecnico/dashboard': typeof TecnicoDashboardRoute
   '/tecnico/historico': typeof TecnicoHistoricoRoute
   '/tecnico/perfil': typeof TecnicoPerfilRoute
@@ -157,14 +193,18 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/analista-dashboard'
     | '/clientes'
     | '/configuracoes'
     | '/dashboard'
     | '/equipe'
     | '/estoque'
+    | '/gestor-dashboard'
     | '/login'
     | '/logs'
     | '/os'
+    | '/usuarios'
+    | '/superadmin/licencas'
     | '/tecnico/dashboard'
     | '/tecnico/historico'
     | '/tecnico/perfil'
@@ -174,14 +214,18 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/analista-dashboard'
     | '/clientes'
     | '/configuracoes'
     | '/dashboard'
     | '/equipe'
     | '/estoque'
+    | '/gestor-dashboard'
     | '/login'
     | '/logs'
     | '/os'
+    | '/usuarios'
+    | '/superadmin/licencas'
     | '/tecnico/dashboard'
     | '/tecnico/historico'
     | '/tecnico/perfil'
@@ -191,14 +235,18 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/analista-dashboard'
     | '/clientes'
     | '/configuracoes'
     | '/dashboard'
     | '/equipe'
     | '/estoque'
+    | '/gestor-dashboard'
     | '/login'
     | '/logs'
     | '/os'
+    | '/usuarios'
+    | '/superadmin/licencas'
     | '/tecnico/dashboard'
     | '/tecnico/historico'
     | '/tecnico/perfil'
@@ -209,14 +257,18 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AnalistaDashboardRoute: typeof AnalistaDashboardRoute
   ClientesRoute: typeof ClientesRoute
   ConfiguracoesRoute: typeof ConfiguracoesRoute
   DashboardRoute: typeof DashboardRoute
   EquipeRoute: typeof EquipeRoute
   EstoqueRoute: typeof EstoqueRoute
+  GestorDashboardRoute: typeof GestorDashboardRoute
   LoginRoute: typeof LoginRoute
   LogsRoute: typeof LogsRoute
   OsRoute: typeof OsRoute
+  UsuariosRoute: typeof UsuariosRoute
+  SuperadminLicencasRoute: typeof SuperadminLicencasRoute
   TecnicoDashboardRoute: typeof TecnicoDashboardRoute
   TecnicoHistoricoRoute: typeof TecnicoHistoricoRoute
   TecnicoPerfilRoute: typeof TecnicoPerfilRoute
@@ -226,6 +278,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/usuarios': {
+      id: '/usuarios'
+      path: '/usuarios'
+      fullPath: '/usuarios'
+      preLoaderRoute: typeof UsuariosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/os': {
       id: '/os'
       path: '/os'
@@ -245,6 +304,13 @@ declare module '@tanstack/react-router' {
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/gestor-dashboard': {
+      id: '/gestor-dashboard'
+      path: '/gestor-dashboard'
+      fullPath: '/gestor-dashboard'
+      preLoaderRoute: typeof GestorDashboardRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/estoque': {
@@ -282,6 +348,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ClientesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/analista-dashboard': {
+      id: '/analista-dashboard'
+      path: '/analista-dashboard'
+      fullPath: '/analista-dashboard'
+      preLoaderRoute: typeof AnalistaDashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -308,6 +381,13 @@ declare module '@tanstack/react-router' {
       path: '/tecnico/dashboard'
       fullPath: '/tecnico/dashboard'
       preLoaderRoute: typeof TecnicoDashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/superadmin/licencas': {
+      id: '/superadmin/licencas'
+      path: '/superadmin/licencas'
+      fullPath: '/superadmin/licencas'
+      preLoaderRoute: typeof SuperadminLicencasRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/tecnico/os/': {
@@ -348,14 +428,18 @@ const TecnicoOsIdRouteWithChildren = TecnicoOsIdRoute._addFileChildren(
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AnalistaDashboardRoute: AnalistaDashboardRoute,
   ClientesRoute: ClientesRoute,
   ConfiguracoesRoute: ConfiguracoesRoute,
   DashboardRoute: DashboardRoute,
   EquipeRoute: EquipeRoute,
   EstoqueRoute: EstoqueRoute,
+  GestorDashboardRoute: GestorDashboardRoute,
   LoginRoute: LoginRoute,
   LogsRoute: LogsRoute,
   OsRoute: OsRoute,
+  UsuariosRoute: UsuariosRoute,
+  SuperadminLicencasRoute: SuperadminLicencasRoute,
   TecnicoDashboardRoute: TecnicoDashboardRoute,
   TecnicoHistoricoRoute: TecnicoHistoricoRoute,
   TecnicoPerfilRoute: TecnicoPerfilRoute,
@@ -365,3 +449,12 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { createStart } from '@tanstack/react-start'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+  }
+}

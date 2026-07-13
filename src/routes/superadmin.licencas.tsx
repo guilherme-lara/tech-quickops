@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
-import GestorLayout from "@/components/GestorLayout";
+import { GestorLayout } from "@/components/GestorLayout";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2, Key, ShieldAlert, ShieldCheck, Copy, Check } from "lucide-react";
