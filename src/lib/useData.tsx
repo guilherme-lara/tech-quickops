@@ -19,7 +19,8 @@ export interface Cliente {
   endereco_completo?: string;
   base_km?: number;
   valor_por_km?: number;
-  dia_faturamento?: number;
+  dia_pagamento?: number;
+  dia_envio_planilha?: number;
   modelo_rat_url?: string;
 }
 export type TipoComissao = "fixo" | "porcentagem";
@@ -406,7 +407,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     queryFn: async (): Promise<Cliente[]> => {
       let query = supabase
         .from("clientes")
-        .select("id, nome, documento, telefone, email, cidade, endereco_completo, base_km, valor_por_km, dia_faturamento, modelo_rat_url", {
+        .select("id, nome, documento, telefone, email, cidade, endereco_completo, base_km, valor_por_km, dia_pagamento, dia_envio_planilha, modelo_rat_url", {
           count: "exact",
         })
         .eq("empresa_id", empresaId!);
@@ -433,7 +434,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         endereco_completo: r.endereco_completo ?? "",
         base_km: Number(r.base_km ?? 0),
         valor_por_km: Number(r.valor_por_km ?? 0),
-        dia_faturamento: r.dia_faturamento ?? undefined,
+        dia_pagamento: r.dia_pagamento ?? undefined,
+        dia_envio_planilha: r.dia_envio_planilha ?? undefined,
         modelo_rat_url: r.modelo_rat_url ?? undefined,
       }));
     },
@@ -446,7 +448,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       if (!empresaId) return [];
       const { data, error } = await supabase
         .from("clientes")
-        .select("id, nome, documento, telefone, email, cidade, endereco_completo, base_km, valor_por_km, dia_faturamento, modelo_rat_url")
+        .select("id, nome, documento, telefone, email, cidade, endereco_completo, base_km, valor_por_km, dia_pagamento, dia_envio_planilha, modelo_rat_url")
         .eq("empresa_id", empresaId)
         .order("nome");
       if (error) throw error;
@@ -460,7 +462,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         endereco_completo: r.endereco_completo ?? "",
         base_km: Number(r.base_km ?? 0),
         valor_por_km: Number(r.valor_por_km ?? 0),
-        dia_faturamento: r.dia_faturamento ?? undefined,
+        dia_pagamento: r.dia_pagamento ?? undefined,
+        dia_envio_planilha: r.dia_envio_planilha ?? undefined,
         modelo_rat_url: r.modelo_rat_url ?? undefined,
       }));
     },
@@ -702,7 +705,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
           endereco_completo: c.endereco_completo ?? null,
           base_km: c.base_km != null ? Number(c.base_km) : null,
           valor_por_km: c.valor_por_km != null ? Number(c.valor_por_km) : null,
-          dia_faturamento: c.dia_faturamento != null ? Number(c.dia_faturamento) : null,
+          dia_pagamento: c.dia_pagamento != null ? Number(c.dia_pagamento) : null,
+          dia_envio_planilha: c.dia_envio_planilha != null ? Number(c.dia_envio_planilha) : null,
           modelo_rat_url: c.modelo_rat_url ?? null,
         })
         .select("id")
@@ -727,8 +731,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         dbPatch.base_km = patch.base_km != null ? Number(patch.base_km) : null;
       if (patch.valor_por_km !== undefined)
         dbPatch.valor_por_km = patch.valor_por_km != null ? Number(patch.valor_por_km) : null;
-      if (patch.dia_faturamento !== undefined)
-        dbPatch.dia_faturamento = patch.dia_faturamento != null ? Number(patch.dia_faturamento) : null;
+      if (patch.dia_pagamento !== undefined)
+        dbPatch.dia_pagamento = patch.dia_pagamento != null ? Number(patch.dia_pagamento) : null;
+      if (patch.dia_envio_planilha !== undefined)
+        dbPatch.dia_envio_planilha = patch.dia_envio_planilha != null ? Number(patch.dia_envio_planilha) : null;
       if (patch.modelo_rat_url !== undefined)
         dbPatch.modelo_rat_url = patch.modelo_rat_url ?? null;
       const { error } = await supabase

@@ -222,7 +222,77 @@ function PriorityAlerts({ ordens, isLoading, onEdit }: { ordens: any[]; isLoadin
   );
 }
 
-function FaturamentoAlerts({ clientes }: { clientes: any[] }) {
+function EnvioPlanilhaAlerts({ clientes }: { clientes: any[] }) {
+  if (!clientes || clientes.length === 0) return null;
+
+  const hoje = new Date();
+  hoje.setHours(0,0,0,0);
+  const proximosEnvios = clientes.filter(c => {
+    if (!c.dia_envio_planilha) return false;
+    
+    let proxEnvio = new Date(hoje.getFullYear(), hoje.getMonth(), c.dia_envio_planilha, 0,0,0,0);
+    
+    if (proxEnvio < hoje) {
+      proxEnvio = new Date(hoje.getFullYear(), hoje.getMonth() + 1, c.dia_envio_planilha, 0,0,0,0);
+    }
+
+    const diffTime = proxEnvio.getTime() - hoje.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    return diffDays <= 5;
+  });
+
+  if (proximosEnvios.length === 0) return null;
+
+  return (
+    <div className="space-y-3 mb-6">
+      <div className="rounded-3xl bg-blue-50/70 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-900/40 p-4 flex flex-col justify-between shadow-[0_4px_20px_-4px_rgba(59,130,246,0.08)]">
+        <div className="flex items-start justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <FileSpreadsheet className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+            <span className="font-bold text-sm text-blue-900 dark:text-blue-200">
+              {proximosEnvios.length} Envio{proximosEnvios.length > 1 ? "s" : ""} de Planilha Próximo{proximosEnvios.length > 1 ? "s" : ""}
+            </span>
+          </div>
+          <span className="text-[9px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300">
+            Até 5 dias
+          </span>
+        </div>
+        <div className="space-y-2 max-h-[140px] overflow-y-auto pr-1">
+          {proximosEnvios.map((c) => {
+            let proxEnvio = new Date(hoje.getFullYear(), hoje.getMonth(), c.dia_envio_planilha, 0,0,0,0);
+            if (proxEnvio < hoje) {
+              proxEnvio = new Date(hoje.getFullYear(), hoje.getMonth() + 1, c.dia_envio_planilha, 0,0,0,0);
+            }
+            const diffTime = proxEnvio.getTime() - hoje.getTime();
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+            return (
+              <div
+                key={c.id}
+                className="text-xs bg-card p-2.5 rounded-2xl border border-border/50 flex items-center justify-between gap-2"
+              >
+                <div className="min-w-0">
+                  <p className="font-bold truncate text-foreground">{c.nome}</p>
+                  <p className="text-muted-foreground text-[10px] truncate">
+                    Enviar dia {c.dia_envio_planilha}
+                  </p>
+                </div>
+                <div className="text-right shrink-0">
+                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-lg border ${diffDays === 0 ? 'text-red-600 border-red-200 bg-red-50' : 'text-blue-600 border-blue-200 bg-blue-50'}`}>
+                    {diffDays === 0 ? "É hoje!" : `Em ${diffDays} dia${diffDays > 1 ? 's' : ''}`}
+                  </span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function PagamentoAlerts({ clientes }: { clientes: any[] }) {
   if (!clientes || clientes.length === 0) return null;
 
   const getLocalDateString = (date: Date) => {
@@ -234,46 +304,46 @@ function FaturamentoAlerts({ clientes }: { clientes: any[] }) {
 
   const hoje = new Date();
   hoje.setHours(0,0,0,0);
-  const proximosFaturamentos = clientes.filter(c => {
-    if (!c.dia_faturamento) return false;
+  const proximosPagamentos = clientes.filter(c => {
+    if (!c.dia_pagamento) return false;
     
-    // Calcula a proxima data de faturamento
-    let proxFaturamento = new Date(hoje.getFullYear(), hoje.getMonth(), c.dia_faturamento, 0,0,0,0);
+    // Calcula a proxima data de pagamento
+    let proxPagamento = new Date(hoje.getFullYear(), hoje.getMonth(), c.dia_pagamento, 0,0,0,0);
     
     // Se a data já passou neste mês, joga para o próximo mês
-    if (proxFaturamento < hoje) {
-      proxFaturamento = new Date(hoje.getFullYear(), hoje.getMonth() + 1, c.dia_faturamento, 0,0,0,0);
+    if (proxPagamento < hoje) {
+      proxPagamento = new Date(hoje.getFullYear(), hoje.getMonth() + 1, c.dia_pagamento, 0,0,0,0);
     }
 
-    const diffTime = proxFaturamento.getTime() - hoje.getTime();
+    const diffTime = proxPagamento.getTime() - hoje.getTime();
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     
     return diffDays <= 5;
   });
 
-  if (proximosFaturamentos.length === 0) return null;
+  if (proximosPagamentos.length === 0) return null;
 
   return (
     <div className="space-y-3 mb-6">
-      <div className="rounded-3xl bg-blue-50/70 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-900/40 p-4 flex flex-col justify-between shadow-[0_4px_20px_-4px_rgba(59,130,246,0.08)]">
+      <div className="rounded-3xl bg-emerald-50/70 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-900/40 p-4 flex flex-col justify-between shadow-[0_4px_20px_-4px_rgba(16,185,129,0.08)]">
         <div className="flex items-start justify-between mb-3">
           <div className="flex items-center gap-2">
-            <Wallet className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-            <span className="font-bold text-sm text-blue-900 dark:text-blue-200">
-              {proximosFaturamentos.length} Faturamento{proximosFaturamentos.length > 1 ? "s" : ""} Próximo{proximosFaturamentos.length > 1 ? "s" : ""}
+            <Wallet className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+            <span className="font-bold text-sm text-emerald-900 dark:text-emerald-200">
+              {proximosPagamentos.length} Pagamento{proximosPagamentos.length > 1 ? "s" : ""} Próximo{proximosPagamentos.length > 1 ? "s" : ""}
             </span>
           </div>
-          <span className="text-[9px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300">
+          <span className="text-[9px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
             Até 5 dias
           </span>
         </div>
         <div className="space-y-2 max-h-[140px] overflow-y-auto pr-1">
-          {proximosFaturamentos.map((c) => {
-            let proxFaturamento = new Date(hoje.getFullYear(), hoje.getMonth(), c.dia_faturamento, 0,0,0,0);
-            if (proxFaturamento < hoje) {
-              proxFaturamento = new Date(hoje.getFullYear(), hoje.getMonth() + 1, c.dia_faturamento, 0,0,0,0);
+          {proximosPagamentos.map((c) => {
+            let proxPagamento = new Date(hoje.getFullYear(), hoje.getMonth(), c.dia_pagamento, 0,0,0,0);
+            if (proxPagamento < hoje) {
+              proxPagamento = new Date(hoje.getFullYear(), hoje.getMonth() + 1, c.dia_pagamento, 0,0,0,0);
             }
-            const diffTime = proxFaturamento.getTime() - hoje.getTime();
+            const diffTime = proxPagamento.getTime() - hoje.getTime();
             const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
             return (
@@ -284,11 +354,11 @@ function FaturamentoAlerts({ clientes }: { clientes: any[] }) {
                 <div className="min-w-0">
                   <p className="font-bold truncate text-foreground">{c.nome}</p>
                   <p className="text-muted-foreground text-[10px] truncate">
-                    Vence dia {c.dia_faturamento}
+                    Vence dia {c.dia_pagamento}
                   </p>
                 </div>
                 <div className="text-right shrink-0">
-                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-lg border ${diffDays === 0 ? 'text-red-600 border-red-200 bg-red-50' : 'text-blue-600 border-blue-200 bg-blue-50'}`}>
+                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-lg border ${diffDays === 0 ? 'text-red-600 border-red-200 bg-red-50' : 'text-emerald-600 border-emerald-200 bg-emerald-50'}`}>
                     {diffDays === 0 ? "É hoje!" : `Em ${diffDays} dia${diffDays > 1 ? 's' : ''}`}
                   </span>
                 </div>
@@ -856,7 +926,8 @@ function Dashboard() {
       </div>
 
       <PriorityAlerts ordens={alertasOSQ.data ?? []} isLoading={alertasOSQ.isLoading} onEdit={(os) => setEditingOS(os)} />
-      <FaturamentoAlerts clientes={clientes} />
+      <EnvioPlanilhaAlerts clientes={clientes} />
+      <PagamentoAlerts clientes={clientes} />
       <PendingAlertsCard
         ordens={pendenciasOSQ.data ?? []}
         isLoading={pendenciasOSQ.isLoading}

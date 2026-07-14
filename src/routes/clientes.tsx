@@ -86,7 +86,8 @@ function ClientesPage() {
     cidade: "",
     base_km: "",
     valor_por_km: "",
-    dia_faturamento: "",
+    dia_pagamento: "",
+    dia_envio_planilha: "",
     modelo_rat_url: "",
   });
   const [analistas, setAnalistas] = useState<Analista[]>([]);
@@ -107,7 +108,8 @@ function ClientesPage() {
       cidade: "",
       base_km: "",
       valor_por_km: "",
-      dia_faturamento: "",
+      dia_pagamento: "",
+      dia_envio_planilha: "",
       modelo_rat_url: "",
     });
     setAnalistas([]);
@@ -125,7 +127,8 @@ function ClientesPage() {
       cidade: c.cidade ?? "",
       base_km: c.base_km != null ? String(c.base_km) : "",
       valor_por_km: c.valor_por_km != null ? String(c.valor_por_km) : "",
-      dia_faturamento: c.dia_faturamento != null ? String(c.dia_faturamento) : "",
+      dia_pagamento: c.dia_pagamento != null ? String(c.dia_pagamento) : "",
+      dia_envio_planilha: c.dia_envio_planilha != null ? String(c.dia_envio_planilha) : "",
       modelo_rat_url: c.modelo_rat_url ?? "",
     });
     setAnalistas([]);
@@ -232,7 +235,8 @@ function ClientesPage() {
         ...form,
         base_km: form.base_km ? Number(form.base_km) : undefined,
         valor_por_km: form.valor_por_km ? Number(form.valor_por_km) : undefined,
-        dia_faturamento: form.dia_faturamento ? Number(form.dia_faturamento) : undefined,
+        dia_pagamento: form.dia_pagamento ? Number(form.dia_pagamento) : undefined,
+        dia_envio_planilha: form.dia_envio_planilha ? Number(form.dia_envio_planilha) : undefined,
       };
       let clienteId = form.id;
       if (form.id) {
@@ -267,7 +271,8 @@ function ClientesPage() {
         cidade: "",
         base_km: "",
         valor_por_km: "",
-        dia_faturamento: "",
+        dia_pagamento: "",
+        dia_envio_planilha: "",
         modelo_rat_url: "",
       });
       setAnalistas([]);
@@ -406,14 +411,25 @@ function ClientesPage() {
                     />
                   </div>
                   <div>
-                    <Label>Dia de Faturamento</Label>
+                    <Label>Dia de Pagamento (1-31)</Label>
                     <Input
                       type="number"
                       min="1"
                       max="31"
                       placeholder="Ex: 15"
-                      value={form.dia_faturamento}
-                      onChange={(e) => setForm({ ...form, dia_faturamento: e.target.value })}
+                      value={form.dia_pagamento}
+                      onChange={(e) => setForm({ ...form, dia_pagamento: e.target.value })}
+                    />
+                  </div>
+                  <div>
+                    <Label>Dia de Envio de Planilhas/Notas (1-31)</Label>
+                    <Input
+                      type="number"
+                      min="1"
+                      max="31"
+                      placeholder="Ex: 10"
+                      value={form.dia_envio_planilha}
+                      onChange={(e) => setForm({ ...form, dia_envio_planilha: e.target.value })}
                     />
                   </div>
                 </div>
