@@ -41,6 +41,7 @@ import { EmptyState } from "@/components/EmptyState";
 import { validarDocumento, maskPhoneBR } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { Trash2 as TrashIcon, Plus as PlusIcon } from "lucide-react";
+import { PrivateFileLink } from "@/components/PrivateFileLink";
 import { FiltrosBarGlobal } from "@/components/FiltrosBarGlobal";
 import { useAuth } from "@/lib/auth-context";
 import { logActivity } from "@/lib/logger";
@@ -294,11 +295,7 @@ function ClientesPage() {
 
       if (error) throw error;
 
-      const { data: { publicUrl } } = supabase.storage
-        .from("rats")
-        .getPublicUrl(fileName);
-
-      setForm((prev) => ({ ...prev, modelo_rat_url: publicUrl }));
+      setForm((prev) => ({ ...prev, modelo_rat_url: fileName }));
       toast.success("Modelo RAT anexado!");
     } catch (err: any) {
       toast.error("Erro ao enviar modelo: " + err.message);
@@ -452,9 +449,9 @@ function ClientesPage() {
                   </div>
                   {form.modelo_rat_url && (
                     <div className="mt-2 text-xs">
-                      <a href={form.modelo_rat_url} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+                      <PrivateFileLink urlOrPath={form.modelo_rat_url} bucket="rats" className="text-primary hover:underline">
                         Visualizar arquivo atual
-                      </a>
+                      </PrivateFileLink>
                     </div>
                   )}
                 </div>

@@ -7,14 +7,9 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import {
-  Paperclip,
-  Loader2,
-  UploadCloud,
-  Trash2,
-  FileText,
-  Image as ImageIcon,
-} from "lucide-react";
+import { FileText, ImageIcon, Loader2, Paperclip, Trash2, UploadCloud } from "lucide-react";
+import { useAuth } from "@/lib/auth-context";
+import { PrivateFileLink } from "./PrivateFileLink";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -62,17 +57,17 @@ export function RatGallery({ osId, trigger }: { osId: string; trigger?: React.Re
 
       if (uploadError) throw uploadError;
 
-      const { data: publicUrlData } = supabase.storage.from("rats").getPublicUrl(fileName);
-
-      const { error: insertError } = await supabase.from("rat_arquivos").insert({
-        ordem_servico_id: osId,
-        nome_arquivo: file.name,
-        arquivo_url: publicUrlData.publicUrl,
-        tipo_arquivo: tipoUpload,
-        enviado_por_role: "gestor",
-      });
-
-      if (insertError) throw insertError;
+      const { error: dbError } = await supabase.from("rat_arquivos").insert([
+        {
+          ordem_servico_id: osId,
+          nome_arquivo: file.name,
+          arquivo_url: fileName,
+          tipo_arquivo: "rat",
+          enviado_por_role: "gestor"
+        },
+      ]);
+      
+      if (dbError) throw dbError;
 
       toast.success("Arquivo enviado com sucesso!");
       qc.invalidateQueries({ queryKey: ["rat_arquivos", osId] });
@@ -194,14 +189,13 @@ export function RatGallery({ osId, trigger }: { osId: string; trigger?: React.Re
                             )}
                           </div>
                           <div className="flex flex-col overflow-hidden">
-                            <a
-                              href={arq.arquivo_url}
-                              target="_blank"
-                              rel="noopener noreferrer"
+                            <PrivateFileLink
+                              urlOrPath={arq.arquivo_url}
+                              bucket="rats"
                               className="text-sm font-medium hover:underline truncate"
                             >
                               {arq.nome_arquivo}
-                            </a>
+                            </PrivateFileLink>
                             <span className="text-[10px] text-muted-foreground uppercase">
                               {arq.tipo_arquivo || "Outro"}
                             </span>
@@ -246,14 +240,13 @@ export function RatGallery({ osId, trigger }: { osId: string; trigger?: React.Re
                             )}
                           </div>
                           <div className="flex flex-col overflow-hidden">
-                            <a
-                              href={arq.arquivo_url}
-                              target="_blank"
-                              rel="noopener noreferrer"
+                            <PrivateFileLink
+                              urlOrPath={arq.arquivo_url}
+                              bucket="rats"
                               className="text-sm font-medium hover:underline truncate"
                             >
                               {arq.nome_arquivo}
-                            </a>
+                            </PrivateFileLink>
                             <span className="text-[10px] text-primary/70 uppercase">
                               {arq.tipo_arquivo === 'rat_padrao' ? 'RAT Modelo Padrão' : arq.tipo_arquivo || "Outro"}
                             </span>

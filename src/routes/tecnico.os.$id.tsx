@@ -10,6 +10,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { PrivateFileLink } from "@/components/PrivateFileLink";
 import { useAuth } from "@/lib/auth-context";
 
 export const Route = createFileRoute("/tecnico/os/$id")({
@@ -162,18 +163,13 @@ function TecnicoOSDetail() {
         
       if (uploadError) throw uploadError;
 
-      // Pegar URL pública (ou apenas salvar o path se o bucket for privado, usaremos publicURL para simplicidade)
-      const { data: publicUrlData } = supabase.storage
-        .from('rats')
-        .getPublicUrl(fileName);
-
       // Inserir registro em rat_arquivos
       const { error: dbError } = await supabase
         .from('rat_arquivos')
         .insert({
           ordem_servico_id: id,
           nome_arquivo: file.name,
-          arquivo_url: publicUrlData.publicUrl,
+          arquivo_url: fileName,
           tipo_arquivo: tipo_arquivo,
           enviado_por_role: 'tecnico'
         });
@@ -343,12 +339,12 @@ function TecnicoOSDetail() {
           <Card className="p-4 rounded-2xl border-border/60 shadow-[var(--shadow-card)]">
             {cliente?.modelo_rat_url && (
               <div className="mb-4">
-                <a href={cliente.modelo_rat_url} target="_blank" rel="noopener noreferrer">
+                <PrivateFileLink urlOrPath={cliente.modelo_rat_url} bucket="rats">
                   <Button variant="outline" className="w-full border-primary/50 text-primary hover:bg-primary/5">
                     <Download className="w-4 h-4 mr-2" />
                     Baixar RAT em Branco (Modelo do Cliente)
                   </Button>
-                </a>
+                </PrivateFileLink>
               </div>
             )}
             <div className="mb-4 flex flex-col items-center justify-center border-2 border-dashed border-border/60 rounded-xl p-6 bg-muted/20 relative overflow-hidden transition-all hover:bg-muted/40">
@@ -384,9 +380,9 @@ function TecnicoOSDetail() {
                         <FileText className="w-4 h-4 text-primary shrink-0" />
                         <span className="text-xs font-medium truncate">{arq.nome_arquivo}</span>
                       </div>
-                      <a href={arq.arquivo_url} target="_blank" rel="noreferrer" className="p-2 text-muted-foreground hover:text-primary transition">
+                      <PrivateFileLink urlOrPath={arq.arquivo_url} bucket="rats" className="p-2 text-muted-foreground hover:text-primary transition">
                         <Download className="w-4 h-4" />
-                      </a>
+                      </PrivateFileLink>
                     </div>
                     <span className="text-[10px] text-muted-foreground opacity-70 ml-6">
                       Enviado por: {arq.enviado_por_role === 'gestor' ? 'Gestor (Modelo Padrão)' : 'Técnico'}
@@ -438,9 +434,9 @@ function TecnicoOSDetail() {
                       <FileText className="w-4 h-4 text-primary shrink-0" />
                       <span className="text-xs font-medium truncate">{arq.nome_arquivo}</span>
                     </div>
-                    <a href={arq.arquivo_url} target="_blank" rel="noreferrer" className="p-2 text-muted-foreground hover:text-primary transition">
+                    <PrivateFileLink urlOrPath={arq.arquivo_url} bucket="rats" className="p-2 text-muted-foreground hover:text-primary transition">
                       <Download className="w-4 h-4" />
-                    </a>
+                    </PrivateFileLink>
                   </div>
                 ))
               )}
