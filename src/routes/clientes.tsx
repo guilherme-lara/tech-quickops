@@ -40,6 +40,7 @@ import { toast } from "sonner";
 import { EmptyState } from "@/components/EmptyState";
 import { validarDocumento, maskPhoneBR } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
+import { compressImage } from "@/lib/image-compressor";
 import { Trash2 as TrashIcon, Plus as PlusIcon } from "lucide-react";
 import { PrivateFileLink } from "@/components/PrivateFileLink";
 import { FiltrosBarGlobal } from "@/components/FiltrosBarGlobal";
@@ -287,11 +288,12 @@ function ClientesPage() {
     if (!file) return;
     try {
       setUploadingRat(true);
-      const ext = file.name.split('.').pop();
+      const finalFile = await compressImage(file);
+      const ext = finalFile.name.split('.').pop();
       const fileName = `modelo_rat_${Date.now()}.${ext}`;
       const { data, error } = await supabase.storage
         .from("rats")
-        .upload(fileName, file);
+        .upload(fileName, finalFile);
 
       if (error) throw error;
 

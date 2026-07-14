@@ -13,6 +13,7 @@ import { PrivateFileLink } from "./PrivateFileLink";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { compressImage } from "@/lib/image-compressor";
 import { useStore } from "@/lib/useData";
 
 interface RatArquivo {
@@ -50,10 +51,11 @@ export function RatGallery({ osId, trigger }: { osId: string; trigger?: React.Re
     if (!user) return;
     setUploading(true);
     try {
-      const fileExt = file.name.split(".").pop();
-      const fileName = `${osId}/${Math.random().toString(36).substring(2)}-${Date.now()}.${fileExt}`;
+      const finalFile = await compressImage(file);
+      const ext = finalFile.name.split(".").pop();
+      const fileName = `${osId}/${crypto.randomUUID()}.${ext}`;
 
-      const { error: uploadError } = await supabase.storage.from("rats").upload(fileName, file);
+      const { error: uploadError } = await supabase.storage.from("rats").upload(fileName, finalFile);
 
       if (uploadError) throw uploadError;
 

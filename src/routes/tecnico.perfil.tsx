@@ -7,6 +7,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { compressImage } from "@/lib/image-compressor";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Mail, Camera, Loader2, KeyRound, Save } from "lucide-react";
@@ -97,11 +98,12 @@ function Perfil() {
     }
     setUploading(true);
     try {
-      const ext = file.name.split(".").pop() || "jpg";
+      const finalFile = await compressImage(file);
+      const ext = finalFile.name.split(".").pop() || "jpg";
       const path = `fotos-tecnicos/${tecnicoId}-${Date.now()}.${ext}`;
       const { error: upErr } = await supabase.storage
         .from("assets")
-        .upload(path, file, { upsert: true, cacheControl: "3600" });
+        .upload(path, finalFile, { upsert: true, cacheControl: "3600" });
       if (upErr) throw upErr;
       const { data: pub } = supabase.storage.from("assets").getPublicUrl(path);
       const url = pub.publicUrl;

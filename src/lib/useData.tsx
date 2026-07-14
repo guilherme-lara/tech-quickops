@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState, ReactNode, useCallback 
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { compressImage } from "@/lib/image-compressor";
 
 // ============================================================
 // Types — UI-shape (kept stable so existing components compile)
@@ -1076,12 +1077,13 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   );
 
   const uploadAsset = useCallback(async (file: File, path: string) => {
-    const fileExt = file.name.split(".").pop();
+    const finalFile = await compressImage(file);
+    const fileExt = finalFile.name.split(".").pop();
     const fileName = `${path}-${Math.random()}.${fileExt}`;
 
     const { error: uploadError } = await supabase.storage
       .from("assets")
-      .upload(fileName, file, { upsert: true });
+      .upload(fileName, finalFile, { upsert: true });
 
     if (uploadError) throw uploadError;
 

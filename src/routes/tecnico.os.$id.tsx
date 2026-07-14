@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { PrivateFileLink } from "@/components/PrivateFileLink";
+import { compressImage } from "@/lib/image-compressor";
 import { useAuth } from "@/lib/auth-context";
 
 export const Route = createFileRoute("/tecnico/os/$id")({
@@ -153,13 +154,15 @@ function TecnicoOSDetail() {
 
     try {
       setIsUploading(true);
+      
+      const finalFile = await compressImage(file);
       // Upload para storage
-      const fileExt = file.name.split('.').pop();
+      const fileExt = finalFile.name.split('.').pop();
       const fileName = `${id}/${crypto.randomUUID()}.${fileExt}`;
       
       const { error: uploadError } = await supabase.storage
         .from('rats')
-        .upload(fileName, file);
+        .upload(fileName, finalFile);
         
       if (uploadError) throw uploadError;
 
