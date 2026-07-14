@@ -979,7 +979,12 @@ export function StoreProvider({ children }: { children: ReactNode }) {
           password: senha,
           options: {
             emailRedirectTo: redirectUrl,
-            data: { nome_completo: nome, nome_empresa: empresa },
+            data: { 
+              nome_completo: nome, 
+              nome_empresa: empresa,
+              cnpj: cnpj || null,
+              telefone_empresa: telefone || null
+            },
           },
         });
         if (signUpError) return { error: signUpError.message };
@@ -991,28 +996,29 @@ export function StoreProvider({ children }: { children: ReactNode }) {
           return { error: "Conta criada! Confirme seu e-mail antes de continuar o cadastro." };
         }
 
-        const { data: empresaRow, error: empresaError } = await supabase
-          .from("empresas")
-          .insert({ 
-            nome_fantasia: empresa,
-            cnpj: cnpj || null,
-            telefone_empresa: telefone || null
-          })
-          .select("id, codigo_empresa")
-          .single();
-        if (empresaError || !empresaRow) {
-          return { error: `Erro ao criar empresa: ${empresaError?.message ?? "desconhecido"}` };
+        // Aguardar o trigger handle_new_user criar a empresa e o perfil no banco
+        // Fazer um polling simples de no máximo 3 tentativas para garantir que a trigger terminou
+        let perfilRow = null;
+        for (let i = 0; i < 3; i++) {
+          const { data } = await supabase.from("perfis").select("empresa_id").eq("id", userId).maybeSingle();
+          if (data?.empresa_id) {
+            perfilRow = data;
+            break;
+          }
+          await new Promise(resolve => setTimeout(resolve, 500));
         }
 
-        const { error: perfilError } = await supabase.from("perfis").insert({
-          id: userId,
-          empresa_id: empresaRow.id,
-          nome_completo: nome,
-          role: "gestor" as any,
-        });
-        if (perfilError) {
-          await supabase.auth.signOut();
-          return { error: `Erro ao criar perfil. Conta não ativada: ${perfilError.message}` };
+        if (!perfilRow) {
+          return { error: "Conta criada, mas houve um erro ao recuperar o perfil gerado. Tente fazer login." };
+        }
+
+        const { data: empresaRow, error: empresaError } = await supabase
+          .from("empresas")
+          .select("id, codigo_empresa, nome_fantasia")
+          .eq("id", perfilRow.empresa_id)
+          .single();
+        if (empresaError || !empresaRow) {
+          return { error: `Erro ao buscar dados da empresa gerada: ${empresaError?.message ?? "desconhecido"}` };
         }
 
         setUser({
@@ -1021,7 +1027,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
           nome,
           role: "gestor",
           empresaId: empresaRow.id,
-          empresaNome: empresa,
+          empresaNome: empresaRow.nome_fantasia || empresa,
           empresaCodigo: empresaRow.codigo_empresa || "",
         });
         return {};
