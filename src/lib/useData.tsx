@@ -403,7 +403,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     queryFn: async (): Promise<Cliente[]> => {
       let query = supabase
         .from("clientes")
-        .select("id, nome, documento, telefone, email, cidade, endereco_completo, base_km, valor_por_km", {
+        .select("id, nome, documento, telefone, email, cidade, endereco_completo, base_km, valor_por_km, dia_faturamento, modelo_rat_url", {
           count: "exact",
         })
         .eq("empresa_id", empresaId!);
@@ -430,6 +430,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         endereco_completo: r.endereco_completo ?? "",
         base_km: Number(r.base_km ?? 0),
         valor_por_km: Number(r.valor_por_km ?? 0),
+        dia_faturamento: r.dia_faturamento ?? undefined,
+        modelo_rat_url: r.modelo_rat_url ?? undefined,
       }));
     },
   });
@@ -441,7 +443,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       if (!empresaId) return [];
       const { data, error } = await supabase
         .from("clientes")
-        .select("id, nome, documento, telefone, email, cidade, endereco_completo, base_km, valor_por_km")
+        .select("id, nome, documento, telefone, email, cidade, endereco_completo, base_km, valor_por_km, dia_faturamento, modelo_rat_url")
         .eq("empresa_id", empresaId)
         .order("nome");
       if (error) throw error;
@@ -455,6 +457,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         endereco_completo: r.endereco_completo ?? "",
         base_km: Number(r.base_km ?? 0),
         valor_por_km: Number(r.valor_por_km ?? 0),
+        dia_faturamento: r.dia_faturamento ?? undefined,
+        modelo_rat_url: r.modelo_rat_url ?? undefined,
       }));
     },
   });
