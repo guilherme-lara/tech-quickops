@@ -87,7 +87,7 @@ export function GestorLayout({ children }: { children?: ReactNode }) {
   };
 
   const NavLinks = () => (
-    <nav className="flex-1 mt-6 space-y-1">
+    <nav className="flex-1 overflow-y-auto mt-6 space-y-1 pr-2">
       {navItems.map((item) => {
         const active = path.startsWith(item.to);
         return (
@@ -121,7 +121,7 @@ export function GestorLayout({ children }: { children?: ReactNode }) {
     </nav>
   );
   const UserProfile = () => (
-    <div className="mt-3 pt-3 border-t border-border/60">
+    <div className="mt-3 pt-3 border-t border-border/60 shrink-0 pb-safe">
       <div className="flex items-center gap-2 px-2 py-2">
         <Avatar className="w-9 h-9">
           <AvatarImage
