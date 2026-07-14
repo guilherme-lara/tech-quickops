@@ -153,6 +153,7 @@ function OSPage() {
     horario_atendimento: "",
     descricao_problema: "",
     status: "Orçamento" as OSStatus,
+    endereco_servico: "",
   });
   const { analistas: analistasNovaOS, setAnalistas: setAnalistasNovaOS } = useAnalistasByCliente(form.clienteId);
   const [novosDadosExtras, setNovosDadosExtras] = useState<Record<string, any>>({});
@@ -308,8 +309,8 @@ function OSPage() {
   };
 
   const submit = async () => {
-    if (!form.titulo || !form.clienteId || !form.tecnicoId) {
-      toast.error("Preencha todos os campos");
+    if (!form.titulo || !form.clienteId || !form.tecnicoId || !form.endereco_servico) {
+      toast.error("Preencha todos os campos obrigatórios (incluindo endereço do serviço)");
       return;
     }
     await addOS({
@@ -326,6 +327,7 @@ function OSPage() {
       descricao_problema: form.descricao_problema,
       status: form.status,
       dados_adicionais: novosDadosExtras,
+      endereco_servico: form.endereco_servico,
     });
     await registrarLog("os_criada", `OS "${form.titulo}" criada por ${nomeUsuario}`);
     toast.success("OS criada com sucesso");
@@ -342,6 +344,7 @@ function OSPage() {
       horario_atendimento: "",
       descricao_problema: "",
       status: "Orçamento",
+      endereco_servico: "",
     });
     setNovosDadosExtras({});
     setDespesasSelecionadas([]);
@@ -454,13 +457,25 @@ function OSPage() {
               </DialogHeader>
               <div className="space-y-4">
                 <div>
-                  <Label>Título</Label>
+                  <Label>Título *</Label>
                   <Input
                     value={form.titulo}
                     onChange={(e) => setForm({ ...form, titulo: e.target.value })}
                     placeholder="Ex: Manutenção câmara fria"
                     className="h-10"
                   />
+                </div>
+                <div>
+                  <Label>Endereço do Serviço *</Label>
+                  <Input
+                    value={form.endereco_servico}
+                    onChange={(e) => setForm({ ...form, endereco_servico: e.target.value })}
+                    placeholder="Av Paulista, 1000 - Bela Vista - São Paulo / SP"
+                    className="h-10"
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Endereço onde o serviço será executado (Obrigatório).
+                  </p>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
@@ -1417,6 +1432,7 @@ export function EditOSDialog({
     km_viagem: "",
     status: "Orçamento" as OSStatus,
     pendencias_detalhes: "",
+    endereco_servico: "",
   });
   const [descricaoProblema, setDescricaoProblema] = useState("");
   const [dataAgendamento, setDataAgendamento] = useState("");
@@ -1457,6 +1473,7 @@ export function EditOSDialog({
         km_viagem: String(ordem.km_viagem ?? 0),
         status: ordem.status,
         pendencias_detalhes: ordem.pendencias_detalhes ?? "",
+        endereco_servico: ordem.endereco_servico ?? "",
       });
       setDescricaoProblema(ordem?.descricao_problema || "");
       setDataAgendamento(ordem?.data_agendamento || "");
@@ -1468,8 +1485,8 @@ export function EditOSDialog({
 
   const handleSave = async () => {
     if (!ordem) return;
-    if (!form.titulo || !form.clienteId || !form.tecnicoId) {
-      toast.error("Preencha todos os campos");
+    if (!form.titulo || !form.clienteId || !form.tecnicoId || !form.endereco_servico) {
+      toast.error("Preencha todos os campos obrigatórios (incluindo endereço do serviço)");
       return;
     }
     const valorServico = Number(form.valor) || 0;
@@ -1490,6 +1507,7 @@ export function EditOSDialog({
       status: form.status,
       dados_adicionais: dadosExtras,
       pendencias_detalhes: form.pendencias_detalhes || (null as any),
+      endereco_servico: form.endereco_servico,
     };
 
     setSaving(true);
@@ -1608,6 +1626,18 @@ export function EditOSDialog({
               onChange={(e) => setForm({ ...form, titulo: e.target.value })}
               className="text-lg font-bold h-12"
               placeholder="Ex: Manutenção de Equipamento"
+            />
+          </div>
+          <div>
+            <Label className="text-muted-foreground text-xs font-bold uppercase tracking-wider mb-1 block">
+              Endereço do Serviço *
+            </Label>
+            <Input
+              disabled={isView}
+              value={form.endereco_servico}
+              onChange={(e) => setForm({ ...form, endereco_servico: e.target.value })}
+              className="text-md h-10"
+              placeholder="Ex: Av Paulista, 1000 - Bela Vista - São Paulo / SP"
             />
           </div>
           <div className="grid grid-cols-2 gap-3">

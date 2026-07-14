@@ -40,7 +40,7 @@ function TecnicoOSDetail() {
         .from("ordens_servico")
         .select(`
           *,
-          clientes (nome, telefone, email, endereco_completo, cidade)
+          clientes (nome, telefone, email, endereco_completo, cidade, modelo_rat_url)
         `)
         .eq("id", id)
         .maybeSingle();
@@ -122,6 +122,27 @@ function TecnicoOSDetail() {
       toast.error(e.message);
     } finally {
       setIsAddingDespesa(false);
+    }
+  };
+
+  const handleSolicitarEndereco = async () => {
+    try {
+      setIsUpdatingStatus(true);
+      const { error } = await supabase
+        .from("ordens_servico")
+        .update({ 
+          status: "pendencia" as any, 
+          pendencias_detalhes: "Técnico solicitou o endereço do serviço. Por favor, atualize o endereço da OS."
+        })
+        .eq("id", id);
+
+      if (error) throw error;
+      toast.success("Endereço solicitado! A OS foi marcada com pendência.");
+      queryClient.invalidateQueries({ queryKey: ["os_detalhe", id] });
+    } catch (e: any) {
+      toast.error(e.message);
+    } finally {
+      setIsUpdatingStatus(false);
     }
   };
 
@@ -212,16 +233,16 @@ function TecnicoOSDetail() {
         <section className="space-y-3">
           <Card className="p-4 rounded-2xl border-border/60 shadow-[var(--shadow-card)]">
             <h3 className="font-bold mb-1">{cliente?.nome || "Cliente não informado"}</h3>
-            {cliente?.endereco_completo ? (
+            {os.endereco_servico ? (
               <div className="flex flex-col gap-3 mt-2">
                 <div className="flex items-start gap-2 text-sm text-muted-foreground bg-muted/30 p-2 rounded-lg">
                   <MapPin className="w-4 h-4 text-primary shrink-0 mt-0.5" />
                   <span>
-                    {cliente.endereco_completo}{cliente.cidade ? ` - ${cliente.cidade}` : ""}
+                    {os.endereco_servico}
                   </span>
                 </div>
                 <a 
-                  href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${cliente.endereco_completo}${cliente.cidade ? `, ${cliente.cidade}` : ""}`)}`}
+                  href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(os.endereco_servico)}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="w-full"
@@ -233,9 +254,19 @@ function TecnicoOSDetail() {
                 </a>
               </div>
             ) : (
-              <div className="flex items-start gap-2 text-sm text-muted-foreground mt-2 bg-muted/30 p-2 rounded-lg">
-                <MapPin className="w-4 h-4 text-muted-foreground shrink-0 mt-0.5" />
-                <span>Endereço não cadastrado</span>
+              <div className="flex flex-col gap-2 mt-2">
+                <div className="flex items-start gap-2 text-sm text-muted-foreground bg-muted/30 p-2 rounded-lg">
+                  <MapPin className="w-4 h-4 text-muted-foreground shrink-0 mt-0.5" />
+                  <span>Endereço do serviço não informado</span>
+                </div>
+                <Button 
+                  variant="outline" 
+                  className="w-full border-amber-500 text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-950"
+                  onClick={handleSolicitarEndereco}
+                  disabled={isUpdatingStatus}
+                >
+                  Solicitar Endereço
+                </Button>
               </div>
             )}
             {(cliente?.telefone || cliente?.email) && (
@@ -310,6 +341,16 @@ function TecnicoOSDetail() {
             </h2>
           </div>
           <Card className="p-4 rounded-2xl border-border/60 shadow-[var(--shadow-card)]">
+            {cliente?.modelo_rat_url && (
+              <div className="mb-4">
+                <a href={cliente.modelo_rat_url} target="_blank" rel="noopener noreferrer">
+                  <Button variant="outline" className="w-full border-primary/50 text-primary hover:bg-primary/5">
+                    <Download className="w-4 h-4 mr-2" />
+                    Baixar RAT em Branco (Modelo do Cliente)
+                  </Button>
+                </a>
+              </div>
+            )}
             <div className="mb-4 flex flex-col items-center justify-center border-2 border-dashed border-border/60 rounded-xl p-6 bg-muted/20 relative overflow-hidden transition-all hover:bg-muted/40">
               <input 
                 type="file" 

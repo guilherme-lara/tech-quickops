@@ -199,22 +199,103 @@ function PriorityAlerts({ ordens, isLoading, onEdit }: { ordens: any[]; isLoadin
                       <p className="font-bold truncate text-foreground">{o.titulo}</p>
                       <p className="text-muted-foreground text-[10px] truncate">
                         {o.numero} • Cliente: {o.clientes?.nome || "Não informado"}
-                        {o.horario_atendimento && ` • ${o.horario_atendimento}`}
                       </p>
                     </div>
-                    {limitTimeText && (
-                      <div className="shrink-0">
-                        <span className="inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-[9px] font-bold text-amber-800 animate-pulse border border-amber-300">
+                    <div className="text-right shrink-0 flex flex-col items-end gap-1">
+                      {limitTimeText && (
+                        <span className="text-[9px] font-bold text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950 px-1.5 py-0.5 rounded border border-red-200 dark:border-red-900">
                           {limitTimeText}
                         </span>
-                      </div>
-                    )}
+                      )}
+                      <span className="text-[10px] font-bold text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950 px-2 py-0.5 rounded-lg border border-amber-200 dark:border-amber-900">
+                        {o.horario_atendimento || "Sem hora"}
+                      </span>
+                    </div>
                   </div>
                 );
               })}
             </div>
           </div>
         )}
+      </div>
+    </div>
+  );
+}
+
+function FaturamentoAlerts({ clientes }: { clientes: any[] }) {
+  if (!clientes || clientes.length === 0) return null;
+
+  const getLocalDateString = (date: Date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  };
+
+  const hoje = new Date();
+  hoje.setHours(0,0,0,0);
+  const proximosFaturamentos = clientes.filter(c => {
+    if (!c.dia_faturamento) return false;
+    
+    // Calcula a proxima data de faturamento
+    let proxFaturamento = new Date(hoje.getFullYear(), hoje.getMonth(), c.dia_faturamento, 0,0,0,0);
+    
+    // Se a data já passou neste mês, joga para o próximo mês
+    if (proxFaturamento < hoje) {
+      proxFaturamento = new Date(hoje.getFullYear(), hoje.getMonth() + 1, c.dia_faturamento, 0,0,0,0);
+    }
+
+    const diffTime = proxFaturamento.getTime() - hoje.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    return diffDays <= 5;
+  });
+
+  if (proximosFaturamentos.length === 0) return null;
+
+  return (
+    <div className="space-y-3 mb-6">
+      <div className="rounded-3xl bg-blue-50/70 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-900/40 p-4 flex flex-col justify-between shadow-[0_4px_20px_-4px_rgba(59,130,246,0.08)]">
+        <div className="flex items-start justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <Wallet className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+            <span className="font-bold text-sm text-blue-900 dark:text-blue-200">
+              {proximosFaturamentos.length} Faturamento{proximosFaturamentos.length > 1 ? "s" : ""} Próximo{proximosFaturamentos.length > 1 ? "s" : ""}
+            </span>
+          </div>
+          <span className="text-[9px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300">
+            Até 5 dias
+          </span>
+        </div>
+        <div className="space-y-2 max-h-[140px] overflow-y-auto pr-1">
+          {proximosFaturamentos.map((c) => {
+            let proxFaturamento = new Date(hoje.getFullYear(), hoje.getMonth(), c.dia_faturamento, 0,0,0,0);
+            if (proxFaturamento < hoje) {
+              proxFaturamento = new Date(hoje.getFullYear(), hoje.getMonth() + 1, c.dia_faturamento, 0,0,0,0);
+            }
+            const diffTime = proxFaturamento.getTime() - hoje.getTime();
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+            return (
+              <div
+                key={c.id}
+                className="text-xs bg-card p-2.5 rounded-2xl border border-border/50 flex items-center justify-between gap-2"
+              >
+                <div className="min-w-0">
+                  <p className="font-bold truncate text-foreground">{c.nome}</p>
+                  <p className="text-muted-foreground text-[10px] truncate">
+                    Vence dia {c.dia_faturamento}
+                  </p>
+                </div>
+                <div className="text-right shrink-0">
+                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-lg border ${diffDays === 0 ? 'text-red-600 border-red-200 bg-red-50' : 'text-blue-600 border-blue-200 bg-blue-50'}`}>
+                    {diffDays === 0 ? "É hoje!" : `Em ${diffDays} dia${diffDays > 1 ? 's' : ''}`}
+                  </span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
       </div>
     </div>
   );
@@ -775,6 +856,7 @@ function Dashboard() {
       </div>
 
       <PriorityAlerts ordens={alertasOSQ.data ?? []} isLoading={alertasOSQ.isLoading} onEdit={(os) => setEditingOS(os)} />
+      <FaturamentoAlerts clientes={clientes} />
       <PendingAlertsCard
         ordens={pendenciasOSQ.data ?? []}
         isLoading={pendenciasOSQ.isLoading}

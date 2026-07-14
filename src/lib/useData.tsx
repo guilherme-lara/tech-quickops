@@ -19,6 +19,8 @@ export interface Cliente {
   endereco_completo?: string;
   base_km?: number;
   valor_por_km?: number;
+  dia_faturamento?: number;
+  modelo_rat_url?: string;
 }
 export type TipoComissao = "fixo" | "porcentagem";
 export interface Tecnico {
@@ -74,6 +76,7 @@ export interface OS {
   rat: RAT;
   dados_adicionais?: Record<string, any>;
   descricao_problema?: string;
+  endereco_servico?: string;
   tecnico?: {
     id: string;
     nome: string;

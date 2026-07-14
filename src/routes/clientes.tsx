@@ -86,9 +86,12 @@ function ClientesPage() {
     cidade: "",
     base_km: "",
     valor_por_km: "",
+    dia_faturamento: "",
+    modelo_rat_url: "",
   });
   const [analistas, setAnalistas] = useState<Analista[]>([]);
   const [loadingAnalistas, setLoadingAnalistas] = useState(false);
+  const [uploadingRat, setUploadingRat] = useState(false);
   const [viewMode, setViewMode] = useState<"list" | "card">("list");
 
   const totalClientesPages = Math.max(1, Math.ceil(clientesTotal / PAGE_SIZE));
@@ -104,6 +107,8 @@ function ClientesPage() {
       cidade: "",
       base_km: "",
       valor_por_km: "",
+      dia_faturamento: "",
+      modelo_rat_url: "",
     });
     setAnalistas([]);
     setOpen(true);
@@ -120,6 +125,8 @@ function ClientesPage() {
       cidade: c.cidade ?? "",
       base_km: c.base_km != null ? String(c.base_km) : "",
       valor_por_km: c.valor_por_km != null ? String(c.valor_por_km) : "",
+      dia_faturamento: c.dia_faturamento != null ? String(c.dia_faturamento) : "",
+      modelo_rat_url: c.modelo_rat_url ?? "",
     });
     setAnalistas([]);
     setOpen(true);
@@ -225,6 +232,7 @@ function ClientesPage() {
         ...form,
         base_km: form.base_km ? Number(form.base_km) : undefined,
         valor_por_km: form.valor_por_km ? Number(form.valor_por_km) : undefined,
+        dia_faturamento: form.dia_faturamento ? Number(form.dia_faturamento) : undefined,
       };
       let clienteId = form.id;
       if (form.id) {
@@ -259,10 +267,38 @@ function ClientesPage() {
         cidade: "",
         base_km: "",
         valor_por_km: "",
+        dia_faturamento: "",
+        modelo_rat_url: "",
       });
       setAnalistas([]);
     } catch (e: any) {
       toast.error(e.message || "Erro ao salvar cliente");
+    }
+  };
+
+  const handleUploadRat = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      setUploadingRat(true);
+      const ext = file.name.split('.').pop();
+      const fileName = `modelo_rat_${Date.now()}.${ext}`;
+      const { data, error } = await supabase.storage
+        .from("rats")
+        .upload(fileName, file);
+
+      if (error) throw error;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from("rats")
+        .getPublicUrl(fileName);
+
+      setForm((prev) => ({ ...prev, modelo_rat_url: publicUrl }));
+      toast.success("Modelo RAT anexado!");
+    } catch (err: any) {
+      toast.error("Erro ao enviar modelo: " + err.message);
+    } finally {
+      setUploadingRat(false);
     }
   };
 
@@ -369,6 +405,42 @@ function ClientesPage() {
                       onChange={(e) => setForm({ ...form, valor_por_km: e.target.value })}
                     />
                   </div>
+                  <div>
+                    <Label>Dia de Faturamento</Label>
+                    <Input
+                      type="number"
+                      min="1"
+                      max="31"
+                      placeholder="Ex: 15"
+                      value={form.dia_faturamento}
+                      onChange={(e) => setForm({ ...form, dia_faturamento: e.target.value })}
+                    />
+                  </div>
+                </div>
+
+                {/* Modelo RAT */}
+                <div className="rounded-xl border border-border/60 bg-muted/30 p-3 mt-4">
+                  <div className="text-sm font-semibold mb-1">Modelo RAT do Cliente (Opcional)</div>
+                  <div className="text-xs text-muted-foreground mb-3">
+                    Faça upload do modelo de RAT para que o técnico possa baixá-lo na OS.
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Input 
+                      type="file" 
+                      accept=".pdf,.doc,.docx" 
+                      onChange={handleUploadRat} 
+                      disabled={uploadingRat}
+                      className="max-w-[250px]"
+                    />
+                    {uploadingRat && <span className="text-xs text-muted-foreground">Enviando...</span>}
+                  </div>
+                  {form.modelo_rat_url && (
+                    <div className="mt-2 text-xs">
+                      <a href={form.modelo_rat_url} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+                        Visualizar arquivo atual
+                      </a>
+                    </div>
+                  )}
                 </div>
 
                 {/* Contatos de Suporte / Analistas */}
