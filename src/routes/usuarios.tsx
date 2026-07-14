@@ -168,7 +168,7 @@ function UsuariosPage() {
                         </div>
                         {user.nome_completo}
                       </td>
-                      <td className="px-6 py-4 text-muted-foreground">{user.username || "—"}</td>
+                      <td className="px-6 py-4 text-muted-foreground">{(user as any).username || "—"}</td>
                       <td className="px-6 py-4">{getRoleBadge(user.role)}</td>
                       <td className="px-6 py-4 text-right text-muted-foreground text-xs">
                         {new Date(user.created_at).toLocaleDateString('pt-BR')}
