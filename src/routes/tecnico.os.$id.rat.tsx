@@ -29,7 +29,7 @@ import SignatureCanvas from "react-signature-canvas";
 
 export const Route = createFileRoute("/tecnico/os/$id/rat")({
   component: () => (
-    <ProtectedRoute requireRole="tecnico">
+    <ProtectedRoute allowedRoles={['tecnico']}>
       <RATWizard />
     </ProtectedRoute>
   ),

@@ -32,7 +32,7 @@ import { formatDate } from "@/lib/utils";
 
 export const Route = createFileRoute("/dashboard")({
   component: () => (
-    <ProtectedRoute>
+    <ProtectedRoute allowedRoles={['gestor', 'analista', 'admin', 'superadmin']}>
       <Dashboard />
     </ProtectedRoute>
   ),

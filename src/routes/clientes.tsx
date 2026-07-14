@@ -47,7 +47,7 @@ import { logActivity } from "@/lib/logger";
 
 export const Route = createFileRoute("/clientes")({
   component: () => (
-    <ProtectedRoute>
+    <ProtectedRoute allowedRoles={['gestor', 'analista', 'admin', 'superadmin']}>
       <ClientesPage />
     </ProtectedRoute>
   ),

@@ -20,7 +20,7 @@ import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from "recha
 
 export const Route = createFileRoute("/gestor-dashboard")({
   component: () => (
-    <ProtectedRoute>
+    <ProtectedRoute allowedRoles={['gestor', 'admin', 'superadmin']}>
       <GestorLayout>
         <GestorDashboard />
       </GestorLayout>

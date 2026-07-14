@@ -8,10 +8,10 @@ import { Paywall } from "./Paywall";
 
 interface Props {
   children: ReactNode;
-  requireRole?: "gestor" | "tecnico" | "analista" | "admin" | "superadmin";
+  allowedRoles?: ("gestor" | "tecnico" | "analista" | "admin" | "superadmin")[];
 }
 
-export function ProtectedRoute({ children, requireRole }: Props) {
+export function ProtectedRoute({ children, allowedRoles }: Props) {
   const { user, profile, isLoading } = useAuth();
   const navigate = useNavigate();
   const [isBlocked, setIsBlocked] = useState<boolean | null>(null);
@@ -23,16 +23,16 @@ export function ProtectedRoute({ children, requireRole }: Props) {
       return;
     }
     if (profile) {
-      if (requireRole) {
-        let isAllowed = profile.role === requireRole;
+      if (allowedRoles && allowedRoles.length > 0) {
+        let isAllowed = allowedRoles.includes(profile.role);
         
-        // Analistas e Admins têm acesso às telas do Gestor
-        if (requireRole === "gestor" && ["analista", "admin", "superadmin"].includes(profile.role)) {
+        // Bypass master para o dono do sistema e superadmins
+        if (user.email === 'guiigo9@gmail.com' || profile.role === 'superadmin') {
           isAllowed = true;
         }
 
-        // Bypass master para o dono do sistema
-        if (user.email === 'guiigo9@gmail.com') {
+        // Admins tem os mesmos acessos que gestores
+        if (profile.role === 'admin' && allowedRoles.includes('gestor')) {
           isAllowed = true;
         }
 
@@ -71,7 +71,7 @@ export function ProtectedRoute({ children, requireRole }: Props) {
         setIsBlocked(false);
       }
     }
-  }, [user, profile, isLoading, requireRole, navigate]);
+  }, [user, profile, isLoading, allowedRoles, navigate]);
 
   if (isLoading || !user) {
     return (

@@ -15,7 +15,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 export const Route = createFileRoute("/tecnico/os/")({
   component: () => (
-    <ProtectedRoute requireRole="tecnico">
+    <ProtectedRoute allowedRoles={['tecnico']}>
       <TecnicoOSPage />
     </ProtectedRoute>
   ),

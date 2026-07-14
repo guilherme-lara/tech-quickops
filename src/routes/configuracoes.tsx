@@ -23,7 +23,7 @@ import {
 
 export const Route = createFileRoute("/configuracoes")({
   component: () => (
-    <ProtectedRoute>
+    <ProtectedRoute allowedRoles={['gestor', 'admin', 'superadmin']}>
       <ConfiguracoesPage />
     </ProtectedRoute>
   ),

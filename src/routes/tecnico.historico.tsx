@@ -6,7 +6,7 @@ import { CheckCircle2 } from "lucide-react";
 
 export const Route = createFileRoute("/tecnico/historico")({
   component: () => (
-    <ProtectedRoute requireRole="tecnico">
+    <ProtectedRoute allowedRoles={['tecnico']}>
       <HistoricoPage />
     </ProtectedRoute>
   ),

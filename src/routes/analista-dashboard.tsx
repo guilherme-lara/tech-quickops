@@ -24,7 +24,7 @@ import { useStore } from "@/lib/useData";
 
 export const Route = createFileRoute("/analista-dashboard")({
   component: () => (
-    <ProtectedRoute requireRole="analista">
+    <ProtectedRoute allowedRoles={['analista', 'admin', 'superadmin']}>
       <AnalistaDashboard />
     </ProtectedRoute>
   ),

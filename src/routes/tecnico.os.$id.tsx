@@ -14,7 +14,7 @@ import { useAuth } from "@/lib/auth-context";
 
 export const Route = createFileRoute("/tecnico/os/$id")({
   component: () => (
-    <ProtectedRoute requireRole="tecnico">
+    <ProtectedRoute allowedRoles={['tecnico']}>
       <TecnicoOSDetail />
     </ProtectedRoute>
   ),

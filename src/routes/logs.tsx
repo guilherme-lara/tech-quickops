@@ -23,7 +23,7 @@ import { ArrowLeft, FileText, Clock, Filter } from "lucide-react";
 
 export const Route = createFileRoute("/logs")({
   component: () => (
-    <ProtectedRoute>
+    <ProtectedRoute allowedRoles={['gestor', 'admin', 'superadmin']}>
       <LogsPage />
     </ProtectedRoute>
   ),

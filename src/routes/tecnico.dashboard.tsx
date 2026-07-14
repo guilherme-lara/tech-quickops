@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 
 export const Route = createFileRoute("/tecnico/dashboard")({
   component: () => (
-    <ProtectedRoute requireRole="tecnico">
+    <ProtectedRoute allowedRoles={['tecnico']}>
       <DashboardTecnico />
     </ProtectedRoute>
   ),

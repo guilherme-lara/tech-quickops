@@ -46,7 +46,7 @@ type ItemFormData = z.infer<typeof itemSchema>;
 
 export const Route = createFileRoute("/estoque")({
   component: () => (
-    <ProtectedRoute>
+    <ProtectedRoute allowedRoles={['gestor', 'analista', 'admin', 'superadmin']}>
       <EstoquePage />
     </ProtectedRoute>
   ),

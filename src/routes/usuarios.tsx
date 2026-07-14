@@ -31,7 +31,7 @@ import { Badge } from "@/components/ui/badge";
 
 export const Route = createFileRoute("/usuarios")({
   component: () => (
-    <ProtectedRoute requireRole="gestor">
+    <ProtectedRoute allowedRoles={['gestor', 'admin', 'superadmin']}>
       <UsuariosPage />
     </ProtectedRoute>
   ),

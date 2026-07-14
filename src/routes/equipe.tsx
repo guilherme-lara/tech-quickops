@@ -155,7 +155,7 @@ const PERFIS_TECNICO = ["Técnico de Campo", "Instalador", "Suporte", "Manutenç
 
 export const Route = createFileRoute("/equipe")({
   component: () => (
-    <ProtectedRoute>
+    <ProtectedRoute allowedRoles={['gestor', 'analista', 'admin', 'superadmin']}>
       <EquipePage />
     </ProtectedRoute>
   ),

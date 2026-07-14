@@ -95,7 +95,7 @@ function useAnalistasByCliente(clienteId: string | undefined) {
 
 export const Route = createFileRoute("/os")({
   component: () => (
-    <ProtectedRoute>
+    <ProtectedRoute allowedRoles={['gestor', 'analista', 'admin', 'superadmin']}>
       <OSPage />
     </ProtectedRoute>
   ),
