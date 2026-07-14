@@ -35,7 +35,7 @@ export function RatGallery({ osId, trigger }: { osId: string; trigger?: React.Re
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
   const [uploading, setUploading] = useState(false);
-  const [tipoUpload, setTipoUpload] = useState<'rat_padrao' | 'foto'>('rat_padrao');
+  const [tipoUpload, setTipoUpload] = useState<'anexo'>('anexo');
 
   const { data: arquivos = [], isLoading } = useQuery({
     queryKey: ["rat_arquivos", osId],
@@ -129,25 +129,11 @@ export function RatGallery({ osId, trigger }: { osId: string; trigger?: React.Re
         <div className="space-y-4 py-2">
           {/* Dropzone Area */}
           <div className="space-y-3">
-            <div className="flex gap-2 p-1 bg-muted/50 rounded-lg">
-              <button 
-                className={`flex-1 text-xs py-1.5 font-medium rounded-md transition ${tipoUpload === 'rat_padrao' ? 'bg-background shadow-sm' : 'text-muted-foreground'}`}
-                onClick={() => setTipoUpload('rat_padrao')}
-              >
-                Enviar Modelo/RAT
-              </button>
-              <button 
-                className={`flex-1 text-xs py-1.5 font-medium rounded-md transition ${tipoUpload === 'foto' ? 'bg-background shadow-sm' : 'text-muted-foreground'}`}
-                onClick={() => setTipoUpload('foto')}
-              >
-                Enviar Outro/Foto
-              </button>
-            </div>
             <div className="border-2 border-dashed border-border/60 rounded-2xl p-6 text-center hover:bg-muted/40 transition-colors flex flex-col items-center justify-center relative">
               <input
                 type="file"
                 className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                accept={tipoUpload === 'rat_padrao' ? ".pdf,.doc,.docx" : "image/*,.pdf"}
+                accept="image/*,.pdf,.doc,.docx"
                 onChange={(e) => {
                   if (e.target.files && e.target.files[0]) {
                     uploadFile(e.target.files[0]);
@@ -164,10 +150,10 @@ export function RatGallery({ osId, trigger }: { osId: string; trigger?: React.Re
                 <div className="flex flex-col items-center text-muted-foreground pointer-events-none">
                   <UploadCloud className="w-8 h-8 mb-2 text-primary" />
                   <span className="text-sm font-medium text-foreground">
-                    Clique ou arraste {tipoUpload === 'rat_padrao' ? 'o Documento' : 'a Foto'} aqui
+                    Clique ou arraste um anexo aqui
                   </span>
                   <span className="text-xs mt-1">
-                    {tipoUpload === 'rat_padrao' ? 'Apenas PDF e Word' : 'Imagens e PDFs são suportados'}
+                    Imagens, PDFs e Documentos são suportados
                   </span>
                 </div>
               )}
