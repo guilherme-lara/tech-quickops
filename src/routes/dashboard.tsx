@@ -28,6 +28,7 @@ import {
   AlertTriangle,
   FileSpreadsheet,
 } from "lucide-react";
+import { ExportFaturamentoModal } from "@/components/ExportFaturamentoModal";
 import { formatDate } from "@/lib/utils";
 
 export const Route = createFileRoute("/dashboard")({
@@ -243,7 +244,15 @@ function EnvioPlanilhaAlerts({ clientes }: { clientes: any[] }) {
     return diffDays <= 5;
   });
 
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
+  const [selectedCliente, setSelectedCliente] = useState<{ id: string, nome: string } | null>(null);
+
   if (proximosEnvios.length === 0) return null;
+
+  const handleOpenExport = (clienteId: string, clienteNome: string) => {
+    setSelectedCliente({ id: clienteId, nome: clienteNome });
+    setIsExportModalOpen(true);
+  };
 
   return (
     <div className="space-y-3 mb-6">
@@ -271,7 +280,8 @@ function EnvioPlanilhaAlerts({ clientes }: { clientes: any[] }) {
             return (
               <div
                 key={c.id}
-                className="text-xs bg-card p-2.5 rounded-2xl border border-border/50 flex items-center justify-between gap-2"
+                onClick={() => handleOpenExport(c.id, c.nome)}
+                className="text-xs bg-card p-2.5 rounded-2xl border border-border/50 flex items-center justify-between gap-2 cursor-pointer hover:bg-muted/50 transition-colors"
               >
                 <div className="min-w-0">
                   <p className="font-bold truncate text-foreground">{c.nome}</p>
@@ -289,6 +299,13 @@ function EnvioPlanilhaAlerts({ clientes }: { clientes: any[] }) {
           })}
         </div>
       </div>
+
+      <ExportFaturamentoModal 
+        open={isExportModalOpen}
+        onOpenChange={setIsExportModalOpen}
+        clienteId={selectedCliente?.id || null}
+        clienteNome={selectedCliente?.nome || ""}
+      />
     </div>
   );
 }
