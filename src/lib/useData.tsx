@@ -693,6 +693,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
           endereco_completo: c.endereco_completo ?? null,
           base_km: c.base_km != null ? Number(c.base_km) : null,
           valor_por_km: c.valor_por_km != null ? Number(c.valor_por_km) : null,
+          dia_faturamento: c.dia_faturamento != null ? Number(c.dia_faturamento) : null,
+          modelo_rat_url: c.modelo_rat_url ?? null,
         })
         .select("id")
         .single();
@@ -716,6 +718,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         dbPatch.base_km = patch.base_km != null ? Number(patch.base_km) : null;
       if (patch.valor_por_km !== undefined)
         dbPatch.valor_por_km = patch.valor_por_km != null ? Number(patch.valor_por_km) : null;
+      if (patch.dia_faturamento !== undefined)
+        dbPatch.dia_faturamento = patch.dia_faturamento != null ? Number(patch.dia_faturamento) : null;
+      if (patch.modelo_rat_url !== undefined)
+        dbPatch.modelo_rat_url = patch.modelo_rat_url ?? null;
       const { error } = await supabase
         .from("clientes")
         .update(dbPatch as any)
