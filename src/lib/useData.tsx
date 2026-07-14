@@ -202,6 +202,8 @@ interface Store {
   loadingOS: boolean;
   osPage: number;
   osTotal: number;
+  osPageSize: number;
+  setOsPageSize: (s: number) => void;
   setOsPage: (p: number) => void;
   osMonth: number;
   osYear: number;
@@ -236,6 +238,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const [loadingAuth, setLoadingAuth] = useState(true);
   const [ratLocal, setRatLocal] = useState<Record<string, RAT>>({});
   const [osPage, setOsPage] = useState(0);
+  const [osPageSize, setOsPageSize] = useState(15);
   const [osTotal, setOsTotal] = useState(0);
   const now = new Date();
   const [osMonth, setOsMonth] = useState<number>(0);
@@ -543,6 +546,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       osSearchCliente,
       osSearchTecnico,
       osFilterStatus,
+      osPageSize,
     ],
     enabled,
     queryFn: async (): Promise<OS[]> => {
@@ -601,8 +605,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         query = query.gte("data_agendamento", startDate).lte("data_agendamento", endDate);
       }
 
-      const from = osPage * PAGE_SIZE;
-      const to = from + PAGE_SIZE - 1;
+      const from = osPage * osPageSize;
+      const to = from + osPageSize - 1;
       const { data, error, count } = await query
         .order("created_at", { ascending: false })
         .range(from, to);
@@ -640,6 +644,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
           rat: ratLocal[r.id] ?? { itens: [], evidencias: [] },
           dados_adicionais: r.dados_adicionais ?? {},
           pendencias_detalhes: r.pendencias_detalhes ?? "",
+          endereco_servico: r.endereco_servico ?? "",
           tecnico: r.tecnico
             ? {
                 id: r.tecnico.id,
@@ -814,6 +819,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         despesas: o.despesas ?? [],
         dados_adicionais: o.dados_adicionais ?? {},
         pendencias_detalhes: o.pendencias_detalhes ?? null,
+        endereco_servico: o.endereco_servico ?? null,
       });
       if (error) throw error;
     },
@@ -841,6 +847,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         dbPatch.horario_atendimento = patch.horario_atendimento;
       if (patch.pendencias_detalhes !== undefined)
         dbPatch.pendencias_detalhes = patch.pendencias_detalhes;
+      if (patch.endereco_servico !== undefined)
+        dbPatch.endereco_servico = patch.endereco_servico;
       const { error } = await (supabase.from("ordens_servico") as any).update(dbPatch).eq("id", id);
       if (error) throw error;
     },
@@ -1148,6 +1156,11 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     loadingOS: osQ.isLoading,
     osPage,
     osTotal,
+    osPageSize,
+    setOsPageSize: (s: number) => {
+      setOsPage(0);
+      setOsPageSize(s);
+    },
     setOsPage,
     osMonth,
     osYear,

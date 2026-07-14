@@ -115,6 +115,8 @@ function OSPage() {
     loadingOS,
     osPage,
     osTotal,
+    osPageSize,
+    setOsPageSize,
     setOsPage,
     osSearchCliente,
     setOsSearchCliente,
@@ -138,7 +140,7 @@ function OSPage() {
   useEffect(() => {
     queryClient.invalidateQueries({ queryKey: ["ordens_servico"] });
   }, [osPage, osSearchCliente, osSearchTecnico, osFilterStatus, osMonth, osYear, queryClient]);
-  const totalPages = Math.max(1, Math.ceil(osTotal / PAGE_SIZE));
+  const totalPages = Math.max(1, Math.ceil(osTotal / osPageSize));
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<OS | null>(null);
   const [form, setForm] = useState({
@@ -1243,10 +1245,29 @@ function OSPage() {
 
       {os.length > 0 && viewMode === "list" && (
         <div className="flex items-center justify-between mt-4 px-1">
-          <p className="text-xs text-muted-foreground">
-            Mostrando {osPage * PAGE_SIZE + 1}–{Math.min((osPage + 1) * PAGE_SIZE, osTotal)} de{" "}
-            {osTotal} OS
-          </p>
+          <div className="flex items-center gap-4">
+            <p className="text-xs text-muted-foreground">
+              Mostrando {osPage * osPageSize + 1}-{Math.min((osPage + 1) * osPageSize, osTotal)} de {osTotal} OS
+            </p>
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-muted-foreground">Exibir:</span>
+              <Select
+                value={String(osPageSize)}
+                onValueChange={(val) => setOsPageSize(Number(val))}
+              >
+                <SelectTrigger className="h-8 text-xs w-[70px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="10">10</SelectItem>
+                  <SelectItem value="15">15</SelectItem>
+                  <SelectItem value="20">20</SelectItem>
+                  <SelectItem value="50">50</SelectItem>
+                  <SelectItem value="100">100</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
           <div className="flex items-center gap-2">
             <Button
               variant="outline"
@@ -1257,7 +1278,7 @@ function OSPage() {
             >
               <ChevronLeft className="w-4 h-4" /> Anterior
             </Button>
-            <span className="text-xs font-medium tabular-nums px-2">
+            <span className="text-xs font-medium text-muted-foreground px-2">
               Página {osPage + 1} de {totalPages}
             </span>
             <Button
