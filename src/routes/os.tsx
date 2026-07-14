@@ -311,8 +311,8 @@ function OSPage() {
   };
 
   const submit = async () => {
-    if (!form.titulo || !form.clienteId || !form.tecnicoId || !form.endereco_servico) {
-      toast.error("Preencha todos os campos obrigatórios (incluindo endereço do serviço)");
+    if (!form.titulo || !form.clienteId || !form.tecnicoId) {
+      toast.error("Preencha todos os campos obrigatórios");
       return;
     }
     await addOS({
@@ -468,7 +468,7 @@ function OSPage() {
                   />
                 </div>
                 <div>
-                  <Label>Endereço do Serviço *</Label>
+                  <Label>Endereço do Serviço</Label>
                   <Input
                     value={form.endereco_servico}
                     onChange={(e) => setForm({ ...form, endereco_servico: e.target.value })}
@@ -1506,8 +1506,8 @@ export function EditOSDialog({
 
   const handleSave = async () => {
     if (!ordem) return;
-    if (!form.titulo || !form.clienteId || !form.tecnicoId || !form.endereco_servico) {
-      toast.error("Preencha todos os campos obrigatórios (incluindo endereço do serviço)");
+    if (!form.titulo || !form.clienteId || !form.tecnicoId) {
+      toast.error("Preencha todos os campos obrigatórios");
       return;
     }
     const valorServico = Number(form.valor) || 0;
