@@ -161,200 +161,6 @@ export const Route = createFileRoute("/equipe")({
   ),
 });
 
-function EquipePage() {
-  const [tecnicosPage, setTecnicosPage] = useState(0);
-  const [tecnicosSearch, setTecnicosSearch] = useState("");
-  const { profile } = useAuth();
-  const empresaId = profile?.empresa_id;
-  
-  const { data: empresaData } = useQuery({
-    queryKey: ["empresa_codigo", empresaId],
-    enabled: !!empresaId,
-    queryFn: async () => {
-      const { data } = await supabase.from("empresas").select("codigo_empresa").eq("id", empresaId as string).single();
-      return data;
-    }
-  });
-  const codigoEmpresa = empresaData?.codigo_empresa || "default";
-  
-  const { data: activeOS } = useActiveOSCount(empresaId);
-
-  const { data: tecnicosData, isPending: loadingTecnicos } = useTecnicos(
-    empresaId,
-    tecnicosPage,
-    tecnicosSearch,
-  );
-  const tecnicos = tecnicosData?.data || [];
-  const tecnicosTotal = tecnicosData?.count || 0;
-
-  const { mutateAsync: updateTecnico } = useUpdateTecnico();
-  const { mutateAsync: deleteTecnico } = useDeleteTecnico();
-  const nomeUsuario = profile?.nome_completo || "usuário";
-  const registrarLog = async (tipo: string, descricao: string) => {
-    if (!empresaId) return;
-    await logActivity(tipo, descricao, empresaId);
-  };
-  const qc = useQueryClient();
-  const [open, setOpen] = useState(false);
-  const [saving, setSaving] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
-  const emptyForm = {
-    id: "",
-    nome: "",
-    perfil: "Técnico de Campo",
-    telefone: "",
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-  DialogFooter,
-} from "@/components/ui/dialog";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { type TipoComissao, PAGE_SIZE } from "@/lib/useData";
-import { useTecnicos, useUpdateTecnico, useDeleteTecnico, useActiveOSCount } from "@/hooks/useTecnicos";
-import { supabase } from "@/integrations/supabase/client";
-import { useQueryClient, useQuery, useMutation } from "@tanstack/react-query";
-import {
-  Phone,
-  BadgeCheck,
-  Plus,
-  Users,
-  List,
-  LayoutGrid,
-  MoreVertical,
-  Edit2,
-  Ban,
-  Eye,
-  EyeOff,
-  Copy,
-  ChevronLeft,
-  ChevronRight,
-  Check,
-  KeyRound,
-} from "lucide-react";
-import { GerarAcessoDialog } from "@/components/GerarAcessoDialog";
-
-function UsernameField({ userId, initialUsername, empresaId, nomeCompleto }: { userId: string, initialUsername?: string, empresaId?: string, nomeCompleto?: string }) {
-  const qc = useQueryClient();
-  const { data: perfil, isLoading } = useQuery({
-    queryKey: ['perfil_username', userId],
-    queryFn: async () => {
-      const { data, error } = await (supabase.from('perfis') as any).select('username').eq('id', userId).maybeSingle();
-      if (error) throw error;
-      return data;
-    },
-    enabled: !!userId
-  });
-
-  const updateUsername = useMutation({
-    mutationFn: async (newUsername: string) => {
-      if (!newUsername.trim()) throw new Error("Usuário não pode ser vazio");
-      if (!/^[a-z0-9._-]+$/i.test(newUsername)) throw new Error("Usuário inválido (use letras, números, . _ -)");
-      
-      const { data, error } = await (supabase.from('perfis') as any).upsert({ 
-        id: userId,
-        empresa_id: empresaId!,
-        nome_completo: nomeCompleto || 'Técnico',
-        role: 'tecnico',
-        username: newUsername 
-      }).select();
-      
-      if (error) {
-        if (error.code === '23505' || /duplicate key/.test(error.message)) {
-          throw new Error("Este usuário já está em uso");
-        }
-        if (error.code === '23503' && /auth\.users/.test(error.message)) {
-          throw new Error("Técnico não possui conta de acesso (auth.users).");
-        }
-        throw error;
-      }
-    },
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['perfil_username', userId] });
-      toast.success("Login salvo com sucesso!");
-    },
-    onError: (e: any) => {
-      toast.error(e.message || "Erro ao salvar username");
-    }
-  });
-
-  const [localUsername, setLocalUsername] = useState("");
-
-  const currentUsername = perfil?.username || initialUsername;
-
-  if (isLoading) {
-    return (
-      <div>
-        <Label>Login do Técnico</Label>
-        <Input disabled placeholder="Carregando..." className="bg-muted/50" />
-      </div>
-    );
-  }
-
-  if (currentUsername) {
-    return (
-      <div>
-        <Label>Login do Técnico</Label>
-        <Input value={currentUsername} disabled className="bg-muted/50" />
-      </div>
-    );
-  }
-
-  return (
-    <div className="space-y-1.5">
-      <div className="flex justify-between items-center">
-        <Label>Usuário (login)</Label>
-      </div>
-      <div className="flex gap-2">
-        <Input 
-          value={localUsername} 
-          onChange={e => setLocalUsername(e.target.value.toLowerCase())} 
-          placeholder="ex: joao.adami" 
-          disabled={updateUsername.isPending}
-        />
-        <Button 
-          type="button" 
-          onClick={() => updateUsername.mutateAsync(localUsername)}
-          disabled={!localUsername || updateUsername.isPending}
-        >
-          {updateUsername.isPending ? "..." : <Check className="w-4 h-4 mr-1" />}
-          Salvar
-        </Button>
-      </div>
-      <p className="text-[11px] text-muted-foreground">
-        Crie um nome de usuário para o técnico fazer login
-      </p>
-    </div>
-  );
-}
-import { FiltrosBarGlobal } from "@/components/FiltrosBarGlobal";
-import { useState } from "react";
-import { toast } from "sonner";
-import { maskPhoneBR, formatComissao } from "@/lib/utils";
-import { useAuth } from "@/lib/auth-context";
-import { logActivity } from "@/lib/logger";
-
-const PERFIS_TECNICO = ["Técnico de Campo", "Instalador", "Suporte", "Manutenção"];
-
-export const Route = createFileRoute("/equipe")({
-  component: () => (
-    <ProtectedRoute allowedRoles={['gestor', 'analista', 'admin', 'superadmin']}>
-      <EquipePage />
-    </ProtectedRoute>
-  ),
-});
 
 function EquipePage() {
   const [tecnicosPage, setTecnicosPage] = useState(0);
@@ -399,6 +205,9 @@ function EquipePage() {
     perfil: "Técnico de Campo",
     telefone: "",
     username: "",
+    comissao: "",
+    tipo_comissao: "fixo" as TipoComissao,
+    chave_pix: "",
     cidade_atendimento: "",
     raio_atendimento: "",
   };
@@ -424,6 +233,9 @@ function EquipePage() {
       perfil: t.perfil,
       telefone: t.telefone,
       username: t.username || "",
+      comissao: t.comissao != null ? String(t.comissao) : "",
+      tipo_comissao: (t.tipo_comissao || "fixo") as TipoComissao,
+      chave_pix: t.chave_pix || "",
       cidade_atendimento: dadosAdicionais.cidade_atendimento || "",
       raio_atendimento: dadosAdicionais.raio_atendimento
         ? String(dadosAdicionais.raio_atendimento)
