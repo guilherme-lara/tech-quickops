@@ -233,6 +233,9 @@ function EquipePage() {
       perfil: t.perfil,
       telefone: t.telefone,
       username: t.username || "",
+      comissao: t.comissao != null ? String(t.comissao) : "",
+      tipo_comissao: (t.tipo_comissao || "fixo") as TipoComissao,
+      chave_pix: t.chave_pix || "",
       cidade_atendimento: dadosAdicionais.cidade_atendimento || "",
       raio_atendimento: dadosAdicionais.raio_atendimento
         ? String(dadosAdicionais.raio_atendimento)
