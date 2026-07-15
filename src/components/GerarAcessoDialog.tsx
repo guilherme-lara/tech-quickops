@@ -64,50 +64,20 @@ export function GerarAcessoDialog({
       const senhaFinal = gerarSenha ? Math.random().toString(36).slice(-8).toUpperCase() : novaSenha;
       if (!gerarSenha && senhaFinal.length < 6) throw new Error("A senha deve ter pelo menos 6 caracteres.");
 
-      // 1. Preserva sessão do admin
-      const { data: sessData } = await supabase.auth.getSession();
-      const adminSession = sessData.session;
-
-      const email = `${u}@${codigoEmpresa}.techquickops.com`;
-
-      // 2. Cria conta de auth (client-side). Metadata alimenta o trigger handle_new_user.
-      const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
-        email,
-        password: senhaFinal,
-        options: {
-          data: {
-            role: "tecnico",
-            empresa_id: empresaId,
-            nome_completo: tecnico.nome,
-          },
-        },
+      const { error: rpcError } = await (supabase.rpc as any)("vincular_acesso_tecnico", {
+        p_tecnico_id: tecnico.id,
+        p_username: u,
+        p_senha: senhaFinal,
       });
 
-      if (signUpError) {
-        if (/already registered|already exists|duplicate/i.test(signUpError.message)) {
-          throw new Error("Este usuário já possui uma conta de acesso.");
+      if (rpcError) {
+        if (/já está em uso|já possui|registrado/i.test(rpcError.message)) {
+          throw new Error("Este usuário já possui uma conta de acesso ou o nome de usuário está em uso.");
         }
-        throw signUpError;
+        throw rpcError;
       }
 
-      const newUserId = signUpData.user?.id;
-
-      // 3. Restaura sessão do admin (signUp autentica o usuário criado)
-      if (adminSession) {
-        await supabase.auth.setSession({
-          access_token: adminSession.access_token,
-          refresh_token: adminSession.refresh_token,
-        });
-      }
-
-      if (!newUserId) throw new Error("Falha ao obter ID do novo usuário.");
-
-      // 4. Vincula o auth user ao técnico existente
-      const { error: linkError } = await (supabase.from("tecnicos") as any)
-        .update({ user_id: newUserId, username: u })
-        .eq("id", tecnico.id);
-
-      if (linkError) throw linkError;
+      await registrarLog("acesso_tecnico_gerado", `Acesso gerado para técnico "${tecnico.nome}" por ${profile?.nome_completo || "Gestor"}`);
 
       const text = `Olá ${tecnico.nome}! Bem-vindo(a) à equipe técnica.\n\nAqui estão suas credenciais exclusivas de acesso ao aplicativo:\n\n🏢 Código da Empresa: ${codigoEmpresa}\n👤 Usuário: ${u}\n🔑 Senha: ${senhaFinal}\n\nAcesse o link do sistema para entrar.`;
 
