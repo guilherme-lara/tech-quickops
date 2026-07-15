@@ -205,6 +205,9 @@ function EquipePage() {
     perfil: "Técnico de Campo",
     telefone: "",
     username: "",
+    comissao: "",
+    tipo_comissao: "fixo" as TipoComissao,
+    chave_pix: "",
     cidade_atendimento: "",
     raio_atendimento: "",
   };
