@@ -346,6 +346,65 @@ export type Database = {
           },
         ]
       }
+      os_historico: {
+        Row: {
+          alteracoes: Json | null
+          alterado_por: string | null
+          alterado_por_nome: string | null
+          created_at: string
+          empresa_id: string
+          id: string
+          os_id: string
+          status_anterior: string | null
+          status_novo: string | null
+          tecnico_id: string | null
+          tecnico_id_anterior: string | null
+          tecnico_user_id: string | null
+          tecnico_user_id_anterior: string | null
+          tipo_evento: string
+        }
+        Insert: {
+          alteracoes?: Json | null
+          alterado_por?: string | null
+          alterado_por_nome?: string | null
+          created_at?: string
+          empresa_id: string
+          id?: string
+          os_id: string
+          status_anterior?: string | null
+          status_novo?: string | null
+          tecnico_id?: string | null
+          tecnico_id_anterior?: string | null
+          tecnico_user_id?: string | null
+          tecnico_user_id_anterior?: string | null
+          tipo_evento: string
+        }
+        Update: {
+          alteracoes?: Json | null
+          alterado_por?: string | null
+          alterado_por_nome?: string | null
+          created_at?: string
+          empresa_id?: string
+          id?: string
+          os_id?: string
+          status_anterior?: string | null
+          status_novo?: string | null
+          tecnico_id?: string | null
+          tecnico_id_anterior?: string | null
+          tecnico_user_id?: string | null
+          tecnico_user_id_anterior?: string | null
+          tipo_evento?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "os_historico_os_id_fkey"
+            columns: ["os_id"]
+            isOneToOne: false
+            referencedRelation: "ordens_servico"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       os_inventario: {
         Row: {
           created_at: string
