@@ -21,6 +21,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useStore, statusColor, OSStatus, OS, PAGE_SIZE } from "@/lib/useData";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { OSHistorico } from "@/components/OSHistorico";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 import { formatDate, maskPhoneBR } from "@/lib/utils";
@@ -1636,7 +1638,12 @@ export function EditOSDialog({
             {mode === "view" ? "Visualizar OS" : "Editar OS"} {ordem?.numero}
           </DialogTitle>
         </DialogHeader>
-        <div className="space-y-3">
+        <Tabs defaultValue="dados" className="w-full">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="dados">Dados</TabsTrigger>
+            <TabsTrigger value="historico">Histórico</TabsTrigger>
+          </TabsList>
+          <TabsContent value="dados" className="space-y-3 mt-4">
           <div>
             <Label className="text-muted-foreground text-xs font-bold uppercase tracking-wider mb-1 block">
               Título da OS
@@ -1998,7 +2005,11 @@ export function EditOSDialog({
               </div>
             </div>
           )}
-        </div>
+          </TabsContent>
+          <TabsContent value="historico" className="mt-4">
+            <OSHistorico osId={ordem?.id ?? null} />
+          </TabsContent>
+        </Tabs>
 
         <DialogFooter>
           <Button variant="outline" onClick={onClose} disabled={saving}>
