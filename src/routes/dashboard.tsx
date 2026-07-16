@@ -969,7 +969,7 @@ function Dashboard() {
         .select("*")
         .eq("empresa_id", profile?.empresa_id)
         .order("created_at", { ascending: false })
-        .limit(10);
+        .limit(40);
       if (error) throw error;
       return (data ?? []) as LogEntry[];
     },
@@ -987,6 +987,73 @@ function Dashboard() {
   };
 
   const firstName = profile?.nome_completo?.split(" ")[0] || "Usuário";
+
+  const [loadingOSLog, setLoadingOSLog] = useState(false);
+
+  const handleOSLogClick = async (log: any) => {
+    const match = log.descricao.match(/OS\s+"?(.*?)"/);
+    if (!match) {
+       toast.error("Não foi possível identificar a OS neste log.");
+       return;
+    }
+    const tituloOS = match[1];
+
+    setLoadingOSLog(true);
+    try {
+      const { data, error } = await supabase
+        .from("ordens_servico")
+        .select("*, clientes(nome), tecnico:tecnicos(id, nome, perfil, telefone, ativo)")
+        .eq("empresa_id", profile?.empresa_id || "")
+        .or(`titulo.eq."${tituloOS}",numero.eq."${tituloOS}"`)
+        .maybeSingle();
+      
+      if (error) throw error;
+      if (!data) {
+        toast.error(`OS não encontrada.`);
+        return;
+      }
+
+      const dbToUiStatus: Record<string, OSStatus> = {
+        pendente: "Orçamento",
+        aprovado: "Aprovado",
+        em_andamento: "Em Execução",
+        concluido: "Concluído",
+        concluido_tecnico: "Concluído Técnico",
+        cancelado: "Cancelado",
+      };
+
+      const osUi = {
+        id: data.id,
+        numero: data.numero,
+        clienteId: data.cliente_id,
+        tecnicoId: data.tecnico_id ?? "",
+        analistaId: data.analista_id ?? "",
+        titulo: data.titulo || data.descricao_problema || "",
+        status: dbToUiStatus[data.status] ?? "Orçamento",
+        criadaEm: (data.created_at ?? "").slice(0, 10),
+        data_atendimento: data.data_agendamento ?? data.data_atendimento ?? data.dados_adicionais?.Data,
+        data_agendamento: data.data_agendamento ?? data.data_atendimento ?? data.dados_adicionais?.Data,
+        horario_atendimento: data.horario_atendimento ?? data.dados_adicionais?.Horario,
+        valor: Number(data.valor ?? 0),
+        custo_viagem: Number(data.custo_viagem ?? 0),
+        km_viagem: Number(data.km_viagem ?? 0),
+        despesas: typeof data.despesas === "string" ? JSON.parse(data.despesas) : (data.despesas || []),
+        rat: data.rat ? (typeof data.rat === "string" ? JSON.parse(data.rat) : data.rat) : { itens: [], evidencias: [] },
+        dados_adicionais: data.dados_adicionais ?? {},
+        pendencias_detalhes: data.pendencias_detalhes ?? "",
+        tecnico: data.tecnico ? { ...data.tecnico } : undefined,
+        clientes: data.clientes ? { ...data.clientes } : undefined,
+      };
+      setEditingOS(osUi as any);
+    } catch (e: any) {
+      toast.error("Erro ao buscar a OS: " + e.message);
+    } finally {
+      setLoadingOSLog(false);
+    }
+  };
+
+  const osLogs = (logsQ.data || []).filter((l: any) => l.tipo?.toLowerCase().includes("os") || l.descricao?.toLowerCase().includes("os")).slice(0, 5);
+  const systemLogs = (logsQ.data || []).slice(0, 10);
 
   return (
     <GestorLayout>
@@ -1138,12 +1205,15 @@ function Dashboard() {
             />
           </div>
 
-          {/* Atividades Recentes */}
+          {/* Atualizações de OS (Substituindo Atividades Recentes) */}
           <div className="rounded-3xl bg-card p-4 md:p-6 shadow-[var(--shadow-card)] border border-border/60">
             <div className="flex items-center justify-between mb-5">
               <div>
-                <h3 className="font-bold text-lg">Atividades Recentes</h3>
-                <p className="text-xs text-muted-foreground">Últimas ações do sistema</p>
+                <h3 className="font-bold text-lg flex items-center gap-2">
+                  Atualizações de OS
+                  {loadingOSLog && <Activity className="w-4 h-4 animate-spin text-primary" />}
+                </h3>
+                <p className="text-xs text-muted-foreground">Últimas alterações em ordens de serviço</p>
               </div>
               <Link
                 to="/logs"
@@ -1167,39 +1237,49 @@ function Dashboard() {
                   ))}
                 </div>
               )}
-              {!recentLogsQ.isLoading && recentLogsQ.data && recentLogsQ.data.length > 0 ? (
+              {!logsQ.isLoading && osLogs.length > 0 ? (
                 <div className="space-y-2">
-                  {recentLogsQ.data.map((log: any) => {
+                  {osLogs.map((log: any) => {
+                    const numMatch = log.descricao.match(/OS\s+"?(\d+)/i);
+                    const osNum = numMatch ? numMatch[1] : "OS";
+                    const cleanDesc = log.descricao.replace(/OS "(.*?)"/, "").trim();
+
                     return (
                       <div
                         key={log.id}
-                        className="flex items-center gap-3 p-3 rounded-2xl border border-border/50 bg-background hover:bg-muted/10 transition-colors"
+                        onClick={() => handleOSLogClick(log)}
+                        className="flex items-center gap-3 p-3 rounded-2xl border border-border/50 bg-background hover:bg-muted/30 transition-colors cursor-pointer group"
                       >
-                        <div className="p-2 rounded-lg bg-primary/10 text-primary border border-primary/20 shrink-0">
+                        <div className="p-2 rounded-lg bg-primary/10 text-primary border border-primary/20 shrink-0 group-hover:scale-105 transition-transform">
                           <Activity className="w-5 h-5" />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="font-bold text-sm text-foreground leading-tight">{log.descricao}</p>
-                          <p className="text-[10px] text-muted-foreground mt-1">
-                            {log.usuario_nome}
+                          <p className="font-bold text-sm text-foreground leading-tight flex items-center gap-1.5 flex-wrap">
+                            <span className="text-[10px] font-bold text-primary bg-primary/10 px-1.5 py-0.5 rounded">
+                              #{osNum}
+                            </span>
+                            {cleanDesc.charAt(0).toUpperCase() + cleanDesc.slice(1)}
+                          </p>
+                          <p className="text-[10px] text-muted-foreground mt-1 truncate">
+                            Atualizado por: {log.usuario_nome}
                           </p>
                         </div>
                         <div className="text-right shrink-0">
-                          <span className="text-[10px] px-2 py-0.5 rounded-full font-bold bg-muted text-muted-foreground border border-border">
-                            {log.tipo}
-                          </span>
-                          <p className="text-[10px] text-muted-foreground mt-1 font-medium">
+                          <p className="text-[10px] text-muted-foreground font-medium mb-1">
                             {formatDate(log.created_at)}
                           </p>
+                          <span className="text-[9px] px-2 py-0.5 rounded-full font-bold bg-muted text-muted-foreground border border-border">
+                            {log.tipo}
+                          </span>
                         </div>
                       </div>
                     );
                   })}
                 </div>
               ) : (
-                !recentLogsQ.isLoading && (
+                !logsQ.isLoading && (
                   <div className="text-sm text-muted-foreground text-center py-10">
-                    Nenhuma atividade registrada ainda.
+                    Nenhuma atualização de OS recente.
                   </div>
                 )
               )}
@@ -1307,7 +1387,7 @@ function Dashboard() {
                 </div>
               ) : (
                 <div className="space-y-2 max-h-[300px] overflow-y-auto">
-                  {(logsQ.data ?? []).map((log) => (
+                  {systemLogs.map((log) => (
                     <div
                       key={log.id}
                       className="flex items-start gap-3 p-2.5 rounded-xl hover:bg-muted/40 transition-colors"
