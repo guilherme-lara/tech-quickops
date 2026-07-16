@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowLeft } from "lucide-react";
 
-export const Route = createFileRoute("/termos-de-uso")({
+export const Route = createFileRoute("/termos-de-uso" as any)({
   component: Termos,
 });
 

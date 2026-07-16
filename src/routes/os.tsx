@@ -365,9 +365,7 @@ function OSPage() {
     setDespesaTipo("Pedágio");
     setDespesaValor("");
   };
-    setDespesaTipo("Pedágio");
-    setDespesaValor("");
-  };
+
 
   const fixedKeys = new Set([
     "Data",
