@@ -498,6 +498,7 @@ function Dashboard() {
   const { allClientes: clientes, allTecnicos: tecnicos, loadingOS, loadingClientes, osMonth, osYear, os, updateOS } =
     useStore();
   const [editingOS, setEditingOS] = useState<OS | null>(null);
+  const [dialogMode, setDialogMode] = useState<"edit" | "view">("edit");
 
   // Gera dataInicio/dataFim com base no filtro de mês/ano
   const hasMonthFilter = osMonth > 0 && osYear > 0;
@@ -1044,6 +1045,7 @@ function Dashboard() {
         tecnico: data.tecnico ? { ...data.tecnico } : undefined,
         clientes: data.clientes ? { ...data.clientes } : undefined,
       };
+      setDialogMode("view");
       setEditingOS(osUi as any);
     } catch (e: any) {
       toast.error("Erro ao buscar a OS: " + e.message);
@@ -1071,13 +1073,13 @@ function Dashboard() {
         </div>
       </div>
 
-      <PriorityAlerts ordens={alertasOSQ.data ?? []} isLoading={alertasOSQ.isLoading} onEdit={(os) => setEditingOS(os)} logs={logsQ.data ?? []} />
+      <PriorityAlerts ordens={alertasOSQ.data ?? []} isLoading={alertasOSQ.isLoading} onEdit={(os) => { setDialogMode("edit"); setEditingOS(os); }} logs={logsQ.data ?? []} />
       <EnvioPlanilhaAlerts clientes={clientes} />
       <PagamentoAlerts clientes={clientes} />
       <PendingAlertsCard
         ordens={pendenciasOSQ.data ?? []}
         isLoading={pendenciasOSQ.isLoading}
-        onEdit={(os) => setEditingOS(os)}
+        onEdit={(os) => { setDialogMode("edit"); setEditingOS(os); }}
       />
 
       {/* Cards Estratégicos */}
@@ -1411,7 +1413,7 @@ function Dashboard() {
       </div>
 
       <EditOSDialog
-        mode="edit"
+        mode={dialogMode}
         ordem={editingOS}
         clientes={clientes}
         tecnicos={tecnicos}
