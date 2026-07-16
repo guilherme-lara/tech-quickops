@@ -1283,12 +1283,12 @@ function Dashboard() {
             await updateOS(editingOS.id, patch);
             
             if (profile?.empresa_id) {
-              await logActivity({
-                empresa_id: profile.empresa_id,
-                usuario_id: profile.id,
-                tipo: "os_atualizada",
-                descricao: `OS "${editingOS.titulo}" atualizada rapidamente pelo Dashboard por ${profile?.nome_completo || profile?.email || "Gestor"}`
-              });
+              await logActivity(
+                "os_atualizada",
+                `OS "${editingOS.titulo}" atualizada rapidamente pelo Dashboard por ${profile?.nome_completo || profile?.email || "Gestor"}`,
+                profile.empresa_id,
+                profile?.nome_completo,
+              );
             }
 
             toast.success("OS atualizada com sucesso");
