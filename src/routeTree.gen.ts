@@ -10,6 +10,8 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as UsuariosRouteImport } from './routes/usuarios'
+import { Route as TermosDeUsoRouteImport } from './routes/termos-de-uso'
+import { Route as PrivacidadeRouteImport } from './routes/privacidade'
 import { Route as OsRouteImport } from './routes/os'
 import { Route as LogsRouteImport } from './routes/logs'
 import { Route as LoginRouteImport } from './routes/login'
@@ -33,6 +35,16 @@ import { Route as TecnicoOsIdRatRouteImport } from './routes/tecnico.os.$id.rat'
 const UsuariosRoute = UsuariosRouteImport.update({
   id: '/usuarios',
   path: '/usuarios',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TermosDeUsoRoute = TermosDeUsoRouteImport.update({
+  id: '/termos-de-uso',
+  path: '/termos-de-uso',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivacidadeRoute = PrivacidadeRouteImport.update({
+  id: '/privacidade',
+  path: '/privacidade',
   getParentRoute: () => rootRouteImport,
 } as any)
 const OsRoute = OsRouteImport.update({
@@ -145,6 +157,8 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/logs': typeof LogsRoute
   '/os': typeof OsRoute
+  '/privacidade': typeof PrivacidadeRoute
+  '/termos-de-uso': typeof TermosDeUsoRoute
   '/usuarios': typeof UsuariosRoute
   '/tecnico/dashboard': typeof TecnicoDashboardRoute
   '/tecnico/historico': typeof TecnicoHistoricoRoute
@@ -167,6 +181,8 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/logs': typeof LogsRoute
   '/os': typeof OsRoute
+  '/privacidade': typeof PrivacidadeRoute
+  '/termos-de-uso': typeof TermosDeUsoRoute
   '/usuarios': typeof UsuariosRoute
   '/tecnico/dashboard': typeof TecnicoDashboardRoute
   '/tecnico/historico': typeof TecnicoHistoricoRoute
@@ -190,6 +206,8 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/logs': typeof LogsRoute
   '/os': typeof OsRoute
+  '/privacidade': typeof PrivacidadeRoute
+  '/termos-de-uso': typeof TermosDeUsoRoute
   '/usuarios': typeof UsuariosRoute
   '/tecnico/dashboard': typeof TecnicoDashboardRoute
   '/tecnico/historico': typeof TecnicoHistoricoRoute
@@ -214,6 +232,8 @@ export interface FileRouteTypes {
     | '/login'
     | '/logs'
     | '/os'
+    | '/privacidade'
+    | '/termos-de-uso'
     | '/usuarios'
     | '/tecnico/dashboard'
     | '/tecnico/historico'
@@ -236,6 +256,8 @@ export interface FileRouteTypes {
     | '/login'
     | '/logs'
     | '/os'
+    | '/privacidade'
+    | '/termos-de-uso'
     | '/usuarios'
     | '/tecnico/dashboard'
     | '/tecnico/historico'
@@ -258,6 +280,8 @@ export interface FileRouteTypes {
     | '/login'
     | '/logs'
     | '/os'
+    | '/privacidade'
+    | '/termos-de-uso'
     | '/usuarios'
     | '/tecnico/dashboard'
     | '/tecnico/historico'
@@ -281,6 +305,8 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   LogsRoute: typeof LogsRoute
   OsRoute: typeof OsRoute
+  PrivacidadeRoute: typeof PrivacidadeRoute
+  TermosDeUsoRoute: typeof TermosDeUsoRoute
   UsuariosRoute: typeof UsuariosRoute
   TecnicoDashboardRoute: typeof TecnicoDashboardRoute
   TecnicoHistoricoRoute: typeof TecnicoHistoricoRoute
@@ -296,6 +322,20 @@ declare module '@tanstack/react-router' {
       path: '/usuarios'
       fullPath: '/usuarios'
       preLoaderRoute: typeof UsuariosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/termos-de-uso': {
+      id: '/termos-de-uso'
+      path: '/termos-de-uso'
+      fullPath: '/termos-de-uso'
+      preLoaderRoute: typeof TermosDeUsoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/privacidade': {
+      id: '/privacidade'
+      path: '/privacidade'
+      fullPath: '/privacidade'
+      preLoaderRoute: typeof PrivacidadeRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/os': {
@@ -460,6 +500,8 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   LogsRoute: LogsRoute,
   OsRoute: OsRoute,
+  PrivacidadeRoute: PrivacidadeRoute,
+  TermosDeUsoRoute: TermosDeUsoRoute,
   UsuariosRoute: UsuariosRoute,
   TecnicoDashboardRoute: TecnicoDashboardRoute,
   TecnicoHistoricoRoute: TecnicoHistoricoRoute,
@@ -470,3 +512,12 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { createStart } from '@tanstack/react-start'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+  }
+}
