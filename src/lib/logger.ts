@@ -13,8 +13,8 @@ export async function logActivity(
   usuario_nome?: string,
 ): Promise<void> {
   try {
-    const { data: userData } = await supabase.auth.getUser();
-    const userId = userData.user?.id;
+    const { data: sessionData } = await supabase.auth.getSession();
+    const userId = sessionData.session?.user?.id;
     if (!userId) {
       console.error("Não foi possível obter o usuário autenticado para registrar log.");
       return;
