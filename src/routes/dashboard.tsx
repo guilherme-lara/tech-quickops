@@ -636,7 +636,7 @@ function Dashboard() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("ordens_servico")
-        .select("*, clientes(nome), tecnico:tecnicos(id, nome, perfil, telefone, ativo)")
+        .select("*, clientes(nome, endereco_completo), tecnico:tecnicos(id, nome, perfil, telefone, ativo)")
         .neq("status", "concluido")
         .neq("status", "cancelado")
         .eq("empresa_id", profile?.empresa_id || "");
