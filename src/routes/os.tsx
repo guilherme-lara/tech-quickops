@@ -956,7 +956,7 @@ function OSPage() {
                   <Label>WhatsApp (Opcional)</Label>
                   <Input
                     value={quickAnaForm.whatsapp}
-                    onChange={(e) => setQuickAnaForm({ ...quickAnaForm, whatsapp: e.target.value })}
+                    onChange={(e) => setQuickAnaForm({ ...quickAnaForm, whatsapp: maskPhoneBR(e.target.value) })}
                     placeholder="(00) 00000-0000"
                   />
                 </div>
@@ -1894,7 +1894,8 @@ export function EditOSDialog({
               <Label>Telefone</Label>
               <Input
                 value={quickCliForm.telefone}
-                onChange={(e) => setQuickCliForm({ ...quickCliForm, telefone: e.target.value })}
+                onChange={(e) => setQuickCliForm({ ...quickCliForm, telefone: maskPhoneBR(e.target.value) })}
+                placeholder="(11) 99999-0000"
               />
             </div>
             <div>
@@ -1953,7 +1954,8 @@ export function EditOSDialog({
               <Label>Telefone</Label>
               <Input
                 value={quickTecForm.telefone}
-                onChange={(e) => setQuickTecForm({ ...quickTecForm, telefone: e.target.value })}
+                onChange={(e) => setQuickTecForm({ ...quickTecForm, telefone: maskPhoneBR(e.target.value) })}
+                placeholder="(11) 99999-0000"
               />
             </div>
           </div>
@@ -1994,7 +1996,7 @@ export function EditOSDialog({
               <Label>WhatsApp (Opcional)</Label>
               <Input
                 value={quickAnaForm.whatsapp}
-                onChange={(e) => setQuickAnaForm({ ...quickAnaForm, whatsapp: e.target.value })}
+                onChange={(e) => setQuickAnaForm({ ...quickAnaForm, whatsapp: maskPhoneBR(e.target.value) })}
                 placeholder="(00) 00000-0000"
               />
             </div>
