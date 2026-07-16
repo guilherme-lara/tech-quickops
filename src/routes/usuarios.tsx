@@ -43,7 +43,7 @@ function generateRandomPassword() {
 function UsuariosPage() {
   const { profile } = useAuth();
   const empresaId = profile?.empresa_id;
-  const codigoEmpresa = (profile as any)?.empresaCodigo || "";
+  const codigoEmpresa = profile?.empresaCodigo || "";
   const empresaNome = profile?.empresaNome || "Tech QuickOps";
   const qc = useQueryClient();
 

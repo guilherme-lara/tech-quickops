@@ -11,6 +11,7 @@ export interface AuthProfile {
   empresaNome?: string;
   avatarUrl?: string;
   empresaLogo?: string;
+  empresaCodigo?: string;
 }
 
 interface AuthValue {
@@ -45,6 +46,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           empresaNome: user.empresaNome,
           avatarUrl: user.avatarUrl,
           empresaLogo: user.empresaLogo,
+          empresaCodigo: (user as any).empresaCodigo,
         }
       : null,
     isLoading: loadingAuth,
