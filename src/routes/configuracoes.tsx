@@ -572,8 +572,9 @@ function ConfiguracoesPage() {
                   </Button>
                 </div>
               </div>
-              </Card>
-            )}
+            </div>
+          </Card>
+          )}
         </div>
       </div>
     </GestorLayout>
