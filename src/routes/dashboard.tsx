@@ -668,6 +668,7 @@ function Dashboard() {
         dados_adicionais: r.dados_adicionais || {},
         clientes: r.clientes,
         tecnico: r.tecnico,
+        endereco_servico: r.endereco_servico || "",
         pendencias_detalhes: r.pendencias_detalhes || "",
       })) as any[];
     },
