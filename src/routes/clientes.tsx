@@ -270,6 +270,7 @@ function ClientesPage() {
         documento: "",
         telefone: "",
         email: "",
+        endereco_completo: "",
         cidade: "",
         base_km: "",
         valor_por_km: "",
