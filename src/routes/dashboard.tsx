@@ -128,45 +128,14 @@ function PriorityAlerts({ ordens, isLoading, onEdit, logs }: { ordens: any[]; is
 
   if (atrasadas.length === 0 && hoje.length === 0) return null;
 
-  const recentesAtualizacoes = (logs || [])
-    .filter(l => l.tipo === "Atualização de OS" || l.descricao?.toLowerCase().includes("status"))
-    .slice(0, 3);
-
-  const renderUpdatesFeed = (title: string) => (
-    <div className="rounded-3xl bg-card/60 border border-border/50 p-4 flex flex-col shadow-sm">
-      <div className="flex items-center gap-2 mb-3">
-        <Activity className="w-4 h-4 text-primary" />
-        <span className="font-bold text-sm text-foreground">
-          {title}
-        </span>
-      </div>
-      {recentesAtualizacoes.length > 0 ? (
-        <div className="space-y-2 max-h-[140px] overflow-y-auto pr-1">
-          {recentesAtualizacoes.map(log => (
-            <div key={log.id} className="text-xs bg-muted/30 p-2.5 rounded-xl border border-border/50">
-              <p className="font-medium text-foreground mb-1.5 leading-tight">{log.descricao}</p>
-              <div className="flex justify-between items-center text-[10px] text-muted-foreground">
-                <span className="truncate mr-2 font-medium">{log.usuario_nome}</span>
-                <span className="shrink-0">{new Date(log.created_at).toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'})}</span>
-              </div>
-            </div>
-          ))}
-        </div>
-      ) : (
-        <div className="flex-1 flex flex-col items-center justify-center text-center p-4">
-          <Activity className="w-6 h-6 text-muted-foreground/30 mb-2" />
-          <p className="text-xs text-muted-foreground">Nenhuma atualização de OS recente no sistema.</p>
-        </div>
-      )}
-    </div>
-  );
+  const hasBoth = atrasadas.length > 0 && hoje.length > 0;
 
   return (
     <div className="space-y-3 mb-6">
       <div className="text-[10px] uppercase font-bold tracking-wider text-muted-foreground">
         Painel de Controle: Alertas & Prioridades
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className={`grid grid-cols-1 gap-4 ${hasBoth ? "md:grid-cols-2" : ""}`}>
         {/* Alertas de Atraso */}
         {atrasadas.length > 0 && (
           <div className="rounded-3xl bg-red-50/70 dark:bg-red-950/20 border border-red-200 dark:border-red-900/40 p-4 flex flex-col justify-between shadow-[0_4px_20px_-4px_rgba(239,68,68,0.08)]">
@@ -228,9 +197,6 @@ function PriorityAlerts({ ordens, isLoading, onEdit, logs }: { ordens: any[]; is
             </div>
           </div>
         )}
-
-        {/* Últimas Atualizações Placeholder (substituindo Zero Atrasos) */}
-        {atrasadas.length === 0 && renderUpdatesFeed("Atividades Recentes de OS")}
 
         {/* Prioridades do Dia */}
         {hoje.length > 0 && (
@@ -297,9 +263,6 @@ function PriorityAlerts({ ordens, isLoading, onEdit, logs }: { ordens: any[]; is
             </div>
           </div>
         )}
-
-        {/* Últimas Atualizações Placeholder (substituindo Agenda Livre) */}
-        {hoje.length === 0 && renderUpdatesFeed("Atualizações de OS Recentes")}
       </div>
     </div>
   );
