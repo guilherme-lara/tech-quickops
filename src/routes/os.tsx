@@ -47,6 +47,7 @@ import {
 } from "lucide-react";
 import { useEffect, useState, useRef } from "react";
 import { toast } from "sonner";
+import confetti from "canvas-confetti";
 import { ImportarOSDialog } from "@/components/ImportarOSDialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/EmptyState";
@@ -978,7 +979,6 @@ function OSPage() {
           </Dialog>
         </div>
       </div>
-      </div>
 
       <FiltrosBarGlobal showCliente showTecnico showStatus />
       {loadingOS ? (
@@ -1257,7 +1257,6 @@ function OSPage() {
     </GestorLayout>
   );
 }
-}
 
 export function EditOSDialog({
   mode,
@@ -1371,6 +1370,16 @@ export function EditOSDialog({
 
     setSaving(true);
     try {
+      if (patch.status === "Concluído" && ordem?.status !== "Concluído") {
+        confetti({
+          particleCount: 150,
+          spread: 70,
+          origin: { y: 0.6 },
+          zIndex: 9999,
+        });
+        const audio = new Audio("https://assets.mixkit.co/active_storage/sfx/2013/2013-preview.mp3");
+        audio.play().catch(() => {});
+      }
       await onSave(patch);
     } finally {
       setSaving(false);

@@ -152,7 +152,9 @@ function PriorityAlerts({ ordens, isLoading, onEdit, logs }: { ordens: any[]; is
             </div>
             <div className="space-y-2 max-h-[140px] overflow-y-auto pr-1">
               {(Array.isArray(atrasadas) ? atrasadas : []).map((o) => {
-                const isConcluido = o.status === "Concluído" || o.status === "Concluído Técnico" || o.status === "concluido" || o.status === "concluido_tecnico";
+                const isConcluidoReal = o.status === "Concluído" || o.status === "concluido";
+                const isConcluidoTecnico = o.status === "Concluído Técnico" || o.status === "concluido_tecnico";
+                const isAnyConcluido = isConcluidoReal || isConcluidoTecnico;
                 return (
                   <div
                     key={o.id}
@@ -174,10 +176,17 @@ function PriorityAlerts({ ordens, isLoading, onEdit, logs }: { ordens: any[]; is
                       )}
                     </div>
                     <div className="text-right shrink-0 flex flex-col items-end gap-1">
-                      {isConcluido ? (
-                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-lg border flex items-center gap-1 ${statusColor[o.status] || "text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-900"}`}>
-                          <CheckCircle2 className="w-3 h-3" /> {o.status}
-                        </span>
+                      {isAnyConcluido ? (
+                        <div className="flex flex-col items-end gap-1">
+                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-lg border flex items-center gap-1 ${statusColor[o.status] || "text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-900"}`}>
+                            <CheckCircle2 className="w-3 h-3" /> {o.status}
+                          </span>
+                          {isConcluidoTecnico && (
+                            <span className="text-[9px] uppercase font-bold text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200 dark:bg-amber-950/40 dark:text-amber-400 dark:border-amber-900 flex items-center gap-1">
+                              <AlertTriangle className="w-2.5 h-2.5" /> Revisar p/ Finalizar
+                            </span>
+                          )}
+                        </div>
                       ) : (
                         <>
                           <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded border flex items-center gap-1 ${statusColor[o.status] || "bg-slate-100 text-slate-700 border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700"}`}>
@@ -215,7 +224,9 @@ function PriorityAlerts({ ordens, isLoading, onEdit, logs }: { ordens: any[]; is
             <div className="space-y-2 max-h-[140px] overflow-y-auto pr-1">
               {(Array.isArray(hoje) ? hoje : []).map((o) => {
                 const limitTimeText = getLimitTimeBadge(o.data_agendamento, o.horario_atendimento);
-                const isConcluido = o.status === "Concluído" || o.status === "Concluído Técnico" || o.status === "concluido" || o.status === "concluido_tecnico";
+                const isConcluidoReal = o.status === "Concluído" || o.status === "concluido";
+                const isConcluidoTecnico = o.status === "Concluído Técnico" || o.status === "concluido_tecnico";
+                const isAnyConcluido = isConcluidoReal || isConcluidoTecnico;
                 return (
                   <div
                     key={o.id}
@@ -237,10 +248,17 @@ function PriorityAlerts({ ordens, isLoading, onEdit, logs }: { ordens: any[]; is
                       )}
                     </div>
                     <div className="text-right shrink-0 flex flex-col items-end gap-1">
-                      {isConcluido ? (
-                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-lg border flex items-center gap-1 ${statusColor[o.status] || "text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-900"}`}>
-                          <CheckCircle2 className="w-3 h-3" /> {o.status}
-                        </span>
+                      {isAnyConcluido ? (
+                        <div className="flex flex-col items-end gap-1">
+                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-lg border flex items-center gap-1 ${statusColor[o.status] || "text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-900"}`}>
+                            <CheckCircle2 className="w-3 h-3" /> {o.status}
+                          </span>
+                          {isConcluidoTecnico && (
+                            <span className="text-[9px] uppercase font-bold text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200 dark:bg-amber-950/40 dark:text-amber-400 dark:border-amber-900 flex items-center gap-1">
+                              <AlertTriangle className="w-2.5 h-2.5" /> Revisar p/ Finalizar
+                            </span>
+                          )}
+                        </div>
                       ) : (
                         <>
                           <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded border flex items-center gap-1 ${statusColor[o.status] || "bg-slate-100 text-slate-700 border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700"}`}>
