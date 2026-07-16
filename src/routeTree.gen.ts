@@ -14,6 +14,7 @@ import { Route as OsRouteImport } from './routes/os'
 import { Route as LogsRouteImport } from './routes/logs'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as GestorDashboardRouteImport } from './routes/gestor-dashboard'
+import { Route as GestaoEquipeRouteImport } from './routes/gestao-equipe'
 import { Route as EstoqueRouteImport } from './routes/estoque'
 import { Route as EquipeRouteImport } from './routes/equipe'
 import { Route as DashboardRouteImport } from './routes/dashboard'
@@ -52,6 +53,11 @@ const LoginRoute = LoginRouteImport.update({
 const GestorDashboardRoute = GestorDashboardRouteImport.update({
   id: '/gestor-dashboard',
   path: '/gestor-dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GestaoEquipeRoute = GestaoEquipeRouteImport.update({
+  id: '/gestao-equipe',
+  path: '/gestao-equipe',
   getParentRoute: () => rootRouteImport,
 } as any)
 const EstoqueRoute = EstoqueRouteImport.update({
@@ -134,6 +140,7 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof DashboardRoute
   '/equipe': typeof EquipeRoute
   '/estoque': typeof EstoqueRoute
+  '/gestao-equipe': typeof GestaoEquipeRoute
   '/gestor-dashboard': typeof GestorDashboardRoute
   '/login': typeof LoginRoute
   '/logs': typeof LogsRoute
@@ -155,6 +162,7 @@ export interface FileRoutesByTo {
   '/dashboard': typeof DashboardRoute
   '/equipe': typeof EquipeRoute
   '/estoque': typeof EstoqueRoute
+  '/gestao-equipe': typeof GestaoEquipeRoute
   '/gestor-dashboard': typeof GestorDashboardRoute
   '/login': typeof LoginRoute
   '/logs': typeof LogsRoute
@@ -177,6 +185,7 @@ export interface FileRoutesById {
   '/dashboard': typeof DashboardRoute
   '/equipe': typeof EquipeRoute
   '/estoque': typeof EstoqueRoute
+  '/gestao-equipe': typeof GestaoEquipeRoute
   '/gestor-dashboard': typeof GestorDashboardRoute
   '/login': typeof LoginRoute
   '/logs': typeof LogsRoute
@@ -200,6 +209,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/equipe'
     | '/estoque'
+    | '/gestao-equipe'
     | '/gestor-dashboard'
     | '/login'
     | '/logs'
@@ -221,6 +231,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/equipe'
     | '/estoque'
+    | '/gestao-equipe'
     | '/gestor-dashboard'
     | '/login'
     | '/logs'
@@ -242,6 +253,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/equipe'
     | '/estoque'
+    | '/gestao-equipe'
     | '/gestor-dashboard'
     | '/login'
     | '/logs'
@@ -264,6 +276,7 @@ export interface RootRouteChildren {
   DashboardRoute: typeof DashboardRoute
   EquipeRoute: typeof EquipeRoute
   EstoqueRoute: typeof EstoqueRoute
+  GestaoEquipeRoute: typeof GestaoEquipeRoute
   GestorDashboardRoute: typeof GestorDashboardRoute
   LoginRoute: typeof LoginRoute
   LogsRoute: typeof LogsRoute
@@ -311,6 +324,13 @@ declare module '@tanstack/react-router' {
       path: '/gestor-dashboard'
       fullPath: '/gestor-dashboard'
       preLoaderRoute: typeof GestorDashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/gestao-equipe': {
+      id: '/gestao-equipe'
+      path: '/gestao-equipe'
+      fullPath: '/gestao-equipe'
+      preLoaderRoute: typeof GestaoEquipeRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/estoque': {
@@ -435,6 +455,7 @@ const rootRouteChildren: RootRouteChildren = {
   DashboardRoute: DashboardRoute,
   EquipeRoute: EquipeRoute,
   EstoqueRoute: EstoqueRoute,
+  GestaoEquipeRoute: GestaoEquipeRoute,
   GestorDashboardRoute: GestorDashboardRoute,
   LoginRoute: LoginRoute,
   LogsRoute: LogsRoute,
