@@ -2005,7 +2005,11 @@ export function EditOSDialog({
               </div>
             </div>
           )}
-        </div>
+          </TabsContent>
+          <TabsContent value="historico" className="mt-4">
+            <OSHistorico osId={ordem?.id ?? null} />
+          </TabsContent>
+        </Tabs>
 
         <DialogFooter>
           <Button variant="outline" onClick={onClose} disabled={saving}>
