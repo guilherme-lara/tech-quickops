@@ -148,6 +148,15 @@ export function GerarAcessoDialog({
               >
                 Enviar via WhatsApp
               </Button>
+              <Button
+                variant="default"
+                onClick={() => {
+                  navigator.clipboard.writeText(successText);
+                  toast.success("Copiado para a área de transferência!");
+                }}
+              >
+                <Copy className="w-4 h-4 mr-2" /> Copiar
+              </Button>
             </DialogFooter>
           </div>
         ) : (

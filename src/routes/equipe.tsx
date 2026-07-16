@@ -812,6 +812,15 @@ function EquipePage() {
                 >
                   Enviar via WhatsApp
                 </Button>
+                <Button
+                  variant="default"
+                  onClick={() => {
+                    navigator.clipboard.writeText(resetSenhaResult.texto);
+                    toast.success("Copiado para a área de transferência!");
+                  }}
+                >
+                  <Copy className="w-4 h-4 mr-2" /> Copiar
+                </Button>
               </DialogFooter>
             </div>
           )}
@@ -852,6 +861,15 @@ function EquipePage() {
                   }}
                 >
                   Enviar via WhatsApp
+                </Button>
+                <Button
+                  variant="default"
+                  onClick={() => {
+                    navigator.clipboard.writeText(successCreds.texto);
+                    toast.success("Copiado para a área de transferência!");
+                  }}
+                >
+                  <Copy className="w-4 h-4 mr-2" /> Copiar
                 </Button>
               </DialogFooter>
             </div>

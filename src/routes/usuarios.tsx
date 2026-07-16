@@ -22,7 +22,13 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { Shield, Plus, Search, Key } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Shield, Plus, Search, Key, MoreVertical, KeyRound, Ban, Copy } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 
@@ -51,6 +57,10 @@ function UsuariosPage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [formData, setFormData] = useState(emptyForm);
   const [successCreds, setSuccessCreds] = useState<{
+    texto: string;
+    nome: string;
+  } | null>(null);
+  const [resetSenhaResult, setResetSenhaResult] = useState<{
     texto: string;
     nome: string;
   } | null>(null);
@@ -106,6 +116,50 @@ function UsuariosPage() {
       }
     },
   });
+
+  const deleteMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("perfis").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Usuário inativado/removido com sucesso");
+      qc.invalidateQueries({ queryKey: ["usuarios_sistema"] });
+    },
+    onError: (error: any) => toast.error(error.message),
+  });
+
+  const resetPasswordMutation = useMutation({
+    mutationFn: async (user: any) => {
+      const novaSenha = generateRandomPassword();
+      const { error } = await supabase.rpc("resetar_senha_tecnico", {
+        p_tecnico_id: user.id,
+        p_nova_senha: novaSenha
+      });
+      if (error) throw error;
+      return { user, novaSenha };
+    },
+    onSuccess: (res) => {
+      const roleLabel = res.user.role === "gestor" ? "Gestor" : res.user.role === "admin" ? "Admin" : res.user.role === "tecnico" ? "Técnico" : "Analista";
+      const text = `Olá ${res.user.nome_completo}! A senha do seu acesso como *${roleLabel}* foi resetada.\n\nEmpresa Vinculada: ${empresaNome}\n\nCredenciais de acesso:\n\n🏢 Código da Empresa: ${codigoEmpresa}\n👤 Usuário: ${(res.user as any).username}\n🔑 Nova Senha: ${res.novaSenha}\n\nAcesse o link do sistema para entrar.`;
+      setResetSenhaResult({ texto: text, nome: res.user.nome_completo });
+    },
+    onError: (e: any) => {
+      toast.error(e.message || "Erro ao gerar nova senha");
+    }
+  });
+
+  const handleDelete = (id: string) => {
+    if (window.confirm("Deseja realmente inativar/remover este usuário?")) {
+      deleteMutation.mutate(id);
+    }
+  };
+
+  const handleResetPassword = (user: any) => {
+    if (window.confirm(`Deseja gerar uma nova senha para ${user.nome_completo}?`)) {
+      resetPasswordMutation.mutate(user);
+    }
+  };
 
   const filteredUsers = usuarios?.filter(
     (u) =>
@@ -168,18 +222,19 @@ function UsuariosPage() {
                   <th className="px-6 py-4 text-left font-medium">Telefone</th>
                   <th className="px-6 py-4 text-left font-medium">Nível de Acesso</th>
                   <th className="px-6 py-4 text-right font-medium">Criado em</th>
+                  <th className="px-6 py-4"></th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border/50">
                 {isLoading ? (
                   <tr>
-                    <td colSpan={5} className="p-6 text-center text-muted-foreground">
+                    <td colSpan={6} className="p-6 text-center text-muted-foreground">
                       Carregando...
                     </td>
                   </tr>
                 ) : filteredUsers?.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="p-6 text-center text-muted-foreground">
+                    <td colSpan={6} className="p-6 text-center text-muted-foreground">
                       Nenhum usuário encontrado.
                     </td>
                   </tr>
@@ -201,6 +256,27 @@ function UsuariosPage() {
                       <td className="px-6 py-4">{getRoleBadge(user.role)}</td>
                       <td className="px-6 py-4 text-right text-muted-foreground text-xs">
                         {new Date(user.created_at).toLocaleDateString("pt-BR")}
+                      </td>
+                      <td className="px-6 py-4 text-right">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" className="h-8 w-8 p-0">
+                              <MoreVertical className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => handleResetPassword(user)}>
+                              <KeyRound className="mr-2 h-4 w-4" /> 
+                              Gerar Nova Senha
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() => handleDelete(user.id)}
+                              className="text-destructive focus:text-destructive"
+                            >
+                              <Ban className="mr-2 h-4 w-4" /> Inativar/Excluir
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </td>
                     </tr>
                   ))
@@ -316,6 +392,64 @@ function UsuariosPage() {
                   }}
                 >
                   Enviar via WhatsApp
+                </Button>
+                <Button
+                  variant="default"
+                  onClick={() => {
+                    navigator.clipboard.writeText(successCreds.texto);
+                    toast.success("Copiado para a área de transferência!");
+                  }}
+                >
+                  <Copy className="w-4 h-4 mr-2" /> Copiar
+                </Button>
+              </DialogFooter>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal de senha resetada */}
+      <Dialog open={!!resetSenhaResult} onOpenChange={(v) => !v && setResetSenhaResult(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Nova Senha Gerada!</DialogTitle>
+          </DialogHeader>
+          {resetSenhaResult && (
+            <div className="space-y-4">
+              <div className="p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-emerald-600 dark:text-emerald-400">
+                <p className="font-semibold mb-2">
+                  Senha gerada para {resetSenhaResult.nome}.
+                </p>
+                <p className="text-sm opacity-90">
+                  Copie as credenciais abaixo e envie para o usuário.
+                </p>
+              </div>
+              <div className="p-4 bg-muted/50 rounded-xl border border-border/50 text-sm whitespace-pre-wrap font-mono">
+                {resetSenhaResult.texto}
+              </div>
+              <DialogFooter className="mt-6 flex gap-2">
+                <Button variant="outline" onClick={() => setResetSenhaResult(null)}>
+                  Fechar
+                </Button>
+                <Button
+                  className="bg-[#25D366] hover:bg-[#1ebd5a] text-white"
+                  onClick={() => {
+                    navigator.clipboard.writeText(resetSenhaResult.texto);
+                    const wppUrl = `https://wa.me/?text=${encodeURIComponent(resetSenhaResult.texto)}`;
+                    window.open(wppUrl, "_blank");
+                    toast.success("Mensagem copiada e WhatsApp aberto!");
+                  }}
+                >
+                  Enviar via WhatsApp
+                </Button>
+                <Button
+                  variant="default"
+                  onClick={() => {
+                    navigator.clipboard.writeText(resetSenhaResult.texto);
+                    toast.success("Copiado para a área de transferência!");
+                  }}
+                >
+                  <Copy className="w-4 h-4 mr-2" /> Copiar
                 </Button>
               </DialogFooter>
             </div>
