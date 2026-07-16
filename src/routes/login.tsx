@@ -96,8 +96,8 @@ function LoginPage() {
       >
         <div className="absolute -top-32 -right-32 w-[28rem] h-[28rem] rounded-full bg-white/15 blur-3xl" />
         <div className="absolute bottom-0 left-0 w-96 h-96 rounded-full bg-black/20 blur-3xl" />
-        <div className="relative z-10 flex items-center gap-2.5">
-          <img src="/quickOpsLogo.png" alt="QuickOps" className="w-72 sm:w-96 h-auto object-contain drop-shadow-md" />
+        <div className="relative z-10 flex items-center justify-center pt-8">
+          <img src="/login-illustration.png" alt="QuickOps Platform" className="w-72 sm:w-96 lg:w-[28rem] h-auto object-contain drop-shadow-2xl hover:scale-105 transition-transform duration-700 animate-in fade-in zoom-in duration-1000" />
         </div>
         <div className="relative z-10 space-y-8">
           <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/15 backdrop-blur border border-white/20 text-xs font-medium">
@@ -119,10 +119,13 @@ function LoginPage() {
         </div>
       </div>
 
-      <div className="flex items-center justify-center p-6">
+      <div className="flex items-center justify-center p-6 relative">
         <div className="w-full max-w-md">
-          <h2 className="text-3xl font-bold tracking-tight">Acesse o QuickOps</h2>
-          <p className="text-sm text-muted-foreground mt-1.5">
+          <div className="flex justify-center mb-8">
+            <img src="/quickOpsLogo.png" alt="QuickOps" className="h-16 sm:h-20 w-auto object-contain drop-shadow-sm" />
+          </div>
+          <h2 className="text-3xl font-bold tracking-tight text-center">Acesse o QuickOps</h2>
+          <p className="text-sm text-muted-foreground mt-1.5 text-center">
             Entre ou crie a conta da sua empresa.
           </p>
 

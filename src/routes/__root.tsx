@@ -85,13 +85,15 @@ function AuthGate() {
     if (loadingAuth) return;
     const homeFor = (role: string) =>
       role === "tecnico" ? "/tecnico/os" : role === "analista" ? "/analista-dashboard" : "/dashboard";
-    if (path === "/") {
-      if (!user) navigate({ to: "/login" });
-      else navigate({ to: homeFor(user.role) });
+
+    if (user && (path === "/" || path === "/login")) {
+      navigate({ to: homeFor(user.role) });
       return;
     }
-    if (!user && path !== "/login") navigate({ to: "/login" });
-    if (user && path === "/login") navigate({ to: homeFor(user.role) });
+
+    if (!user && path !== "/" && path !== "/login") {
+      navigate({ to: "/login" });
+    }
   }, [user, loadingAuth, path, navigate]);
   return null;
 }
