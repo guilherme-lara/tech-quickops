@@ -21,6 +21,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useStore, statusColor, OSStatus, OS, PAGE_SIZE } from "@/lib/useData";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { OSHistorico } from "@/components/OSHistorico";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 import { formatDate, maskPhoneBR } from "@/lib/utils";
