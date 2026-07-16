@@ -96,10 +96,7 @@ function LoginPage() {
       >
         <div className="absolute -top-32 -right-32 w-[28rem] h-[28rem] rounded-full bg-white/15 blur-3xl" />
         <div className="absolute bottom-0 left-0 w-96 h-96 rounded-full bg-black/20 blur-3xl" />
-        <div className="relative z-10 flex items-center justify-center pt-8">
-          <img src="/login-illustration.png" alt="QuickOps Platform" className="w-72 sm:w-96 lg:w-[28rem] h-auto object-contain drop-shadow-2xl hover:scale-105 transition-transform duration-700 animate-in fade-in zoom-in duration-1000" />
-        </div>
-        <div className="relative z-10 space-y-8">
+        <div className="relative z-10 flex-1 flex flex-col justify-center space-y-8">
           <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/15 backdrop-blur border border-white/20 text-xs font-medium">
             <Sparkles className="w-3 h-3" /> Field Service Platform
           </div>
