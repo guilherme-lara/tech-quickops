@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowRight, LayoutDashboard, CheckCircle2, Smartphone, Monitor, ShieldCheck, BarChart3, Receipt, FileDown, Lock, Shield, Settings } from "lucide-react";
+import { ArrowRight, LayoutDashboard, CheckCircle2, Smartphone, Monitor, ShieldCheck, BarChart3, Receipt, FileDown, Lock, Shield, Settings, Box } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/")({
