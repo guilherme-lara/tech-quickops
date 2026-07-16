@@ -30,9 +30,19 @@ export function TecnicoLayout({ children }: { children?: ReactNode }) {
           <header className="sticky top-0 z-20 px-4 pt-3 pb-2 bg-background/80 backdrop-blur-xl">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2.5">
-                <div className="w-9 h-9 rounded-2xl bg-gradient-to-br from-primary to-violet flex items-center justify-center shadow-[var(--shadow-glow)]">
-                  <Wrench className="w-4 h-4 text-primary-foreground" />
-                </div>
+                {profile?.empresaLogo ? (
+                  <img
+                    src={profile.empresaLogo}
+                    alt="Logo da Empresa"
+                    className="w-9 h-9 rounded-xl object-contain bg-white"
+                  />
+                ) : (
+                  <img
+                    src="/quickOpsLogo.png"
+                    alt="Logo QuickOps"
+                    className="w-9 h-9 rounded-xl object-contain"
+                  />
+                )}
                 <div>
                   <div className="font-bold text-sm leading-tight">QuickOps</div>
                   {/* <-- MUDANÇA AQUI: Lendo do profile correto */}

@@ -112,6 +112,7 @@ interface User {
 const dbToUiStatus: Record<string, OSStatus> = {
   agendamento: "Agendamento",
   em_andamento: "Em Andamento",
+  em_deslocamento: "Em Deslocamento",
   concluido_tecnico: "Concluído Técnico",
   pendencia: "Pendência",
   concluido: "Concluído",
@@ -120,6 +121,7 @@ const dbToUiStatus: Record<string, OSStatus> = {
 const uiToDbStatus: Record<OSStatus, string> = {
   Agendamento: "agendamento",
   "Em Andamento": "em_andamento",
+  "Em Deslocamento": "em_deslocamento",
   "Concluído Técnico": "concluido_tecnico",
   Pendência: "pendencia",
   Concluído: "concluido",
@@ -1247,10 +1249,11 @@ export function useStore() {
 }
 
 export const statusColor: Record<OSStatus, string> = {
-  Agendamento: "bg-blue-500/10 text-blue-500 dark:text-blue-400",
-  "Em Andamento": "bg-yellow-500/10 text-yellow-600 dark:text-yellow-400",
+  Agendamento: "bg-blue-500/10 text-blue-600 dark:text-blue-300",
+  "Em Andamento": "bg-yellow-500/10 text-yellow-600 dark:text-yellow-300",
+  "Em Deslocamento": "bg-orange-500/10 text-orange-600 dark:text-orange-400",
   "Concluído Técnico": "bg-emerald-400/20 text-emerald-600 dark:text-emerald-400",
-  Pendência: "bg-orange-500/10 text-orange-600 dark:text-orange-400",
+  Pendência: "bg-red-500/10 text-red-600 dark:text-red-400",
   Concluído: "bg-emerald-600/15 text-emerald-700 dark:text-emerald-500",
-  Cancelado: "bg-destructive/15 text-destructive",
+  Cancelado: "bg-muted text-muted-foreground",
 };

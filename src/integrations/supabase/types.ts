@@ -770,15 +770,16 @@ export type Database = {
     Enums: {
       app_role: "superadmin" | "admin" | "gestor" | "analista" | "tecnico"
       os_status:
-        | "pendente"
-        | "aprovado"
-        | "em_andamento"
-        | "concluido"
-        | "cancelado"
         | "agendamento"
-        | "reagendado"
+        | "aprovado"
+        | "cancelado"
+        | "concluido"
         | "concluido_tecnico"
+        | "em_andamento"
+        | "em_deslocamento"
         | "pendencia"
+        | "pendente"
+        | "reagendado"
       tipo_comissao_enum: "fixo" | "porcentagem"
     }
     CompositeTypes: {

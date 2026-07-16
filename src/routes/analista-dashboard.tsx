@@ -116,11 +116,12 @@ function AnalistaDashboard() {
         .from("ordens_servico")
         .select("id, numero, status, tecnico_id")
         .eq("empresa_id", empresaId!)
-        .in("status", ["em_andamento", "agendamento", "pendencia", "concluido_tecnico"]);
+        .in("status", ["em_andamento", "em_deslocamento", "agendamento", "pendencia", "concluido_tecnico"]);
       if (osError) throw osError;
 
       const radar = tecnicosData.map(tec => {
         const osAtual = osData.find(o => o.tecnico_id === tec.id && o.status === "em_andamento") ||
+                        osData.find(o => o.tecnico_id === tec.id && o.status === "em_deslocamento") ||
                         osData.find(o => o.tecnico_id === tec.id);
         return {
           ...tec,
@@ -276,21 +277,32 @@ function AnalistaDashboard() {
                         </div>
                         <div>
                           <div className="font-semibold text-sm">{tec.nome}</div>
-                          <div className="text-xs text-muted-foreground mt-0.5">
-                            {tec.osAtual ? (
-                              <span className={tec.osAtual.status === "em_andamento" ? "text-primary font-medium" : ""}>
-                                OS #{tec.osAtual.numero} ({tec.osAtual.status})
-                              </span>
+                          <div className="text-xs text-muted-foreground mt-1 flex items-center gap-2">
+                            {tec.osAtual && tec.osAtual.status === "em_deslocamento" ? (
+                              <Badge variant="outline" className="bg-orange-500/10 text-orange-600 border-orange-500/20 shadow-none font-medium h-5 px-1.5 text-[10px]">
+                                Em Trânsito
+                              </Badge>
+                            ) : tec.osAtual && tec.osAtual.status === "em_andamento" ? (
+                              <Badge variant="outline" className="bg-blue-500/10 text-blue-600 border-blue-500/20 shadow-none font-medium h-5 px-1.5 text-[10px]">
+                                Em Atendimento
+                              </Badge>
                             ) : (
-                              <span>Ocioso</span>
+                              <Badge variant="outline" className="bg-emerald-500/10 text-emerald-600 border-emerald-500/20 shadow-none font-medium h-5 px-1.5 text-[10px]">
+                                Disponível
+                              </Badge>
+                            )}
+                            {tec.osAtual && (tec.osAtual.status === "em_andamento" || tec.osAtual.status === "em_deslocamento") && (
+                              <span className="opacity-70 truncate max-w-[120px]">
+                                OS #{tec.osAtual.numero}
+                              </span>
                             )}
                           </div>
                         </div>
                       </div>
-                      {tec.osAtual && tec.osAtual.status === "em_andamento" && (
+                      {tec.osAtual && (tec.osAtual.status === "em_andamento" || tec.osAtual.status === "em_deslocamento") && (
                         <span className="relative flex h-2.5 w-2.5">
-                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
-                          <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-primary"></span>
+                          <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${tec.osAtual.status === 'em_deslocamento' ? 'bg-orange-500' : 'bg-blue-500'}`}></span>
+                          <span className={`relative inline-flex rounded-full h-2.5 w-2.5 ${tec.osAtual.status === 'em_deslocamento' ? 'bg-orange-500' : 'bg-blue-500'}`}></span>
                         </span>
                       )}
                     </div>

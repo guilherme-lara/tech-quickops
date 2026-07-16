@@ -31,6 +31,7 @@ interface Props {
 const statusColors: Record<string, string> = {
   agendamento: "bg-blue-500/10 text-blue-600 border-blue-500/20",
   em_andamento: "bg-amber-500/10 text-amber-600 border-amber-500/20",
+  em_deslocamento: "bg-orange-500/10 text-orange-600 border-orange-500/20",
   concluido_tecnico: "bg-purple-500/10 text-purple-600 border-purple-500/20",
   faturado: "bg-emerald-500/10 text-emerald-600 border-emerald-500/20",
   pendencia: "bg-destructive/10 text-destructive border-destructive/20",
@@ -40,6 +41,7 @@ const statusColors: Record<string, string> = {
 const statusLabels: Record<string, string> = {
   agendamento: "Agendado",
   em_andamento: "Em Andamento",
+  em_deslocamento: "Em Deslocamento",
   concluido_tecnico: "Aguardando Revisão",
   faturado: "Faturado",
   pendencia: "Pendência",
@@ -60,7 +62,8 @@ export function OSDetalhesModal({ osId, open, onOpenChange }: Props) {
         .select(`
           *,
           clientes (nome),
-          tecnicos (id, nome)
+          tecnicos (id, nome),
+          os_historico (created_at, status_novo)
         `)
         .eq("id", osId as string)
         .single();
@@ -154,6 +157,31 @@ export function OSDetalhesModal({ osId, open, onOpenChange }: Props) {
                 {os.descricao_problema || "Sem descrição"}
               </p>
             </div>
+
+            {/* Alerta de Deslocamento */}
+            {os.status === "em_deslocamento" && (
+              <div className="bg-orange-500/10 border border-orange-500/20 rounded-xl p-4 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="h-8 w-8 rounded-full bg-orange-500/20 flex items-center justify-center text-orange-600">
+                    <Clock className="h-4 w-4" />
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-semibold text-orange-600">Técnico em Trânsito</h4>
+                    <p className="text-xs text-orange-600/80">
+                      Iniciado em: {(() => {
+                        const logs = os.os_historico || [];
+                        const logDeslocamento = logs
+                          .filter((l: any) => l.status_novo === 'em_deslocamento')
+                          .sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())[0];
+                        if (!logDeslocamento) return "Desconhecido";
+                        const d = new Date(logDeslocamento.created_at);
+                        return d.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+                      })()}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Ações Rápidas */}
             <div className="bg-card border border-border/50 rounded-xl p-4 space-y-4 shadow-sm">

@@ -103,7 +103,7 @@ export const Route = createFileRoute("/os")({
   ),
 });
 
-const colunas: OSStatus[] = ["Agendamento", "Em Andamento", "Concluído Técnico", "Pendência", "Concluído", "Cancelado"];
+const colunas: OSStatus[] = ["Agendamento", "Em Deslocamento", "Em Andamento", "Concluído Técnico", "Pendência", "Concluído", "Cancelado"];
 
 function OSPage() {
   const {

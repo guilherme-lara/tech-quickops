@@ -75,6 +75,7 @@ function UsuariosPage() {
         .eq("empresa_id", empresaId!)
         .order("nome_completo");
       if (error) throw error;
+      console.log("✅ TOTAL DE USUÁRIOS RETORNADOS:", data?.length);
       return data;
     },
   });

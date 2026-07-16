@@ -658,6 +658,7 @@ function Dashboard() {
       const dbToUiStatus: Record<string, OSStatus> = {
         agendamento: "Agendamento",
         em_andamento: "Em Andamento",
+        em_deslocamento: "Em Deslocamento",
         concluido_tecnico: "Concluído Técnico",
         pendencia: "Pendência",
         concluido: "Concluído",

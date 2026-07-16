@@ -159,12 +159,14 @@ export function GestorLayout({ children }: { children?: ReactNode }) {
               <img
                 src={profile.empresaLogo}
                 alt="Logo da Empresa"
-                className="w-10 h-10 rounded-xl object-contain bg-muted"
+                className="w-10 h-10 rounded-xl object-contain bg-white"
               />
             ) : (
-              <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-primary to-violet flex items-center justify-center shadow-[var(--shadow-glow)]">
-                <Wrench className="w-5 h-5 text-primary-foreground" />
-              </div>
+              <img
+                src="/quickOpsLogo.png"
+                alt="Logo QuickOps"
+                className="w-10 h-10 rounded-xl object-contain"
+              />
             )}
             <div>
               <div className="font-bold text-base leading-tight">QuickOps</div>
@@ -204,9 +206,11 @@ export function GestorLayout({ children }: { children?: ReactNode }) {
                       className="w-10 h-10 rounded-xl object-contain bg-muted"
                     />
                   ) : (
-                    <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-primary to-violet flex items-center justify-center shadow-[var(--shadow-glow)]">
-                      <Wrench className="w-5 h-5 text-primary-foreground" />
-                    </div>
+                    <img
+                      src="/quickOpsLogo.png"
+                      alt="Logo QuickOps"
+                      className="w-10 h-10 rounded-xl object-contain"
+                    />
                   )}
                   <div>
                     <div className="font-bold text-base leading-tight">QuickOps</div>

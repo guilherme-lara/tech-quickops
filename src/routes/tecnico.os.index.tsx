@@ -24,6 +24,7 @@ export const Route = createFileRoute("/tecnico/os/")({
 const statusColor: Record<string, string> = {
   agendamento: "bg-blue-500/10 text-blue-600 dark:text-blue-300",
   em_andamento: "bg-yellow-500/10 text-yellow-600 dark:text-yellow-300",
+  em_deslocamento: "bg-orange-500/10 text-orange-600 dark:text-orange-400",
   concluido_tecnico: "bg-emerald-400/20 text-emerald-600 dark:text-emerald-400",
   pendencia: "bg-orange-500/10 text-orange-600 dark:text-orange-400",
   concluido: "bg-emerald-600/15 text-emerald-700 dark:text-emerald-500",
@@ -33,6 +34,7 @@ const statusColor: Record<string, string> = {
 const statusLabel: Record<string, string> = {
   agendamento: "Agendamento",
   em_andamento: "Em Andamento",
+  em_deslocamento: "Em Deslocamento",
   concluido_tecnico: "Concluído Técnico",
   pendencia: "Pendência",
   concluido: "Concluído",

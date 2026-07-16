@@ -575,7 +575,10 @@ function EquipePage() {
               </thead>
               <tbody className="divide-y divide-border">
                 {(Array.isArray(tecnicos) ? tecnicos : []).map((t) => {
-                  const ativas = (activeOS || []).filter((o: any) => o.tecnico_id === t.id).length;
+                  const osAtivasTecnico = (activeOS || []).filter((o: any) => o.tecnico_id === t.id);
+                  const ativas = osAtivasTecnico.length;
+                  const isEmDeslocamento = osAtivasTecnico.some((o: any) => o.status === "em_deslocamento");
+                  const isEmAndamento = osAtivasTecnico.some((o: any) => o.status === "em_andamento");
                   return (
                     <tr key={t.id} className="hover:bg-muted/30 transition-colors">
                       <td className="px-5 py-3">
@@ -585,9 +588,24 @@ function EquipePage() {
                               {t.nome[0]?.toUpperCase()}
                             </AvatarFallback>
                           </Avatar>
-                          <div className="font-medium flex items-center gap-1.5 whitespace-nowrap">
-                            {t.nome}
-                            {t.ativo && <BadgeCheck className="w-3.5 h-3.5 text-success" />}
+                          <div className="font-medium flex flex-col items-start gap-1 whitespace-nowrap">
+                            <div className="flex items-center gap-1.5">
+                              {t.nome}
+                              {t.ativo && <BadgeCheck className="w-3.5 h-3.5 text-success" />}
+                            </div>
+                            {isEmDeslocamento ? (
+                              <Badge variant="outline" className="bg-orange-500/10 text-orange-600 border-orange-500/20 shadow-none font-medium h-5 px-1.5 text-[10px]">
+                                Em Trânsito
+                              </Badge>
+                            ) : isEmAndamento ? (
+                              <Badge variant="outline" className="bg-blue-500/10 text-blue-600 border-blue-500/20 shadow-none font-medium h-5 px-1.5 text-[10px]">
+                                Em Atendimento
+                              </Badge>
+                            ) : (
+                              <Badge variant="outline" className="bg-emerald-500/10 text-emerald-600 border-emerald-500/20 shadow-none font-medium h-5 px-1.5 text-[10px]">
+                                Disponível
+                              </Badge>
+                            )}
                           </div>
                         </div>
                       </td>
@@ -654,7 +672,10 @@ function EquipePage() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {(Array.isArray(tecnicos) ? tecnicos : []).map((t) => {
-            const ativas = (activeOS || []).filter((o: any) => o.tecnico_id === t.id).length;
+            const osAtivasTecnico = (activeOS || []).filter((o: any) => o.tecnico_id === t.id);
+            const ativas = osAtivasTecnico.length;
+            const isEmDeslocamento = osAtivasTecnico.some((o: any) => o.status === "em_deslocamento");
+            const isEmAndamento = osAtivasTecnico.some((o: any) => o.status === "em_andamento");
             return (
               <Card key={t.id} className="p-4 md:p-5 relative">
                 <div className="absolute top-4 right-4">
@@ -692,9 +713,24 @@ function EquipePage() {
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex-1">
-                    <div className="flex items-center gap-1.5">
-                      <h3 className="font-semibold">{t.nome}</h3>
-                      {t.ativo && <BadgeCheck className="w-4 h-4 text-success" />}
+                    <div className="flex flex-col items-start gap-1">
+                      <div className="flex items-center gap-1.5">
+                        <h3 className="font-semibold">{t.nome}</h3>
+                        {t.ativo && <BadgeCheck className="w-4 h-4 text-success" />}
+                      </div>
+                      {isEmDeslocamento ? (
+                        <Badge variant="outline" className="bg-orange-500/10 text-orange-600 border-orange-500/20 shadow-none font-medium h-5 px-1.5 text-[10px]">
+                          Em Trânsito
+                        </Badge>
+                      ) : isEmAndamento ? (
+                        <Badge variant="outline" className="bg-blue-500/10 text-blue-600 border-blue-500/20 shadow-none font-medium h-5 px-1.5 text-[10px]">
+                          Em Atendimento
+                        </Badge>
+                      ) : (
+                        <Badge variant="outline" className="bg-emerald-500/10 text-emerald-600 border-emerald-500/20 shadow-none font-medium h-5 px-1.5 text-[10px]">
+                          Disponível
+                        </Badge>
+                      )}
                     </div>
                     <p className="text-sm text-muted-foreground">{t.perfil}</p>
                   </div>
