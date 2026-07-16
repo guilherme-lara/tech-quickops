@@ -1143,13 +1143,15 @@ function Dashboard() {
         .select("*, clientes(nome, endereco_completo), tecnico:tecnicos(id, nome, perfil, telefone, ativo)")
         .eq("empresa_id", profile?.empresa_id || "")
         .or(`titulo.eq."${tituloOS}",numero.eq."${tituloOS}"`)
-        .maybeSingle();
+        .limit(1);
       
       if (error) throw error;
-      if (!data) {
+      if (!data || data.length === 0) {
         toast.error(`OS não encontrada.`);
         return;
       }
+
+      const matchingOS = data[0];
 
       const dbToUiStatus: Record<string, OSStatus> = {
         pendente: "Orçamento",
@@ -1161,27 +1163,27 @@ function Dashboard() {
       };
 
       const osUi = {
-        id: data.id,
-        numero: data.numero,
-        clienteId: data.cliente_id,
-        tecnicoId: data.tecnico_id ?? "",
-        analistaId: data.analista_id ?? "",
-        titulo: data.titulo || data.descricao_problema || "",
-        status: dbToUiStatus[data.status] ?? "Orçamento",
-        criadaEm: (data.created_at ?? "").slice(0, 10),
-        data_atendimento: data.data_agendamento ?? data.data_atendimento ?? (data.dados_adicionais as any)?.Data,
-        data_agendamento: data.data_agendamento ?? data.data_atendimento ?? (data.dados_adicionais as any)?.Data,
-        horario_atendimento: data.horario_atendimento ?? (data.dados_adicionais as any)?.Horario,
-        valor: Number(data.valor ?? 0),
-        custo_viagem: Number(data.custo_viagem ?? 0),
-        km_viagem: Number(data.km_viagem ?? 0),
-        despesas: typeof data.despesas === "string" ? JSON.parse(data.despesas) : (data.despesas || []),
-        rat: (data as any).rat ? (typeof (data as any).rat === "string" ? JSON.parse((data as any).rat) : (data as any).rat) : { itens: [], evidencias: [] },
-        dados_adicionais: data.dados_adicionais ?? {},
-        pendencias_detalhes: data.pendencias_detalhes ?? "",
-        endereco_servico: data.endereco_servico ?? "",
-        tecnico: data.tecnico ? { ...data.tecnico } : undefined,
-        clientes: data.clientes ? { ...data.clientes } : undefined,
+        id: matchingOS.id,
+        numero: matchingOS.numero,
+        clienteId: matchingOS.cliente_id,
+        tecnicoId: matchingOS.tecnico_id ?? "",
+        analistaId: matchingOS.analista_id ?? "",
+        titulo: matchingOS.titulo || matchingOS.descricao_problema || "",
+        status: dbToUiStatus[matchingOS.status] ?? "Orçamento",
+        criadaEm: (matchingOS.created_at ?? "").slice(0, 10),
+        data_atendimento: matchingOS.data_agendamento ?? matchingOS.data_atendimento ?? (matchingOS.dados_adicionais as any)?.Data,
+        data_agendamento: matchingOS.data_agendamento ?? matchingOS.data_atendimento ?? (matchingOS.dados_adicionais as any)?.Data,
+        horario_atendimento: matchingOS.horario_atendimento ?? (matchingOS.dados_adicionais as any)?.Horario,
+        valor: Number(matchingOS.valor ?? 0),
+        custo_viagem: Number(matchingOS.custo_viagem ?? 0),
+        km_viagem: Number(matchingOS.km_viagem ?? 0),
+        despesas: typeof matchingOS.despesas === "string" ? JSON.parse(matchingOS.despesas) : (matchingOS.despesas || []),
+        rat: (matchingOS as any).rat ? (typeof (matchingOS as any).rat === "string" ? JSON.parse((matchingOS as any).rat) : (matchingOS as any).rat) : { itens: [], evidencias: [] },
+        dados_adicionais: matchingOS.dados_adicionais ?? {},
+        pendencias_detalhes: matchingOS.pendencias_detalhes ?? "",
+        endereco_servico: matchingOS.endereco_servico ?? "",
+        tecnico: matchingOS.tecnico ? { ...matchingOS.tecnico } : undefined,
+        clientes: matchingOS.clientes ? { ...matchingOS.clientes } : undefined,
       };
       setDialogMode("view");
       setEditingOS(osUi as any);
