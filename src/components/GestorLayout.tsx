@@ -260,6 +260,15 @@ export function GestorLayout({ children }: { children?: ReactNode }) {
             <Button variant="ghost" size="icon" className="rounded-xl h-10 w-10 glass border-0">
               <Bell className="w-4 h-4" />
             </Button>
+            {/* Botão de Sair no Mobile */}
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              onClick={handleLogout}
+              className="md:hidden rounded-xl h-10 w-10 glass border-0 text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
+            >
+              <LogOut className="w-4 h-4" />
+            </Button>
           </div>
         </header>
 

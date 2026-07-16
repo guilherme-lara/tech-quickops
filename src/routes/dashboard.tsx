@@ -962,16 +962,16 @@ function Dashboard() {
 
   return (
     <GestorLayout>
-      <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-8 gap-4 bg-white/50 backdrop-blur-md p-6 rounded-3xl border border-slate-200/60 shadow-sm">
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-8 gap-4 bg-white/50 dark:bg-card/50 backdrop-blur-md p-6 rounded-3xl border border-slate-200/60 dark:border-border/60 shadow-sm">
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold text-slate-800 tracking-tight flex items-center gap-2">
+          <h1 className="text-2xl md:text-3xl font-bold text-slate-800 dark:text-foreground tracking-tight flex items-center gap-2">
             {getGreeting()}, <span className="text-primary">{firstName}</span> 👋
           </h1>
           <p className="text-sm text-muted-foreground mt-1.5">
-            Aqui está o resumo e indicadores da <strong className="text-slate-700 font-semibold">{profile?.empresaNome || "sua empresa"}</strong>
+            Aqui está o resumo e indicadores da <strong className="text-slate-700 dark:text-foreground font-semibold">{profile?.empresaNome || "sua empresa"}</strong>
           </p>
         </div>
-        <div className="shrink-0 bg-white rounded-2xl shadow-sm border border-slate-100 p-1">
+        <div className="shrink-0 bg-white dark:bg-background rounded-2xl shadow-sm border border-slate-100 dark:border-border p-1">
           <MesAnoFilter />
         </div>
       </div>
