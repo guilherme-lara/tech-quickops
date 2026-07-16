@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Loader2, Copy } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth-context";
+import { logActivity } from "@/lib/logger";
 
 interface Props {
   open: boolean;
