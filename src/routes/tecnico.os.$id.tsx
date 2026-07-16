@@ -5,13 +5,14 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { ArrowLeft, Loader2, MapPin, Receipt, Upload, Plus, FileText, Download } from "lucide-react";
+import { ArrowLeft, Loader2, MapPin, Receipt, Upload, Plus, FileText, Download, CheckCircle2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { PrivateFileLink } from "@/components/PrivateFileLink";
 import { compressImage } from "@/lib/image-compressor";
+import confetti from "canvas-confetti";
 import { useAuth } from "@/lib/auth-context";
 
 export const Route = createFileRoute("/tecnico/os/$id")({
@@ -448,24 +449,49 @@ function TecnicoOSDetail() {
         </section>
 
         {/* Status */}
-        <section>
-          <h2 className="text-sm font-semibold text-muted-foreground mb-2">Status da OS</h2>
-          <Select value={os.status} onValueChange={handleUpdateStatus} disabled={isUpdatingStatus}>
-            <SelectTrigger className="w-full h-14 rounded-xl font-bold bg-primary text-primary-foreground border-0 shadow-lg shadow-primary/20">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="agendamento">Agendamento (Pendente)</SelectItem>
-              <SelectItem value="em_andamento">Em Andamento (No local)</SelectItem>
-              <SelectItem value="concluido_tecnico">Concluído Técnico (Aguardando Aprovação)</SelectItem>
-              <SelectItem value="pendencia">Pendência (Falta algo)</SelectItem>
-              {profile?.role !== "tecnico" && (
-                <SelectItem value="concluido">Concluído</SelectItem>
-              )}
-              <SelectItem value="cancelado">Cancelado</SelectItem>
-            </SelectContent>
-          </Select>
-        </section>
+        {os.status === "concluido" || os.status === "Concluído" ? (
+          <section className="text-center py-8">
+            <div className="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-[var(--shadow-glow)]">
+              <CheckCircle2 className="w-8 h-8" />
+            </div>
+            <h2 className="text-xl font-bold text-emerald-600 mb-2">Ordem de Serviço Aprovada!</h2>
+            <p className="text-sm text-muted-foreground mb-6">O gestor validou e finalizou esta OS. Obrigado pelo excelente trabalho!</p>
+            <Button 
+               className="w-full h-14 rounded-xl text-lg font-bold shadow-[var(--shadow-glow)] bg-emerald-600 hover:bg-emerald-700 text-white"
+               onClick={() => {
+                 confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, zIndex: 9999 });
+                 const audio = new Audio("https://assets.mixkit.co/active_storage/sfx/2013/2013-preview.mp3");
+                 audio.play().catch(() => {});
+                 toast("🎉 CONCLUÍDO!", {
+                   description: "Excelente trabalho! O serviço foi validado.",
+                   position: "top-center",
+                   style: { background: "#10b981", color: "#fff", fontWeight: "bold", fontSize: "1.1rem", border: "none", textAlign: "center" }
+                 });
+               }}
+            >
+               Comemorar Conclusão!
+            </Button>
+          </section>
+        ) : (
+          <section>
+            <h2 className="text-sm font-semibold text-muted-foreground mb-2">Status da OS</h2>
+            <Select value={os.status} onValueChange={handleUpdateStatus} disabled={isUpdatingStatus}>
+              <SelectTrigger className="w-full h-14 rounded-xl font-bold bg-primary text-primary-foreground border-0 shadow-lg shadow-primary/20">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="agendamento">Agendamento (Pendente)</SelectItem>
+                <SelectItem value="em_andamento">Em Andamento (No local)</SelectItem>
+                <SelectItem value="concluido_tecnico">Concluído Técnico (Aguardando Aprovação)</SelectItem>
+                <SelectItem value="pendencia">Pendência (Falta algo)</SelectItem>
+                {profile?.role !== "tecnico" && (
+                  <SelectItem value="concluido">Concluído</SelectItem>
+                )}
+                <SelectItem value="cancelado">Cancelado</SelectItem>
+              </SelectContent>
+            </Select>
+          </section>
+        )}
       </div>
     </TecnicoLayout>
   );

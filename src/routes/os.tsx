@@ -1377,6 +1377,18 @@ export function EditOSDialog({
         });
         const audio = new Audio("https://assets.mixkit.co/active_storage/sfx/2013/2013-preview.mp3");
         audio.play().catch(() => {});
+        toast("🎉 CONCLUÍDO!", {
+          description: "A Ordem de Serviço foi finalizada e faturada com sucesso.",
+          position: "top-center",
+          style: {
+            background: "#10b981",
+            color: "#fff",
+            fontWeight: "bold",
+            fontSize: "1.1rem",
+            border: "none",
+            textAlign: "center"
+          }
+        });
       }
       await onSave(patch);
     } finally {
