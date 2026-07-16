@@ -598,7 +598,7 @@ function Dashboard() {
       const { data, error } = await supabase
         .from("logs_administrativos")
         .select("id, tipo, descricao, created_at, usuario_nome")
-        .eq("empresa_id", profile?.empresa_id)
+        .eq("empresa_id", profile?.empresa_id ?? "")
         .order("created_at", { ascending: false })
         .limit(5);
 
