@@ -73,6 +73,7 @@ export type Database = {
           telefone: string | null
           valor_km: number
           valor_por_km: number | null
+          ultimo_mes_pago: string | null
         }
         Insert: {
           base_km?: number | null
@@ -90,6 +91,7 @@ export type Database = {
           telefone?: string | null
           valor_km?: number
           valor_por_km?: number | null
+          ultimo_mes_pago?: string | null
         }
         Update: {
           base_km?: number | null
@@ -107,6 +109,7 @@ export type Database = {
           telefone?: string | null
           valor_km?: number
           valor_por_km?: number | null
+          ultimo_mes_pago?: string | null
         }
         Relationships: [
           {

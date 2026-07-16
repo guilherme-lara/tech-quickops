@@ -23,6 +23,7 @@ export interface Cliente {
   dia_pagamento?: number;
   dia_envio_planilha?: number;
   modelo_rat_url?: string;
+  ultimo_mes_pago?: string | null;
 }
 export type TipoComissao = "fixo" | "porcentagem";
 export interface Tecnico {
@@ -440,7 +441,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     queryFn: async (): Promise<Cliente[]> => {
       let query = supabase
         .from("clientes")
-        .select("id, nome, documento, telefone, email, cidade, endereco_completo, base_km, valor_por_km, dia_pagamento, dia_envio_planilha, modelo_rat_url", {
+        .select("id, nome, documento, telefone, email, cidade, endereco_completo, base_km, valor_por_km, dia_pagamento, dia_envio_planilha, modelo_rat_url, ultimo_mes_pago", {
           count: "exact",
         })
         .eq("empresa_id", empresaId!);
@@ -470,6 +471,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         dia_pagamento: r.dia_pagamento ?? undefined,
         dia_envio_planilha: r.dia_envio_planilha ?? undefined,
         modelo_rat_url: r.modelo_rat_url ?? undefined,
+        ultimo_mes_pago: r.ultimo_mes_pago ?? null,
       }));
     },
   });
@@ -481,7 +483,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       if (!empresaId) return [];
       const { data, error } = await supabase
         .from("clientes")
-        .select("id, nome, documento, telefone, email, cidade, endereco_completo, base_km, valor_por_km, dia_pagamento, dia_envio_planilha, modelo_rat_url")
+        .select("id, nome, documento, telefone, email, cidade, endereco_completo, base_km, valor_por_km, dia_pagamento, dia_envio_planilha, modelo_rat_url, ultimo_mes_pago")
         .eq("empresa_id", empresaId)
         .order("nome");
       if (error) throw error;
@@ -498,6 +500,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         dia_pagamento: r.dia_pagamento ?? undefined,
         dia_envio_planilha: r.dia_envio_planilha ?? undefined,
         modelo_rat_url: r.modelo_rat_url ?? undefined,
+        ultimo_mes_pago: r.ultimo_mes_pago ?? null,
       }));
     },
   });
@@ -741,6 +744,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
           dia_pagamento: c.dia_pagamento != null ? Number(c.dia_pagamento) : null,
           dia_envio_planilha: c.dia_envio_planilha != null ? Number(c.dia_envio_planilha) : null,
           modelo_rat_url: c.modelo_rat_url ?? null,
+          ultimo_mes_pago: c.ultimo_mes_pago ?? null,
         })
         .select("id")
         .single();
@@ -770,6 +774,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         dbPatch.dia_envio_planilha = patch.dia_envio_planilha != null ? Number(patch.dia_envio_planilha) : null;
       if (patch.modelo_rat_url !== undefined)
         dbPatch.modelo_rat_url = patch.modelo_rat_url ?? null;
+      if (patch.ultimo_mes_pago !== undefined)
+        dbPatch.ultimo_mes_pago = patch.ultimo_mes_pago ?? null;
       const { error } = await supabase
         .from("clientes")
         .update(dbPatch as any)
