@@ -7,8 +7,8 @@ import { compressImage } from "@/lib/image-compressor";
 // ============================================================
 // Types — UI-shape (kept stable so existing components compile)
 // ============================================================
-export type Role = "gestor" | "tecnico";
-export type OSStatus = "Agendamento" | "Em Andamento" | "Concluído Técnico" | "Pendência" | "Concluído" | "Cancelado";
+export type Role = "gestor" | "tecnico" | "analista" | "admin" | "superadmin";
+export type OSStatus = string;
 
 export interface Cliente {
   id: string;
@@ -281,25 +281,45 @@ export function StoreProvider({ children }: { children: ReactNode }) {
           console.error(`[auth] erro ao buscar perfil (tentativa ${attempt}):`, error);
           if (attempt === retries) return null;
         } else if (data) {
-          const role: Role = data.role === "tecnico" ? "tecnico" : "gestor";
+          // Preserva o role real vindo do banco (gestor | tecnico | analista | admin | superadmin)
+          const allowedRoles: Role[] = ["gestor", "tecnico", "analista", "admin", "superadmin"];
+          const role: Role = (allowedRoles as string[]).includes(data.role)
+            ? (data.role as Role)
+            : "gestor";
+
+          // Trava de segurança: analista/gestor/admin sem empresa vinculada não pode entrar
+          if (!data.empresa_id && role !== "superadmin") {
+            console.error("[auth] Usuário sem empresa vinculada:", { uid, role });
+            return null;
+          }
+
           let empresaNome = "";
           let empresaCnpj = "";
           let empresaEndereco = "";
           let empresaTelefone = "";
           let empresaLogo = "";
           let empresaCodigo = "";
-          const { data: emp } = await supabase
-            .from("empresas")
-            .select("nome_fantasia, cnpj, endereco_comercial, telefone_empresa, logo_url, codigo_empresa")
-            .eq("id", data.empresa_id)
-            .maybeSingle();
-          if (emp) {
-            empresaNome = emp.nome_fantasia ?? "";
-            empresaCnpj = emp.cnpj ?? "";
-            empresaEndereco = emp.endereco_comercial ?? "";
-            empresaTelefone = emp.telefone_empresa ?? "";
-            empresaLogo = emp.logo_url ?? "";
-            empresaCodigo = emp.codigo_empresa ?? "";
+          if (data.empresa_id) {
+            const { data: emp, error: empErr } = await supabase
+              .from("empresas")
+              .select("nome_fantasia, cnpj, endereco_comercial, telefone_empresa, logo_url, codigo_empresa")
+              .eq("id", data.empresa_id)
+              .maybeSingle();
+            if (empErr) {
+              console.error("[auth] erro ao buscar empresa vinculada:", empErr);
+            }
+            if (emp) {
+              empresaNome = emp.nome_fantasia ?? "";
+              empresaCnpj = emp.cnpj ?? "";
+              empresaEndereco = emp.endereco_comercial ?? "";
+              empresaTelefone = emp.telefone_empresa ?? "";
+              empresaLogo = emp.logo_url ?? "";
+              empresaCodigo = emp.codigo_empresa ?? "";
+            } else if (role !== "superadmin") {
+              // Vínculo existe no perfil mas empresa não é acessível → falha explícita
+              console.error("[auth] Empresa vinculada não encontrada/acessível:", data.empresa_id);
+              return null;
+            }
           }
           return {
             id: data.id,

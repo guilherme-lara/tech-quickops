@@ -161,6 +161,7 @@ export const Route = createFileRoute("/equipe")({
   ),
 });
 
+
 function EquipePage() {
   const [tecnicosPage, setTecnicosPage] = useState(0);
   const [tecnicosSearch, setTecnicosSearch] = useState("");
@@ -204,6 +205,9 @@ function EquipePage() {
     perfil: "Técnico de Campo",
     telefone: "",
     username: "",
+    comissao: "",
+    tipo_comissao: "fixo" as TipoComissao,
+    chave_pix: "",
     cidade_atendimento: "",
     raio_atendimento: "",
   };
@@ -229,6 +233,9 @@ function EquipePage() {
       perfil: t.perfil,
       telefone: t.telefone,
       username: t.username || "",
+      comissao: t.comissao != null ? String(t.comissao) : "",
+      tipo_comissao: (t.tipo_comissao || "fixo") as TipoComissao,
+      chave_pix: t.chave_pix || "",
       cidade_atendimento: dadosAdicionais.cidade_atendimento || "",
       raio_atendimento: dadosAdicionais.raio_atendimento
         ? String(dadosAdicionais.raio_atendimento)

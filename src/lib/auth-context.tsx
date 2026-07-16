@@ -5,15 +5,23 @@ import { supabase } from "@/integrations/supabase/client";
 export interface AuthProfile {
   id: string;
   nome_completo: string;
-  role: "gestor" | "tecnico";
+  role: string;
   empresa_id: string;
+  email?: string;
   empresaNome?: string;
   avatarUrl?: string;
   empresaLogo?: string;
 }
 
 interface AuthValue {
-  user: { id: string; email: string } | null;
+  user:
+    | {
+        id: string;
+        email: string;
+        empresaId?: string;
+        nome?: string;
+      }
+    | null;
   profile: AuthProfile | null;
   isLoading: boolean;
   signIn: (email: string, password: string) => Promise<{ error?: string }>;

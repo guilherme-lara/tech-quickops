@@ -60,7 +60,7 @@ function LoginPage() {
       }
       
       toast.success("Bem-vindo!");
-      window.location.href = "/dashboard";
+      window.location.href = "/";
     } catch (err: any) {
       toast.error(err?.message ?? "Erro ao entrar");
     } finally {

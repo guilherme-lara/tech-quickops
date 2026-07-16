@@ -155,11 +155,19 @@ function PriorityAlerts({ ordens, isLoading, onEdit }: { ordens: any[]; isLoadin
                   onClick={() => onEdit(o)}
                   className="text-xs bg-card p-2.5 rounded-2xl border border-border/50 flex items-center justify-between gap-2 cursor-pointer hover:bg-muted/50 transition-colors"
                 >
-                  <div className="min-w-0">
+                  <div className="min-w-0 flex-1">
                     <p className="font-bold truncate text-foreground">{o.titulo}</p>
                     <p className="text-muted-foreground text-[10px] truncate">
                       {o.numero} • Cliente: {o.clientes?.nome || "Não informado"}
                     </p>
+                    <p className="text-muted-foreground text-[10px] truncate">
+                      Téc: {o.tecnico?.nome || "Não atribuído"}
+                    </p>
+                    {(o.endereco_servico || o.clientes?.endereco_completo) && (
+                      <p className="text-muted-foreground text-[10px] truncate">
+                        📍 {o.endereco_servico || o.clientes?.endereco_completo}
+                      </p>
+                    )}
                   </div>
                   <div className="text-right shrink-0">
                     <span className="text-[10px] font-bold text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950 px-2 py-0.5 rounded-lg border border-red-200 dark:border-red-900">
@@ -197,11 +205,19 @@ function PriorityAlerts({ ordens, isLoading, onEdit }: { ordens: any[]; isLoadin
                     onClick={() => onEdit(o)}
                     className="text-xs bg-card p-2.5 rounded-2xl border border-border/50 flex items-center justify-between gap-2 cursor-pointer hover:bg-muted/50 transition-colors"
                   >
-                    <div className="min-w-0">
+                    <div className="min-w-0 flex-1">
                       <p className="font-bold truncate text-foreground">{o.titulo}</p>
                       <p className="text-muted-foreground text-[10px] truncate">
                         {o.numero} • Cliente: {o.clientes?.nome || "Não informado"}
                       </p>
+                      <p className="text-muted-foreground text-[10px] truncate">
+                        Téc: {o.tecnico?.nome || "Não atribuído"}
+                      </p>
+                      {(o.endereco_servico || o.clientes?.endereco_completo) && (
+                        <p className="text-muted-foreground text-[10px] truncate">
+                          📍 {o.endereco_servico || o.clientes?.endereco_completo}
+                        </p>
+                      )}
                     </div>
                     <div className="text-right shrink-0 flex flex-col items-end gap-1">
                       {limitTimeText && (
@@ -598,7 +614,7 @@ function Dashboard() {
       const { data, error } = await supabase
         .from("logs_administrativos")
         .select("id, tipo, descricao, created_at, usuario_nome")
-        .eq("empresa_id", profile?.empresa_id)
+        .eq("empresa_id", profile?.empresa_id ?? "")
         .order("created_at", { ascending: false })
         .limit(5);
 
@@ -620,7 +636,7 @@ function Dashboard() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("ordens_servico")
-        .select("*, clientes(nome), tecnico:tecnicos(id, nome, perfil, telefone, ativo)")
+        .select("*, clientes(nome, endereco_completo), tecnico:tecnicos(id, nome, perfil, telefone, ativo)")
         .neq("status", "concluido")
         .neq("status", "cancelado")
         .eq("empresa_id", profile?.empresa_id || "");
@@ -668,6 +684,7 @@ function Dashboard() {
         dados_adicionais: r.dados_adicionais || {},
         clientes: r.clientes,
         tecnico: r.tecnico,
+        endereco_servico: r.endereco_servico || "",
         pendencias_detalhes: r.pendencias_detalhes || "",
       })) as any[];
     },
@@ -1283,12 +1300,12 @@ function Dashboard() {
             await updateOS(editingOS.id, patch);
             
             if (profile?.empresa_id) {
-              await logActivity({
-                empresa_id: profile.empresa_id,
-                usuario_id: profile.id,
-                tipo: "os_atualizada",
-                descricao: `OS "${editingOS.titulo}" atualizada rapidamente pelo Dashboard por ${profile?.nome_completo || profile?.email || "Gestor"}`
-              });
+              await logActivity(
+                "os_atualizada",
+                `OS "${editingOS.titulo}" atualizada rapidamente pelo Dashboard por ${profile?.nome_completo || profile?.email || "Gestor"}`,
+                profile.empresa_id,
+                profile?.nome_completo,
+              );
             }
 
             toast.success("OS atualizada com sucesso");

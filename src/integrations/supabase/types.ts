@@ -61,11 +61,14 @@ export type Database = {
           base_km: number | null
           cidade: string | null
           created_at: string
+          dia_envio_planilha: number | null
+          dia_pagamento: number | null
           documento: string | null
           email: string | null
           empresa_id: string
           endereco_completo: string | null
           id: string
+          modelo_rat_url: string | null
           nome: string
           telefone: string | null
           valor_km: number
@@ -75,11 +78,14 @@ export type Database = {
           base_km?: number | null
           cidade?: string | null
           created_at?: string
+          dia_envio_planilha?: number | null
+          dia_pagamento?: number | null
           documento?: string | null
           email?: string | null
           empresa_id: string
           endereco_completo?: string | null
           id?: string
+          modelo_rat_url?: string | null
           nome: string
           telefone?: string | null
           valor_km?: number
@@ -89,11 +95,14 @@ export type Database = {
           base_km?: number | null
           cidade?: string | null
           created_at?: string
+          dia_envio_planilha?: number | null
+          dia_pagamento?: number | null
           documento?: string | null
           email?: string | null
           empresa_id?: string
           endereco_completo?: string | null
           id?: string
+          modelo_rat_url?: string | null
           nome?: string
           telefone?: string | null
           valor_km?: number
@@ -111,46 +120,46 @@ export type Database = {
       }
       empresas: {
         Row: {
+          chave_ativacao: string | null
           cnpj: string | null
-          codigo_empresa: string | null
+          codigo_empresa: string
           created_at: string
+          data_vencimento: string | null
           dominio: string | null
           endereco_comercial: string | null
           id: string
           logo_url: string | null
           nome_fantasia: string
-          telefone_empresa: string | null
           status_licenca: string | null
-          chave_ativacao: string | null
-          data_vencimento: string | null
+          telefone_empresa: string | null
         }
         Insert: {
+          chave_ativacao?: string | null
           cnpj?: string | null
-          codigo_empresa?: string | null
+          codigo_empresa: string
           created_at?: string
+          data_vencimento?: string | null
           dominio?: string | null
           endereco_comercial?: string | null
           id?: string
           logo_url?: string | null
           nome_fantasia: string
-          telefone_empresa?: string | null
           status_licenca?: string | null
-          chave_ativacao?: string | null
-          data_vencimento?: string | null
+          telefone_empresa?: string | null
         }
         Update: {
+          chave_ativacao?: string | null
           cnpj?: string | null
-          codigo_empresa?: string | null
+          codigo_empresa?: string
           created_at?: string
+          data_vencimento?: string | null
           dominio?: string | null
           endereco_comercial?: string | null
           id?: string
           logo_url?: string | null
           nome_fantasia?: string
-          telefone_empresa?: string | null
           status_licenca?: string | null
-          chave_ativacao?: string | null
-          data_vencimento?: string | null
+          telefone_empresa?: string | null
         }
         Relationships: []
       }
@@ -234,6 +243,7 @@ export type Database = {
           descricao_problema: string
           despesas: Json
           empresa_id: string
+          endereco_servico: string | null
           horario_atendimento: string | null
           id: string
           km_viagem: number
@@ -256,6 +266,7 @@ export type Database = {
           descricao_problema?: string
           despesas?: Json
           empresa_id: string
+          endereco_servico?: string | null
           horario_atendimento?: string | null
           id?: string
           km_viagem?: number
@@ -278,6 +289,7 @@ export type Database = {
           descricao_problema?: string
           despesas?: Json
           empresa_id?: string
+          endereco_servico?: string | null
           horario_atendimento?: string | null
           id?: string
           km_viagem?: number
@@ -322,8 +334,74 @@ export type Database = {
             foreignKeyName: "ordens_servico_tecnico_id_fkey"
             columns: ["tecnico_id"]
             isOneToOne: false
+            referencedRelation: "view_ranking_tecnicos_mensal"
+            referencedColumns: ["tecnico_id"]
+          },
+          {
+            foreignKeyName: "ordens_servico_tecnico_id_fkey"
+            columns: ["tecnico_id"]
+            isOneToOne: false
             referencedRelation: "vw_produtividade_tecnico"
             referencedColumns: ["tecnico_id"]
+          },
+        ]
+      }
+      os_historico: {
+        Row: {
+          alteracoes: Json | null
+          alterado_por: string | null
+          alterado_por_nome: string | null
+          created_at: string
+          empresa_id: string
+          id: string
+          os_id: string
+          status_anterior: string | null
+          status_novo: string | null
+          tecnico_id: string | null
+          tecnico_id_anterior: string | null
+          tecnico_user_id: string | null
+          tecnico_user_id_anterior: string | null
+          tipo_evento: string
+        }
+        Insert: {
+          alteracoes?: Json | null
+          alterado_por?: string | null
+          alterado_por_nome?: string | null
+          created_at?: string
+          empresa_id: string
+          id?: string
+          os_id: string
+          status_anterior?: string | null
+          status_novo?: string | null
+          tecnico_id?: string | null
+          tecnico_id_anterior?: string | null
+          tecnico_user_id?: string | null
+          tecnico_user_id_anterior?: string | null
+          tipo_evento: string
+        }
+        Update: {
+          alteracoes?: Json | null
+          alterado_por?: string | null
+          alterado_por_nome?: string | null
+          created_at?: string
+          empresa_id?: string
+          id?: string
+          os_id?: string
+          status_anterior?: string | null
+          status_novo?: string | null
+          tecnico_id?: string | null
+          tecnico_id_anterior?: string | null
+          tecnico_user_id?: string | null
+          tecnico_user_id_anterior?: string | null
+          tipo_evento?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "os_historico_os_id_fkey"
+            columns: ["os_id"]
+            isOneToOne: false
+            referencedRelation: "ordens_servico"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -390,6 +468,8 @@ export type Database = {
           id: string
           nome_completo: string
           role: Database["public"]["Enums"]["app_role"]
+          telefone: string | null
+          username: string | null
         }
         Insert: {
           avatar_url?: string | null
@@ -398,6 +478,8 @@ export type Database = {
           id: string
           nome_completo?: string
           role?: Database["public"]["Enums"]["app_role"]
+          telefone?: string | null
+          username?: string | null
         }
         Update: {
           avatar_url?: string | null
@@ -406,6 +488,8 @@ export type Database = {
           id?: string
           nome_completo?: string
           role?: Database["public"]["Enums"]["app_role"]
+          telefone?: string | null
+          username?: string | null
         }
         Relationships: [
           {
@@ -421,23 +505,29 @@ export type Database = {
         Row: {
           arquivo_url: string
           created_at: string
+          enviado_por_role: string
           id: string
           nome_arquivo: string
           ordem_servico_id: string
+          tipo_arquivo: string
         }
         Insert: {
           arquivo_url: string
           created_at?: string
+          enviado_por_role?: string
           id?: string
           nome_arquivo: string
           ordem_servico_id: string
+          tipo_arquivo?: string
         }
         Update: {
           arquivo_url?: string
           created_at?: string
+          enviado_por_role?: string
           id?: string
           nome_arquivo?: string
           ordem_servico_id?: string
+          tipo_arquivo?: string
         }
         Relationships: [
           {
@@ -536,10 +626,56 @@ export type Database = {
             foreignKeyName: "ordens_servico_tecnico_id_fkey"
             columns: ["tecnico_id"]
             isOneToOne: false
+            referencedRelation: "view_ranking_tecnicos_mensal"
+            referencedColumns: ["tecnico_id"]
+          },
+          {
+            foreignKeyName: "ordens_servico_tecnico_id_fkey"
+            columns: ["tecnico_id"]
+            isOneToOne: false
             referencedRelation: "vw_produtividade_tecnico"
             referencedColumns: ["tecnico_id"]
           },
         ]
+      }
+      view_ranking_tecnicos: {
+        Row: {
+          concluidas: number | null
+          tecnico: string | null
+          total_os: number | null
+          valor_gerado: number | null
+        }
+        Relationships: []
+      }
+      view_ranking_tecnicos_mensal: {
+        Row: {
+          faturamento_gerado: number | null
+          mes_referencia: string | null
+          os_finalizadas: number | null
+          tecnico_id: string | null
+          tecnico_nome: string | null
+        }
+        Relationships: []
+      }
+      view_resumo_gestor: {
+        Row: {
+          concluidas_mes: number | null
+          faturamento_mes: number | null
+          total_os_mes: number | null
+          total_pendentes: number | null
+        }
+        Relationships: []
+      }
+      view_resumo_gestor_mensal: {
+        Row: {
+          concluidas_mes: number | null
+          custos_viagem_mes: number | null
+          faturamento_mes: number | null
+          mes_referencia: string | null
+          os_mes: number | null
+          pendentes_globais: number | null
+        }
+        Relationships: []
       }
       vw_produtividade_tecnico: {
         Row: {
@@ -581,25 +717,39 @@ export type Database = {
         }
         Returns: string
       }
-      resetar_senha_tecnico: {
-        Args: {
-          p_tecnico_id: string
-          p_nova_senha: string
-        }
-        Returns: boolean
-      }
-      get_current_empresa_id: { Args: never; Returns: string }
-      get_email_by_username: { Args: { p_username: string }; Returns: string }
+      criar_usuario_backoffice:
+        | {
+            Args: {
+              p_dominio?: string
+              p_nome: string
+              p_role: Database["public"]["Enums"]["app_role"]
+              p_senha: string
+              p_username: string
+            }
+            Returns: string
+          }
+        | {
+            Args: {
+              p_dominio?: string
+              p_nome: string
+              p_role: Database["public"]["Enums"]["app_role"]
+              p_senha: string
+              p_telefone?: string
+              p_username: string
+            }
+            Returns: string
+          }
       gerar_chave_licenca_segura: {
-        Args: {
-          p_empresa_id: string
-        }
+        Args: { p_empresa_id: string }
         Returns: string
       }
-      validar_chave_licenca: {
-        Args: { p_chave: string }
-        Returns: boolean
-      }
+      get_current_empresa_id: { Args: never; Returns: string }
+      get_email_by_username:
+        | { Args: { p_username: string }; Returns: string }
+        | {
+            Args: { p_codigo_empresa: string; p_username: string }
+            Returns: string
+          }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -607,16 +757,28 @@ export type Database = {
         }
         Returns: boolean
       }
+      resetar_senha_tecnico: {
+        Args: { p_nova_senha: string; p_tecnico_id: string }
+        Returns: boolean
+      }
+      validar_chave_licenca: { Args: { p_chave: string }; Returns: boolean }
+      vincular_acesso_tecnico: {
+        Args: { p_senha: string; p_tecnico_id: string; p_username: string }
+        Returns: string
+      }
     }
     Enums: {
       app_role: "superadmin" | "admin" | "gestor" | "analista" | "tecnico"
       os_status:
-        | "agendamento"
+        | "pendente"
+        | "aprovado"
         | "em_andamento"
-        | "concluido_tecnico"
-        | "pendencia"
         | "concluido"
         | "cancelado"
+        | "agendamento"
+        | "reagendado"
+        | "concluido_tecnico"
+        | "pendencia"
       tipo_comissao_enum: "fixo" | "porcentagem"
     }
     CompositeTypes: {
@@ -747,12 +909,15 @@ export const Constants = {
     Enums: {
       app_role: ["superadmin", "admin", "gestor", "analista", "tecnico"],
       os_status: [
-        "agendamento",
+        "pendente",
+        "aprovado",
         "em_andamento",
-        "concluido_tecnico",
-        "pendencia",
         "concluido",
         "cancelado",
+        "agendamento",
+        "reagendado",
+        "concluido_tecnico",
+        "pendencia",
       ],
       tipo_comissao_enum: ["fixo", "porcentagem"],
     },

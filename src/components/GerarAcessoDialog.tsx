@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Loader2, Copy } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth-context";
+import { logActivity } from "@/lib/logger";
 
 interface Props {
   open: boolean;
@@ -68,6 +69,7 @@ export function GerarAcessoDialog({
         p_tecnico_id: tecnico.id,
         p_username: u,
         p_senha: senhaFinal,
+        p_empresa_id: empresaId,
       });
 
       if (rpcError) {
@@ -77,9 +79,10 @@ export function GerarAcessoDialog({
         throw rpcError;
       }
 
-      await registrarLog("acesso_tecnico_gerado", `Acesso gerado para técnico "${tecnico.nome}" por ${profile?.nome_completo || "Gestor"}`);
+      await logActivity("acesso_tecnico_gerado", `Acesso gerado para técnico "${tecnico.nome}" por ${profile?.nome_completo || "Gestor"}`, empresaId, profile?.nome_completo);
 
-      const text = `Olá ${tecnico.nome}! Bem-vindo(a) à equipe técnica.\n\nAqui estão suas credenciais exclusivas de acesso ao aplicativo:\n\n🏢 Código da Empresa: ${codigoEmpresa}\n👤 Usuário: ${u}\n🔑 Senha: ${senhaFinal}\n\nAcesse o link do sistema para entrar.`;
+      const empresaNome = profile?.empresaNome || codigoEmpresa;
+      const text = `Olá ${tecnico.nome}! Bem-vindo(a) à equipe técnica.\n\nSeu acesso foi vinculado à empresa: ${empresaNome}\n\nAqui estão suas credenciais exclusivas de acesso ao aplicativo:\n\n🏢 Código da Empresa: ${codigoEmpresa}\n👤 Usuário: ${u}\n🔑 Senha: ${senhaFinal}\n\nAcesse o link do sistema para entrar.`;
 
       setSuccessText(text);
 

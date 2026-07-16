@@ -21,6 +21,7 @@ import { Input } from "@/components/ui/input";
 import { useState } from "react";
 import { MesAnoFilter } from "@/components/MesAnoFilter";
 import { useStore } from "@/lib/useData";
+import { OSDetalhesModal } from "@/components/OSDetalhesModal";
 
 export const Route = createFileRoute("/analista-dashboard")({
   component: () => (
@@ -34,6 +35,7 @@ function AnalistaDashboard() {
   const { profile } = useAuth();
   const empresaId = profile?.empresa_id;
   const [searchTerm, setSearchTerm] = useState("");
+  const [selectedOsId, setSelectedOsId] = useState<string | null>(null);
   const { osMonth, osYear } = useStore();
 
   // Gera dataInicio/dataFim com base no filtro de mês/ano
@@ -54,7 +56,7 @@ function AnalistaDashboard() {
       let query = supabase
         .from("ordens_servico")
         .select("id, status, tecnico_id", { count: "exact" })
-        .eq("empresa_id", empresaId);
+        .eq("empresa_id", empresaId!);
 
       if (dataInicio && dataFim) {
         query = query.gte("created_at", dataInicio).lte("created_at", dataFim + "T23:59:59.999Z");
@@ -82,11 +84,11 @@ function AnalistaDashboard() {
       const { data, error } = await supabase
         .from("ordens_servico")
         .select(`
-          id, identificador, status, data_agendamento,
+          id, numero, status, data_agendamento,
           clientes (nome),
           tecnicos (nome)
         `)
-        .eq("empresa_id", empresaId)
+        .eq("empresa_id", empresaId!)
         .eq("status", "concluido_tecnico")
         .order("created_at", { ascending: true });
         
@@ -104,7 +106,7 @@ function AnalistaDashboard() {
       const { data: tecnicosData, error: tecError } = await supabase
         .from("tecnicos")
         .select("id, nome, ativo")
-        .eq("empresa_id", empresaId)
+        .eq("empresa_id", empresaId!)
         .eq("ativo", true)
         .order("nome");
       if (tecError) throw tecError;
@@ -112,8 +114,8 @@ function AnalistaDashboard() {
       // Pega OS ativa para os técnicos
       const { data: osData, error: osError } = await supabase
         .from("ordens_servico")
-        .select("id, identificador, status, tecnico_id")
-        .eq("empresa_id", empresaId)
+        .select("id, numero, status, tecnico_id")
+        .eq("empresa_id", empresaId!)
         .in("status", ["em_andamento", "agendamento", "pendencia", "concluido_tecnico"]);
       if (osError) throw osError;
 
@@ -231,14 +233,17 @@ function AnalistaDashboard() {
                   {filaRevisaoQ.data?.map(os => (
                     <div key={os.id} className="p-4 flex items-center justify-between hover:bg-accent/50 transition-colors">
                       <div>
-                        <div className="font-semibold text-sm">#{os.identificador} • {os.clientes?.nome}</div>
+                        <div className="font-semibold text-sm">#{os.numero} • {os.clientes?.nome}</div>
                         <div className="text-xs text-muted-foreground mt-1">Téc: {os.tecnicos?.nome}</div>
                       </div>
-                      <Link to="/os">
-                        <Button size="sm" variant="outline" className="h-8 text-xs rounded-lg gap-1.5">
-                          Ver OS <ArrowRight className="w-3 h-3" />
-                        </Button>
-                      </Link>
+                      <Button 
+                        size="sm" 
+                        variant="outline" 
+                        className="h-8 text-xs rounded-lg gap-1.5"
+                        onClick={() => setSelectedOsId(os.id)}
+                      >
+                        Ver OS <ArrowRight className="w-3 h-3" />
+                      </Button>
                     </div>
                   ))}
                 </div>
@@ -274,7 +279,7 @@ function AnalistaDashboard() {
                           <div className="text-xs text-muted-foreground mt-0.5">
                             {tec.osAtual ? (
                               <span className={tec.osAtual.status === "em_andamento" ? "text-primary font-medium" : ""}>
-                                OS #{tec.osAtual.identificador} ({tec.osAtual.status})
+                                OS #{tec.osAtual.numero} ({tec.osAtual.status})
                               </span>
                             ) : (
                               <span>Ocioso</span>
@@ -297,6 +302,11 @@ function AnalistaDashboard() {
 
         </div>
       </div>
+      <OSDetalhesModal
+        osId={selectedOsId}
+        open={!!selectedOsId}
+        onOpenChange={(v) => !v && setSelectedOsId(null)}
+      />
     </GestorLayout>
   );
 }
