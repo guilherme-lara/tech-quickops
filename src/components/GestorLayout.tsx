@@ -67,7 +67,7 @@ export function GestorLayout({ children }: { children?: ReactNode }) {
     }
     
     if (profile?.role === "analista") {
-      const allowedForAnalista = ["/analista-dashboard", "/os", "/clientes", "/equipe"];
+      const allowedForAnalista = ["/analista-dashboard", "/os", "/clientes", "/equipe", "/configuracoes"];
       return allowedForAnalista.includes(item.to);
     }
     // gestor, admin, superadmin
@@ -159,19 +159,19 @@ export function GestorLayout({ children }: { children?: ReactNode }) {
               <img
                 src={profile.empresaLogo}
                 alt="Logo da Empresa"
-                className="w-10 h-10 rounded-xl object-contain bg-white"
+                className="h-10 w-auto max-w-[140px] rounded-xl object-contain bg-white px-1"
               />
             ) : (
               <img
                 src="/quickOpsLogo.png"
                 alt="Logo QuickOps"
-                className="w-10 h-10 rounded-xl object-contain"
+                className="h-10 w-auto max-w-[140px] rounded-xl object-contain px-1"
               />
             )}
             <div>
-              <div className="font-bold text-base leading-tight">QuickOps</div>
+              <div className="font-bold text-base leading-tight truncate max-w-[140px]">{profile?.empresaNome || "QuickOps"}</div>
               <div className="text-[10px] text-muted-foreground tracking-wider uppercase">
-                B2B Field Ops
+                QuickOps B2B
               </div>
             </div>
           </div>
@@ -203,19 +203,19 @@ export function GestorLayout({ children }: { children?: ReactNode }) {
                     <img
                       src={profile.empresaLogo}
                       alt="Logo da Empresa"
-                      className="w-10 h-10 rounded-xl object-contain bg-muted"
+                      className="h-10 w-auto max-w-[140px] rounded-xl object-contain bg-muted px-1"
                     />
                   ) : (
                     <img
                       src="/quickOpsLogo.png"
                       alt="Logo QuickOps"
-                      className="w-10 h-10 rounded-xl object-contain"
+                      className="h-10 w-auto max-w-[140px] rounded-xl object-contain px-1"
                     />
                   )}
                   <div>
-                    <div className="font-bold text-base leading-tight">QuickOps</div>
+                    <div className="font-bold text-base leading-tight truncate max-w-[140px]">{profile?.empresaNome || "QuickOps"}</div>
                     <div className="text-[10px] text-muted-foreground tracking-wider uppercase">
-                      B2B Field Ops
+                      QuickOps B2B
                     </div>
                   </div>
                 </div>

@@ -23,7 +23,7 @@ import {
 
 export const Route = createFileRoute("/configuracoes")({
   component: () => (
-    <ProtectedRoute allowedRoles={['gestor', 'admin', 'superadmin']}>
+    <ProtectedRoute allowedRoles={['gestor', 'admin', 'superadmin', 'analista']}>
       <ConfiguracoesPage />
     </ProtectedRoute>
   ),
@@ -98,6 +98,7 @@ function ConfiguracoesPage() {
   const [nome, setNome] = useState("");
   const [avatarUrl, setAvatarUrl] = useState("");
   const [savingNome, setSavingNome] = useState(false);
+  const isGestor = profile?.role === "gestor" || profile?.role === "admin" || profile?.role === "superadmin";
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
 
   // Empresa State
@@ -310,7 +311,8 @@ function ConfiguracoesPage() {
 
         <div className="grid gap-6">
           {/* ASSINATURA E LICENÇA */}
-          <Card className="p-5 md:p-6 shadow-sm border-border/40 bg-gradient-to-br from-card to-card/50">
+          {isGestor && (
+            <Card className="p-5 md:p-6 shadow-sm border-border/40 bg-gradient-to-br from-card to-card/50">
             <div className="flex flex-col md:flex-row md:items-start justify-between gap-6">
               <div className="space-y-4 flex-1">
                 <div className="flex items-center gap-3 mb-6">
@@ -382,7 +384,8 @@ function ConfiguracoesPage() {
                 </div>
               </div>
             </div>
-          </Card>
+            </Card>
+          )}
 
           {/* PERFIL */}
           <Card className="p-5 md:p-6 shadow-sm border-border/40">
@@ -477,7 +480,8 @@ function ConfiguracoesPage() {
           </Card>
 
           {/* EMPRESA */}
-          <Card className="p-5 md:p-6 shadow-sm border-border/40">
+          {isGestor && (
+            <Card className="p-5 md:p-6 shadow-sm border-border/40">
             <div className="flex items-center gap-3 mb-6">
               <div className="w-10 h-10 rounded-xl bg-violet/10 flex items-center justify-center">
                 <Building2 className="w-5 h-5 text-violet" />
@@ -568,8 +572,8 @@ function ConfiguracoesPage() {
                   </Button>
                 </div>
               </div>
-            </div>
-          </Card>
+              </Card>
+            )}
         </div>
       </div>
     </GestorLayout>

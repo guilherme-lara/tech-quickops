@@ -34,13 +34,13 @@ export function TecnicoLayout({ children }: { children?: ReactNode }) {
                   <img
                     src={profile.empresaLogo}
                     alt="Logo da Empresa"
-                    className="w-9 h-9 rounded-xl object-contain bg-white"
+                    className="h-9 w-auto max-w-[120px] rounded-xl object-contain bg-white px-1"
                   />
                 ) : (
                   <img
                     src="/quickOpsLogo.png"
                     alt="Logo QuickOps"
-                    className="w-9 h-9 rounded-xl object-contain"
+                    className="h-9 w-auto max-w-[120px] rounded-xl object-contain px-1"
                   />
                 )}
                 <div>

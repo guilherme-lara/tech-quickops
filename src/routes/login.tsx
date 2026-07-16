@@ -97,7 +97,7 @@ function LoginPage() {
         <div className="absolute -top-32 -right-32 w-[28rem] h-[28rem] rounded-full bg-white/15 blur-3xl" />
         <div className="absolute bottom-0 left-0 w-96 h-96 rounded-full bg-black/20 blur-3xl" />
         <div className="relative z-10 flex items-center gap-2.5">
-          <img src="/quickOpsLogo.png" alt="QuickOps" className="h-12 object-contain" />
+          <img src="/quickOpsLogo.png" alt="QuickOps" className="h-24 w-auto object-contain max-w-[320px] drop-shadow-md" />
         </div>
         <div className="relative z-10 space-y-8">
           <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/15 backdrop-blur border border-white/20 text-xs font-medium">
