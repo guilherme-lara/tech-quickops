@@ -95,7 +95,6 @@ function TecnicoOSDetail() {
   };
 
   const handleIniciarDeslocamento = async () => {
-    if (!os?.endereco_servico) return;
     try {
       setIsUpdatingStatus(true);
       const { error } = await supabase
@@ -107,8 +106,10 @@ function TecnicoOSDetail() {
       toast.success("Deslocamento iniciado!");
       queryClient.invalidateQueries({ queryKey: ["os_detalhe", id] });
       
-      const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(os.endereco_servico)}`;
-      window.open(mapsUrl, "_blank");
+      if (os?.endereco_servico) {
+        const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(os.endereco_servico)}`;
+        window.open(mapsUrl, "_blank");
+      }
     } catch (e: any) {
       toast.error(e.message);
     } finally {
@@ -334,14 +335,37 @@ function TecnicoOSDetail() {
                   <MapPin className="w-4 h-4 text-muted-foreground shrink-0 mt-0.5" />
                   <span>Endereço do serviço não informado</span>
                 </div>
-                <Button 
-                  variant="outline" 
-                  className="w-full border-amber-500 text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-950"
-                  onClick={handleSolicitarEndereco}
-                  disabled={isUpdatingStatus}
-                >
-                  Solicitar Endereço
-                </Button>
+                {os.status === "em_deslocamento" ? (
+                  <Button 
+                    className="w-full font-bold shadow-[var(--shadow-glow)] bg-emerald-600 hover:bg-emerald-700 text-white" 
+                    size="lg"
+                    onClick={handleConfirmarChegada}
+                    disabled={isUpdatingStatus}
+                  >
+                    <CheckCircle2 className="w-5 h-5 mr-2" />
+                    Confirmar Chegada (Check-in)
+                  </Button>
+                ) : os.status === "agendamento" || os.status === "pendencia" ? (
+                  <div className="flex flex-col gap-2 w-full">
+                    <Button 
+                      className="w-full font-bold shadow-[var(--shadow-glow)] bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white" 
+                      size="lg"
+                      onClick={handleIniciarDeslocamento}
+                      disabled={isUpdatingStatus}
+                    >
+                      <MapPin className="w-5 h-5 mr-2" />
+                      Iniciar Deslocamento (Sem Endereço)
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      className="w-full border-amber-500 text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-950 font-semibold"
+                      onClick={handleSolicitarEndereco}
+                      disabled={isUpdatingStatus}
+                    >
+                      Solicitar Endereço ao Gestor
+                    </Button>
+                  </div>
+                ) : null}
               </div>
             )}
             {(cliente?.telefone || cliente?.email) && (
