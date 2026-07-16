@@ -334,6 +334,7 @@ function EquipePage() {
           p_telefone: form.telefone || null,
           p_chave_pix: form.chave_pix || null,
           p_dados_adicionais: Object.keys(dadosAdicionais).length > 0 ? dadosAdicionais : null,
+          p_empresa_id: empresaId,
         });
         if (error) throw error;
         await registrarLog(
@@ -344,7 +345,8 @@ function EquipePage() {
         qc.invalidateQueries({ queryKey: ["equipe_tecnicos"] });
         const login = form.username.toLowerCase();
         
-        const text = `Olá ${form.nome}! Bem-vindo(a) à nossa equipe técnica.\n\nAqui estão suas credenciais exclusivas de acesso ao aplicativo:\n\n🏢 Código da Empresa: ${codigoEmpresa}\n👤 Usuário: ${login}\n🔑 Senha: ${novaSenha}\n\nPara acessar, acesse o link do sistema.`;
+        const empresaStr = profile?.empresaNome || codigoEmpresa;
+        const text = `Olá ${form.nome}! Bem-vindo(a) à nossa equipe técnica.\n\nSeu acesso foi vinculado à empresa: ${empresaStr}\n\nAqui estão suas credenciais exclusivas de acesso ao aplicativo:\n\n🏢 Código da Empresa: ${codigoEmpresa}\n👤 Usuário: ${login}\n🔑 Senha: ${novaSenha}\n\nPara acessar, acesse o link do sistema.`;
         
         setSuccessCreds({ texto: text, nome: form.nome });
       }

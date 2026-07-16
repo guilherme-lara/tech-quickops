@@ -62,7 +62,7 @@ export function OSDetalhesModal({ osId, open, onOpenChange }: Props) {
           clientes (nome),
           tecnicos (id, nome)
         `)
-        .eq("id", osId)
+        .eq("id", osId as string)
         .single();
       if (error) throw error;
       return data;
@@ -89,7 +89,7 @@ export function OSDetalhesModal({ osId, open, onOpenChange }: Props) {
       const { error } = await supabase
         .from("ordens_servico")
         .update(updates)
-        .eq("id", osId);
+        .eq("id", osId as string);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -151,7 +151,7 @@ export function OSDetalhesModal({ osId, open, onOpenChange }: Props) {
                 <ClipboardList className="w-3 h-3" /> Descrição do Problema
               </span>
               <p className="text-sm bg-muted/50 p-3 rounded-lg border border-border/50 min-h-[60px] whitespace-pre-wrap">
-                {os.descricao || "Sem descrição"}
+                {os.descricao_problema || "Sem descrição"}
               </p>
             </div>
 
