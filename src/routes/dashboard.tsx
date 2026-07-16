@@ -149,35 +149,44 @@ function PriorityAlerts({ ordens, isLoading, onEdit }: { ordens: any[]; isLoadin
               </span>
             </div>
             <div className="space-y-2 max-h-[140px] overflow-y-auto pr-1">
-              {(Array.isArray(atrasadas) ? atrasadas : []).map((o) => (
-                <div
-                  key={o.id}
-                  onClick={() => onEdit(o)}
-                  className="text-xs bg-card p-2.5 rounded-2xl border border-border/50 flex items-center justify-between gap-2 cursor-pointer hover:bg-muted/50 transition-colors"
-                >
-                  <div className="min-w-0 flex-1">
-                    <p className="font-bold truncate text-foreground">{o.titulo}</p>
-                    <p className="text-muted-foreground text-[10px] truncate">
-                      {o.numero} • Cliente: {o.clientes?.nome || "Não informado"}
-                    </p>
-                    <p className="text-muted-foreground text-[10px] truncate">
-                      Téc: {o.tecnico?.nome || "Não atribuído"}
-                    </p>
-                    {(o.endereco_servico || o.clientes?.endereco_completo) && (
+              {(Array.isArray(atrasadas) ? atrasadas : []).map((o) => {
+                const isConcluido = o.status === "Concluído" || o.status === "Concluído Técnico" || o.status === "concluido" || o.status === "concluido_tecnico";
+                return (
+                  <div
+                    key={o.id}
+                    onClick={() => onEdit(o)}
+                    className="text-xs bg-card p-2.5 rounded-2xl border border-border/50 flex items-center justify-between gap-2 cursor-pointer hover:bg-muted/50 transition-colors"
+                  >
+                    <div className="min-w-0 flex-1">
+                      <p className="font-bold truncate text-foreground">{o.titulo}</p>
                       <p className="text-muted-foreground text-[10px] truncate">
-                        📍 {o.endereco_servico || o.clientes?.endereco_completo}
+                        {o.numero} • Cliente: {o.clientes?.nome || "Não informado"}
                       </p>
-                    )}
+                      <p className="text-muted-foreground text-[10px] truncate">
+                        Téc: {o.tecnico?.nome || "Não atribuído"}
+                      </p>
+                      {(o.endereco_servico || o.clientes?.endereco_completo) && (
+                        <p className="text-muted-foreground text-[10px] truncate">
+                          📍 {o.endereco_servico || o.clientes?.endereco_completo}
+                        </p>
+                      )}
+                    </div>
+                    <div className="text-right shrink-0">
+                      {isConcluido ? (
+                        <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded-lg border border-emerald-200 dark:border-emerald-900 flex items-center gap-1">
+                          <CheckCircle2 className="w-3 h-3" /> Concluído
+                        </span>
+                      ) : (
+                        <span className="text-[10px] font-bold text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950 px-2 py-0.5 rounded-lg border border-red-200 dark:border-red-900">
+                          {o.data_agendamento
+                            ? new Date(o.data_agendamento + "T00:00:00").toLocaleDateString("pt-BR")
+                            : "—"}
+                        </span>
+                      )}
+                    </div>
                   </div>
-                  <div className="text-right shrink-0">
-                    <span className="text-[10px] font-bold text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950 px-2 py-0.5 rounded-lg border border-red-200 dark:border-red-900">
-                      {o.data_agendamento
-                        ? new Date(o.data_agendamento + "T00:00:00").toLocaleDateString("pt-BR")
-                        : "—"}
-                    </span>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         )}
@@ -199,6 +208,7 @@ function PriorityAlerts({ ordens, isLoading, onEdit }: { ordens: any[]; isLoadin
             <div className="space-y-2 max-h-[140px] overflow-y-auto pr-1">
               {(Array.isArray(hoje) ? hoje : []).map((o) => {
                 const limitTimeText = getLimitTimeBadge(o.data_agendamento, o.horario_atendimento);
+                const isConcluido = o.status === "Concluído" || o.status === "Concluído Técnico" || o.status === "concluido" || o.status === "concluido_tecnico";
                 return (
                   <div
                     key={o.id}
@@ -220,14 +230,22 @@ function PriorityAlerts({ ordens, isLoading, onEdit }: { ordens: any[]; isLoadin
                       )}
                     </div>
                     <div className="text-right shrink-0 flex flex-col items-end gap-1">
-                      {limitTimeText && (
-                        <span className="text-[9px] font-bold text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950 px-1.5 py-0.5 rounded border border-red-200 dark:border-red-900">
-                          {limitTimeText}
+                      {isConcluido ? (
+                        <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded-lg border border-emerald-200 dark:border-emerald-900 flex items-center gap-1">
+                          <CheckCircle2 className="w-3 h-3" /> Concluído
                         </span>
+                      ) : (
+                        <>
+                          {limitTimeText && (
+                            <span className="text-[9px] font-bold text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950 px-1.5 py-0.5 rounded border border-red-200 dark:border-red-900">
+                              {limitTimeText}
+                            </span>
+                          )}
+                          <span className="text-[10px] font-bold text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950 px-2 py-0.5 rounded-lg border border-amber-200 dark:border-amber-900">
+                            {o.horario_atendimento || "Sem hora"}
+                          </span>
+                        </>
                       )}
-                      <span className="text-[10px] font-bold text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950 px-2 py-0.5 rounded-lg border border-amber-200 dark:border-amber-900">
-                        {o.horario_atendimento || "Sem hora"}
-                      </span>
                     </div>
                   </div>
                 );
