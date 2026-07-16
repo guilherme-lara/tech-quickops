@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 export interface AuthProfile {
   id: string;
   nome_completo: string;
-  role: "gestor" | "tecnico" | "analista" | "admin" | "superadmin";
+  role: string;
   empresa_id: string;
   email?: string;
   empresaNome?: string;
