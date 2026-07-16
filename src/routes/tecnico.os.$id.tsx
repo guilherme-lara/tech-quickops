@@ -94,6 +94,46 @@ function TecnicoOSDetail() {
     }
   };
 
+  const handleIniciarDeslocamento = async () => {
+    if (!os?.endereco_servico) return;
+    try {
+      setIsUpdatingStatus(true);
+      const { error } = await supabase
+        .from("ordens_servico")
+        .update({ status: "em_deslocamento" as any })
+        .eq("id", id);
+
+      if (error) throw error;
+      toast.success("Deslocamento iniciado!");
+      queryClient.invalidateQueries({ queryKey: ["os_detalhe", id] });
+      
+      const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(os.endereco_servico)}`;
+      window.open(mapsUrl, "_blank");
+    } catch (e: any) {
+      toast.error(e.message);
+    } finally {
+      setIsUpdatingStatus(false);
+    }
+  };
+
+  const handleConfirmarChegada = async () => {
+    try {
+      setIsUpdatingStatus(true);
+      const { error } = await supabase
+        .from("ordens_servico")
+        .update({ status: "em_andamento" as any })
+        .eq("id", id);
+
+      if (error) throw error;
+      toast.success("Check-in realizado! Serviço em andamento.");
+      queryClient.invalidateQueries({ queryKey: ["os_detalhe", id] });
+    } catch (e: any) {
+      toast.error(e.message);
+    } finally {
+      setIsUpdatingStatus(false);
+    }
+  };
+
   const handleAddDespesa = async () => {
     if (!descDespesa || !valorDespesa) return toast.error("Preencha descrição e valor.");
     const novoValor = parseFloat(valorDespesa.replace(",", "."));
@@ -241,17 +281,52 @@ function TecnicoOSDetail() {
                     {os.endereco_servico}
                   </span>
                 </div>
-                <a 
-                  href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(os.endereco_servico)}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-full"
-                >
-                  <Button className="w-full font-bold shadow-[var(--shadow-glow)] bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white" size="lg">
+                {os.status === "em_deslocamento" ? (
+                  <div className="flex flex-col gap-2 w-full">
+                    <Button 
+                      className="w-full font-bold shadow-[var(--shadow-glow)] bg-emerald-600 hover:bg-emerald-700 text-white" 
+                      size="lg"
+                      onClick={handleConfirmarChegada}
+                      disabled={isUpdatingStatus}
+                    >
+                      <CheckCircle2 className="w-5 h-5 mr-2" />
+                      Confirmar Chegada (Check-in)
+                    </Button>
+                    <a 
+                      href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(os.endereco_servico)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="w-full"
+                    >
+                      <Button variant="outline" className="w-full font-semibold" size="lg">
+                        <MapPin className="w-5 h-5 mr-2" />
+                        Ver Rota no Mapa
+                      </Button>
+                    </a>
+                  </div>
+                ) : os.status === "agendamento" || os.status === "pendencia" ? (
+                  <Button 
+                    className="w-full font-bold shadow-[var(--shadow-glow)] bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white" 
+                    size="lg"
+                    onClick={handleIniciarDeslocamento}
+                    disabled={isUpdatingStatus}
+                  >
                     <MapPin className="w-5 h-5 mr-2" />
                     Iniciar Rota no Mapa
                   </Button>
-                </a>
+                ) : (
+                  <a 
+                    href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(os.endereco_servico)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full"
+                  >
+                    <Button variant="outline" className="w-full font-semibold" size="lg">
+                      <MapPin className="w-5 h-5 mr-2" />
+                      Ver no Mapa
+                    </Button>
+                  </a>
+                )}
               </div>
             ) : (
               <div className="flex flex-col gap-2 mt-2">
@@ -481,6 +556,7 @@ function TecnicoOSDetail() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="agendamento">Agendamento (Pendente)</SelectItem>
+                <SelectItem value="em_deslocamento">Em Deslocamento (A caminho)</SelectItem>
                 <SelectItem value="em_andamento">Em Andamento (No local)</SelectItem>
                 <SelectItem value="concluido_tecnico">Concluído Técnico (Aguardando Aprovação)</SelectItem>
                 <SelectItem value="pendencia">Pendência (Falta algo)</SelectItem>
