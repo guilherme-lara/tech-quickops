@@ -60,7 +60,7 @@ function UsuariosPage() {
       const { data, error } = await supabase
         .from("perfis")
         .select("*")
-        .eq("empresa_id", empresaId)
+        .eq("empresa_id", empresaId!)
         .in("role", ["gestor", "analista", "admin", "superadmin"])
         .order("nome_completo");
         
