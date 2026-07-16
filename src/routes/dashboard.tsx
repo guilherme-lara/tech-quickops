@@ -809,7 +809,7 @@ function Dashboard() {
     queryFn: async (): Promise<OS[]> => {
       const { data, error } = await supabase
         .from("ordens_servico")
-        .select("*, clientes(nome), tecnico:tecnicos(id, nome, perfil, telefone, ativo)")
+        .select("*, clientes(nome, endereco_completo), tecnico:tecnicos(id, nome, perfil, telefone, ativo)")
         .eq("empresa_id", profile?.empresa_id || "")
         .or("and(pendencias_detalhes.not.is.null,pendencias_detalhes.neq.)")
         .order("data_agendamento", { ascending: true });
@@ -858,6 +858,7 @@ function Dashboard() {
         rat: { itens: [], evidencias: [] },
         dados_adicionais: r.dados_adicionais ?? {},
         pendencias_detalhes: r.pendencias_detalhes ?? "",
+        endereco_servico: r.endereco_servico ?? "",
         tecnico: r.tecnico
           ? {
               id: r.tecnico.id,
@@ -1045,7 +1046,7 @@ function Dashboard() {
     try {
       const { data, error } = await supabase
         .from("ordens_servico")
-        .select("*, clientes(nome), tecnico:tecnicos(id, nome, perfil, telefone, ativo)")
+        .select("*, clientes(nome, endereco_completo), tecnico:tecnicos(id, nome, perfil, telefone, ativo)")
         .eq("empresa_id", profile?.empresa_id || "")
         .or(`titulo.eq."${tituloOS}",numero.eq."${tituloOS}"`)
         .maybeSingle();
@@ -1084,6 +1085,7 @@ function Dashboard() {
         rat: (data as any).rat ? (typeof (data as any).rat === "string" ? JSON.parse((data as any).rat) : (data as any).rat) : { itens: [], evidencias: [] },
         dados_adicionais: data.dados_adicionais ?? {},
         pendencias_detalhes: data.pendencias_detalhes ?? "",
+        endereco_servico: data.endereco_servico ?? "",
         tecnico: data.tecnico ? { ...data.tecnico } : undefined,
         clientes: data.clientes ? { ...data.clientes } : undefined,
       };
