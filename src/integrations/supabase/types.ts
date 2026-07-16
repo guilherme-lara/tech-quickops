@@ -468,6 +468,7 @@ export type Database = {
           id: string
           nome_completo: string
           role: Database["public"]["Enums"]["app_role"]
+          telefone: string | null
           username: string | null
         }
         Insert: {
@@ -477,6 +478,7 @@ export type Database = {
           id: string
           nome_completo?: string
           role?: Database["public"]["Enums"]["app_role"]
+          telefone?: string | null
           username?: string | null
         }
         Update: {
@@ -486,6 +488,7 @@ export type Database = {
           id?: string
           nome_completo?: string
           role?: Database["public"]["Enums"]["app_role"]
+          telefone?: string | null
           username?: string | null
         }
         Relationships: [
@@ -714,16 +717,28 @@ export type Database = {
         }
         Returns: string
       }
-      criar_usuario_backoffice: {
-        Args: {
-          p_dominio?: string
-          p_nome: string
-          p_role: Database["public"]["Enums"]["app_role"]
-          p_senha: string
-          p_username: string
-        }
-        Returns: string
-      }
+      criar_usuario_backoffice:
+        | {
+            Args: {
+              p_dominio?: string
+              p_nome: string
+              p_role: Database["public"]["Enums"]["app_role"]
+              p_senha: string
+              p_username: string
+            }
+            Returns: string
+          }
+        | {
+            Args: {
+              p_dominio?: string
+              p_nome: string
+              p_role: Database["public"]["Enums"]["app_role"]
+              p_senha: string
+              p_telefone?: string
+              p_username: string
+            }
+            Returns: string
+          }
       gerar_chave_licenca_segura: {
         Args: { p_empresa_id: string }
         Returns: string
