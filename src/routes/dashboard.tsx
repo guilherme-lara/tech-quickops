@@ -196,6 +196,19 @@ function PriorityAlerts({ ordens, isLoading, onEdit }: { ordens: any[]; isLoadin
           </div>
         )}
 
+        {/* Zero Atrasos Placeholder */}
+        {atrasadas.length === 0 && (
+          <div className="rounded-3xl bg-emerald-50/50 dark:bg-emerald-950/10 border border-dashed border-emerald-200/80 dark:border-emerald-900/40 p-4 flex flex-col items-center justify-center text-center">
+            <div className="p-3 bg-emerald-100 dark:bg-emerald-900/30 rounded-full mb-3">
+              <CheckCircle2 className="w-6 h-6 text-emerald-600 dark:text-emerald-400" />
+            </div>
+            <h3 className="font-bold text-emerald-900 dark:text-emerald-200 text-sm">Zero Atrasos!</h3>
+            <p className="text-xs text-emerald-700 dark:text-emerald-400 mt-1 max-w-[220px]">
+              Excelente! A equipe não possui ordens de serviço pendentes de datas anteriores.
+            </p>
+          </div>
+        )}
+
         {/* Prioridades do Dia */}
         {hoje.length > 0 && (
           <div className="rounded-3xl bg-amber-50/70 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900/40 p-4 flex flex-col justify-between shadow-[0_4px_20px_-4px_rgba(245,158,11,0.08)]">
@@ -259,6 +272,19 @@ function PriorityAlerts({ ordens, isLoading, onEdit }: { ordens: any[]; isLoadin
                 );
               })}
             </div>
+          </div>
+        )}
+
+        {/* Agenda Livre Placeholder */}
+        {hoje.length === 0 && (
+          <div className="rounded-3xl bg-slate-50/50 dark:bg-slate-800/20 border border-dashed border-slate-200/80 dark:border-slate-700/40 p-4 flex flex-col items-center justify-center text-center">
+            <div className="p-3 bg-slate-100 dark:bg-slate-800/50 rounded-full mb-3">
+              <ClipboardList className="w-6 h-6 text-slate-400 dark:text-slate-500" />
+            </div>
+            <h3 className="font-bold text-slate-700 dark:text-slate-300 text-sm">Agenda Livre</h3>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-[220px]">
+              Nenhuma ordem de serviço prioritária agendada para o dia de hoje.
+            </p>
           </div>
         )}
       </div>
