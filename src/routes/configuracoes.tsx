@@ -269,7 +269,7 @@ function ConfiguracoesPage() {
         toast.success("Chave validada com sucesso! Sua licença foi estendida por mais 30 dias.");
         setChaveAtivacao("");
         // Reload data
-        const res = await supabase.from("empresas").select("status_licenca, data_vencimento").eq("id", user?.empresaId).single();
+        const res = await supabase.from("empresas").select("status_licenca, data_vencimento").eq("id", user?.empresaId ?? "").single();
         if (res.data) {
           setStatusLicenca(res.data.status_licenca || "ativo");
           setDataVencimento(res.data.data_vencimento);

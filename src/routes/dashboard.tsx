@@ -598,7 +598,7 @@ function Dashboard() {
       const { data, error } = await supabase
         .from("logs_administrativos")
         .select("id, tipo, descricao, created_at, usuario_nome")
-        .eq("empresa_id", profile?.empresa_id)
+        .eq("empresa_id", profile?.empresa_id ?? "")
         .order("created_at", { ascending: false })
         .limit(5);
 
@@ -1283,12 +1283,12 @@ function Dashboard() {
             await updateOS(editingOS.id, patch);
             
             if (profile?.empresa_id) {
-              await logActivity({
-                empresa_id: profile.empresa_id,
-                usuario_id: profile.id,
-                tipo: "os_atualizada",
-                descricao: `OS "${editingOS.titulo}" atualizada rapidamente pelo Dashboard por ${profile?.nome_completo || profile?.email || "Gestor"}`
-              });
+              await logActivity(
+                "os_atualizada",
+                `OS "${editingOS.titulo}" atualizada rapidamente pelo Dashboard por ${profile?.nome_completo || profile?.email || "Gestor"}`,
+                profile.empresa_id,
+                profile?.nome_completo,
+              );
             }
 
             toast.success("OS atualizada com sucesso");

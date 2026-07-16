@@ -73,7 +73,7 @@ function GestorDashboard() {
           const custoViagem = Number(os.custo_viagem) || 0;
           let totalDespesas = 0;
           if (Array.isArray(os.despesas)) {
-            totalDespesas = os.despesas.reduce((s, d: any) => s + (Number(d?.valor) || 0), 0);
+            totalDespesas = (os.despesas as any[]).reduce((s: number, d: any) => s + (Number(d?.valor) || 0), 0);
           }
           return acc + valorServico + custoViagem + totalDespesas;
         }, 0);
@@ -103,7 +103,7 @@ function GestorDashboard() {
             const kmViagem = Number(os.km_viagem) || 0;
             let totalDespesas = 0;
             if (Array.isArray(os.despesas)) {
-              totalDespesas = os.despesas.reduce((s, d: any) => s + (Number(d?.valor) || 0), 0);
+              totalDespesas = (os.despesas as any[]).reduce((s: number, d: any) => s + (Number(d?.valor) || 0), 0);
             }
             
             stat.faturamento_gerado += valorServico + kmViagem + totalDespesas;

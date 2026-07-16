@@ -86,9 +86,9 @@ export function ExportFaturamentoModal({ open, onOpenChange, clienteId, clienteN
           "Data de Criação": new Date(os.created_at).toLocaleDateString("pt-BR"),
           "Cliente": os.clientes?.nome || clienteNome,
           "Técnico": os.tecnicos?.nome || "Sem Técnico",
-          "Faturamento (R$)": os.faturamento ? Number(os.faturamento).toFixed(2) : "0.00",
+          "Faturamento (R$)": (os as any).faturamento ? Number((os as any).faturamento).toFixed(2) : "0.00",
           "Custos (R$)": os.custo_viagem ? Number(os.custo_viagem).toFixed(2) : "0.00",
-          "Comissão Téc. (R$)": os.comissao_tecnico_faturada ? Number(os.comissao_tecnico_faturada).toFixed(2) : "0.00",
+          "Comissão Téc. (R$)": (os as any).comissao_tecnico_faturada ? Number((os as any).comissao_tecnico_faturada).toFixed(2) : "0.00",
           "Link OS / RATs (Sistema)": linkSistema
         };
       });

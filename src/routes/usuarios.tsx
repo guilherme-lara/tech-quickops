@@ -60,7 +60,7 @@ function UsuariosPage() {
       const { data, error } = await supabase
         .from("perfis")
         .select("*")
-        .eq("empresa_id", empresaId)
+        .eq("empresa_id", empresaId!)
         .in("role", ["gestor", "analista", "admin", "superadmin"])
         .order("nome_completo");
         
@@ -80,7 +80,7 @@ function UsuariosPage() {
         p_nome: formData.nome,
         p_username: formData.username.toLowerCase(),
         p_senha: formData.senha,
-        p_role: formData.role
+        p_role: formData.role as "admin" | "analista" | "gestor" | "superadmin" | "tecnico"
       });
 
       if (error) throw error;

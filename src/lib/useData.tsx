@@ -7,8 +7,8 @@ import { compressImage } from "@/lib/image-compressor";
 // ============================================================
 // Types — UI-shape (kept stable so existing components compile)
 // ============================================================
-export type Role = "gestor" | "tecnico";
-export type OSStatus = "Agendamento" | "Em Andamento" | "Concluído Técnico" | "Pendência" | "Concluído" | "Cancelado";
+export type Role = "gestor" | "tecnico" | "analista" | "admin" | "superadmin";
+export type OSStatus = string;
 
 export interface Cliente {
   id: string;
