@@ -159,18 +159,20 @@ export function GestorLayout({ children }: { children?: ReactNode }) {
               <img
                 src={profile.empresaLogo}
                 alt="Logo da Empresa"
-                className="h-10 w-auto max-w-[140px] rounded-xl object-contain bg-white px-1"
+                className="h-10 w-auto max-w-[80px] rounded-xl object-contain bg-white px-1 shrink-0"
               />
             ) : (
               <img
                 src="/quickOpsLogo.png"
                 alt="Logo QuickOps"
-                className="h-10 w-auto max-w-[140px] rounded-xl object-contain px-1"
+                className="h-10 w-auto max-w-[80px] rounded-xl object-contain px-1 shrink-0"
               />
             )}
-            <div>
-              <div className="font-bold text-base leading-tight truncate max-w-[140px]">{profile?.empresaNome || "QuickOps"}</div>
-              <div className="text-[10px] text-muted-foreground tracking-wider uppercase">
+            <div className="flex-1 min-w-0">
+              <div className="font-bold text-sm leading-tight truncate w-full" title={profile?.empresaNome || "QuickOps"}>
+                {profile?.empresaNome || "QuickOps"}
+              </div>
+              <div className="text-[10px] text-muted-foreground tracking-wider uppercase truncate w-full">
                 QuickOps B2B
               </div>
             </div>
@@ -203,18 +205,20 @@ export function GestorLayout({ children }: { children?: ReactNode }) {
                     <img
                       src={profile.empresaLogo}
                       alt="Logo da Empresa"
-                      className="h-10 w-auto max-w-[140px] rounded-xl object-contain bg-muted px-1"
+                      className="h-10 w-auto max-w-[80px] rounded-xl object-contain bg-muted px-1 shrink-0"
                     />
                   ) : (
                     <img
                       src="/quickOpsLogo.png"
                       alt="Logo QuickOps"
-                      className="h-10 w-auto max-w-[140px] rounded-xl object-contain px-1"
+                      className="h-10 w-auto max-w-[80px] rounded-xl object-contain px-1 shrink-0"
                     />
                   )}
-                  <div>
-                    <div className="font-bold text-base leading-tight truncate max-w-[140px]">{profile?.empresaNome || "QuickOps"}</div>
-                    <div className="text-[10px] text-muted-foreground tracking-wider uppercase">
+                  <div className="flex-1 min-w-0">
+                    <div className="font-bold text-sm leading-tight truncate w-full" title={profile?.empresaNome || "QuickOps"}>
+                      {profile?.empresaNome || "QuickOps"}
+                    </div>
+                    <div className="text-[10px] text-muted-foreground tracking-wider uppercase truncate w-full">
                       QuickOps B2B
                     </div>
                   </div>
