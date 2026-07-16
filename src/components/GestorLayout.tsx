@@ -154,25 +154,25 @@ export function GestorLayout({ children }: { children?: ReactNode }) {
       {/* SIDEBAR DESKTOP (Escondida em mobile: hidden md:block) */}
       <aside className="w-64 fixed h-screen p-4 hidden md:block z-50 bg-background border-r border-border">
         <div className="rounded-3xl h-full flex flex-col p-4 shadow-[var(--shadow-card)]">
-          <div className="px-2 py-3 flex items-center gap-2.5">
+          <div className="px-2 py-6 flex flex-col items-center text-center gap-3 border-b border-border/50 mb-4">
             {profile?.empresaLogo ? (
               <img
                 src={profile.empresaLogo}
                 alt="Logo da Empresa"
-                className="h-10 w-auto max-w-[80px] rounded-xl object-contain bg-white px-1 shrink-0"
+                className="w-auto max-w-[160px] h-16 rounded-xl object-contain bg-white px-2 shadow-sm shrink-0"
               />
             ) : (
               <img
                 src="/quickOpsLogo.png"
                 alt="Logo QuickOps"
-                className="h-10 w-auto max-w-[80px] rounded-xl object-contain px-1 shrink-0"
+                className="w-auto max-w-[160px] h-16 rounded-xl object-contain px-2 shrink-0"
               />
             )}
-            <div className="flex-1 min-w-0">
-              <div className="font-bold text-sm leading-tight truncate w-full" title={profile?.empresaNome || "QuickOps"}>
+            <div className="w-full">
+              <div className="font-bold text-sm leading-tight truncate w-full text-slate-800" title={profile?.empresaNome || "QuickOps"}>
                 {profile?.empresaNome || "QuickOps"}
               </div>
-              <div className="text-[10px] text-muted-foreground tracking-wider uppercase truncate w-full">
+              <div className="text-[10px] text-muted-foreground tracking-wider uppercase truncate w-full mt-0.5">
                 QuickOps B2B
               </div>
             </div>
@@ -200,25 +200,25 @@ export function GestorLayout({ children }: { children?: ReactNode }) {
                   Navegue pelas páginas do sistema QuickOps
                 </SheetDescription>
 
-                <div className="px-2 py-3 flex items-center gap-2.5">
+                <div className="px-2 py-6 flex flex-col items-center text-center gap-3 border-b border-border/50 mb-4">
                   {profile?.empresaLogo ? (
                     <img
                       src={profile.empresaLogo}
                       alt="Logo da Empresa"
-                      className="h-10 w-auto max-w-[80px] rounded-xl object-contain bg-muted px-1 shrink-0"
+                      className="w-auto max-w-[160px] h-16 rounded-xl object-contain bg-white px-2 shadow-sm shrink-0"
                     />
                   ) : (
                     <img
                       src="/quickOpsLogo.png"
                       alt="Logo QuickOps"
-                      className="h-10 w-auto max-w-[80px] rounded-xl object-contain px-1 shrink-0"
+                      className="w-auto max-w-[160px] h-16 rounded-xl object-contain px-2 shrink-0"
                     />
                   )}
-                  <div className="flex-1 min-w-0">
-                    <div className="font-bold text-sm leading-tight truncate w-full" title={profile?.empresaNome || "QuickOps"}>
+                  <div className="w-full">
+                    <div className="font-bold text-sm leading-tight truncate w-full text-slate-800" title={profile?.empresaNome || "QuickOps"}>
                       {profile?.empresaNome || "QuickOps"}
                     </div>
-                    <div className="text-[10px] text-muted-foreground tracking-wider uppercase truncate w-full">
+                    <div className="text-[10px] text-muted-foreground tracking-wider uppercase truncate w-full mt-0.5">
                       QuickOps B2B
                     </div>
                   </div>
