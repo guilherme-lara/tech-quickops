@@ -78,7 +78,8 @@ function AuthGate() {
   const path = useRouterState({ select: (s) => s.location.pathname });
   useEffect(() => {
     if (loadingAuth) return;
-    const homeFor = (role: string) => (role === "tecnico" ? "/tecnico/os" : "/dashboard");
+    const homeFor = (role: string) =>
+      role === "tecnico" ? "/tecnico/os" : role === "analista" ? "/analista-dashboard" : "/dashboard";
     if (path === "/") {
       if (!user) navigate({ to: "/login" });
       else navigate({ to: homeFor(user.role) });
