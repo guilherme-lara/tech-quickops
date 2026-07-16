@@ -80,7 +80,7 @@ function UsuariosPage() {
         p_nome: formData.nome,
         p_username: formData.username.toLowerCase(),
         p_senha: formData.senha,
-        p_role: formData.role
+        p_role: formData.role as "admin" | "analista" | "gestor" | "superadmin" | "tecnico"
       });
 
       if (error) throw error;
