@@ -34,7 +34,7 @@ function LandingPage() {
       <nav className="fixed top-0 inset-x-0 h-20 bg-slate-950/70 backdrop-blur-md border-b border-white/10 z-50 transition-all duration-300">
         <div className="container mx-auto px-6 h-full flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <img src="/quickOpsLogo.png" alt="Tech QuickOps" className="h-10 sm:h-12 md:h-14 object-contain brightness-0 invert opacity-95" />
+            <img src="/quickOpsLogo.png" alt="QuickOps" className="h-10 sm:h-12 md:h-14 object-contain brightness-0 invert opacity-95" />
           </div>
           
           <div className="hidden lg:flex items-center gap-8 font-semibold text-sm text-slate-300">
@@ -162,7 +162,7 @@ function LandingPage() {
             </div>
             <h2 className="text-3xl md:text-5xl font-black text-white mb-6 tracking-tight">O Fluxo Inteligente Mês N ➔ Mês N+1</h2>
             <p className="text-slate-300 text-sm md:text-base font-normal leading-relaxed">
-              Diga adeus a planilhas soltas e esquecimento de cobranças. O Tech QuickOps amarra o ciclo financeiro às ordens de serviço executadas, garantindo previsibilidade total.
+              Diga adeus a planilhas soltas e esquecimento de cobranças. O QuickOps amarra o ciclo financeiro às ordens de serviço executadas, garantindo previsibilidade total.
             </p>
           </div>
 
@@ -360,7 +360,7 @@ function LandingPage() {
                 Segurança incontestável contra falhas e fraudes.
               </h2>
               <p className="text-slate-300 text-sm md:text-base leading-relaxed mb-8">
-                Operações de rua são difíceis de controlar. O Tech QuickOps protege sua operação gravando cada alteração de status e materiais de forma imutável, além de isolar dados e funções.
+                Operações de rua são difíceis de controlar. O QuickOps protege sua operação gravando cada alteração de status e materiais de forma imutável, além de isolar dados e funções.
               </p>
               <ul className="space-y-4 text-sm font-medium">
                 <li className="flex items-start gap-3">
@@ -482,7 +482,7 @@ function LandingPage() {
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-8 mb-12">
             <div className="col-span-2 lg:col-span-2">
               <div className="flex items-center gap-2 mb-6">
-                <img src="/quickOpsLogo.png" alt="Tech QuickOps" className="h-10 object-contain brightness-0 invert opacity-95" />
+                <img src="/quickOpsLogo.png" alt="QuickOps" className="h-10 object-contain brightness-0 invert opacity-95" />
               </div>
               <p className="text-slate-400 text-xs md:text-sm leading-relaxed max-w-xs mb-6 font-normal">
                 O sistema de gestão operacional definitivo para conectar seu backoffice a equipes de campo. Rastreabilidade, faturamento inteligente e performance garantida.
@@ -520,7 +520,7 @@ function LandingPage() {
 
           <div className="pt-8 border-t border-white/5 flex flex-col md:flex-row items-center justify-between gap-4">
             <div className="text-xs md:text-sm font-semibold text-slate-500">
-              © {new Date().getFullYear()} Tech QuickOps SaaS. Todos os direitos reservados.
+              © {new Date().getFullYear()} QuickOps SaaS. Todos os direitos reservados.
             </div>
             <div className="text-[10px] text-slate-600 font-bold uppercase tracking-wider">
               Orgulhosamente construído para simplificar operações no Brasil.

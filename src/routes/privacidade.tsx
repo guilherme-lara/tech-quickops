@@ -14,7 +14,7 @@ function Privacidade() {
             <ArrowLeft className="w-5 h-5 text-slate-500" />
             <span className="text-sm font-semibold text-slate-600 hover:text-slate-900">Voltar para o Início</span>
           </Link>
-          <img src="/quickOpsLogo.png" alt="Tech QuickOps" className="h-10 object-contain" />
+          <img src="/quickOpsLogo.png" alt="QuickOps" className="h-10 object-contain" />
         </div>
       </header>
 
@@ -26,7 +26,7 @@ function Privacidade() {
           <div className="prose prose-slate max-w-none text-base">
             <h2 className="text-2xl font-bold mt-10 mb-4 text-slate-900">1. Coleta de Dados</h2>
             <p className="text-slate-600 leading-relaxed mb-6 font-medium">
-              Em conformidade com a Lei Geral de Proteção de Dados (LGPD), a Tech QuickOps coleta dados pessoais essenciais para a prestação do serviço, como nome, e-mail e telefone. Também processamos dados operacionais de técnicos e clientes em nome da sua empresa (Controlador).
+              Em conformidade com a Lei Geral de Proteção de Dados (LGPD), a QuickOps coleta dados pessoais essenciais para a prestação do serviço, como nome, e-mail e telefone. Também processamos dados operacionais de técnicos e clientes em nome da sua empresa (Controlador).
             </p>
 
             <h2 className="text-2xl font-bold mt-10 mb-4 text-slate-900">2. Uso dos Dados</h2>
@@ -54,7 +54,7 @@ function Privacidade() {
 
       <footer className="bg-slate-900 text-slate-300 py-12 border-t border-slate-800 text-center">
         <p className="text-sm font-medium">
-          © {new Date().getFullYear()} Tech QuickOps SaaS. Todos os direitos reservados.
+          © {new Date().getFullYear()} QuickOps SaaS. Todos os direitos reservados.
         </p>
       </footer>
     </div>

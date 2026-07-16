@@ -277,7 +277,7 @@ function EquipePage() {
       await registrarLog("senha_resetada", `Senha de "${t.nome}" redefinida por ${nomeUsuario}`);
       
       const login = t.username || "—";
-      const empresaStr = profile?.empresaNome || "Tech QuickOps";
+      const empresaStr = profile?.empresaNome || "QuickOps";
       const text = `Olá ${t.nome}!\n\nSua senha de acesso ao sistema da empresa *${empresaStr}* foi redefinida.\n\nAqui estão suas novas credenciais:\n\n🏢 Código da Empresa: ${codigoEmpresa}\n👤 Usuário: ${login}\n🔑 Nova Senha: ${novaSenha}\n\nAcesse o link do sistema para entrar.`;
       
       setResetSenhaResult({ texto: text, nome: t.nome });

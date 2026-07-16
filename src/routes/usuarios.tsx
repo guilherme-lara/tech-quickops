@@ -50,7 +50,7 @@ function UsuariosPage() {
   const { profile } = useAuth();
   const empresaId = profile?.empresa_id;
   const codigoEmpresa = profile?.empresaCodigo || "";
-  const empresaNome = profile?.empresaNome || "Tech QuickOps";
+  const empresaNome = profile?.empresaNome || "QuickOps";
   const qc = useQueryClient();
 
   const [searchTerm, setSearchTerm] = useState("");

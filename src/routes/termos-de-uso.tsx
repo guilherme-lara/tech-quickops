@@ -14,7 +14,7 @@ function Termos() {
             <ArrowLeft className="w-5 h-5 text-slate-500" />
             <span className="text-sm font-semibold text-slate-600 hover:text-slate-900">Voltar para o Início</span>
           </Link>
-          <img src="/quickOpsLogo.png" alt="Tech QuickOps" className="h-10 object-contain" />
+          <img src="/quickOpsLogo.png" alt="QuickOps" className="h-10 object-contain" />
         </div>
       </header>
 
@@ -26,27 +26,27 @@ function Termos() {
           <div className="prose prose-slate max-w-none text-base">
             <h2 className="text-2xl font-bold mt-10 mb-4 text-slate-900">1. Aceitação dos Termos</h2>
             <p className="text-slate-600 leading-relaxed mb-6 font-medium">
-              Ao acessar e usar a plataforma Tech QuickOps, você concorda em cumprir e ficar vinculado aos seguintes termos e condições de uso. Se você não concordar com qualquer parte destes termos, não deve usar nosso serviço.
+              Ao acessar e usar a plataforma QuickOps, você concorda em cumprir e ficar vinculado aos seguintes termos e condições de uso. Se você não concordar com qualquer parte destes termos, não deve usar nosso serviço.
             </p>
 
             <h2 className="text-2xl font-bold mt-10 mb-4 text-slate-900">2. Uso do Serviço</h2>
             <p className="text-slate-600 leading-relaxed mb-6 font-medium">
-              A Tech QuickOps fornece um sistema de gestão B2B focado em operações de campo (Field Service), controle de ordens de serviço, técnicos e inventário. Você concorda em usar o serviço apenas para fins legais, corporativos e de acordo com as leis brasileiras vigentes.
+              A QuickOps fornece um sistema de gestão B2B focado em operações de campo (Field Service), controle de ordens de serviço, técnicos e inventário. Você concorda em usar o serviço apenas para fins legais, corporativos e de acordo com as leis brasileiras vigentes.
             </p>
 
             <h2 className="text-2xl font-bold mt-10 mb-4 text-slate-900">3. Contas de Usuário e Segurança</h2>
             <p className="text-slate-600 leading-relaxed mb-6 font-medium">
-              Você é integralmente responsável por manter a confidencialidade de sua conta, credenciais de acesso e das contas criadas para seus funcionários (técnicos, analistas, etc). A Tech QuickOps não será responsável por qualquer perda ou dano decorrente do acesso não autorizado causado pelo compartilhamento de credenciais.
+              Você é integralmente responsável por manter a confidencialidade de sua conta, credenciais de acesso e das contas criadas para seus funcionários (técnicos, analistas, etc). A QuickOps não será responsável por qualquer perda ou dano decorrente do acesso não autorizado causado pelo compartilhamento de credenciais.
             </p>
 
             <h2 className="text-2xl font-bold mt-10 mb-4 text-slate-900">4. Propriedade Intelectual</h2>
             <p className="text-slate-600 leading-relaxed mb-6 font-medium">
-              Todo o código-fonte, design, interface (UI/UX), textos, gráficos, logos e software são de propriedade exclusiva da Tech QuickOps e estão protegidos pelas leis de propriedade intelectual.
+              Todo o código-fonte, design, interface (UI/UX), textos, gráficos, logos e software são de propriedade exclusiva da QuickOps e estão protegidos pelas leis de propriedade intelectual.
             </p>
 
             <h2 className="text-2xl font-bold mt-10 mb-4 text-slate-900">5. Limitação de Responsabilidade</h2>
             <p className="text-slate-600 leading-relaxed mb-6 font-medium">
-              A plataforma é fornecida "no estado em que se encontra". A Tech QuickOps se esforça para manter a alta disponibilidade do sistema (uptime), mas não se responsabiliza por lucros cessantes, perdas financeiras ou outros danos indiretos decorrentes de eventuais instabilidades ou incapacidade momentânea de usar o serviço.
+              A plataforma é fornecida "no estado em que se encontra". A QuickOps se esforça para manter a alta disponibilidade do sistema (uptime), mas não se responsabiliza por lucros cessantes, perdas financeiras ou outros danos indiretos decorrentes de eventuais instabilidades ou incapacidade momentânea de usar o serviço.
             </p>
           </div>
         </div>
@@ -54,7 +54,7 @@ function Termos() {
 
       <footer className="bg-slate-900 text-slate-300 py-12 border-t border-slate-800 text-center">
         <p className="text-sm font-medium">
-          © {new Date().getFullYear()} Tech QuickOps SaaS. Todos os direitos reservados.
+          © {new Date().getFullYear()} QuickOps SaaS. Todos os direitos reservados.
         </p>
       </footer>
     </div>
