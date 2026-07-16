@@ -155,11 +155,19 @@ function PriorityAlerts({ ordens, isLoading, onEdit }: { ordens: any[]; isLoadin
                   onClick={() => onEdit(o)}
                   className="text-xs bg-card p-2.5 rounded-2xl border border-border/50 flex items-center justify-between gap-2 cursor-pointer hover:bg-muted/50 transition-colors"
                 >
-                  <div className="min-w-0">
+                  <div className="min-w-0 flex-1">
                     <p className="font-bold truncate text-foreground">{o.titulo}</p>
                     <p className="text-muted-foreground text-[10px] truncate">
                       {o.numero} • Cliente: {o.clientes?.nome || "Não informado"}
                     </p>
+                    <p className="text-muted-foreground text-[10px] truncate">
+                      Téc: {o.tecnico?.nome || "Não atribuído"}
+                    </p>
+                    {(o.endereco_servico || o.clientes?.endereco_completo) && (
+                      <p className="text-muted-foreground text-[10px] truncate">
+                        📍 {o.endereco_servico || o.clientes?.endereco_completo}
+                      </p>
+                    )}
                   </div>
                   <div className="text-right shrink-0">
                     <span className="text-[10px] font-bold text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950 px-2 py-0.5 rounded-lg border border-red-200 dark:border-red-900">
