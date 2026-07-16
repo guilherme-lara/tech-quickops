@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, ReactNode, useCallback } from "react";
+import { createContext, useContext, useEffect, useState, ReactNode, useCallback, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -239,7 +239,13 @@ const Ctx = createContext<Store | null>(null);
 export function StoreProvider({ children }: { children: ReactNode }) {
   const qc = useQueryClient();
   const [user, setUser] = useState<User | null>(null);
+  const userRef = useRef<User | null>(null);
   const [loadingAuth, setLoadingAuth] = useState(true);
+
+  useEffect(() => {
+    userRef.current = user;
+  }, [user]);
+
   const [ratLocal, setRatLocal] = useState<Record<string, RAT>>({});
   const [osPage, setOsPage] = useState(0);
   const [osPageSize, setOsPageSize] = useState(15);
@@ -351,14 +357,18 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
     const handleGhostUser = async () => {
       console.error(
-        "[auth] Perfil não encontrado após retries. Possível usuário fantasma. Deslogando...",
+        "[auth] Perfil não encontrado após retries. Possível usuário fantasma ou falha de conexão.",
       );
+      if (userRef.current) {
+        console.warn("[auth] Mantendo a sessão do usuário ativo em memória para evitar logout indesejado.");
+        return;
+      }
       await supabase.auth.signOut();
       if (mounted) {
         setUser(null);
         setLoadingAuth(false);
       }
-      toast.error("Erro de integridade: Perfil não encontrado. Por favor, contate o suporte.");
+      toast.error("Erro de integridade ou perfil não encontrado. Por favor, recarregue a página.");
       if (typeof window !== "undefined" && window.location.pathname !== "/login") {
         window.location.href = "/login";
       }
