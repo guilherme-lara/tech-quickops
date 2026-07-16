@@ -4,6 +4,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Select,
   SelectContent,
@@ -11,8 +13,19 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Plus, Trash2, Users, UserCheck, Inbox } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Plus, Trash2, Users, UserCheck, Inbox, Search, Loader2 } from "lucide-react";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
+import { equipeStore, useEquipeStore, type Tecnico } from "@/lib/equipe-store";
 
 export const Route = createFileRoute("/gestao-equipe")({
   component: () => (
@@ -22,10 +35,8 @@ export const Route = createFileRoute("/gestao-equipe")({
   ),
 });
 
-type Tecnico = { id: string; nome: string };
 type Analista = { id: string; nome: string };
 
-// Mock do usuário logado — troque role para 'ADMIN' ou 'ANALISTA' para testar
 const usuarioLogado: {
   id: string;
   role: "ADMIN" | "ANALISTA";
@@ -42,19 +53,6 @@ const MOCK_ANALISTAS: Analista[] = [
   { id: "a3", nome: "Carla Mendes" },
 ];
 
-const MOCK_DISPONIVEIS: Tecnico[] = [
-  { id: "t1", nome: "João Silva" },
-  { id: "t2", nome: "Marcos Pereira" },
-  { id: "t3", nome: "Rafael Costa" },
-  { id: "t4", nome: "Pedro Almeida" },
-  { id: "t5", nome: "Lucas Rocha" },
-];
-
-const MOCK_EQUIPE: Tecnico[] = [
-  { id: "t6", nome: "Fernanda Dias" },
-  { id: "t7", nome: "Gustavo Nunes" },
-];
-
 function initials(nome: string) {
   return nome
     .split(" ")
@@ -65,12 +63,19 @@ function initials(nome: string) {
 }
 
 function GestaoEquipePage() {
+  const { disponiveis, equipe, loading } = useEquipeStore();
   const [analistaSelecionado, setAnalistaSelecionado] = useState<string>(
     usuarioLogado.role === "ANALISTA" ? usuarioLogado.id : MOCK_ANALISTAS[0].id,
   );
+  const [busca, setBusca] = useState("");
+  const [confirmar, setConfirmar] = useState<Tecnico | null>(null);
+  const [pendingId, setPendingId] = useState<string | null>(null);
 
-  const [disponiveis, setDisponiveis] = useState<Tecnico[]>(MOCK_DISPONIVEIS);
-  const [equipe, setEquipe] = useState<Tecnico[]>(MOCK_EQUIPE);
+  const disponiveisFiltrados = useMemo(() => {
+    const q = busca.trim().toLowerCase();
+    if (!q) return disponiveis;
+    return disponiveis.filter((t) => t.nome.toLowerCase().includes(q));
+  }, [busca, disponiveis]);
 
   const analistaLabel = useMemo(() => {
     if (usuarioLogado.role === "ANALISTA") return "sua equipe";
@@ -78,14 +83,19 @@ function GestaoEquipePage() {
     return a ? `equipe de ${a.nome}` : "equipe";
   }, [analistaSelecionado]);
 
-  function adicionarTecnico(t: Tecnico) {
-    setDisponiveis((prev) => prev.filter((x) => x.id !== t.id));
-    setEquipe((prev) => [...prev, t]);
+  async function handleAdicionar(t: Tecnico) {
+    setPendingId(t.id);
+    await equipeStore.adicionar(t);
+    setPendingId(null);
   }
 
-  function removerTecnico(t: Tecnico) {
-    setEquipe((prev) => prev.filter((x) => x.id !== t.id));
-    setDisponiveis((prev) => [...prev, t]);
+  async function handleConfirmarRemocao() {
+    if (!confirmar) return;
+    const t = confirmar;
+    setPendingId(t.id);
+    setConfirmar(null);
+    await equipeStore.remover(t);
+    setPendingId(null);
   }
 
   return (
@@ -126,17 +136,40 @@ function GestaoEquipePage() {
         <ListaCard
           titulo="Técnicos Disponíveis"
           icone={<Users className="h-5 w-5 text-muted-foreground" />}
-          itens={disponiveis}
-          emptyLabel="Todos os técnicos já estão em uma equipe"
+          itens={disponiveisFiltrados}
+          countBadge={disponiveis.length}
+          loading={loading}
+          pendingId={pendingId}
+          emptyLabel={
+            busca
+              ? "Nenhum técnico encontrado para essa busca."
+              : "Todos os técnicos já estão em uma equipe"
+          }
           emptyIcon={<Inbox className="h-10 w-10 text-muted-foreground/50" />}
+          header={
+            <div className="relative mb-3">
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                value={busca}
+                onChange={(e) => setBusca(e.target.value)}
+                placeholder="Buscar por nome..."
+                className="pl-8"
+              />
+            </div>
+          }
           renderAction={(t) => (
             <Button
               size="sm"
               variant="outline"
-              onClick={() => adicionarTecnico(t)}
+              onClick={() => handleAdicionar(t)}
+              disabled={loading}
               className="gap-1"
             >
-              <Plus className="h-4 w-4" />
+              {pendingId === t.id ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Plus className="h-4 w-4" />
+              )}
               Adicionar
             </Button>
           )}
@@ -146,21 +179,51 @@ function GestaoEquipePage() {
           titulo="Equipe Supervisionada"
           icone={<UserCheck className="h-5 w-5 text-muted-foreground" />}
           itens={equipe}
+          countBadge={equipe.length}
+          loading={loading}
+          pendingId={pendingId}
           emptyLabel="Nenhum técnico nesta equipe ainda."
           emptyIcon={<Users className="h-10 w-10 text-muted-foreground/50" />}
           renderAction={(t) => (
             <Button
               size="sm"
               variant="ghost"
-              onClick={() => removerTecnico(t)}
+              onClick={() => setConfirmar(t)}
+              disabled={loading}
               className="gap-1 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
             >
-              <Trash2 className="h-4 w-4" />
+              {pendingId === t.id ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Trash2 className="h-4 w-4" />
+              )}
               Remover
             </Button>
           )}
         />
       </div>
+
+      <AlertDialog open={!!confirmar} onOpenChange={(o) => !o && setConfirmar(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Remover técnico da equipe?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {confirmar
+                ? `${confirmar.nome} será movido de volta para "Técnicos Disponíveis". Você pode adicioná-lo novamente a qualquer momento.`
+                : ""}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmarRemocao}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Remover
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
@@ -169,15 +232,23 @@ function ListaCard({
   titulo,
   icone,
   itens,
+  countBadge,
+  loading,
+  pendingId,
   emptyLabel,
   emptyIcon,
+  header,
   renderAction,
 }: {
   titulo: string;
   icone: React.ReactNode;
   itens: Tecnico[];
+  countBadge: number;
+  loading: boolean;
+  pendingId: string | null;
   emptyLabel: string;
   emptyIcon: React.ReactNode;
+  header?: React.ReactNode;
   renderAction: (t: Tecnico) => React.ReactNode;
 }) {
   return (
@@ -187,22 +258,31 @@ function ListaCard({
           {icone}
           {titulo}
         </CardTitle>
-        <Badge variant="secondary">{itens.length}</Badge>
+        <Badge variant="secondary">{countBadge}</Badge>
       </CardHeader>
       <CardContent>
+        {header}
         {itens.length === 0 ? (
-          <div className="flex flex-col items-center justify-center text-center py-12 gap-3">
-            {emptyIcon}
-            <p className="text-sm text-muted-foreground max-w-xs">
-              {emptyLabel}
-            </p>
-          </div>
+          loading ? (
+            <div className="space-y-2">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <Skeleton key={i} className="h-14 w-full rounded-lg" />
+              ))}
+            </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center text-center py-12 gap-3">
+              {emptyIcon}
+              <p className="text-sm text-muted-foreground max-w-xs">{emptyLabel}</p>
+            </div>
+          )
         ) : (
           <ul className="max-h-[420px] overflow-y-auto space-y-2 pr-1">
             {itens.map((t) => (
               <li
                 key={t.id}
-                className="flex items-center justify-between gap-3 rounded-lg border border-border/60 bg-card px-3 py-2 transition-all duration-200 hover:border-border hover:shadow-sm animate-in fade-in slide-in-from-top-1"
+                className={`flex items-center justify-between gap-3 rounded-lg border border-border/60 bg-card px-3 py-2 transition-all duration-200 hover:border-border hover:shadow-sm animate-in fade-in slide-in-from-top-1 ${
+                  pendingId === t.id ? "opacity-60" : ""
+                }`}
               >
                 <div className="flex items-center gap-3 min-w-0">
                   <Avatar className="h-9 w-9">
