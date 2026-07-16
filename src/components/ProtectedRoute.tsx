@@ -24,7 +24,7 @@ export function ProtectedRoute({ children, allowedRoles }: Props) {
     }
     if (profile) {
       if (allowedRoles && allowedRoles.length > 0) {
-        let isAllowed = allowedRoles.includes(profile.role);
+        let isAllowed = (allowedRoles as string[]).includes(profile.role);
         
         // Bypass master para o dono do sistema e superadmins
         if (user.email === 'guiigo9@gmail.com' || profile.role === 'superadmin') {
