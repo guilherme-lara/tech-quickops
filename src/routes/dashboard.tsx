@@ -544,6 +544,8 @@ function Dashboard() {
       receitaBruta: number;
       custoTotal: number;
       resultadoLiquido: number;
+      comissaoTotal: number;
+      resultadoEmpresa: number;
     }> => {
       const eid = profile?.empresa_id;
       if (!eid)
@@ -557,12 +559,14 @@ function Dashboard() {
           receitaBruta: 0,
           custoTotal: 0,
           resultadoLiquido: 0,
+          comissaoTotal: 0,
+          resultadoEmpresa: 0,
         };
 
       // Busca todas as OS da empresa (sem paginação, pois é para KPIs)
       let query = supabase
         .from("ordens_servico")
-        .select("status, valor, km_viagem, custo_viagem, despesas, data_agendamento")
+        .select("status, valor, km_viagem, custo_viagem, despesas, data_agendamento, tecnico_id, tecnico:tecnicos(comissao, tipo_comissao)")
         .eq("empresa_id", eid);
 
       if (dataInicio && dataFim) {
@@ -608,6 +612,22 @@ function Dashboard() {
 
       const resultadoLiquido = receitaBruta - custoTotal;
 
+      const comissaoTotal = rows
+        .filter((r: any) => r.status === "concluido" && r.tecnico_id)
+        .reduce((s: number, r: any) => {
+          const tecnico = Array.isArray(r.tecnico) ? r.tecnico[0] : r.tecnico;
+          const comissaoVal = Number(tecnico?.comissao ?? 0);
+          const tipoComissao = tecnico?.tipo_comissao ?? "fixo";
+          const valorServico = Number(r.valor ?? 0);
+
+          const valorComissao = tipoComissao === "fixo"
+            ? comissaoVal
+            : (valorServico * comissaoVal) / 100;
+          return s + valorComissao;
+        }, 0);
+
+      const resultadoEmpresa = resultadoLiquido - comissaoTotal;
+
       const pendenciasPagamento = (Array.isArray(rows) ? rows : []).filter((r: any) => {
         if (!r.data_agendamento || r.status !== "concluido") return false;
         return new Date(r.data_agendamento) < hoje;
@@ -635,6 +655,8 @@ function Dashboard() {
         receitaBruta,
         custoTotal,
         resultadoLiquido,
+        comissaoTotal,
+        resultadoEmpresa,
       };
     },
   });
@@ -649,6 +671,8 @@ function Dashboard() {
     receitaBruta: 0,
     custoTotal: 0,
     resultadoLiquido: 0,
+    comissaoTotal: 0,
+    resultadoEmpresa: 0,
   };
 
   // ============================================================
@@ -1102,7 +1126,7 @@ function Dashboard() {
 
       {/* Cards Estratégicos */}
       {profile?.role !== "analista" && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
           <div className="rounded-3xl bg-gradient-to-br from-primary/10 to-primary/5 p-5 border border-primary/20">
             <div className="flex items-center gap-2 mb-2">
               <TrendingUp className="w-4 h-4 text-primary" />
@@ -1148,6 +1172,24 @@ function Dashboard() {
             <p className="text-xs text-muted-foreground mt-1 truncate">
               Bruta R$ {kpis.receitaBruta.toLocaleString("pt-BR", { maximumFractionDigits: 0 })} -
               Custo R$ {kpis.custoTotal.toLocaleString("pt-BR", { maximumFractionDigits: 0 })}
+            </p>
+          </div>
+
+          <div className="rounded-3xl bg-gradient-to-br from-violet/10 to-violet/5 p-5 border border-violet/20">
+            <div className="flex items-center gap-2 mb-2">
+              <Sparkles className="w-4 h-4 text-violet" />
+              <span className="text-xs font-medium text-muted-foreground">Ganho Real (Empresa)</span>
+            </div>
+            <div className="text-2xl font-bold">
+              {kpisFinanceirosQ.isLoading ? (
+                <Skeleton className="h-8 w-28" />
+              ) : (
+                `R$ ${kpis.resultadoEmpresa.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`
+              )}
+            </div>
+            <p className="text-xs text-muted-foreground mt-1 truncate">
+              Líq. R$ {kpis.resultadoLiquido.toLocaleString("pt-BR", { maximumFractionDigits: 0 })} -
+              Comissão R$ {kpis.comissaoTotal.toLocaleString("pt-BR", { maximumFractionDigits: 0 })}
             </p>
           </div>
 
