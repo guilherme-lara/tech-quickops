@@ -97,7 +97,7 @@ function getLimitTimeBadge(
   return null;
 }
 
-function PriorityAlerts({ ordens, isLoading, onEdit }: { ordens: any[]; isLoading: boolean; onEdit: (os: any) => void }) {
+function PriorityAlerts({ ordens, isLoading, onEdit, logs }: { ordens: any[]; isLoading: boolean; onEdit: (os: any) => void; logs?: any[] }) {
   if (isLoading) {
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
@@ -127,6 +127,39 @@ function PriorityAlerts({ ordens, isLoading, onEdit }: { ordens: any[]; isLoadin
   });
 
   if (atrasadas.length === 0 && hoje.length === 0) return null;
+
+  const recentesAtualizacoes = (logs || [])
+    .filter(l => l.tipo === "Atualização de OS" || l.descricao?.toLowerCase().includes("status"))
+    .slice(0, 3);
+
+  const renderUpdatesFeed = (title: string) => (
+    <div className="rounded-3xl bg-card/60 border border-border/50 p-4 flex flex-col shadow-sm">
+      <div className="flex items-center gap-2 mb-3">
+        <Activity className="w-4 h-4 text-primary" />
+        <span className="font-bold text-sm text-foreground">
+          {title}
+        </span>
+      </div>
+      {recentesAtualizacoes.length > 0 ? (
+        <div className="space-y-2 max-h-[140px] overflow-y-auto pr-1">
+          {recentesAtualizacoes.map(log => (
+            <div key={log.id} className="text-xs bg-muted/30 p-2.5 rounded-xl border border-border/50">
+              <p className="font-medium text-foreground mb-1.5 leading-tight">{log.descricao}</p>
+              <div className="flex justify-between items-center text-[10px] text-muted-foreground">
+                <span className="truncate mr-2 font-medium">{log.usuario_nome}</span>
+                <span className="shrink-0">{new Date(log.created_at).toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'})}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="flex-1 flex flex-col items-center justify-center text-center p-4">
+          <Activity className="w-6 h-6 text-muted-foreground/30 mb-2" />
+          <p className="text-xs text-muted-foreground">Nenhuma atualização de OS recente no sistema.</p>
+        </div>
+      )}
+    </div>
+  );
 
   return (
     <div className="space-y-3 mb-6">
@@ -196,18 +229,8 @@ function PriorityAlerts({ ordens, isLoading, onEdit }: { ordens: any[]; isLoadin
           </div>
         )}
 
-        {/* Zero Atrasos Placeholder */}
-        {atrasadas.length === 0 && (
-          <div className="rounded-3xl bg-emerald-50/50 dark:bg-emerald-950/10 border border-dashed border-emerald-200/80 dark:border-emerald-900/40 p-4 flex flex-col items-center justify-center text-center">
-            <div className="p-3 bg-emerald-100 dark:bg-emerald-900/30 rounded-full mb-3">
-              <CheckCircle2 className="w-6 h-6 text-emerald-600 dark:text-emerald-400" />
-            </div>
-            <h3 className="font-bold text-emerald-900 dark:text-emerald-200 text-sm">Zero Atrasos!</h3>
-            <p className="text-xs text-emerald-700 dark:text-emerald-400 mt-1 max-w-[220px]">
-              Excelente! A equipe não possui ordens de serviço pendentes de datas anteriores.
-            </p>
-          </div>
-        )}
+        {/* Últimas Atualizações Placeholder (substituindo Zero Atrasos) */}
+        {atrasadas.length === 0 && renderUpdatesFeed("Atividades Recentes de OS")}
 
         {/* Prioridades do Dia */}
         {hoje.length > 0 && (
@@ -275,18 +298,8 @@ function PriorityAlerts({ ordens, isLoading, onEdit }: { ordens: any[]; isLoadin
           </div>
         )}
 
-        {/* Agenda Livre Placeholder */}
-        {hoje.length === 0 && (
-          <div className="rounded-3xl bg-slate-50/50 dark:bg-slate-800/20 border border-dashed border-slate-200/80 dark:border-slate-700/40 p-4 flex flex-col items-center justify-center text-center">
-            <div className="p-3 bg-slate-100 dark:bg-slate-800/50 rounded-full mb-3">
-              <ClipboardList className="w-6 h-6 text-slate-400 dark:text-slate-500" />
-            </div>
-            <h3 className="font-bold text-slate-700 dark:text-slate-300 text-sm">Agenda Livre</h3>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-[220px]">
-              Nenhuma ordem de serviço prioritária agendada para o dia de hoje.
-            </p>
-          </div>
-        )}
+        {/* Últimas Atualizações Placeholder (substituindo Agenda Livre) */}
+        {hoje.length === 0 && renderUpdatesFeed("Atualizações de OS Recentes")}
       </div>
     </div>
   );
@@ -1028,7 +1041,7 @@ function Dashboard() {
         </div>
       </div>
 
-      <PriorityAlerts ordens={alertasOSQ.data ?? []} isLoading={alertasOSQ.isLoading} onEdit={(os) => setEditingOS(os)} />
+      <PriorityAlerts ordens={alertasOSQ.data ?? []} isLoading={alertasOSQ.isLoading} onEdit={(os) => setEditingOS(os)} logs={logsQ.data ?? []} />
       <EnvioPlanilhaAlerts clientes={clientes} />
       <PagamentoAlerts clientes={clientes} />
       <PendingAlertsCard
