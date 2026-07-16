@@ -1077,7 +1077,7 @@ function OSPage() {
                 <table className="w-full text-sm text-left">
                   <thead className="bg-muted/50 text-xs uppercase text-muted-foreground">
                     <tr>
-                      <th className="px-5 py-3 font-semibold sticky left-0 z-20 bg-muted/50 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">
+                      <th className="px-5 py-3 font-semibold md:sticky md:left-0 z-20 bg-muted/50 md:shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">
                         OS / Título
                       </th>
                       <th className="px-5 py-3 font-semibold">Status</th>
@@ -1102,7 +1102,7 @@ function OSPage() {
                           }}
                           className="hover:bg-muted/50 transition-colors cursor-pointer border-b border-border/40 last:border-b-0"
                         >
-                          <td className="px-5 py-3 whitespace-nowrap sticky left-0 z-20 bg-background shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">
+                          <td className="px-5 py-3 whitespace-nowrap md:sticky md:left-0 z-20 bg-background md:shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">
                             <div className="flex flex-col">
                               <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground font-bold tracking-wider mb-0.5">
                                 {o.dados_adicionais?._tecnico_nao_encontrado && (
