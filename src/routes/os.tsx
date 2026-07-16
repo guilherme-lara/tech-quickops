@@ -47,15 +47,6 @@ import {
 } from "lucide-react";
 import { useEffect, useState, useRef } from "react";
 import { toast } from "sonner";
-import {
-  DndContext,
-  DragEndEvent,
-  useDraggable,
-  useDroppable,
-  PointerSensor,
-  useSensor,
-  useSensors,
-} from "@dnd-kit/core";
 import { ImportarOSDialog } from "@/components/ImportarOSDialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/EmptyState";
@@ -264,9 +255,7 @@ function OSPage() {
       setQuickTecSaving(false);
     }
   };
-  const [viewMode, setViewMode] = useState<"list" | "card">("list");
   const [dialogMode, setDialogMode] = useState<"view" | "edit">("view");
-  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }));
   const scrollRef = useRef<HTMLDivElement>(null);
   const [isDown, setIsDown] = useState(false);
   const [startX, setStartX] = useState(0);
@@ -375,20 +364,8 @@ function OSPage() {
     setDespesaTipo("Pedágio");
     setDespesaValor("");
   };
-
-  const onDragEnd = async (e: DragEndEvent) => {
-    const id = e.active.id as string;
-    const target = e.over?.id as OSStatus | undefined;
-    if (!target) return;
-    const cur = os.find((o) => o.id === id);
-    if (cur && cur.status !== target) {
-      await updateOS(id, { status: target });
-      await registrarLog(
-        "os_status_alterado",
-        `OS "${cur.titulo}" alterada para status ${target} por ${nomeUsuario}`,
-      );
-      toast.success(`Movida para ${target}`);
-    }
+    setDespesaTipo("Pedágio");
+    setDespesaValor("");
   };
 
   const fixedKeys = new Set([
@@ -416,32 +393,9 @@ function OSPage() {
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-5">
         <div>
           <h2 className="text-xl font-bold">Ordens de Serviço</h2>
-          {viewMode === "card" && (
-            <p className="text-sm text-muted-foreground hidden md:block">
-              Arraste cards entre colunas para atualizar o status
-            </p>
-          )}
         </div>
         <div className="flex items-center gap-2 w-full md:w-auto overflow-x-auto pb-2 md:pb-0">
           <MesAnoFilter />
-          <div className="flex items-center rounded-lg bg-muted/50 p-1 shrink-0">
-            <Button
-              variant="ghost"
-              size="icon"
-              className={`h-8 w-8 rounded-md ${viewMode === "list" ? "bg-background shadow-sm" : ""}`}
-              onClick={() => setViewMode("list")}
-            >
-              <List className="w-4 h-4" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              className={`h-8 w-8 rounded-md ${viewMode === "card" ? "bg-background shadow-sm" : ""}`}
-              onClick={() => setViewMode("card")}
-            >
-              <LayoutGrid className="w-4 h-4" />
-            </Button>
-          </div>
           <ImportarOSDialog
             trigger={
               <Button variant="outline" className="rounded-xl h-10 gap-1.5 shrink-0">
@@ -1024,34 +978,20 @@ function OSPage() {
           </Dialog>
         </div>
       </div>
+      </div>
 
-      {viewMode === "list" && <FiltrosBarGlobal showCliente showTecnico showStatus />}
+      <FiltrosBarGlobal showCliente showTecnico showStatus />
       {loadingOS ? (
-        viewMode === "card" ? (
-          <div className="flex md:grid md:grid-cols-2 xl:grid-cols-5 gap-4 overflow-x-auto pb-4 snap-x snap-mandatory w-full">
-            {colunas.map((c) => (
-              <div key={c} className="min-w-[280px] snap-center rounded-3xl p-3 bg-muted/40">
-                <Skeleton className="h-5 w-24 mb-3" />
-                <div className="space-y-2">
-                  {[1, 2].map((i) => (
-                    <Skeleton key={i} className="h-24 w-full rounded-2xl" />
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <Card className="p-5 space-y-3">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="flex items-center gap-4">
-                <Skeleton className="h-5 w-20" />
-                <Skeleton className="h-5 w-40" />
-                <Skeleton className="h-5 w-32" />
-              </div>
-            ))}
-          </Card>
-        )
-      ) : viewMode === "list" ? (
+        <Card className="p-5 space-y-3">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="flex items-center gap-4">
+              <Skeleton className="h-5 w-20" />
+              <Skeleton className="h-5 w-40" />
+              <Skeleton className="h-5 w-32" />
+            </div>
+          ))}
+        </Card>
+      ) : (
         <>
           {os.length === 0 ? (
             <EmptyState
@@ -1226,26 +1166,9 @@ function OSPage() {
             </Card>
           )}
         </>
-      ) : (
-        <DndContext sensors={sensors} onDragEnd={onDragEnd}>
-          <div className="flex md:grid md:grid-cols-2 xl:grid-cols-5 gap-4 overflow-x-auto pb-4 snap-x snap-mandatory w-full">
-            {colunas.map((status) => {
-              const cards = (Array.isArray(os) ? os : []).filter((o) => o.status === status);
-              return (
-                <Coluna
-                  key={status}
-                  status={status}
-                  cards={cards}
-                  clientes={clientes}
-                  tecnicos={tecnicos}
-                />
-              );
-            })}
-          </div>
-        </DndContext>
       )}
 
-      {os.length > 0 && viewMode === "list" && (
+      {os.length > 0 && (
         <div className="flex items-center justify-between mt-4 px-1">
           <div className="flex items-center gap-4">
             <p className="text-xs text-muted-foreground">
@@ -1334,93 +1257,6 @@ function OSPage() {
     </GestorLayout>
   );
 }
-
-function Coluna({
-  status,
-  cards,
-  clientes,
-  tecnicos,
-}: {
-  status: OSStatus;
-  cards: OS[];
-  clientes: any[];
-  tecnicos: any[];
-}) {
-  const { setNodeRef, isOver } = useDroppable({ id: status });
-  const total = cards.reduce((s, c) => s + c.valor, 0);
-  return (
-    <div
-      ref={setNodeRef}
-      className={`min-w-[280px] snap-center rounded-3xl p-3 transition-all duration-300 ${isOver ? "bg-primary/10 ring-2 ring-primary/40" : "bg-muted/40"}`}
-    >
-      <div className="flex items-center justify-between px-2 py-2">
-        <div className="flex items-center gap-2">
-          <span
-            className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider ${statusColor[status]}`}
-          >
-            {status}
-          </span>
-          <span className="text-xs text-muted-foreground font-semibold">{cards.length}</span>
-        </div>
-        <span className="text-[10px] text-muted-foreground font-medium">
-          R$ {total.toLocaleString("pt-BR")}
-        </span>
-      </div>
-      <div className="space-y-2 mt-2 min-h-[120px]">
-        {(Array.isArray(cards) ? cards : []).map((o) => (
-          <OSCard
-            key={o.id}
-            ordem={o}
-            cliente={clientes.find((c) => c.id === o.clienteId)}
-            tecnico={tecnicos.find((t) => t.id === o.tecnicoId)}
-          />
-        ))}
-        {cards.length === 0 && (
-          <div className="text-center text-xs text-muted-foreground py-8">—</div>
-        )}
-      </div>
-    </div>
-  );
-}
-
-function OSCard({ ordem, cliente, tecnico }: { ordem: OS; cliente: any; tecnico: any }) {
-  const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
-    id: ordem.id,
-  });
-  const style = transform
-    ? { transform: `translate3d(${transform.x}px, ${transform.y}px, 0)` }
-    : undefined;
-  return (
-    <div
-      ref={setNodeRef}
-      {...listeners}
-      {...attributes}
-      style={style}
-      className={`rounded-2xl bg-card p-3.5 shadow-[var(--shadow-card)] border border-border/60 cursor-grab active:cursor-grabbing hover:-translate-y-0.5 hover:shadow-lg transition-all duration-300 ${isDragging ? "opacity-50 rotate-2" : ""}`}
-    >
-      <div className="flex items-start justify-between">
-        <span className="text-[10px] text-muted-foreground font-bold tracking-wider">
-          {ordem.numero}
-        </span>
-        <MoreVertical className="w-3.5 h-3.5 text-muted-foreground" />
-      </div>
-      <div className="font-bold text-sm text-foreground mt-1.5 leading-snug">{ordem.titulo}</div>
-      <div className="flex items-center gap-1.5 text-xs text-muted-foreground mt-2">
-        <User className="w-3 h-3" />
-        {cliente?.nome}
-      </div>
-      <div className="mt-3">
-        <RatGallery osId={ordem.id} />
-      </div>
-      <div className="flex items-center justify-between mt-3 pt-3 border-t border-border/60">
-        <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
-          <HardHat className="w-3 h-3" />
-          {tecnico?.nome ?? <span className="text-gray-400">Sem técnico</span>}
-        </div>
-        <span className="text-xs font-bold">R$ {ordem.valor.toLocaleString("pt-BR")}</span>
-      </div>
-    </div>
-  );
 }
 
 export function EditOSDialog({
