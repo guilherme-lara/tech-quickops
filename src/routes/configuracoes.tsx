@@ -92,7 +92,7 @@ function ImageUploader({
 
 function ConfiguracoesPage() {
   const { user, updateProfile, updateEmpresa, uploadAsset } = useStore();
-  const { changePassword } = useAuth();
+  const { changePassword, profile } = useAuth();
 
   // Profile State
   const [nome, setNome] = useState("");
