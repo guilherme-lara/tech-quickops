@@ -12,6 +12,7 @@ import { AuthProvider } from "@/lib/auth-context";
 import { Toaster } from "@/components/ui/sonner";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
+import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 
 import appCss from "../styles.css?url";
@@ -91,11 +92,57 @@ function AuthGate() {
       return;
     }
 
-    if (!user && path !== "/" && path !== "/login") {
+    if (!user && path !== "/" && path !== "/login" && path !== "/termos-de-uso" && path !== "/privacidade") {
       navigate({ to: "/login" });
     }
   }, [user, loadingAuth, path, navigate]);
   return null;
+}
+
+function CookieConsent() {
+  const [show, setShow] = useState(false);
+
+  useEffect(() => {
+    const consent = localStorage.getItem("cookie-consent");
+    if (consent) {
+      try {
+        const parsed = JSON.parse(consent);
+        const now = new Date().getTime();
+        const expiration = parsed.timestamp + 15 * 24 * 60 * 60 * 1000; // 15 dias
+        if (now < expiration) {
+          return;
+        }
+      } catch (e) {
+        console.error("Erro ao ler cookie consent", e);
+      }
+    }
+    const timer = setTimeout(() => setShow(true), 1000);
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (!show) return null;
+
+  return (
+    <div className="fixed bottom-0 left-0 right-0 z-[9999] bg-slate-900 border-t border-slate-800 p-4 md:p-6 shadow-[0_-10px_40px_rgba(0,0,0,0.2)] flex flex-col md:flex-row items-center justify-between gap-6 animate-in slide-in-from-bottom-full duration-500">
+      <div className="text-slate-300 text-sm font-medium leading-relaxed max-w-4xl">
+        Utilizamos cookies essenciais e tecnologias semelhantes para garantir o funcionamento do sistema, realizar login de forma segura e proporcionar a melhor experiência, em total conformidade com a nossa <Link to="/privacidade" className="text-blue-400 font-bold hover:underline transition-all">Política de Privacidade (LGPD)</Link> e nossos <Link to="/termos-de-uso" className="text-blue-400 font-bold hover:underline transition-all">Termos de Uso</Link>.
+      </div>
+      <div className="flex shrink-0 w-full md:w-auto">
+        <Button
+          onClick={() => {
+            localStorage.setItem(
+              "cookie-consent",
+              JSON.stringify({ timestamp: new Date().getTime(), accepted: true })
+            );
+            setShow(false);
+          }}
+          className="w-full md:w-auto bg-blue-600 hover:bg-blue-700 text-white px-8 py-6 rounded-xl font-bold text-base transition-colors"
+        >
+          Entendi e Aceito
+        </Button>
+      </div>
+    </div>
+  );
 }
 
 function RootComponent() {
@@ -134,6 +181,7 @@ function RootComponent() {
           <AuthGate />
           <Outlet />
           <Toaster />
+          <CookieConsent />
         </AuthProvider>
       </StoreProvider>
     </QueryClientProvider>
