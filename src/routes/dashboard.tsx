@@ -171,17 +171,22 @@ function PriorityAlerts({ ordens, isLoading, onEdit }: { ordens: any[]; isLoadin
                         </p>
                       )}
                     </div>
-                    <div className="text-right shrink-0">
+                    <div className="text-right shrink-0 flex flex-col items-end gap-1">
                       {isConcluido ? (
-                        <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded-lg border border-emerald-200 dark:border-emerald-900 flex items-center gap-1">
-                          <CheckCircle2 className="w-3 h-3" /> Concluído
+                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-lg border flex items-center gap-1 ${statusColor[o.status] || "text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-900"}`}>
+                          <CheckCircle2 className="w-3 h-3" /> {o.status}
                         </span>
                       ) : (
-                        <span className="text-[10px] font-bold text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950 px-2 py-0.5 rounded-lg border border-red-200 dark:border-red-900">
-                          {o.data_agendamento
-                            ? new Date(o.data_agendamento + "T00:00:00").toLocaleDateString("pt-BR")
-                            : "—"}
-                        </span>
+                        <>
+                          <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded border flex items-center gap-1 ${statusColor[o.status] || "bg-slate-100 text-slate-700 border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700"}`}>
+                            {o.status}
+                          </span>
+                          <span className="text-[10px] font-bold text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950 px-2 py-0.5 rounded-lg border border-red-200 dark:border-red-900">
+                            {o.data_agendamento
+                              ? new Date(o.data_agendamento + "T00:00:00").toLocaleDateString("pt-BR")
+                              : "—"}
+                          </span>
+                        </>
                       )}
                     </div>
                   </div>
@@ -231,11 +236,14 @@ function PriorityAlerts({ ordens, isLoading, onEdit }: { ordens: any[]; isLoadin
                     </div>
                     <div className="text-right shrink-0 flex flex-col items-end gap-1">
                       {isConcluido ? (
-                        <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded-lg border border-emerald-200 dark:border-emerald-900 flex items-center gap-1">
-                          <CheckCircle2 className="w-3 h-3" /> Concluído
+                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-lg border flex items-center gap-1 ${statusColor[o.status] || "text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-900"}`}>
+                          <CheckCircle2 className="w-3 h-3" /> {o.status}
                         </span>
                       ) : (
                         <>
+                          <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded border flex items-center gap-1 ${statusColor[o.status] || "bg-slate-100 text-slate-700 border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700"}`}>
+                            {o.status}
+                          </span>
                           {limitTimeText && (
                             <span className="text-[9px] font-bold text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950 px-1.5 py-0.5 rounded border border-red-200 dark:border-red-900">
                               {limitTimeText}

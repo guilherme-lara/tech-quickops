@@ -168,8 +168,8 @@ export function GestorLayout({ children }: { children?: ReactNode }) {
                 className="w-auto max-w-[160px] h-16 rounded-xl object-contain px-2 shrink-0"
               />
             )}
-            <div className="w-full">
-              <div className="font-bold text-sm leading-tight truncate w-full text-slate-800" title={profile?.empresaNome || "QuickOps"}>
+            <div className="w-full mt-2">
+              <div className="font-bold text-sm leading-tight truncate w-full text-black dark:text-white" title={profile?.empresaNome || "QuickOps"}>
                 {profile?.empresaNome || "QuickOps"}
               </div>
               <div className="text-[10px] text-muted-foreground tracking-wider uppercase truncate w-full mt-0.5">
@@ -214,8 +214,8 @@ export function GestorLayout({ children }: { children?: ReactNode }) {
                       className="w-auto max-w-[160px] h-16 rounded-xl object-contain px-2 shrink-0"
                     />
                   )}
-                  <div className="w-full">
-                    <div className="font-bold text-sm leading-tight truncate w-full text-slate-800" title={profile?.empresaNome || "QuickOps"}>
+                  <div className="w-full mt-2">
+                    <div className="font-bold text-sm leading-tight truncate w-full text-black dark:text-white" title={profile?.empresaNome || "QuickOps"}>
                       {profile?.empresaNome || "QuickOps"}
                     </div>
                     <div className="text-[10px] text-muted-foreground tracking-wider uppercase truncate w-full mt-0.5">
