@@ -611,14 +611,26 @@ function Dashboard() {
           resultadoEmpresa: 0,
         };
 
+      // O faturamento do mês selecionado (M) é referente às OSs concluídas do mês anterior (M-1)
+      let serviceMonth = osMonth - 1;
+      let serviceYear = osYear;
+      if (serviceMonth < 1) {
+        serviceMonth = 12;
+        serviceYear -= 1;
+      }
+      
+      const lastDayOfServiceMonth = new Date(serviceYear, serviceMonth, 0).getDate();
+      const serviceInicio = `${serviceYear}-${String(serviceMonth).padStart(2, "0")}-01`;
+      const serviceFim = `${serviceYear}-${String(serviceMonth).padStart(2, "0")}-${String(lastDayOfServiceMonth).padStart(2, "0")}`;
+
       // Busca todas as OS da empresa (sem paginação, pois é para KPIs)
       let query = supabase
         .from("ordens_servico")
         .select("status, valor, km_viagem, custo_viagem, despesas, data_agendamento, tecnico_id, tecnico:tecnicos(comissao, tipo_comissao), cliente:clientes(id, dia_pagamento, ultimo_mes_pago)")
         .eq("empresa_id", eid);
 
-      if (dataInicio && dataFim) {
-        query = query.gte("data_agendamento", dataInicio).lte("data_agendamento", dataFim);
+      if (serviceInicio && serviceFim) {
+        query = query.gte("data_agendamento", serviceInicio).lte("data_agendamento", serviceFim);
       }
 
       const { data, error } = await query;
@@ -636,14 +648,14 @@ function Dashboard() {
         return valorServico + custoViagem + despesas;
       };
 
-      const currentYear = osYear > 0 ? osYear : new Date().getFullYear();
-      const currentMonth = osMonth > 0 ? osMonth : new Date().getMonth() + 1;
-      const billingMonthStr = `${currentYear}-${String(currentMonth).padStart(2, "0")}`;
+      const billingMonthStr = `${serviceYear}-${String(serviceMonth).padStart(2, "0")}`;
 
+      // Faturamento previsto do mês selecionado é o total de OS concluídas do mês anterior
       const faturamentoPrevisto = rows
-        .filter((r: any) => ["agendamento", "em_andamento", "concluido_tecnico"].includes(r.status))
+        .filter((r: any) => r.status === "concluido")
         .reduce((s: number, r: any) => s + totalFinanceiro(r), 0);
 
+      // Receita do mês são os pagamentos recebidos (OSs concluídas do mês anterior que já foram pagas)
       const receitaMes = rows
         .filter((r: any) => {
           if (r.status !== "concluido") return false;
@@ -708,15 +720,9 @@ function Dashboard() {
         // Se já está pago, não é pendência
         if (c.ultimo_mes_pago === billingMonthStr) return false;
 
-        // Caso contrário, verifica se já passou do dia de vencimento (vence no mês seguinte)
-        let paymentMonth = currentMonth + 1;
-        let paymentYear = currentYear;
-        if (paymentMonth > 12) {
-          paymentMonth = 1;
-          paymentYear += 1;
-        }
+        // Caso contrário, verifica se já passou do dia de vencimento (vence no mês selecionado)
         const diaPag = c.dia_pagamento ?? 10;
-        const paymentDueDate = new Date(paymentYear, paymentMonth - 1, diaPag, 23, 59, 59, 999);
+        const paymentDueDate = new Date(osYear, osMonth - 1, diaPag, 23, 59, 59, 999);
         const isOverdue = new Date() > paymentDueDate;
         return isOverdue;
       }).length;
@@ -1229,7 +1235,7 @@ function Dashboard() {
                 `R$ ${kpis.faturamentoPrevisto.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`
               )}
             </div>
-            <p className="text-xs text-muted-foreground mt-1">OSs Aprovadas + Em Execução</p>
+            <p className="text-xs text-muted-foreground mt-1">Total Concluído (Ref. Mês Anterior)</p>
           </div>
 
           <div className="rounded-3xl bg-gradient-to-br from-success/10 to-success/5 p-5 border border-success/20">
@@ -1244,7 +1250,7 @@ function Dashboard() {
                 `R$ ${kpis.receitaMes.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`
               )}
             </div>
-            <p className="text-xs text-muted-foreground mt-1">OSs Concluídas</p>
+            <p className="text-xs text-muted-foreground mt-1">Pagamentos recebidos (Ref. Mês Anterior)</p>
           </div>
 
           <div className="rounded-3xl bg-gradient-to-br from-info/10 to-info/5 p-5 border border-info/20">
@@ -1297,7 +1303,7 @@ function Dashboard() {
                 kpis.pendenciasPagamento
               )}
             </div>
-            <p className="text-xs text-muted-foreground mt-1">OSs com data vencida</p>
+            <p className="text-xs text-muted-foreground mt-1">Faturamentos vencidos e não pagos</p>
           </div>
         </div>
       )}
