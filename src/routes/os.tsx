@@ -687,7 +687,6 @@ function OSPage() {
                       </div>
                     </div>
                   );
-                  );
                 })()}
                 
                 <div className="flex items-center gap-2 p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-xl">
@@ -700,22 +699,6 @@ function OSPage() {
                   />
                   <div className="grid leading-none">
                     <label htmlFor="pagoImediatoCreate" className="font-semibold text-emerald-700 dark:text-emerald-400 cursor-pointer">
-                      Pagamento Imediato
-                    </label>
-                    <span className="text-[10px] text-muted-foreground mt-1">Marque se a OS foi paga avulsa/antecipada (contabilizará no mês atual)</span>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-2 p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-xl">
-                  <input 
-                    type="checkbox" 
-                    id="pagoImediatoEdit"
-                    checked={!!dadosExtras?.pago_imediatamente}
-                    onChange={(e) => setDadosExtras(prev => ({ ...prev, pago_imediatamente: e.target.checked }))}
-                    className="w-4 h-4 rounded border-emerald-500/50 text-emerald-600 focus:ring-emerald-500"
-                  />
-                  <div className="grid leading-none">
-                    <label htmlFor="pagoImediatoEdit" className="font-semibold text-emerald-700 dark:text-emerald-400 cursor-pointer">
                       Pagamento Imediato
                     </label>
                     <span className="text-[10px] text-muted-foreground mt-1">Marque se a OS foi paga avulsa/antecipada (contabilizará no mês atual)</span>
