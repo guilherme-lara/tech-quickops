@@ -13,7 +13,7 @@ export const Route = createFileRoute("/tecnico/historico")({
 });
 
 function HistoricoPage() {
-  const { os, clientes } = useStore();
+  const { os, clientes, allTecnicos } = useStore();
   const fechadas = os.filter((o) => ["Concluído", "concluido", "Concluído Técnico", "concluido_tecnico", "Cancelado", "cancelado"].includes(o.status));
   return (
     <TecnicoLayout>
@@ -24,6 +24,11 @@ function HistoricoPage() {
       <div className="px-4 mt-4 space-y-2.5">
         {fechadas.map((o) => {
           const cliente = clientes.find((c) => c.id === o.clienteId);
+          const tecnico = allTecnicos.find((t) => t.id === o.tecnicoId);
+          const tipoComissao = tecnico?.tipo_comissao ?? "fixo";
+          const comissaoBase = Number(tecnico?.comissao ?? 0);
+          const ganho = tipoComissao === "fixo" ? comissaoBase : (Number(o.valor ?? 0) * comissaoBase) / 100;
+
           return (
             <div
               key={o.id}
@@ -45,7 +50,7 @@ function HistoricoPage() {
                 <span className="flex items-center gap-1 text-xs text-success font-semibold">
                   <CheckCircle2 className="w-3 h-3" /> {o.criadaEm}
                 </span>
-                <span className="text-sm font-bold">R$ {o.valor.toLocaleString("pt-BR")}</span>
+                <span className="text-sm font-bold">R$ {ganho.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
               </div>
             </div>
           );

@@ -8,6 +8,17 @@ Desenhado com uma interface premium e pensado para o máximo de usabilidade, o Q
 
 ---
 
+## 📚 Documentação Oficial
+
+Para entender a fundo como a plataforma foi desenhada, suas regras de negócio e fluxos, consulte nossa documentação completa na pasta **`docs/`**:
+
+- [Visão Geral e Arquitetura](docs/01-VISAO_GERAL.md)
+- [Entidades Base (Clientes, Técnicos, Analistas)](docs/02-ENTIDADES_BASE.md)
+- [Fluxo de OS e RAT (Visão Mobile)](docs/03-FLUXO_OS_E_RAT.md)
+- [Regras de Faturamento e KPIs](docs/04-REGRAS_DE_FATURAMENTO.md)
+
+---
+
 ## 🎯 Por que escolher o Tech QuickOps?
 
 Diferente de sistemas engessados, o Tech QuickOps foi construído para ser o coração da sua operação técnica. Ele não apenas registra dados, mas orquestra todo o ciclo de vida do seu atendimento de campo:
