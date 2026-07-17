@@ -1728,6 +1728,25 @@ export function EditOSDialog({
                 </SelectContent>
               </Select>
             </div>
+            {!isView && (
+              <div className="col-span-3 flex items-center justify-end">
+                <div className="flex items-center gap-2 p-2 bg-emerald-500/10 border border-emerald-500/20 rounded-xl h-full w-full max-w-sm ml-auto">
+                  <input 
+                    type="checkbox" 
+                    id="pagoImediatoEditModal"
+                    checked={!!dadosExtras?.pago_imediatamente}
+                    onChange={(e) => setDadosExtras(prev => ({ ...prev, pago_imediatamente: e.target.checked }))}
+                    className="w-4 h-4 rounded border-emerald-500/50 text-emerald-600 focus:ring-emerald-500"
+                  />
+                  <div className="grid leading-none">
+                    <label htmlFor="pagoImediatoEditModal" className="font-semibold text-emerald-700 dark:text-emerald-400 cursor-pointer">
+                      Pagamento Imediato
+                    </label>
+                    <span className="text-[10px] text-muted-foreground mt-1">Marque se a OS foi paga avulsa/antecipada</span>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
