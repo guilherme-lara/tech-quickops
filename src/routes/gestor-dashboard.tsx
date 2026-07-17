@@ -139,7 +139,7 @@ function GestorDashboard() {
             .in("status", ["pendente", "em_andamento", "agendamento", "reagendado"]),
           supabase
             .from("ordens_servico")
-            .select("id, status, valor, custo_viagem, km_viagem, despesas, tecnico_id, tecnicos(nome), data_agendamento, cliente_id, clientes(nome, ultimo_mes_pago), os_historico(created_at, status_novo)")
+            .select("id, status, valor, custo_viagem, km_viagem, despesas, tecnico_id, tecnicos(nome), data_agendamento, cliente_id, clientes(nome, ultimo_mes_pago), os_historico(created_at, status_novo), dados_adicionais")
             .gte("data_agendamento", startOfMonth)
             .lte("data_agendamento", endOfMonth),
           supabase
@@ -316,7 +316,7 @@ function GestorDashboard() {
                 totalDespesas = (os.despesas as any[]).reduce((s: number, d: any) => s + (Number(d?.valor) || 0), 0);
               }
               stat.valor_gerado += valorServico + kmViagem + totalDespesas;
-              if (stat.ultimo_mes_pago === mesSelecionado) {
+              if (stat.ultimo_mes_pago === mesSelecionado || (os.dados_adicionais as any)?.pago_imediatamente) {
                 stat.valor_pago += valorServico + kmViagem + totalDespesas;
               } else {
                 stat.valor_pendente += valorServico + kmViagem + totalDespesas;

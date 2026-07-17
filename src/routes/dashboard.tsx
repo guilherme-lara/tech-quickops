@@ -651,7 +651,7 @@ function Dashboard() {
       // Busca todas as OS da empresa (sem paginação, pois é para KPIs)
       let query = supabase
         .from("ordens_servico")
-        .select("status, valor, km_viagem, custo_viagem, despesas, data_agendamento, tecnico_id, tecnico:tecnicos(comissao, tipo_comissao), cliente:clientes(id, dias_pagamento, ultimo_mes_pago)")
+        .select("status, valor, km_viagem, custo_viagem, despesas, data_agendamento, tecnico_id, dados_adicionais, tecnico:tecnicos(comissao, tipo_comissao), cliente:clientes(id, dias_pagamento, ultimo_mes_pago)")
         .eq("empresa_id", eid);
 
       if (serviceInicio && serviceFim) {
@@ -684,6 +684,7 @@ function Dashboard() {
       const receitaMes = rows
         .filter((r: any) => {
           if (r.status !== "concluido") return false;
+          if (r.dados_adicionais?.pago_imediatamente) return true;
           const c = Array.isArray(r.cliente) ? r.cliente[0] : r.cliente;
           if (!c) return true; // Fallback se não houver cadastro ou dados do cliente
           return c.ultimo_mes_pago === billingMonthStr;
@@ -693,6 +694,7 @@ function Dashboard() {
       const receitaBruta = rows
         .filter((r: any) => {
           if (r.status !== "concluido") return false;
+          if (r.dados_adicionais?.pago_imediatamente) return true;
           const c = Array.isArray(r.cliente) ? r.cliente[0] : r.cliente;
           if (!c) return true;
           return c.ultimo_mes_pago === billingMonthStr;
@@ -702,6 +704,7 @@ function Dashboard() {
       const custoTotal = rows
         .filter((r: any) => {
           if (r.status !== "concluido") return false;
+          if (r.dados_adicionais?.pago_imediatamente) return true;
           const c = Array.isArray(r.cliente) ? r.cliente[0] : r.cliente;
           if (!c) return true;
           return c.ultimo_mes_pago === billingMonthStr;
@@ -719,6 +722,7 @@ function Dashboard() {
       const comissaoTotal = rows
         .filter((r: any) => {
           if (r.status !== "concluido" || !r.tecnico_id) return false;
+          if (r.dados_adicionais?.pago_imediatamente) return true;
           const c = Array.isArray(r.cliente) ? r.cliente[0] : r.cliente;
           if (!c) return true;
           return c.ultimo_mes_pago === billingMonthStr;
@@ -739,6 +743,7 @@ function Dashboard() {
 
       const pendenciasPagamento = (Array.isArray(rows) ? rows : []).filter((r: any) => {
         if (r.status !== "concluido") return false;
+        if (r.dados_adicionais?.pago_imediatamente) return false; // Se foi paga imediatamente, não tem pendência
         const c = Array.isArray(r.cliente) ? r.cliente[0] : r.cliente;
         if (!c) return false;
 
