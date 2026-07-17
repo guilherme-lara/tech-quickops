@@ -88,13 +88,14 @@ function ClientesPage() {
     cidade: "",
     base_km: "",
     valor_por_km: "",
-    dia_pagamento: "",
+    dias_pagamento: "",
     dia_envio_planilha: "",
     modelo_rat_url: "",
   });
   const [analistas, setAnalistas] = useState<Analista[]>([]);
   const [loadingAnalistas, setLoadingAnalistas] = useState(false);
   const [uploadingRat, setUploadingRat] = useState(false);
+  const [novoDiaPagamento, setNovoDiaPagamento] = useState("");
   const [viewMode, setViewMode] = useState<"list" | "card">("list");
 
   const totalClientesPages = Math.max(1, Math.ceil(clientesTotal / PAGE_SIZE));
@@ -110,11 +111,12 @@ function ClientesPage() {
       cidade: "",
       base_km: "",
       valor_por_km: "",
-      dia_pagamento: "",
+      dias_pagamento: "",
       dia_envio_planilha: "",
       modelo_rat_url: "",
     });
     setAnalistas([]);
+    setNovoDiaPagamento("");
     setOpen(true);
   };
 
@@ -129,11 +131,12 @@ function ClientesPage() {
       cidade: c.cidade ?? "",
       base_km: c.base_km != null ? String(c.base_km) : "",
       valor_por_km: c.valor_por_km != null ? String(c.valor_por_km) : "",
-      dia_pagamento: c.dia_pagamento != null ? String(c.dia_pagamento) : "",
+      dias_pagamento: c.dias_pagamento || "",
       dia_envio_planilha: c.dia_envio_planilha != null ? String(c.dia_envio_planilha) : "",
       modelo_rat_url: c.modelo_rat_url ?? "",
     });
     setAnalistas([]);
+    setNovoDiaPagamento("");
     setOpen(true);
   };
 
@@ -237,7 +240,7 @@ function ClientesPage() {
         ...form,
         base_km: form.base_km ? Number(form.base_km) : undefined,
         valor_por_km: form.valor_por_km ? Number(form.valor_por_km) : undefined,
-        dia_pagamento: form.dia_pagamento ? Number(form.dia_pagamento) : undefined,
+        dias_pagamento: form.dias_pagamento || undefined,
         dia_envio_planilha: form.dia_envio_planilha ? Number(form.dia_envio_planilha) : undefined,
       };
       let clienteId = form.id;
@@ -274,7 +277,7 @@ function ClientesPage() {
         cidade: "",
         base_km: "",
         valor_por_km: "",
-        dia_pagamento: "",
+        dias_pagamento: "",
         dia_envio_planilha: "",
         modelo_rat_url: "",
       });
@@ -410,16 +413,59 @@ function ClientesPage() {
                       onChange={(e) => setForm({ ...form, valor_por_km: e.target.value })}
                     />
                   </div>
-                  <div>
-                    <Label>Dia de Pagamento (1-31)</Label>
-                    <Input
-                      type="number"
-                      min="1"
-                      max="31"
-                      placeholder="Ex: 15"
-                      value={form.dia_pagamento}
-                      onChange={(e) => setForm({ ...form, dia_pagamento: e.target.value })}
-                    />
+                  <div className="col-span-2 md:col-span-1">
+                    <Label>Dias de Pagamento (1-31)</Label>
+                    <div className="flex gap-2 items-center mb-2">
+                      <Input
+                        type="number"
+                        min="1"
+                        max="31"
+                        placeholder="Ex: 15"
+                        value={novoDiaPagamento}
+                        onChange={(e) => setNovoDiaPagamento(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.preventDefault();
+                            if (novoDiaPagamento) {
+                              const arr = form.dias_pagamento ? form.dias_pagamento.split(',').map(d => d.trim()).filter(Boolean) : [];
+                              if (!arr.includes(novoDiaPagamento)) {
+                                arr.push(novoDiaPagamento);
+                                setForm({ ...form, dias_pagamento: arr.join(', ') });
+                              }
+                              setNovoDiaPagamento("");
+                            }
+                          }
+                        }}
+                      />
+                      <Button type="button" variant="secondary" onClick={() => {
+                        if (novoDiaPagamento) {
+                          const arr = form.dias_pagamento ? form.dias_pagamento.split(',').map(d => d.trim()).filter(Boolean) : [];
+                          if (!arr.includes(novoDiaPagamento)) {
+                            arr.push(novoDiaPagamento);
+                            setForm({ ...form, dias_pagamento: arr.join(', ') });
+                          }
+                          setNovoDiaPagamento("");
+                        }
+                      }}>
+                        <Plus className="w-4 h-4" />
+                      </Button>
+                    </div>
+                    {form.dias_pagamento && (
+                      <div className="flex flex-wrap gap-2">
+                        {form.dias_pagamento.split(',').map(d => d.trim()).filter(Boolean).map((d, i) => (
+                          <div key={i} className="flex items-center gap-1 bg-muted px-2 py-1 rounded-md text-xs">
+                            Dia {d}
+                            <button type="button" onClick={() => {
+                              const arr = form.dias_pagamento.split(',').map(x => x.trim()).filter(Boolean);
+                              arr.splice(i, 1);
+                              setForm({ ...form, dias_pagamento: arr.join(', ') });
+                            }} className="text-muted-foreground hover:text-destructive">
+                              <TrashIcon className="w-3 h-3" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                   <div>
                     <Label>Dia de Envio de Planilhas/Notas (1-31)</Label>

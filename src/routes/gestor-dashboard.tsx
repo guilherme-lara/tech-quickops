@@ -105,6 +105,7 @@ function GestorDashboard() {
   const [resumo, setResumo] = useState<any>(null);
   const [ranking, setRanking] = useState<any[]>([]);
   const [topClientes, setTopClientes] = useState<any[]>([]);
+  const [painelFinanceiro, setPainelFinanceiro] = useState<any[]>([]);
   const [evolucaoMensal, setEvolucaoMensal] = useState<any[]>([]);
   const [eficiencia, setEficiencia] = useState<any>({ avgTmd: 0, avgTma: 0 });
   const [loading, setLoading] = useState(true);
@@ -138,12 +139,12 @@ function GestorDashboard() {
             .in("status", ["pendente", "em_andamento", "agendamento", "reagendado"]),
           supabase
             .from("ordens_servico")
-            .select("id, status, valor, custo_viagem, km_viagem, despesas, tecnico_id, tecnicos(nome), data_agendamento, cliente_id, clientes(nome), os_historico(created_at, status_novo)")
+            .select("id, status, valor, custo_viagem, km_viagem, despesas, tecnico_id, tecnicos(nome), data_agendamento, cliente_id, clientes(nome, ultimo_mes_pago), os_historico(created_at, status_novo)")
             .gte("data_agendamento", startOfMonth)
             .lte("data_agendamento", endOfMonth),
           supabase
             .from("ordens_servico")
-            .select("id, status, valor, custo_viagem, km_viagem, despesas, data_agendamento")
+            .select("id, status, valor, custo_viagem, km_viagem, despesas, data_agendamento, clientes(ultimo_mes_pago)")
             .gte("data_agendamento", startOfPrevMonth)
             .lte("data_agendamento", endOfPrevMonth)
         ]);
@@ -294,8 +295,16 @@ function GestorDashboard() {
           if (os.cliente_id) {
             const cId = os.cliente_id;
             const cNome = os.clientes?.nome || "Desconhecido";
+            const ultimoMesPago = os.clientes?.ultimo_mes_pago;
             if (!clientesMap.has(cId)) {
-              clientesMap.set(cId, { cliente_nome: cNome, os_solicitadas: 0, valor_gerado: 0 });
+              clientesMap.set(cId, { 
+                cliente_nome: cNome, 
+                os_solicitadas: 0, 
+                valor_gerado: 0,
+                valor_pago: 0,
+                valor_pendente: 0,
+                ultimo_mes_pago: ultimoMesPago
+              });
             }
             const stat = clientesMap.get(cId);
             stat.os_solicitadas += 1;
@@ -307,11 +316,17 @@ function GestorDashboard() {
                 totalDespesas = (os.despesas as any[]).reduce((s: number, d: any) => s + (Number(d?.valor) || 0), 0);
               }
               stat.valor_gerado += valorServico + kmViagem + totalDespesas;
+              if (stat.ultimo_mes_pago === mesSelecionado) {
+                stat.valor_pago += valorServico + kmViagem + totalDespesas;
+              } else {
+                stat.valor_pendente += valorServico + kmViagem + totalDespesas;
+              }
             }
           }
         });
         const clientesArr = Array.from(clientesMap.values()).sort((a, b) => b.valor_gerado - a.valor_gerado);
         setTopClientes(clientesArr);
+        setPainelFinanceiro(clientesArr.filter(c => c.valor_gerado > 0));
 
       } catch (e: any) {
         toast.error("Erro ao carregar dados do dashboard: " + e.message);
@@ -586,7 +601,7 @@ function GestorDashboard() {
                 />
                 <Legend verticalAlign="top" height={36} iconType="circle" />
                 <Area yAxisId="left" type="monotone" dataKey="faturamento" name="Faturamento (R$)" stroke="var(--primary)" strokeWidth={2} fillOpacity={1} fill="url(#colorFaturamento)" />
-                <Bar yAxisId="right" dataKey="osConcluidas" name="OS Concluídas" fill="var(--success)" radius={[4, 4, 0, 0]} barSize={20} />
+                <Line yAxisId="right" type="monotone" dataKey="osConcluidas" name="OS Concluídas" stroke="var(--success)" strokeWidth={3} dot={{ r: 4 }} activeDot={{ r: 6 }} />
               </ComposedChart>
             </ResponsiveContainer>
           )}
@@ -751,6 +766,51 @@ function GestorDashboard() {
                 <span className="text-xs text-muted-foreground mt-0.5 block">Tempo médio gasto em campo executando o serviço</span>
               </div>
             </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Painel Financeiro Estratégico */}
+      <div className="mt-6">
+        <Card className="rounded-2xl border-border/60 shadow-[var(--shadow-card)]">
+          <CardHeader>
+            <CardTitle className="text-lg font-semibold flex items-center gap-2">
+              <DollarSign className="w-5 h-5 text-primary" /> Painel Financeiro por Cliente (Mês Referência: {mesSelecionado})
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {painelFinanceiro.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-8">Nenhum faturamento registrado neste mês.</p>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm text-left">
+                  <thead className="text-xs text-muted-foreground uppercase bg-muted/40 rounded-t-lg">
+                    <tr>
+                      <th className="px-4 py-3 rounded-tl-lg font-medium">Cliente</th>
+                      <th className="px-4 py-3 font-medium text-center">Fatura Total</th>
+                      <th className="px-4 py-3 font-medium text-center">Valor Pago</th>
+                      <th className="px-4 py-3 rounded-tr-lg font-medium text-right">Valor Pendente</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border/60">
+                    {painelFinanceiro.map((c, idx) => (
+                      <tr key={idx} className="hover:bg-muted/20 transition-colors">
+                        <td className="px-4 py-3 font-medium">{c.cliente_nome}</td>
+                        <td className="px-4 py-3 text-center font-bold">
+                          R$ {Number(c.valor_gerado ?? 0).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                        </td>
+                        <td className="px-4 py-3 text-center font-bold text-emerald-600 dark:text-emerald-400">
+                          R$ {Number(c.valor_pago ?? 0).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                        </td>
+                        <td className="px-4 py-3 text-right font-bold text-red-600 dark:text-red-400">
+                          R$ {Number(c.valor_pendente ?? 0).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>

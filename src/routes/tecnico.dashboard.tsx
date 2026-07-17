@@ -138,7 +138,7 @@ function DashboardTecnico() {
           <Loader2 className="w-8 h-8 animate-spin text-primary" />
         </div>
       ) : (
-        <div className="grid grid-cols-2 gap-3 p-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 p-4">
           {cards.map((c) => (
             <Card key={c.label} className="p-4 rounded-2xl border-border/60">
               <div

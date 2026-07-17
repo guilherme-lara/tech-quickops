@@ -25,7 +25,7 @@ export function TecnicoLayout({ children }: { children?: ReactNode }) {
 
   return (
     <div className="min-h-screen bg-background flex justify-center">
-      <div className="w-full max-w-md flex flex-col min-h-screen bg-background relative shadow-2xl">
+      <div className="w-full md:max-w-5xl max-w-md flex flex-col min-h-screen bg-background relative md:border-x border-border/40 shadow-2xl">
         {!isRAT && (
           <header className="sticky top-0 z-20 px-4 pt-3 pb-2 bg-background/80 backdrop-blur-xl">
             <div className="flex items-center justify-between">
@@ -67,7 +67,7 @@ export function TecnicoLayout({ children }: { children?: ReactNode }) {
         <main className={`flex-1 ${isRAT ? "" : "pb-24"}`}>{children ?? <Outlet />}</main>
 
         {!isRAT && (
-          <nav className="fixed bottom-3 left-1/2 -translate-x-1/2 w-[calc(100%-1.5rem)] max-w-[26rem] glass rounded-3xl h-16 flex shadow-[var(--shadow-glow)] z-30">
+          <nav className="fixed bottom-3 left-1/2 -translate-x-1/2 w-[calc(100%-1.5rem)] max-w-md glass rounded-3xl h-16 flex shadow-[var(--shadow-glow)] z-30">
             {tabs.map((t) => {
               const active = path.startsWith(t.to);
               return (

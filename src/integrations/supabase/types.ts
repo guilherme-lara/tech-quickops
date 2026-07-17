@@ -62,7 +62,7 @@ export type Database = {
           cidade: string | null
           created_at: string
           dia_envio_planilha: number | null
-          dia_pagamento: number | null
+          dias_pagamento: string | null
           documento: string | null
           email: string | null
           empresa_id: string
@@ -80,7 +80,7 @@ export type Database = {
           cidade?: string | null
           created_at?: string
           dia_envio_planilha?: number | null
-          dia_pagamento?: number | null
+          dias_pagamento?: string | null
           documento?: string | null
           email?: string | null
           empresa_id: string
@@ -98,7 +98,7 @@ export type Database = {
           cidade?: string | null
           created_at?: string
           dia_envio_planilha?: number | null
-          dia_pagamento?: number | null
+          dias_pagamento?: string | null
           documento?: string | null
           email?: string | null
           empresa_id?: string

@@ -14,7 +14,7 @@ export const Route = createFileRoute("/tecnico/historico")({
 
 function HistoricoPage() {
   const { os, clientes } = useStore();
-  const fechadas = os.filter((o) => o.status === "Concluído" || o.status === "Cancelado");
+  const fechadas = os.filter((o) => ["Concluído", "concluido", "Concluído Técnico", "concluido_tecnico", "Cancelado", "cancelado"].includes(o.status));
   return (
     <TecnicoLayout>
       <div className="px-4 pt-4">

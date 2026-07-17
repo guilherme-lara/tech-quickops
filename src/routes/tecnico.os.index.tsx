@@ -68,7 +68,8 @@ function TecnicoOSPage() {
         )
         .eq("tecnico_id", realTecnicoId || "")
         .eq("empresa_id", profile?.empresa_id || "")
-        .neq("status", "cancelado") // Não mostra as canceladas
+        .neq("status", "cancelado")
+        .neq("status", "concluido")
         .order("created_at", { ascending: false });
 
       if (error) throw error;
