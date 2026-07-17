@@ -388,14 +388,27 @@ function PagamentoAlerts({ clientes }: { clientes: any[] }) {
   const billingMonthForCurrentPayment = `${dataRef.getFullYear()}-${String(dataRef.getMonth() + 1).padStart(2, "0")}`;
 
   const proximosPagamentos = clientes.filter(c => {
-    if (!c.dia_pagamento) return false;
+    if (!c.dias_pagamento) return false;
     
     const isPaid = c.ultimo_mes_pago === billingMonthForCurrentPayment;
 
-    // Data de vencimento no mês atual
-    const proxPagamento = new Date(hoje.getFullYear(), hoje.getMonth(), c.dia_pagamento, 0,0,0,0);
-    const diffTime = proxPagamento.getTime() - hoje.getTime();
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    const diasStr = typeof c.dias_pagamento === 'string' ? c.dias_pagamento : String(c.dias_pagamento);
+    const diasArray = diasStr.split(",").map((d: string) => parseInt(d.trim(), 10)).filter((d: number) => !isNaN(d));
+    if (diasArray.length === 0) return false;
+    
+    // Find the closest upcoming payment day
+    let closestDiffDays = Infinity;
+    
+    for (const dia of diasArray) {
+      const proxPagamento = new Date(hoje.getFullYear(), hoje.getMonth(), dia, 0,0,0,0);
+      const diffTime = proxPagamento.getTime() - hoje.getTime();
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      if (Math.abs(diffDays) < Math.abs(closestDiffDays)) {
+        closestDiffDays = diffDays;
+      }
+    }
+    
+    const diffDays = closestDiffDays;
     
     // Se já pagou, mostra por até 5 dias antes/depois do vencimento (limpa a lista para os antigos)
     if (isPaid) {
@@ -439,9 +452,21 @@ function PagamentoAlerts({ clientes }: { clientes: any[] }) {
           {proximosPagamentos.map((c) => {
             const isPaid = c.ultimo_mes_pago === billingMonthForCurrentPayment;
             
-            const proxPagamento = new Date(hoje.getFullYear(), hoje.getMonth(), c.dia_pagamento, 0,0,0,0);
-            const diffTime = proxPagamento.getTime() - hoje.getTime();
-            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            const diasStr = typeof c.dias_pagamento === 'string' ? c.dias_pagamento : String(c.dias_pagamento);
+            const diasArray = diasStr.split(",").map((d: string) => parseInt(d.trim(), 10)).filter((d: number) => !isNaN(d));
+            let closestDiffDays = Infinity;
+            let currentDia = diasArray[0] || 10;
+            
+            for (const dia of diasArray) {
+              const proxPagamento = new Date(hoje.getFullYear(), hoje.getMonth(), dia, 0,0,0,0);
+              const diffTime = proxPagamento.getTime() - hoje.getTime();
+              const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+              if (Math.abs(diffDays) < Math.abs(closestDiffDays)) {
+                closestDiffDays = diffDays;
+                currentDia = dia;
+              }
+            }
+            const diffDays = closestDiffDays;
 
             let statusText = "";
             let badgeClass = "";
@@ -467,7 +492,7 @@ function PagamentoAlerts({ clientes }: { clientes: any[] }) {
                 <div className="min-w-0 flex-1">
                   <p className="font-bold truncate text-foreground">{c.nome}</p>
                   <p className="text-muted-foreground text-[10px] truncate">
-                    Vence dia {c.dia_pagamento} (Faturamento: {billingMonthForCurrentPayment.split("-")[1]}/{billingMonthForCurrentPayment.split("-")[0]})
+                    Vence dia {currentDia} (Faturamento: {billingMonthForCurrentPayment.split("-")[1]}/{billingMonthForCurrentPayment.split("-")[0]})
                   </p>
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
@@ -626,7 +651,7 @@ function Dashboard() {
       // Busca todas as OS da empresa (sem paginação, pois é para KPIs)
       let query = supabase
         .from("ordens_servico")
-        .select("status, valor, km_viagem, custo_viagem, despesas, data_agendamento, tecnico_id, tecnico:tecnicos(comissao, tipo_comissao), cliente:clientes(id, dia_pagamento, ultimo_mes_pago)")
+        .select("status, valor, km_viagem, custo_viagem, despesas, data_agendamento, tecnico_id, tecnico:tecnicos(comissao, tipo_comissao), cliente:clientes(id, dias_pagamento, ultimo_mes_pago)")
         .eq("empresa_id", eid);
 
       if (serviceInicio && serviceFim) {
@@ -721,7 +746,9 @@ function Dashboard() {
         if (c.ultimo_mes_pago === billingMonthStr) return false;
 
         // Caso contrário, verifica se já passou do dia de vencimento (vence no mês selecionado)
-        const diaPag = c.dia_pagamento ?? 10;
+        const diasStr = typeof c.dias_pagamento === 'string' ? c.dias_pagamento : String(c.dias_pagamento);
+        const diasArray = diasStr.split(",").map((d: string) => parseInt(d.trim(), 10)).filter((d: number) => !isNaN(d));
+        const diaPag = diasArray[0] || 10;
         const paymentDueDate = new Date(osYear, osMonth - 1, diaPag, 23, 59, 59, 999);
         const isOverdue = new Date() > paymentDueDate;
         return isOverdue;
