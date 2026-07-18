@@ -11,9 +11,10 @@ import { toast } from "sonner";
 export const Route = createFileRoute("/login")({ component: LoginPage });
 
 function LoginPage() {
-  const { login, signup } = useStore();
+  const { login, signup, logout } = useStore();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const [showSessionWarning, setShowSessionWarning] = useState(false);
 
   const [loginEmail, setLoginEmail] = useState("");
   const [loginCodigo, setLoginCodigo] = useState(
@@ -29,13 +30,11 @@ function LoginPage() {
   const [suCnpj, setSuCnpj] = useState("");
   const [suTelefone, setSuTelefone] = useState("");
 
-  const doLogin = async () => {
+  const doLogin = async (forceOverwrite = false) => {
     setLoading(true);
     try {
-      // Se não houver "@", trata como username de técnico → completa domínio padrão.
       const identifier = loginEmail.trim();
 
-      // Validação de e-mail: se contiver @, deve ter formato válido
       if (identifier.includes("@")) {
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(identifier)) {
@@ -45,16 +44,18 @@ function LoginPage() {
         }
       }
 
-      // Passa o identificador direto: o store resolve username → e-mail real
-      // via RPC get_email_by_username no Supabase.
-      const { error } = await login(identifier, loginSenha, loginCodigo);
+      const { error } = await login(identifier, loginSenha, loginCodigo, forceOverwrite);
+
+      if (error === "ALREADY_LOGGED_IN") {
+        setShowSessionWarning(true);
+        return; // wait for user confirmation
+      }
 
       if (error) {
         toast.error(error);
         return;
       }
       
-      // Salva o código da empresa para o próximo login ser mais rápido
       if (loginCodigo.trim()) {
         localStorage.setItem("tqo_last_company_code", loginCodigo.trim());
       }
@@ -66,6 +67,16 @@ function LoginPage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const confirmSessionOverwrite = async () => {
+    setShowSessionWarning(false);
+    await doLogin(true);
+  };
+
+  const cancelSessionOverwrite = async () => {
+    setShowSessionWarning(false);
+    await logout(); // Ensures the supabase auth session is dropped locally
   };
 
   const doSignup = async () => {
@@ -223,10 +234,13 @@ function LoginPage() {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <Label className="text-xs font-semibold">CNPJ (Opcional)</Label>
+                  <Label className="text-xs font-semibold">CPF ou CNPJ *</Label>
                   <Input
                     value={suCnpj}
-                    onChange={(e) => setSuCnpj(e.target.value)}
+                    onChange={(e) => {
+                      const onlyNumbers = e.target.value.replace(/\D/g, "");
+                      setSuCnpj(onlyNumbers);
+                    }}
                     className="h-12 rounded-xl"
                   />
                 </div>
@@ -274,6 +288,25 @@ function LoginPage() {
           </Tabs>
         </div>
       </div>
+
+      {showSessionWarning && (
+        <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4 backdrop-blur-sm">
+          <div className="bg-background rounded-2xl max-w-sm w-full p-6 shadow-2xl border animate-in fade-in zoom-in-95 duration-200">
+            <h3 className="text-lg font-bold text-slate-800 mb-2">Sessão já Ativa</h3>
+            <p className="text-sm text-slate-500 mb-6 leading-relaxed">
+              Sua conta já está conectada em outro dispositivo ou navegador. Deseja acessar por aqui e <strong>desconectar a outra sessão</strong>?
+            </p>
+            <div className="flex gap-3 justify-end">
+              <Button variant="outline" onClick={cancelSessionOverwrite} disabled={loading} className="rounded-xl h-10">
+                Cancelar
+              </Button>
+              <Button onClick={confirmSessionOverwrite} disabled={loading} className="rounded-xl h-10 bg-gradient-to-r from-primary to-violet">
+                {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Entrar e Desconectar"}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

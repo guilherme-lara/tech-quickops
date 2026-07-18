@@ -1,6 +1,7 @@
-import { createContext, useContext, ReactNode } from "react";
+import { createContext, useContext, ReactNode, useEffect } from "react";
 import { useStore } from "./useData";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 export interface AuthProfile {
   id: string;
@@ -60,6 +61,33 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return { error: error?.message };
     },
   };
+
+  useEffect(() => {
+    if (!user?.id) return;
+
+    const channel = supabase
+      .channel('session-monitor')
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'perfis', filter: `id=eq.${user.id}` },
+        (payload) => {
+          const newSessionId = payload.new.current_session_id;
+          const localSessionId = localStorage.getItem("tqo_session_id");
+
+          if (newSessionId && localSessionId && newSessionId !== localSessionId) {
+            toast.error("Você foi desconectado porque sua conta foi acessada em outro dispositivo.", { duration: 10000 });
+            logout().then(() => {
+              window.location.href = "/login";
+            });
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user?.id, logout]);
 
   return <AuthCtx.Provider value={value}>{children}</AuthCtx.Provider>;
 }

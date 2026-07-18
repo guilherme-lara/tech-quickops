@@ -157,7 +157,7 @@ const parseDespesas = (value: any): Array<{ tipo: string; valor: number }> => {
 interface Store {
   user: User | null;
   loadingAuth: boolean;
-  login: (email: string, senha: string, codigoEmpresa?: string) => Promise<{ error?: string }>;
+  login: (email: string, senha: string, codigoEmpresa?: string, forceOverwrite?: boolean) => Promise<{ error?: string }>;
   signup: (
     email: string,
     senha: string,
@@ -948,7 +948,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   });
 
   // ---------------- Auth methods ----------------
-  const login = useCallback(async (emailInput: string, senha: string, codigoEmpresa?: string) => {
+  const login = useCallback(async (emailInput: string, senha: string, codigoEmpresa?: string, forceOverwrite?: boolean) => {
     let email = emailInput.trim().toLowerCase();
 
     if (!email.includes("@")) {
@@ -988,12 +988,22 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
     const { data: perfil, error: profileError } = await supabase
       .from("perfis")
-      .select("id, nome_completo, role, empresa_id")
+      .select("id, nome_completo, role, empresa_id, current_session_id")
       .eq("id", sessionUser.id)
       .maybeSingle();
 
-    if (profileError || !perfil)
+    if (profileError || !perfil) {
       return { error: profileError?.message ?? "Perfil não encontrado." };
+    }
+
+    if (perfil.current_session_id && !forceOverwrite) {
+      return { error: "ALREADY_LOGGED_IN" };
+    }
+
+    // Set new session ID
+    const newSessionId = crypto.randomUUID();
+    localStorage.setItem("tqo_session_id", newSessionId);
+    await supabase.from("perfis").update({ current_session_id: newSessionId }).eq("id", perfil.id);
 
     const role: Role = perfil.role === "tecnico" ? "tecnico" : "gestor";
     const { data: emp } = await supabase
@@ -1014,9 +1024,68 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     return {};
   }, []);
 
+function isValidCpfCnpj(val: string) {
+  const num = val.replace(/\D/g, "");
+  if (num.length === 11) {
+    if (/^(\d)\1{10}$/.test(num)) return false;
+    let sum = 0, rest;
+    for (let i = 1; i <= 9; i++) sum = sum + parseInt(num.substring(i - 1, i)) * (11 - i);
+    rest = (sum * 10) % 11;
+    if (rest === 10 || rest === 11) rest = 0;
+    if (rest !== parseInt(num.substring(9, 10))) return false;
+    sum = 0;
+    for (let i = 1; i <= 10; i++) sum = sum + parseInt(num.substring(i - 1, i)) * (12 - i);
+    rest = (sum * 10) % 11;
+    if (rest === 10 || rest === 11) rest = 0;
+    if (rest !== parseInt(num.substring(10, 11))) return false;
+    return true;
+  }
+  if (num.length === 14) {
+    if (/^(\d)\1{13}$/.test(num)) return false;
+    let size = num.length - 2, numbers = num.substring(0, size), digits = num.substring(size);
+    let sum = 0, pos = size - 7;
+    for (let i = size; i >= 1; i--) {
+      sum += parseInt(numbers.charAt(size - i)) * pos--;
+      if (pos < 2) pos = 9;
+    }
+    let result = sum % 11 < 2 ? 0 : 11 - (sum % 11);
+    if (result !== parseInt(digits.charAt(0))) return false;
+    size = size + 1;
+    numbers = num.substring(0, size);
+    sum = 0;
+    pos = size - 7;
+    for (let i = size; i >= 1; i--) {
+      sum += parseInt(numbers.charAt(size - i)) * pos--;
+      if (pos < 2) pos = 9;
+    }
+    result = sum % 11 < 2 ? 0 : 11 - (sum % 11);
+    if (result !== parseInt(digits.charAt(1))) return false;
+    return true;
+  }
+  return false;
+}
+
   const signup = useCallback(
     async (email: string, senha: string, nome: string, empresa: string, dominio?: string, cnpj?: string, telefone?: string) => {
       try {
+        if (!cnpj || !isValidCpfCnpj(cnpj)) {
+          return { error: "CPF ou CNPJ inválido." };
+        }
+
+        const rawCnpj = cnpj.replace(/\D/g, "");
+
+        const { data: existCnpj } = await supabase.from("empresas").select("id").eq("cnpj", rawCnpj).maybeSingle();
+        if (existCnpj) {
+          return { error: "Este CPF/CNPJ já está cadastrado em nossa base." };
+        }
+
+        if (dominio) {
+          const { data: existDomain } = await supabase.from("empresas").select("id").eq("dominio", dominio.toLowerCase()).maybeSingle();
+          if (existDomain) {
+            return { error: "Este domínio já está em uso por outra empresa." };
+          }
+        }
+
         const redirectUrl = `${window.location.origin}/`;
         const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
           email,
