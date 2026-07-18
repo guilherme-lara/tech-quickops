@@ -293,16 +293,16 @@ function LoginPage() {
       {showSessionWarning && (
         <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4 backdrop-blur-sm">
           <div className="bg-background rounded-2xl max-w-sm w-full p-6 shadow-2xl border animate-in fade-in zoom-in-95 duration-200">
-            <h3 className="text-lg font-bold text-slate-800 mb-2">Sessão já Ativa</h3>
+            <h3 className="text-lg font-bold text-slate-800 mb-2">Acesso Bloqueado</h3>
             <p className="text-sm text-slate-500 mb-6 leading-relaxed">
-              Sua conta já está conectada em outro dispositivo ou navegador. Deseja acessar por aqui e <strong>desconectar a outra sessão</strong>?
+              Identificamos que você já possui uma sessão ativa em outro dispositivo ou navegador.
+              Por questões de segurança e licenciamento, <strong>o acesso simultâneo não é permitido</strong>.
+              <br /><br />
+              Para acessar por aqui, por favor, encerre a sua sessão no outro dispositivo clicando em "Sair".
             </p>
             <div className="flex gap-3 justify-end">
-              <Button variant="outline" onClick={cancelSessionOverwrite} disabled={loading} className="rounded-xl h-10">
-                Cancelar
-              </Button>
-              <Button onClick={confirmSessionOverwrite} disabled={loading} className="rounded-xl h-10 bg-gradient-to-r from-primary to-violet">
-                {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Entrar e Desconectar"}
+              <Button variant="outline" onClick={cancelSessionOverwrite} disabled={loading} className="w-full rounded-xl h-10">
+                Voltar e Tentar Novamente
               </Button>
             </div>
           </div>

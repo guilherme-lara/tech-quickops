@@ -1012,7 +1012,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
     const { data: perfil, error: profileError } = await supabase
       .from("perfis")
-      .select("id, nome_completo, role, empresa_id, current_session_id")
+      .select("id, nome_completo, role, empresa_id, current_session_id, avatar_url")
       .eq("id", sessionUser.id)
       .maybeSingle();
 
@@ -1034,7 +1034,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     const role: Role = perfil.role === "tecnico" ? "tecnico" : "gestor";
     const { data: emp } = await supabase
       .from("empresas")
-      .select("nome_fantasia, codigo_empresa, plano")
+      .select("nome_fantasia, codigo_empresa, plano, logo_url")
       .eq("id", perfil.empresa_id)
       .maybeSingle();
     setUser({
@@ -1046,6 +1046,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       empresaNome: emp?.nome_fantasia ?? "",
       empresaCodigo: emp?.codigo_empresa ?? "",
       empresaPlano: emp?.plano ?? "free",
+      avatarUrl: perfil.avatar_url ?? undefined,
+      empresaLogo: emp?.logo_url ?? undefined,
     });
     return {};
   }, []);
@@ -1231,6 +1233,11 @@ function isValidCpfCnpj(val: string) {
   }, []);
 
   const logout = useCallback(async () => {
+    if (userRef.current?.id) {
+      // Libera a sessão atual no banco
+      await supabase.from("perfis").update({ current_session_id: null }).eq("id", userRef.current.id);
+    }
+    localStorage.removeItem("tqo_session_id");
     await supabase.auth.signOut();
   }, []);
 
