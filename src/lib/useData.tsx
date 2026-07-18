@@ -419,6 +419,12 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === "TOKEN_REFRESHED" || event === "USER_UPDATED") return;
+      
+      const isLoginPage = typeof window !== "undefined" && window.location.pathname.includes("/login");
+      // Importante: se estamos no login, deixamos a função `login()` terminar de executar a lógica
+      // do Modal de Sessão e setar o `user` manualmente no final.
+      if (isLoginPage && event === "SIGNED_IN") return;
+
       (async () => {
         try {
           if (!session?.user) {
