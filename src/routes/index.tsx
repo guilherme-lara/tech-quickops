@@ -425,53 +425,114 @@ function LandingPage() {
       <section id="precos" className="py-24 bg-slate-900 border-y border-white/5 relative">
         <div className="container mx-auto px-6">
           <div className="text-center mb-16 max-w-3xl mx-auto">
-            <h2 className="text-3xl md:text-5xl font-black text-white mb-6">Investimento Único e Sem Limites</h2>
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-xs font-bold text-primary mb-6">
+              Planos Desenhados para o seu Crescimento
+            </div>
+            <h2 className="text-3xl md:text-5xl font-black text-white mb-6 tracking-tight">O tamanho ideal para a sua operação.</h2>
             <p className="text-slate-300 text-sm md:text-base leading-relaxed font-normal">
-              Esqueça taxas abusivas por usuário, licenças adicionais para técnicos ou custos ocultos de implantação. Oferecemos acesso total sem travas.
+              Comece de graça e escale conforme a demanda. Acesse todos os recursos sem taxas escondidas ou sustos na fatura.
             </p>
           </div>
 
-          <div className="max-w-md mx-auto relative">
-            <div className="absolute -inset-1.5 bg-gradient-to-r from-primary to-violet rounded-3xl blur opacity-30 group-hover:opacity-100 transition duration-1000 group-hover:duration-200 animate-tilt"></div>
-            <div className="relative bg-slate-950 rounded-2xl border border-white/10 shadow-2xl overflow-hidden">
-              <div className="bg-slate-900/60 p-8 text-center text-white border-b border-white/5 relative overflow-hidden">
-                <h3 className="text-2xl font-bold mb-2">Licença Única SaaS</h3>
-                <p className="text-slate-400 text-xs font-semibold">Toda a operação integrada em uma conta.</p>
-                <div className="mt-8 flex items-center justify-center gap-1">
-                  <span className="text-5xl font-black tracking-tighter text-white">R$ 299</span>
-                  <span className="text-slate-400 font-semibold text-sm">/mês</span>
+          <div className="grid md:grid-cols-2 xl:grid-cols-4 gap-6 max-w-7xl mx-auto">
+            
+            {/* Free */}
+            <div className="relative bg-slate-950/80 rounded-3xl border border-white/10 shadow-xl overflow-hidden flex flex-col hover:border-slate-700 transition-colors">
+              <div className="p-8 border-b border-white/5 flex-1">
+                <h3 className="text-xl font-bold mb-2 text-white">Free</h3>
+                <p className="text-slate-400 text-xs mb-6 min-h-[40px]">Para profissionais independentes e técnicos solo.</p>
+                <div className="flex items-baseline gap-1 mb-8">
+                  <span className="text-4xl font-black tracking-tighter text-white">R$ 0</span>
+                  <span className="text-slate-500 font-semibold text-sm">/mês</span>
                 </div>
-              </div>
-
-              <div className="p-8">
-                <p className="text-xs font-bold text-primary uppercase tracking-widest mb-6">O que está incluído</p>
-                <ul className="space-y-4 mb-8 text-sm">
-                  {[
-                    "Usuários ilimitados (Gestores, Analistas, Técnicos)",
-                    "Acesso completo ao App Mobile do Técnico",
-                    "Ordens de Serviço Ilimitadas",
-                    "Controle de Estoque e Inventário",
-                    "Dashboard Financeiro com fluxo Mês N+1",
-                    "Exportação de faturamentos de clientes",
-                    "Registros de logs de auditoria imutáveis"
-                  ].map((item, i) => (
-                    <li key={i} className="flex items-start gap-3">
-                      <CheckCircle2 className="w-5 h-5 text-primary shrink-0 mt-0.5" />
-                      <span className="text-slate-300 font-medium text-xs md:text-sm">{item}</span>
-                    </li>
-                  ))}
+                <ul className="space-y-4 text-sm text-slate-300">
+                  <li className="flex items-start gap-3"><CheckCircle2 className="w-4 h-4 text-slate-600 shrink-0 mt-0.5" /> <span className="text-xs">Até 1 Técnico</span></li>
+                  <li className="flex items-start gap-3"><CheckCircle2 className="w-4 h-4 text-slate-600 shrink-0 mt-0.5" /> <span className="text-xs">Até 15 OS/mês</span></li>
+                  <li className="flex items-start gap-3"><CheckCircle2 className="w-4 h-4 text-slate-600 shrink-0 mt-0.5" /> <span className="text-xs">App Mobile</span></li>
+                  <li className="flex items-start gap-3 opacity-40"><Lock className="w-4 h-4 text-slate-600 shrink-0 mt-0.5" /> <span className="text-xs">Dashboard Operacional</span></li>
+                  <li className="flex items-start gap-3 opacity-40"><Lock className="w-4 h-4 text-slate-600 shrink-0 mt-0.5" /> <span className="text-xs">Módulo Financeiro</span></li>
                 </ul>
-
+              </div>
+              <div className="p-6 mt-auto">
                 <Link to="/login" className="block w-full">
-                  <Button size="lg" className="w-full h-14 rounded-xl text-base font-bold bg-primary hover:bg-primary/95 text-white shadow-lg transition-all hover:scale-[1.01]">
-                    Iniciar Teste de 14 Dias Grátis
-                  </Button>
+                  <Button variant="outline" className="w-full rounded-xl h-12 border-white/10 text-white hover:bg-white/5 font-semibold text-sm transition-all">Começar Grátis</Button>
                 </Link>
-                <p className="text-center text-[10px] text-slate-500 mt-4 font-bold uppercase tracking-wider">
-                  Nenhum Cartão de Crédito Exigido
-                </p>
               </div>
             </div>
+
+            {/* Starter */}
+            <div className="relative bg-slate-950/80 rounded-3xl border border-white/10 shadow-xl overflow-hidden flex flex-col hover:border-primary/30 transition-colors">
+              <div className="p-8 border-b border-white/5 flex-1">
+                <h3 className="text-xl font-bold mb-2 text-white">Starter</h3>
+                <p className="text-slate-400 text-xs mb-6 min-h-[40px]">Perfeito para pequenas equipes iniciando a digitalização.</p>
+                <div className="flex items-baseline gap-1 mb-8">
+                  <span className="text-4xl font-black tracking-tighter text-white">R$ 99</span>
+                  <span className="text-slate-500 font-semibold text-sm">/mês</span>
+                </div>
+                <ul className="space-y-4 text-sm text-slate-300">
+                  <li className="flex items-start gap-3"><CheckCircle2 className="w-4 h-4 text-primary shrink-0 mt-0.5" /> <span className="text-xs">Até 3 Técnicos</span></li>
+                  <li className="flex items-start gap-3"><CheckCircle2 className="w-4 h-4 text-primary shrink-0 mt-0.5" /> <span className="text-xs">Até 50 OS/mês</span></li>
+                  <li className="flex items-start gap-3"><CheckCircle2 className="w-4 h-4 text-primary shrink-0 mt-0.5" /> <span className="text-xs text-white font-medium">Dashboard Operacional</span></li>
+                  <li className="flex items-start gap-3 opacity-40"><Lock className="w-4 h-4 text-slate-600 shrink-0 mt-0.5" /> <span className="text-xs">Módulo Financeiro</span></li>
+                </ul>
+              </div>
+              <div className="p-6 mt-auto">
+                <Link to="/login" className="block w-full">
+                  <Button variant="outline" className="w-full rounded-xl h-12 border-primary/30 text-primary hover:bg-primary/10 font-semibold text-sm transition-all">Testar Starter</Button>
+                </Link>
+              </div>
+            </div>
+
+            {/* Pro */}
+            <div className="relative bg-slate-950 rounded-3xl border border-primary/50 shadow-2xl overflow-hidden flex flex-col transform md:-translate-y-2 group">
+              <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-primary to-violet"></div>
+              <div className="absolute top-0 right-0 bg-primary text-white text-[10px] font-bold px-3 py-1 rounded-bl-lg uppercase tracking-wider">Mais Popular</div>
+              <div className="absolute -inset-1.5 bg-gradient-to-r from-primary to-violet rounded-3xl blur opacity-20 group-hover:opacity-30 transition duration-1000 -z-10"></div>
+              
+              <div className="p-8 border-b border-white/5 flex-1 bg-slate-900/40 relative z-10">
+                <h3 className="text-xl font-bold mb-2 text-white">Pro</h3>
+                <p className="text-slate-400 text-xs mb-6 min-h-[40px]">A solução completa com gestão operacional e financeira.</p>
+                <div className="flex items-baseline gap-1 mb-8">
+                  <span className="text-4xl font-black tracking-tighter text-white">R$ 199</span>
+                  <span className="text-slate-500 font-semibold text-sm">/mês</span>
+                </div>
+                <ul className="space-y-4 text-sm text-slate-300">
+                  <li className="flex items-start gap-3"><CheckCircle2 className="w-4 h-4 text-primary shrink-0 mt-0.5" /> <span className="text-xs font-medium text-white">Até 10 Técnicos</span></li>
+                  <li className="flex items-start gap-3"><CheckCircle2 className="w-4 h-4 text-primary shrink-0 mt-0.5" /> <span className="text-xs font-medium text-white">Até 200 OS/mês</span></li>
+                  <li className="flex items-start gap-3"><CheckCircle2 className="w-4 h-4 text-primary shrink-0 mt-0.5" /> <span className="text-xs font-medium text-white">Dashboard Operacional</span></li>
+                  <li className="flex items-start gap-3"><CheckCircle2 className="w-4 h-4 text-primary shrink-0 mt-0.5" /> <span className="text-xs font-medium text-white">Módulo Financeiro N ➔ N+1</span></li>
+                </ul>
+              </div>
+              <div className="p-6 mt-auto bg-slate-950 relative z-10">
+                <Link to="/login" className="block w-full">
+                  <Button className="w-full rounded-xl h-12 bg-primary hover:bg-primary/90 text-white font-semibold text-sm shadow-[0_0_15px_rgba(111,0,255,0.4)] transition-all">Assinar Pro</Button>
+                </Link>
+              </div>
+            </div>
+
+            {/* Premium */}
+            <div className="relative bg-slate-950/80 rounded-3xl border border-white/10 shadow-xl overflow-hidden flex flex-col hover:border-violet/30 transition-colors">
+              <div className="p-8 border-b border-white/5 flex-1">
+                <h3 className="text-xl font-bold mb-2 text-white">Enterprise</h3>
+                <p className="text-slate-400 text-xs mb-6 min-h-[40px]">Para grandes operações de field service sem limites.</p>
+                <div className="flex items-baseline gap-1 mb-8">
+                  <span className="text-4xl font-black tracking-tighter text-white">R$ 299</span>
+                  <span className="text-slate-500 font-semibold text-sm">/mês</span>
+                </div>
+                <ul className="space-y-4 text-sm text-slate-300">
+                  <li className="flex items-start gap-3"><CheckCircle2 className="w-4 h-4 text-violet shrink-0 mt-0.5" /> <span className="text-xs">Técnicos Ilimitados</span></li>
+                  <li className="flex items-start gap-3"><CheckCircle2 className="w-4 h-4 text-violet shrink-0 mt-0.5" /> <span className="text-xs">OS Ilimitadas</span></li>
+                  <li className="flex items-start gap-3"><CheckCircle2 className="w-4 h-4 text-violet shrink-0 mt-0.5" /> <span className="text-xs">Todos os Módulos Abertos</span></li>
+                  <li className="flex items-start gap-3"><CheckCircle2 className="w-4 h-4 text-violet shrink-0 mt-0.5" /> <span className="text-xs">Suporte Prioritário</span></li>
+                </ul>
+              </div>
+              <div className="p-6 mt-auto">
+                <Link to="/login" className="block w-full">
+                  <Button variant="outline" className="w-full rounded-xl h-12 border-violet/30 text-violet hover:bg-violet/10 font-semibold text-sm transition-all">Falar com Vendas</Button>
+                </Link>
+              </div>
+            </div>
+
           </div>
         </div>
       </section>
