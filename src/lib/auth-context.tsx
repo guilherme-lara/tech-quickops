@@ -73,9 +73,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         (payload) => {
           const newSessionId = payload.new.current_session_id;
           const localSessionId = localStorage.getItem("tqo_session_id");
+          const isLoginPage = typeof window !== "undefined" && window.location.pathname.includes("/login");
 
-          // Se o banco tem uma sessão nova e diferente da nossa, cai
-          if (newSessionId && newSessionId !== localSessionId) {
+          // Se o banco tem uma sessão nova e diferente da nossa, cai (exceto se já estiver na tela de login)
+          if (!isLoginPage && newSessionId && newSessionId !== localSessionId) {
             toast.error("Você foi desconectado porque sua conta foi acessada em outro dispositivo.", { duration: 10000 });
             logout().then(() => {
               window.location.href = "/login";

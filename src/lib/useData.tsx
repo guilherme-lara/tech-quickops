@@ -293,7 +293,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         } else if (data) {
           // Verifica sessão (Single Session)
           const localSessionId = localStorage.getItem("tqo_session_id");
-          if (data.current_session_id && data.current_session_id !== localSessionId) {
+          const isLoginPage = typeof window !== "undefined" && window.location.pathname.includes("/login");
+          if (!isLoginPage && data.current_session_id && data.current_session_id !== localSessionId) {
             console.error("[auth] Sessão inválida ou roubada. Desconectando.");
             throw new Error("INVALID_SESSION");
           }
@@ -1014,6 +1015,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     }
 
     if (perfil.current_session_id && !forceOverwrite) {
+      // Importante: se forceOverwrite for falso e a sessão existir, devolvemos ALREADY_LOGGED_IN
+      // O login.tsx vai interceptar isso e abrir o modal.
       return { error: "ALREADY_LOGGED_IN" };
     }
 
