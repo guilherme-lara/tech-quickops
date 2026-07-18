@@ -478,7 +478,7 @@ function LandingPage() {
               </div>
               <div className="p-6 mt-auto">
                 <Link to="/login" className="block w-full">
-                  <Button variant="outline" className="w-full rounded-xl h-12 border-primary/30 text-primary hover:bg-primary/10 font-semibold text-sm transition-all">Testar Starter</Button>
+                  <Button variant="outline" className="w-full rounded-xl h-12 border-primary/30 text-primary hover:bg-primary/10 font-semibold text-sm transition-all">Assinar Starter</Button>
                 </Link>
               </div>
             </div>
@@ -528,7 +528,7 @@ function LandingPage() {
               </div>
               <div className="p-6 mt-auto">
                 <Link to="/login" className="block w-full">
-                  <Button variant="outline" className="w-full rounded-xl h-12 border-violet/30 text-violet hover:bg-violet/10 font-semibold text-sm transition-all">Falar com Vendas</Button>
+                  <Button variant="outline" className="w-full rounded-xl h-12 border-violet/30 text-violet hover:bg-violet/10 font-semibold text-sm transition-all">Assinar Enterprise</Button>
                 </Link>
               </div>
             </div>
