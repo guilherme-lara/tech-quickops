@@ -9,8 +9,8 @@ export interface PlanLimit {
 
 export const PlanLimits: Record<PlanType, PlanLimit> = {
   free: { 
-    maxTecnicos: 1, 
-    maxOsMes: 15, 
+    maxTecnicos: 0, 
+    maxOsMes: 60, 
     hasFinanceiro: false, 
     hasDashboard: false 
   },

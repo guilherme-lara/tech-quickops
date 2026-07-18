@@ -283,7 +283,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       for (let attempt = 1; attempt <= retries; attempt++) {
         const { data, error } = await supabase
           .from("perfis")
-          .select("id, nome_completo, role, empresa_id, avatar_url")
+          .select("id, nome_completo, role, empresa_id, avatar_url, current_session_id")
           .eq("id", uid)
           .maybeSingle();
 
@@ -291,6 +291,13 @@ export function StoreProvider({ children }: { children: ReactNode }) {
           console.error(`[auth] erro ao buscar perfil (tentativa ${attempt}):`, error);
           if (attempt === retries) return null;
         } else if (data) {
+          // Verifica sessão (Single Session)
+          const localSessionId = localStorage.getItem("tqo_session_id");
+          if (data.current_session_id && data.current_session_id !== localSessionId) {
+            console.error("[auth] Sessão inválida ou roubada. Desconectando.");
+            throw new Error("INVALID_SESSION");
+          }
+
           // Preserva o role real vindo do banco (gestor | tecnico | analista | admin | superadmin)
           const allowedRoles: Role[] = ["gestor", "tecnico", "analista", "admin", "superadmin"];
           const role: Role = (allowedRoles as string[]).includes(data.role)
@@ -394,8 +401,13 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         } else if (mounted) {
           setUser(null);
         }
-      } catch (err) {
+      } catch (err: any) {
         console.error("[auth] getSession falhou:", err);
+        if (err?.message === "INVALID_SESSION") {
+          await supabase.auth.signOut();
+          toast.error("Você foi desconectado porque sua conta foi acessada em outro local.");
+          if (typeof window !== "undefined" && window.location.pathname !== "/login") window.location.href = "/login";
+        }
         if (mounted) setUser(null);
       } finally {
         if (mounted) setLoadingAuth(false);
@@ -421,8 +433,13 @@ export function StoreProvider({ children }: { children: ReactNode }) {
             await handleGhostUser();
             qc.invalidateQueries();
           }
-        } catch (err) {
+        } catch (err: any) {
           console.error("[auth] onAuthStateChange falhou:", err);
+          if (err?.message === "INVALID_SESSION") {
+            await supabase.auth.signOut();
+            toast.error("Você foi desconectado porque sua conta foi acessada em outro local.");
+            if (typeof window !== "undefined" && window.location.pathname !== "/login") window.location.href = "/login";
+          }
           if (mounted) setUser(null);
         } finally {
           if (mounted) setLoadingAuth(false);

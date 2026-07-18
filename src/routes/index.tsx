@@ -446,9 +446,9 @@ function LandingPage() {
                   <span className="text-slate-500 font-semibold text-sm">/mês</span>
                 </div>
                 <ul className="space-y-4 text-sm text-slate-300">
-                  <li className="flex items-start gap-3"><CheckCircle2 className="w-4 h-4 text-slate-600 shrink-0 mt-0.5" /> <span className="text-xs">Até 1 Técnico</span></li>
-                  <li className="flex items-start gap-3"><CheckCircle2 className="w-4 h-4 text-slate-600 shrink-0 mt-0.5" /> <span className="text-xs">Até 15 OS/mês</span></li>
-                  <li className="flex items-start gap-3"><CheckCircle2 className="w-4 h-4 text-slate-600 shrink-0 mt-0.5" /> <span className="text-xs">App Mobile</span></li>
+                  <li className="flex items-start gap-3"><CheckCircle2 className="w-4 h-4 text-slate-600 shrink-0 mt-0.5" /> <span className="text-xs">1 Usuário (Gestor)</span></li>
+                  <li className="flex items-start gap-3"><CheckCircle2 className="w-4 h-4 text-slate-600 shrink-0 mt-0.5" /> <span className="text-xs">Até 60 OS/mês</span></li>
+                  <li className="flex items-start gap-3 opacity-40"><Lock className="w-4 h-4 text-slate-600 shrink-0 mt-0.5" /> <span className="text-xs">App Mobile do Técnico</span></li>
                   <li className="flex items-start gap-3 opacity-40"><Lock className="w-4 h-4 text-slate-600 shrink-0 mt-0.5" /> <span className="text-xs">Dashboard Operacional</span></li>
                   <li className="flex items-start gap-3 opacity-40"><Lock className="w-4 h-4 text-slate-600 shrink-0 mt-0.5" /> <span className="text-xs">Módulo Financeiro</span></li>
                 </ul>
@@ -470,7 +470,7 @@ function LandingPage() {
                   <span className="text-slate-500 font-semibold text-sm">/mês</span>
                 </div>
                 <ul className="space-y-4 text-sm text-slate-300">
-                  <li className="flex items-start gap-3"><CheckCircle2 className="w-4 h-4 text-primary shrink-0 mt-0.5" /> <span className="text-xs">Até 3 Técnicos</span></li>
+                  <li className="flex items-start gap-3"><CheckCircle2 className="w-4 h-4 text-primary shrink-0 mt-0.5" /> <span className="text-xs">1 Gestor + 3 Técnicos</span></li>
                   <li className="flex items-start gap-3"><CheckCircle2 className="w-4 h-4 text-primary shrink-0 mt-0.5" /> <span className="text-xs">Até 50 OS/mês</span></li>
                   <li className="flex items-start gap-3"><CheckCircle2 className="w-4 h-4 text-primary shrink-0 mt-0.5" /> <span className="text-xs text-white font-medium">Dashboard Operacional</span></li>
                   <li className="flex items-start gap-3 opacity-40"><Lock className="w-4 h-4 text-slate-600 shrink-0 mt-0.5" /> <span className="text-xs">Módulo Financeiro</span></li>
@@ -497,7 +497,7 @@ function LandingPage() {
                   <span className="text-slate-500 font-semibold text-sm">/mês</span>
                 </div>
                 <ul className="space-y-4 text-sm text-slate-300">
-                  <li className="flex items-start gap-3"><CheckCircle2 className="w-4 h-4 text-primary shrink-0 mt-0.5" /> <span className="text-xs font-medium text-white">Até 10 Técnicos</span></li>
+                  <li className="flex items-start gap-3"><CheckCircle2 className="w-4 h-4 text-primary shrink-0 mt-0.5" /> <span className="text-xs font-medium text-white">1 Gestor + 10 Técnicos</span></li>
                   <li className="flex items-start gap-3"><CheckCircle2 className="w-4 h-4 text-primary shrink-0 mt-0.5" /> <span className="text-xs font-medium text-white">Até 200 OS/mês</span></li>
                   <li className="flex items-start gap-3"><CheckCircle2 className="w-4 h-4 text-primary shrink-0 mt-0.5" /> <span className="text-xs font-medium text-white">Dashboard Operacional</span></li>
                   <li className="flex items-start gap-3"><CheckCircle2 className="w-4 h-4 text-primary shrink-0 mt-0.5" /> <span className="text-xs font-medium text-white">Módulo Financeiro N ➔ N+1</span></li>
