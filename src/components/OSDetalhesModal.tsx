@@ -241,6 +241,32 @@ export function OSDetalhesModal({ osId, open, onOpenChange }: Props) {
                     </SelectContent>
                   </Select>
                 </div>
+
+                <div className="col-span-1 md:col-span-2">
+                  <div className="flex items-center gap-3 p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-xl">
+                    <input 
+                      type="checkbox" 
+                      id="pagoImediatoModal"
+                      checked={!!(os.dados_adicionais as Record<string, any>)?.pago_imediatamente}
+                      onChange={(e) => {
+                        const atuais = (os.dados_adicionais as Record<string, any>) || {};
+                        updateMutation.mutate({ 
+                          dados_adicionais: { ...atuais, pago_imediatamente: e.target.checked } 
+                        });
+                      }}
+                      disabled={updateMutation.isPending}
+                      className="w-4 h-4 rounded border-emerald-500/50 text-emerald-600 focus:ring-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                    />
+                    <div className="grid leading-none">
+                      <label htmlFor="pagoImediatoModal" className="font-semibold text-emerald-700 dark:text-emerald-400 cursor-pointer">
+                        Pagamento Imediato / Antecipado
+                      </label>
+                      <span className="text-[10px] text-emerald-600/80 dark:text-emerald-400/80 mt-1">
+                        Marque se a OS foi paga avulsa/antecipada (contabiliza no mês atual)
+                      </span>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
 

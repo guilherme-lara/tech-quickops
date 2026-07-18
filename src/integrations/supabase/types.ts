@@ -133,6 +133,7 @@ export type Database = {
           id: string
           logo_url: string | null
           nome_fantasia: string
+          plano: string | null
           status_licenca: string | null
           telefone_empresa: string | null
         }
@@ -147,6 +148,7 @@ export type Database = {
           id?: string
           logo_url?: string | null
           nome_fantasia: string
+          plano?: string | null
           status_licenca?: string | null
           telefone_empresa?: string | null
         }
@@ -161,6 +163,7 @@ export type Database = {
           id?: string
           logo_url?: string | null
           nome_fantasia?: string
+          plano?: string | null
           status_licenca?: string | null
           telefone_empresa?: string | null
         }

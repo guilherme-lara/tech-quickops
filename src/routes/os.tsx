@@ -57,6 +57,7 @@ import { RatGallery } from "@/components/RatGallery";
 import { MesAnoFilter } from "@/components/MesAnoFilter";
 import { FiltrosBarGlobal } from "@/components/FiltrosBarGlobal";
 import { SearchCombobox } from "@/components/SearchCombobox";
+import { PlanLimits, PlanType } from "@/lib/planLimits";
 
 type AnalistaOpt = { id: string; nome: string; whatsapp: string | null };
 
@@ -307,6 +308,23 @@ function OSPage() {
       toast.error("Preencha todos os campos obrigatórios");
       return;
     }
+
+    if (!form.id) {
+      const planoAtual = (profile?.empresaPlano as PlanType) || "free";
+      const limiteOs = PlanLimits[planoAtual].maxOsMes;
+      
+      const { count, error } = await supabase
+        .from("ordens_servico")
+        .select("id", { count: "exact", head: true })
+        .eq("empresa_id", profile?.empresa_id)
+        .gte("created_at", new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString());
+
+      if (!error && count !== null && count >= limiteOs) {
+        toast.error(`Limite atingido! Seu plano atual permite no máximo ${limiteOs} OS por mês.`);
+        return;
+      }
+    }
+
     await addOS({
       titulo: form.titulo,
       clienteId: form.clienteId,

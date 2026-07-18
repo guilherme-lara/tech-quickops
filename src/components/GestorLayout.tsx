@@ -16,6 +16,7 @@ import {
   PieChart,
   Shield,
   ShieldAlert,
+  Crown,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -32,6 +33,7 @@ import {
 } from "@/components/ui/sheet"; // <-- MENU MOBILEimport { ReactNode } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { ReactNode, useState } from "react";
+import { PlanLimits, PlanType } from "@/lib/planLimits";
 
 const allNavItems = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -43,6 +45,7 @@ const allNavItems = [
   { to: "/usuarios", label: "Acessos do Sistema", icon: Shield },
   { to: "/estoque", label: "Inventário", icon: Package },
   { to: "/logs", label: "Logs e Auditoria", icon: FileText },
+  { to: "/planos", label: "Meu Plano", icon: Crown },
   { to: "/configuracoes", label: "Configurações", icon: Settings },
 ] as const;
 
@@ -59,8 +62,17 @@ export function GestorLayout({ children }: { children?: ReactNode }) {
     }
   };
 
+  const planoAtual = (profile?.empresaPlano as PlanType) || "free";
+  const limites = PlanLimits[planoAtual];
+
+  let navItems = allNavItems.filter((n) => {
+    if (n.to === "/dashboard" && !limites.hasDashboard) return false;
+    if (n.to === "/gestor-dashboard" && !limites.hasFinanceiro) return false;
+    return true;
+  });
+
   // RBAC: filtrar itens de menu baseado na role
-  const navItems = allNavItems.filter((item) => {
+  navItems = navItems.filter((item) => {
     if (profile?.role === "tecnico") {
       const restrictedForTecnico = ["/gestor-dashboard", "/clientes", "/equipe", "/usuarios", "/logs", "/analista-dashboard"];
       return !restrictedForTecnico.includes(item.to);

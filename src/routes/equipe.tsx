@@ -150,6 +150,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { maskPhoneBR, formatComissao } from "@/lib/utils";
 import { useAuth } from "@/lib/auth-context";
+import { PlanLimits, PlanType } from "@/lib/planLimits";
 import { logActivity } from "@/lib/logger";
 
 const PERFIS_TECNICO = ["Técnico de Campo", "Instalador", "Suporte", "Manutenção"];
@@ -291,6 +292,17 @@ function EquipePage() {
 
   const submit = async () => {
     if (!form.nome.trim()) return toast.error("Informe o nome do técnico");
+
+    // Limites de Plano para Criação
+    if (!form.id) {
+      const planoAtual = (profile?.empresaPlano as PlanType) || "free";
+      const limiteTecnicos = PlanLimits[planoAtual].maxTecnicos;
+      const tecnicosAtivos = allTecnicos.filter(t => t.ativo).length; // Conta os ativos ou todos dependendo da regra
+      if (allTecnicos.length >= limiteTecnicos) {
+        return toast.error(`Limite do Plano atingido! Seu plano atual permite no máximo ${limiteTecnicos} técnicos.`);
+      }
+    }
+
     setSaving(true);
     try {
       if (form.id) {

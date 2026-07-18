@@ -105,6 +105,7 @@ interface User {
   empresaTelefone?: string;
   empresaLogo?: string;
   empresaCodigo?: string;
+  empresaPlano?: string;
 }
 
 // ============================================================
@@ -308,10 +309,11 @@ export function StoreProvider({ children }: { children: ReactNode }) {
           let empresaTelefone = "";
           let empresaLogo = "";
           let empresaCodigo = "";
+          let empresaPlano = "";
           if (data.empresa_id) {
             const { data: emp, error: empErr } = await supabase
               .from("empresas")
-              .select("nome_fantasia, cnpj, endereco_comercial, telefone_empresa, logo_url, codigo_empresa")
+              .select("nome_fantasia, cnpj, endereco_comercial, telefone_empresa, logo_url, codigo_empresa, plano")
               .eq("id", data.empresa_id)
               .maybeSingle();
             if (empErr) {
@@ -324,6 +326,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
               empresaTelefone = emp.telefone_empresa ?? "";
               empresaLogo = emp.logo_url ?? "";
               empresaCodigo = emp.codigo_empresa ?? "";
+              empresaPlano = emp.plano ?? "free";
             } else if (role !== "superadmin") {
               // Vínculo existe no perfil mas empresa não é acessível → falha explícita
               console.error("[auth] Empresa vinculada não encontrada/acessível:", data.empresa_id);
@@ -342,6 +345,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
             empresaTelefone,
             empresaLogo,
             empresaCodigo,
+            empresaPlano,
             avatarUrl: data.avatar_url ?? undefined,
           };
         }
@@ -994,7 +998,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     const role: Role = perfil.role === "tecnico" ? "tecnico" : "gestor";
     const { data: emp } = await supabase
       .from("empresas")
-      .select("nome_fantasia, codigo_empresa")
+      .select("nome_fantasia, codigo_empresa, plano")
       .eq("id", perfil.empresa_id)
       .maybeSingle();
     setUser({
@@ -1005,6 +1009,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       empresaId: perfil.empresa_id,
       empresaNome: emp?.nome_fantasia ?? "",
       empresaCodigo: emp?.codigo_empresa ?? "",
+      empresaPlano: emp?.plano ?? "free",
     });
     return {};
   }, []);
@@ -1053,7 +1058,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
         const { data: empresaRow, error: empresaError } = await supabase
           .from("empresas")
-          .select("id, codigo_empresa, nome_fantasia")
+          .select("id, codigo_empresa, nome_fantasia, plano")
           .eq("id", perfilRow.empresa_id)
           .single();
         if (empresaError || !empresaRow) {
@@ -1068,6 +1073,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
           empresaId: empresaRow.id,
           empresaNome: empresaRow.nome_fantasia || empresa,
           empresaCodigo: empresaRow.codigo_empresa || "",
+          empresaPlano: empresaRow.plano || "free",
         });
         return {};
       } catch (err) {
