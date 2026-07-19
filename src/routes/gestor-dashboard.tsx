@@ -316,7 +316,7 @@ function GestorDashboard() {
                 totalDespesas = (os.despesas as any[]).reduce((s: number, d: any) => s + (Number(d?.valor) || 0), 0);
               }
               stat.valor_gerado += valorServico + kmViagem + totalDespesas;
-              if (stat.ultimo_mes_pago === mesSelecionado || (os.dados_adicionais as any)?.pago_imediatamente) {
+              if ((os.dados_adicionais as any)?.mes_recebimento === mesSelecionado || (os.dados_adicionais as any)?.pago_imediatamente || stat.ultimo_mes_pago === mesSelecionado) {
                 stat.valor_pago += valorServico + kmViagem + totalDespesas;
               } else {
                 stat.valor_pendente += valorServico + kmViagem + totalDespesas;

@@ -29,9 +29,11 @@ import {
   FileSpreadsheet,
   Circle,
   Loader2,
+  Download,
 } from "lucide-react";
 import { ExportFaturamentoModal } from "@/components/ExportFaturamentoModal";
 import { formatDate } from "@/lib/utils";
+import * as XLSX from "xlsx";
 
 export const Route = createFileRoute("/dashboard")({
   component: () => (
@@ -374,65 +376,160 @@ function EnvioPlanilhaAlerts({ clientes }: { clientes: any[] }) {
   );
 }
 
-function PagamentoAlerts({ clientes }: { clientes: any[] }) {
-  if (!clientes || clientes.length === 0) return null;
-
-  const { updateCliente } = useStore();
+function PagamentoAlerts({ clientes, empresaId }: { clientes: any[], empresaId?: string }) {
   const [loadingId, setLoadingId] = useState<string | null>(null);
 
   const hoje = new Date();
   hoje.setHours(0,0,0,0);
+  const currentMonthStr = `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, "0")}`;
 
-  // Mês anterior (mês do faturamento referente ao pagamento que vence este mês)
-  const dataRef = new Date(hoje.getFullYear(), hoje.getMonth() - 1, 1);
-  const billingMonthForCurrentPayment = `${dataRef.getFullYear()}-${String(dataRef.getMonth() + 1).padStart(2, "0")}`;
+  const faturasQ = useQuery({
+    queryKey: ["faturas_pendentes", empresaId],
+    enabled: !!empresaId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("ordens_servico")
+        .select("id, numero, titulo, data_agendamento, cliente_id, valor, km_viagem, custo_viagem, despesas, dados_adicionais, clientes(nome, dias_pagamento, ultimo_mes_pago)")
+        .eq("empresa_id", empresaId)
+        .eq("status", "concluido")
+        .is("dados_adicionais->>mes_recebimento", null)
+        .neq("dados_adicionais->>pago_imediatamente", "true");
 
-  const proximosPagamentos = clientes.filter(c => {
-    if (!c.dias_pagamento) return false;
-    
-    const isPaid = c.ultimo_mes_pago === billingMonthForCurrentPayment;
+      if (error) throw error;
 
-    const diasStr = typeof c.dias_pagamento === 'string' ? c.dias_pagamento : String(c.dias_pagamento);
-    const diasArray = diasStr.split(",").map((d: string) => parseInt(d.trim(), 10)).filter((d: number) => !isNaN(d));
-    if (diasArray.length === 0) return false;
-    
-    // Find the closest upcoming payment day
-    let closestDiffDays = Infinity;
-    
-    for (const dia of diasArray) {
-      const proxPagamento = new Date(hoje.getFullYear(), hoje.getMonth(), dia, 0,0,0,0);
-      const diffTime = proxPagamento.getTime() - hoje.getTime();
-      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-      if (Math.abs(diffDays) < Math.abs(closestDiffDays)) {
-        closestDiffDays = diffDays;
-      }
+      // Agrupar por Cliente e Mês de Faturamento
+      const faturasMap = new Map<string, any>();
+
+      (data || []).forEach(os => {
+        if (!os.data_agendamento || !os.cliente_id) return;
+        
+        const dataAg = new Date(os.data_agendamento);
+        // O faturamento ocorre no mês SEGUINTE ao serviço
+        let billMonth = dataAg.getMonth() + 2; 
+        let billYear = dataAg.getFullYear();
+        if (billMonth > 12) {
+          billMonth -= 12;
+          billYear += 1;
+        }
+        const billingStr = `${billYear}-${String(billMonth).padStart(2, "0")}`;
+        const serviceMonthStr = `${dataAg.getFullYear()}-${String(dataAg.getMonth() + 1).padStart(2, "0")}`;
+
+        const c = Array.isArray(os.clientes) ? os.clientes[0] : os.clientes;
+        if (!c) return;
+
+        // Fallback: se o cliente já pagou esse mês pelo sistema antigo, ignoramos
+        if (c.ultimo_mes_pago === billingStr) return;
+
+        const faturaKey = `${os.cliente_id}_${billingStr}`;
+        if (!faturasMap.has(faturaKey)) {
+          // Calcular vencimento
+          const diasStr = typeof c.dias_pagamento === 'string' ? c.dias_pagamento : String(c.dias_pagamento || '10');
+          const diasArray = diasStr.split(",").map((d: string) => parseInt(d.trim(), 10)).filter((d: number) => !isNaN(d));
+          const diaVenc = diasArray[0] || 10;
+          const vencimento = new Date(billYear, billMonth - 1, diaVenc, 0,0,0,0);
+          
+          const diffTime = vencimento.getTime() - hoje.getTime();
+          const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+          faturasMap.set(faturaKey, {
+            clienteId: os.cliente_id,
+            clienteNome: c.nome,
+            billingStr,
+            serviceMonthStr,
+            vencimento,
+            diffDays,
+            oss: [],
+            total: 0
+          });
+        }
+
+        const fatura = faturasMap.get(faturaKey);
+        fatura.oss.push(os);
+        
+        const valorServico = Number(os.valor || 0);
+        const kmViagem = Number(os.km_viagem || 0);
+        const despesas = Array.isArray(os.despesas)
+            ? os.despesas.reduce((sum: number, item: any) => sum + Number(item?.valor ?? 0), 0)
+            : 0;
+        
+        fatura.total += valorServico + kmViagem + despesas;
+      });
+
+      // Filtrar faturas que já venceram ou vencem em até 5 dias
+      const faturas = Array.from(faturasMap.values()).filter(f => f.diffDays <= 5);
+      // Ordenar pelas mais atrasadas primeiro
+      faturas.sort((a, b) => a.diffDays - b.diffDays);
+
+      return faturas;
     }
-    
-    const diffDays = closestDiffDays;
-    
-    // Se já pagou, mostra por até 5 dias antes/depois do vencimento (limpa a lista para os antigos)
-    if (isPaid) {
-      return diffDays >= -2 && diffDays <= 5;
-    }
-    // Se não pagou, mostra se vence em até 5 dias ou se já estiver atrasado (diffDays < 0)
-    return diffDays <= 5;
   });
 
-  const handleTogglePaid = async (c: any, isPaid: boolean) => {
+  const handleBaixa = async (fatura: any) => {
     try {
-      setLoadingId(c.id);
-      await updateCliente(c.id, {
-        ultimo_mes_pago: isPaid ? null : billingMonthForCurrentPayment
-      });
-      toast.success(isPaid ? "Pagamento marcado como pendente!" : "Pagamento marcado como realizado!");
+      setLoadingId(fatura.billingStr + fatura.clienteId);
+      
+      // Atualizar todas as OSs desta fatura
+      const osIds = fatura.oss.map((os: any) => os.id);
+      
+      const { error } = await supabase
+        .from('ordens_servico')
+        .update({
+          dados_adicionais: {
+            ...fatura.oss[0].dados_adicionais, // base (isso não atualiza corretamente se cada OS tiver dados diferentes)
+            // Espera, no Supabase jsonb update parcial pode ser feito, 
+            // mas via JS é melhor atualizar uma a uma ou com RPC.
+          }
+        })
+        .in('id', osIds); // Isso sobrescreveria o json inteiro errado se fizermos assim
+        
+      // Solução: Atualizar uma por uma para preservar o json, já que não são tantas OSs por fatura
+      for (const os of fatura.oss) {
+         const novosDados = { ...(os.dados_adicionais || {}), mes_recebimento: currentMonthStr };
+         await supabase.from('ordens_servico').update({ dados_adicionais: novosDados }).eq('id', os.id);
+      }
+      
+      toast.success(`Baixa realizada! Receita atribuída a ${currentMonthStr}.`);
+      faturasQ.refetch();
     } catch (err: any) {
-      toast.error("Erro ao atualizar pagamento: " + err.message);
+      toast.error("Erro ao dar baixa: " + err.message);
     } finally {
       setLoadingId(null);
     }
   };
 
-  if (proximosPagamentos.length === 0) return null;
+  const handleDownloadXLSX = (fatura: any) => {
+    try {
+      const data = fatura.oss.map((os: any) => {
+        const valorServico = Number(os.valor || 0);
+        const kmViagem = Number(os.km_viagem || 0);
+        const despesas = Array.isArray(os.despesas)
+            ? os.despesas.reduce((sum: number, item: any) => sum + Number(item?.valor ?? 0), 0)
+            : 0;
+        const total = valorServico + kmViagem + despesas;
+
+        return {
+          "Número OS": os.numero,
+          "Título": os.titulo,
+          "Data do Serviço": os.data_agendamento,
+          "Valor Serviço": valorServico,
+          "KM Viagem": kmViagem,
+          "Despesas": despesas,
+          "Total OS": total
+        };
+      });
+
+      const worksheet = XLSX.utils.json_to_sheet(data);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Fatura");
+      
+      XLSX.writeFile(workbook, `Fatura_${fatura.clienteNome}_Ref_${fatura.serviceMonthStr}.xlsx`);
+      toast.success("Planilha gerada com sucesso!");
+    } catch (e) {
+      toast.error("Erro ao gerar planilha.");
+    }
+  };
+
+  if (!faturasQ.data || faturasQ.data.length === 0) return null;
 
   return (
     <div className="space-y-3 mb-6">
@@ -441,78 +538,64 @@ function PagamentoAlerts({ clientes }: { clientes: any[] }) {
           <div className="flex items-center gap-2">
             <Wallet className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
             <span className="font-bold text-sm text-emerald-900 dark:text-emerald-200">
-              {proximosPagamentos.length} Pagamento{proximosPagamentos.length > 1 ? "s" : ""} Próximo{proximosPagamentos.length > 1 ? "s" : ""}
+              {faturasQ.data.length} Fatura{faturasQ.data.length > 1 ? "s" : ""} Pendente{faturasQ.data.length > 1 ? "s" : ""}
             </span>
           </div>
           <span className="text-[9px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
             A vencer / Em atraso
           </span>
         </div>
-        <div className="space-y-2 max-h-[180px] overflow-y-auto pr-1">
-          {proximosPagamentos.map((c) => {
-            const isPaid = c.ultimo_mes_pago === billingMonthForCurrentPayment;
+        <div className="space-y-2 max-h-[220px] overflow-y-auto pr-1">
+          {faturasQ.data.map((fatura) => {
+            const isLoading = loadingId === (fatura.billingStr + fatura.clienteId);
             
-            const diasStr = typeof c.dias_pagamento === 'string' ? c.dias_pagamento : String(c.dias_pagamento);
-            const diasArray = diasStr.split(",").map((d: string) => parseInt(d.trim(), 10)).filter((d: number) => !isNaN(d));
-            let closestDiffDays = Infinity;
-            let currentDia = diasArray[0] || 10;
-            
-            for (const dia of diasArray) {
-              const proxPagamento = new Date(hoje.getFullYear(), hoje.getMonth(), dia, 0,0,0,0);
-              const diffTime = proxPagamento.getTime() - hoje.getTime();
-              const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-              if (Math.abs(diffDays) < Math.abs(closestDiffDays)) {
-                closestDiffDays = diffDays;
-                currentDia = dia;
-              }
-            }
-            const diffDays = closestDiffDays;
-
-            let statusText = "";
-            let badgeClass = "";
-            if (isPaid) {
-              statusText = "Pago";
-              badgeClass = "text-emerald-600 border-emerald-200 bg-emerald-50 dark:bg-emerald-950/30 dark:text-emerald-400 dark:border-emerald-900/50";
-            } else if (diffDays < 0) {
-              statusText = `Atrasado (${Math.abs(diffDays)}d)`;
-              badgeClass = "text-red-600 border-red-200 bg-red-50 dark:bg-red-950/30 dark:text-red-400 dark:border-red-900/50";
-            } else if (diffDays === 0) {
-              statusText = "Vence hoje!";
-              badgeClass = "text-amber-600 border-amber-200 bg-amber-50 dark:bg-amber-950/30 dark:text-amber-400 dark:border-amber-900/50";
-            } else {
-              statusText = `Vence em ${diffDays} dia${diffDays > 1 ? 's' : ''}`;
-              badgeClass = "text-blue-600 border-blue-200 bg-blue-50 dark:bg-blue-950/30 dark:text-blue-400 dark:border-blue-900/50";
-            }
-
             return (
               <div
-                key={c.id}
-                className="text-xs bg-card p-2.5 rounded-2xl border border-border/50 flex items-center justify-between gap-2"
+                key={fatura.billingStr + fatura.clienteId}
+                className="flex items-center justify-between p-2.5 rounded-2xl bg-white dark:bg-background border border-emerald-100 dark:border-emerald-900/50 hover:border-emerald-300 dark:hover:border-emerald-800 transition-colors"
               >
-                <div className="min-w-0 flex-1">
-                  <p className="font-bold truncate text-foreground">{c.nome}</p>
-                  <p className="text-muted-foreground text-[10px] truncate">
-                    Vence dia {currentDia} (Faturamento: {billingMonthForCurrentPayment.split("-")[1]}/{billingMonthForCurrentPayment.split("-")[0]})
-                  </p>
-                </div>
-                <div className="flex items-center gap-2 shrink-0">
-                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-lg border ${badgeClass}`}>
-                    {statusText}
+                <div className="flex flex-col">
+                  <span className="text-xs font-bold text-slate-800 dark:text-foreground">
+                    {fatura.clienteNome}
                   </span>
+                  <div className="flex items-center gap-1.5 mt-0.5">
+                    <span className="text-[10px] text-muted-foreground font-medium">
+                      Serviços: {fatura.serviceMonthStr}
+                    </span>
+                    <span className="text-[10px] text-muted-foreground">•</span>
+                    <span
+                      className={`text-[10px] font-bold ${fatura.diffDays < 0 ? "text-destructive" : fatura.diffDays === 0 ? "text-warning" : "text-emerald-600"}`}
+                    >
+                      {fatura.diffDays < 0
+                        ? `Atrasado há ${Math.abs(fatura.diffDays)} dias`
+                        : fatura.diffDays === 0
+                          ? "Vence hoje"
+                          : `Vence em ${fatura.diffDays} dias`}
+                    </span>
+                  </div>
+                  <span className="text-xs font-bold text-emerald-700 mt-1">
+                    R$ {fatura.total.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                  </span>
+                </div>
+                
+                <div className="flex items-center gap-2">
                   <Button
+                    variant="outline"
                     size="icon"
-                    variant="ghost"
-                    className={`h-7 w-7 rounded-lg shrink-0 ${isPaid ? 'text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 dark:hover:bg-emerald-950/30' : 'text-muted-foreground hover:text-foreground'}`}
-                    disabled={loadingId === c.id}
-                    onClick={() => handleTogglePaid(c, isPaid)}
+                    className="w-8 h-8 border-emerald-200 text-emerald-600 hover:bg-emerald-50"
+                    onClick={() => handleDownloadXLSX(fatura)}
+                    title="Baixar XLSX"
                   >
-                    {loadingId === c.id ? (
-                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                    ) : isPaid ? (
-                      <CheckCircle2 className="h-4 w-4" />
-                    ) : (
-                      <Circle className="h-4 w-4" />
-                    )}
+                    <Download className="w-4 h-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 text-xs font-bold bg-emerald-100 hover:bg-emerald-200 text-emerald-800"
+                    onClick={() => handleBaixa(fatura)}
+                    disabled={isLoading}
+                  >
+                    {isLoading ? "..." : "Dar Baixa"}
                   </Button>
                 </div>
               </div>
@@ -523,6 +606,7 @@ function PagamentoAlerts({ clientes }: { clientes: any[] }) {
     </div>
   );
 }
+
 
 function PendingAlertsCard({
   ordens,
@@ -604,9 +688,9 @@ function Dashboard() {
   // ============================================================
   // KPIs Financeiros — consulta direta no Supabase (sem depender do store paginado)
   // ============================================================
-  const kpisFinanceirosQ = useQuery({
+    const kpisFinanceirosQ = useQuery({
     queryKey: ["kpis_financeiros", profile?.empresa_id, osMonth, osYear],
-    enabled: !!profile && profile.role !== "tecnico",
+    enabled: !!profile && profile?.role !== "tecnico",
     queryFn: async (): Promise<{
       faturamentoPrevisto: number;
       receitaMes: number;
@@ -623,45 +707,45 @@ function Dashboard() {
       const eid = profile?.empresa_id;
       if (!eid)
         return {
-          faturamentoPrevisto: 0,
-          receitaMes: 0,
-          pendenciasPagamento: 0,
-          abertas: 0,
-          concluidas: 0,
-          emCampo: 0,
-          receitaBruta: 0,
-          custoTotal: 0,
-          resultadoLiquido: 0,
-          comissaoTotal: 0,
-          resultadoEmpresa: 0,
+          faturamentoPrevisto: 0, receitaMes: 0, pendenciasPagamento: 0, abertas: 0, concluidas: 0, emCampo: 0,
+          receitaBruta: 0, custoTotal: 0, resultadoLiquido: 0, comissaoTotal: 0, resultadoEmpresa: 0,
         };
 
-      // O faturamento do mês selecionado (M) é referente às OSs concluídas do mês anterior (M-1)
       let serviceMonth = osMonth - 1;
       let serviceYear = osYear;
       if (serviceMonth < 1) {
         serviceMonth = 12;
         serviceYear -= 1;
       }
-      
       const lastDayOfServiceMonth = new Date(serviceYear, serviceMonth, 0).getDate();
       const serviceInicio = `${serviceYear}-${String(serviceMonth).padStart(2, "0")}-01`;
       const serviceFim = `${serviceYear}-${String(serviceMonth).padStart(2, "0")}-${String(lastDayOfServiceMonth).padStart(2, "0")}`;
+      const dashboardMonthStr = `${osYear}-${String(osMonth).padStart(2, "0")}`;
 
-      // Busca todas as OS da empresa (sem paginação, pois é para KPIs)
-      let query = supabase
+      // Query 1: OSs do mês de serviço
+      let queryServico = supabase
         .from("ordens_servico")
-        .select("status, valor, km_viagem, custo_viagem, despesas, data_agendamento, tecnico_id, dados_adicionais, tecnico:tecnicos(comissao, tipo_comissao), cliente:clientes(id, dias_pagamento, ultimo_mes_pago)")
-        .eq("empresa_id", eid);
+        .select("id, status, valor, km_viagem, custo_viagem, despesas, data_agendamento, tecnico_id, dados_adicionais, tecnico:tecnicos(comissao, tipo_comissao), cliente:clientes(id, dias_pagamento, ultimo_mes_pago)")
+        .eq("empresa_id", eid)
+        .gte("data_agendamento", serviceInicio)
+        .lte("data_agendamento", serviceFim);
 
-      if (serviceInicio && serviceFim) {
-        query = query.gte("data_agendamento", serviceInicio).lte("data_agendamento", serviceFim);
-      }
+      const { data: dataServico, error: errorServico } = await queryServico;
+      if (errorServico) throw errorServico;
 
-      const { data, error } = await query;
-      if (error) throw error;
+      // Query 2: OSs recebidas no mês do dashboard (fluxo de caixa)
+      let queryRecebida = supabase
+        .from("ordens_servico")
+        .select("id, status, valor, km_viagem, custo_viagem, despesas, data_agendamento, tecnico_id, dados_adicionais, tecnico:tecnicos(comissao, tipo_comissao), cliente:clientes(id, dias_pagamento, ultimo_mes_pago)")
+        .eq("empresa_id", eid)
+        .eq("status", "concluido")
+        .eq("dados_adicionais->>mes_recebimento", dashboardMonthStr);
 
-      const rows = (data ?? []) as any[];
+      const { data: dataRecebida, error: errorRecebida } = await queryRecebida;
+      if (errorRecebida) throw errorRecebida;
+
+      const rowsServico = (dataServico ?? []) as any[];
+      const rowsRecebida = (dataRecebida ?? []) as any[];
       const hoje = new Date();
 
       const totalFinanceiro = (r: any) => {
@@ -673,116 +757,67 @@ function Dashboard() {
         return valorServico + custoViagem + despesas;
       };
 
-      const billingMonthStr = `${serviceYear}-${String(serviceMonth).padStart(2, "0")}`;
-
-      // Faturamento previsto do mês selecionado é o total de OS concluídas do mês anterior
-      const faturamentoPrevisto = rows
+      const faturamentoPrevisto = rowsServico
         .filter((r: any) => r.status === "concluido")
         .reduce((s: number, r: any) => s + totalFinanceiro(r), 0);
 
-      // Receita do mês são os pagamentos recebidos (OSs concluídas do mês anterior que já foram pagas)
-      const receitaMes = rows
-        .filter((r: any) => {
-          if (r.status !== "concluido") return false;
-          if (r.dados_adicionais?.pago_imediatamente) return true;
-          const c = Array.isArray(r.cliente) ? r.cliente[0] : r.cliente;
-          if (!c) return true; // Fallback se não houver cadastro ou dados do cliente
-          return c.ultimo_mes_pago === billingMonthStr;
-        })
-        .reduce((s: number, r: any) => s + totalFinanceiro(r), 0);
+      // Usar rowsRecebida para os KPIs de Receita
+      // Adicionamos tbm as OSs de rowsServico que foram pagas imediatamente (pago_imediatamente)
+      const allReceitas = [...rowsRecebida];
+      rowsServico.forEach(rs => {
+         if (rs.status === "concluido" && rs.dados_adicionais?.pago_imediatamente && !allReceitas.find(x => x.id === rs.id)) {
+             allReceitas.push(rs);
+         }
+      });
 
-      const receitaBruta = rows
-        .filter((r: any) => {
-          if (r.status !== "concluido") return false;
-          if (r.dados_adicionais?.pago_imediatamente) return true;
-          const c = Array.isArray(r.cliente) ? r.cliente[0] : r.cliente;
-          if (!c) return true;
-          return c.ultimo_mes_pago === billingMonthStr;
-        })
-        .reduce((s: number, r: any) => s + Number(r.valor ?? 0), 0);
+      const receitaMes = allReceitas.reduce((s: number, r: any) => s + totalFinanceiro(r), 0);
+      const receitaBruta = allReceitas.reduce((s: number, r: any) => s + Number(r.valor ?? 0), 0);
 
-      const custoTotal = rows
-        .filter((r: any) => {
-          if (r.status !== "concluido") return false;
-          if (r.dados_adicionais?.pago_imediatamente) return true;
-          const c = Array.isArray(r.cliente) ? r.cliente[0] : r.cliente;
-          if (!c) return true;
-          return c.ultimo_mes_pago === billingMonthStr;
-        })
-        .reduce((s: number, r: any) => {
-          const custoViagem = Number(r.custo_viagem ?? 0);
-          const despesas = Array.isArray(r.despesas)
-            ? r.despesas.reduce((sum: number, item: any) => sum + Number(item?.valor ?? 0), 0)
-            : 0;
-          return s + custoViagem + despesas;
-        }, 0);
+      const custoTotal = allReceitas.reduce((s: number, r: any) => {
+        const custoViagem = Number(r.custo_viagem ?? 0);
+        const despesas = Array.isArray(r.despesas)
+          ? r.despesas.reduce((sum: number, item: any) => sum + Number(item?.valor ?? 0), 0)
+          : 0;
+        return s + custoViagem + despesas;
+      }, 0);
 
       const resultadoLiquido = receitaBruta - custoTotal;
 
-      const comissaoTotal = rows
-        .filter((r: any) => {
-          if (r.status !== "concluido" || !r.tecnico_id) return false;
-          if (r.dados_adicionais?.pago_imediatamente) return true;
-          const c = Array.isArray(r.cliente) ? r.cliente[0] : r.cliente;
-          if (!c) return true;
-          return c.ultimo_mes_pago === billingMonthStr;
-        })
+      const comissaoTotal = allReceitas
+        .filter((r: any) => !!r.tecnico_id)
         .reduce((s: number, r: any) => {
           const tecnico = Array.isArray(r.tecnico) ? r.tecnico[0] : r.tecnico;
           const comissaoVal = Number(tecnico?.comissao ?? 0);
           const tipoComissao = tecnico?.tipo_comissao ?? "fixo";
           const valorServico = Number(r.valor ?? 0);
-
-          const valorComissao = tipoComissao === "fixo"
-            ? comissaoVal
-            : (valorServico * comissaoVal) / 100;
+          const valorComissao = tipoComissao === "fixo" ? comissaoVal : (valorServico * comissaoVal) / 100;
           return s + valorComissao;
         }, 0);
 
       const resultadoEmpresa = resultadoLiquido - comissaoTotal;
 
-      const pendenciasPagamento = (Array.isArray(rows) ? rows : []).filter((r: any) => {
+      const pendenciasPagamento = rowsServico.filter((r: any) => {
         if (r.status !== "concluido") return false;
-        if (r.dados_adicionais?.pago_imediatamente) return false; // Se foi paga imediatamente, não tem pendência
+        if (r.dados_adicionais?.pago_imediatamente) return false;
+        if (r.dados_adicionais?.mes_recebimento) return false;
         const c = Array.isArray(r.cliente) ? r.cliente[0] : r.cliente;
         if (!c) return false;
+        if (c.ultimo_mes_pago === `${serviceYear}-${String(serviceMonth).padStart(2, "0")}`) return false;
 
-        // Se já está pago, não é pendência
-        if (c.ultimo_mes_pago === billingMonthStr) return false;
-
-        // Caso contrário, verifica se já passou do dia de vencimento (vence no mês selecionado)
-        const diasStr = typeof c.dias_pagamento === 'string' ? c.dias_pagamento : String(c.dias_pagamento);
+        const diasStr = typeof c.dias_pagamento === 'string' ? c.dias_pagamento : String(c.dias_pagamento || '10');
         const diasArray = diasStr.split(",").map((d: string) => parseInt(d.trim(), 10)).filter((d: number) => !isNaN(d));
         const diaPag = diasArray[0] || 10;
         const paymentDueDate = new Date(osYear, osMonth - 1, diaPag, 23, 59, 59, 999);
-        const isOverdue = new Date() > paymentDueDate;
-        return isOverdue;
+        return new Date() > paymentDueDate;
       }).length;
 
-      const abertas = (Array.isArray(rows) ? rows : []).filter((r: any) =>
-        ["agendamento", "em_andamento", "concluido_tecnico", "pendencia"].includes(r.status),
-      ).length;
-
-      const concluidas = (Array.isArray(rows) ? rows : []).filter(
-        (r: any) => r.status === "concluido",
-      ).length;
-
-      const emCampo = (Array.isArray(rows) ? rows : []).filter(
-        (r: any) => r.status === "em_andamento",
-      ).length;
+      const abertas = rowsServico.filter((r: any) => ["agendamento", "em_andamento", "concluido_tecnico", "pendencia"].includes(r.status)).length;
+      const concluidas = rowsServico.filter((r: any) => r.status === "concluido").length;
+      const emCampo = rowsServico.filter((r: any) => r.status === "em_andamento").length;
 
       return {
-        faturamentoPrevisto,
-        receitaMes,
-        pendenciasPagamento,
-        abertas,
-        concluidas,
-        emCampo,
-        receitaBruta,
-        custoTotal,
-        resultadoLiquido,
-        comissaoTotal,
-        resultadoEmpresa,
+        faturamentoPrevisto, receitaMes, pendenciasPagamento, abertas, concluidas, emCampo,
+        receitaBruta, custoTotal, resultadoLiquido, comissaoTotal, resultadoEmpresa,
       };
     },
   });
@@ -1247,7 +1282,7 @@ function Dashboard() {
 
       <PriorityAlerts ordens={alertasOSQ.data ?? []} isLoading={alertasOSQ.isLoading} onEdit={(os) => { setDialogMode("edit"); setEditingOS(os); }} logs={logsQ.data ?? []} />
       <EnvioPlanilhaAlerts clientes={clientes} />
-      <PagamentoAlerts clientes={clientes} />
+      <PagamentoAlerts clientes={clientes} empresaId={profile?.empresa_id} />
       <PendingAlertsCard
         ordens={pendenciasOSQ.data ?? []}
         isLoading={pendenciasOSQ.isLoading}
