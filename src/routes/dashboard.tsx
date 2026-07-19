@@ -391,9 +391,7 @@ function PagamentoAlerts({ clientes, empresaId }: { clientes: any[], empresaId?:
         .from("ordens_servico")
         .select("id, numero, titulo, data_agendamento, cliente_id, valor, km_viagem, custo_viagem, despesas, dados_adicionais, clientes(nome, dias_pagamento, ultimo_mes_pago)")
         .eq("empresa_id", empresaId)
-        .eq("status", "concluido")
-        .is("dados_adicionais->>mes_recebimento", null)
-        .neq("dados_adicionais->>pago_imediatamente", "true");
+        .eq("status", "concluido");
 
       if (error) throw error;
 
@@ -401,6 +399,10 @@ function PagamentoAlerts({ clientes, empresaId }: { clientes: any[], empresaId?:
       const faturasMap = new Map<string, any>();
 
       (data || []).forEach(os => {
+        const isPaidInstantly = os.dados_adicionais?.pago_imediatamente === true || os.dados_adicionais?.pago_imediatamente === "true";
+        const hasMesRecebimento = !!os.dados_adicionais?.mes_recebimento;
+        if (isPaidInstantly || hasMesRecebimento) return;
+
         if (!os.data_agendamento || !os.cliente_id) return;
         
         const dataAg = new Date(os.data_agendamento);
@@ -417,8 +419,8 @@ function PagamentoAlerts({ clientes, empresaId }: { clientes: any[], empresaId?:
         const c = Array.isArray(os.clientes) ? os.clientes[0] : os.clientes;
         if (!c) return;
 
-        // Fallback: se o cliente já pagou esse mês pelo sistema antigo, ignoramos
-        if (c.ultimo_mes_pago === billingStr) return;
+        // Fallback: se o cliente já pagou esse mês ou um mês posterior pelo sistema antigo, ignoramos
+        if (c.ultimo_mes_pago && c.ultimo_mes_pago >= billingStr) return;
 
         const faturaKey = `${os.cliente_id}_${billingStr}`;
         if (!faturasMap.has(faturaKey)) {
@@ -455,8 +457,8 @@ function PagamentoAlerts({ clientes, empresaId }: { clientes: any[], empresaId?:
         fatura.total += valorServico + kmViagem + despesas;
       });
 
-      // Filtrar faturas que já venceram ou vencem em até 5 dias
-      const faturas = Array.from(faturasMap.values()).filter(f => f.diffDays <= 5);
+      // Mostrar todas as faturas pendentes, independente de quão longe está o vencimento
+      const faturas = Array.from(faturasMap.values());
       // Ordenar pelas mais atrasadas primeiro
       faturas.sort((a, b) => a.diffDays - b.diffDays);
 
