@@ -221,6 +221,10 @@ interface Store {
   setOsSearchTecnico: (v: string) => void;
   osFilterStatus: string;
   setOsFilterStatus: (v: string) => void;
+  osSortField: "data" | "cliente" | "valor";
+  setOsSortField: (v: "data" | "cliente" | "valor") => void;
+  osSortDirection: "asc" | "desc";
+  setOsSortDirection: (v: "asc" | "desc") => void;
   addOS: (o: Omit<OS, "id" | "numero" | "criadaEm" | "rat">) => Promise<void>;
   updateOS: (id: string, patch: Partial<OS>) => Promise<void>;
   updateRAT: (id: string, patch: Partial<RAT>) => void;
@@ -258,6 +262,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const [osSearchCliente, setOsSearchCliente] = useState("");
   const [osSearchTecnico, setOsSearchTecnico] = useState("");
   const [osFilterStatus, setOsFilterStatus] = useState("");
+  const [osSortField, setOsSortField] = useState<"data" | "cliente" | "valor">("data");
+  const [osSortDirection, setOsSortDirection] = useState<"asc" | "desc">("desc");
 
   // Paginação para Clientes, Técnicos e Estoque
   const [clientesPage, setClientesPage] = useState(0);
@@ -613,6 +619,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       osSearchCliente,
       osSearchTecnico,
       osFilterStatus,
+      osSortField,
+      osSortDirection,
       osPageSize,
     ],
     enabled,
@@ -674,8 +682,15 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
       const from = osPage * osPageSize;
       const to = from + osPageSize - 1;
+
+      // Ordenação
+      let orderCol = "created_at";
+      if (osSortField === "data") orderCol = "data_agendamento";
+      if (osSortField === "cliente") orderCol = "cliente_id"; // Para ordernar cliente com inner join o Supabase requer syntax especial, mas cliente_id aproxima
+      if (osSortField === "valor") orderCol = "valor";
+      
       const { data, error, count } = await query
-        .order("created_at", { ascending: false })
+        .order(orderCol, { ascending: osSortDirection === "asc", nullsFirst: false })
         .range(from, to);
 
       if (error) {
@@ -774,12 +789,17 @@ export function StoreProvider({ children }: { children: ReactNode }) {
           modelo_rat_url: c.modelo_rat_url ?? null,
           ultimo_mes_pago: c.ultimo_mes_pago ?? null,
         })
-        .select("id")
+        .select("*")
         .single();
       if (error) throw error;
-      return data.id as string;
+      return data;
     },
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ["clientes"] }); qc.invalidateQueries({ queryKey: ["all_clientes"] }); },
+    onSuccess: (data) => { 
+      qc.setQueryData(["clientes"], (old: any) => old ? [...old, data] : [data]);
+      qc.setQueryData(["all_clientes"], (old: any) => old ? [...old, data] : [data]);
+      qc.invalidateQueries({ queryKey: ["clientes"] }); 
+      qc.invalidateQueries({ queryKey: ["all_clientes"] }); 
+    },
     onError: (e: Error) => toast.error(e.message),
   });
 
@@ -1261,7 +1281,8 @@ function isValidCpfCnpj(val: string) {
       setClientesPage(p);
     },
     addCliente: async (c) => {
-      return await addClienteM.mutateAsync(c);
+      const data = await addClienteM.mutateAsync(c);
+      return data.id as string;
     },
     updateCliente: async (id, patch) => {
       await updateClienteM.mutateAsync({ id, patch });
@@ -1347,6 +1368,10 @@ function isValidCpfCnpj(val: string) {
       setOsPage(0);
       setOsFilterStatus(v);
     },
+    osSortField,
+    setOsSortField,
+    osSortDirection,
+    setOsSortDirection,
     addOS: async (o) => {
       await addOSM.mutateAsync(o);
     },

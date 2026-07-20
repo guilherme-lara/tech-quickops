@@ -107,7 +107,7 @@ function DashboardTecnico() {
       color: "from-emerald-500 to-teal-500",
     },
     {
-      label: "Recebido",
+      label: "Faturamento do mês",
       value: fmtBRL(Number(stats?.valor_recebido ?? 0)),
       icon: Wallet,
       color: "from-blue-500 to-cyan-500",

@@ -119,6 +119,10 @@ function OSPage() {
     setOsSearchTecnico,
     osFilterStatus,
     setOsFilterStatus,
+    osSortField,
+    setOsSortField,
+    osSortDirection,
+    setOsSortDirection,
     osMonth,
     osYear,
   } = useStore();
@@ -134,7 +138,7 @@ function OSPage() {
   // Dispara a busca quando os filtros ou página mudam
   useEffect(() => {
     queryClient.invalidateQueries({ queryKey: ["ordens_servico"] });
-  }, [osPage, osSearchCliente, osSearchTecnico, osFilterStatus, osMonth, osYear, queryClient]);
+  }, [osPage, osSearchCliente, osSearchTecnico, osFilterStatus, osMonth, osYear, osSortField, osSortDirection, queryClient]);
   const totalPages = Math.max(1, Math.ceil(osTotal / osPageSize));
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<OS | null>(null);
@@ -836,6 +840,11 @@ function OSPage() {
                       onChange={(e) =>
                         setQuickCliForm({ ...quickCliForm, telefone: maskPhoneBR(e.target.value) })
                       }
+                      onPaste={(e) => {
+                        e.preventDefault();
+                        const pasted = e.clipboardData.getData("text");
+                        setQuickCliForm({ ...quickCliForm, telefone: maskPhoneBR(pasted) });
+                      }}
                       placeholder="(11) 99999-0000"
                       inputMode="numeric"
                     />
@@ -1054,11 +1063,47 @@ function OSPage() {
                         OS / Título
                       </th>
                       <th className="px-5 py-3 font-semibold">Status</th>
-                      <th className="px-5 py-3 font-semibold">Data</th>
+                      <th 
+                        className="px-5 py-3 font-semibold cursor-pointer hover:bg-muted/80 transition-colors"
+                        onClick={() => {
+                          if (osSortField === "data") {
+                            setOsSortDirection(osSortDirection === "asc" ? "desc" : "asc");
+                          } else {
+                            setOsSortField("data");
+                            setOsSortDirection("desc");
+                          }
+                        }}
+                      >
+                        Data {osSortField === "data" && (osSortDirection === "asc" ? "↑" : "↓")}
+                      </th>
                       <th className="px-5 py-3 font-semibold">Horário</th>
-                      <th className="px-5 py-3 font-semibold">Cliente</th>
+                      <th 
+                        className="px-5 py-3 font-semibold cursor-pointer hover:bg-muted/80 transition-colors"
+                        onClick={() => {
+                          if (osSortField === "cliente") {
+                            setOsSortDirection(osSortDirection === "asc" ? "desc" : "asc");
+                          } else {
+                            setOsSortField("cliente");
+                            setOsSortDirection("asc");
+                          }
+                        }}
+                      >
+                        Cliente {osSortField === "cliente" && (osSortDirection === "asc" ? "↑" : "↓")}
+                      </th>
                       <th className="px-5 py-3 font-semibold">Técnico</th>
-                      <th className="px-5 py-3 font-semibold">Valor</th>
+                      <th 
+                        className="px-5 py-3 font-semibold cursor-pointer hover:bg-muted/80 transition-colors"
+                        onClick={() => {
+                          if (osSortField === "valor") {
+                            setOsSortDirection(osSortDirection === "asc" ? "desc" : "asc");
+                          } else {
+                            setOsSortField("valor");
+                            setOsSortDirection("desc");
+                          }
+                        }}
+                      >
+                        Valor {osSortField === "valor" && (osSortDirection === "asc" ? "↑" : "↓")}
+                      </th>
                       <th className="px-5 py-3"></th>
                     </tr>
                   </thead>
@@ -1949,6 +1994,11 @@ export function EditOSDialog({
               <Input
                 value={quickCliForm.telefone}
                 onChange={(e) => setQuickCliForm({ ...quickCliForm, telefone: maskPhoneBR(e.target.value) })}
+                onPaste={(e) => {
+                  e.preventDefault();
+                  const pasted = e.clipboardData.getData("text");
+                  setQuickCliForm({ ...quickCliForm, telefone: maskPhoneBR(pasted) });
+                }}
                 placeholder="(11) 99999-0000"
               />
             </div>

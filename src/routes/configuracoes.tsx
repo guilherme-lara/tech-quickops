@@ -423,7 +423,7 @@ function ConfiguracoesPage() {
                   </div>
                   <div className="space-y-2">
                     <Label>E-mail de Acesso</Label>
-                    <Input value={user?.email ?? ""} disabled className="bg-muted/50" />
+                    <Input value={user?.email?.includes("techquickops.com") ? user.email.split("@")[0] : (user?.email ?? "")} disabled className="bg-muted/50" />
                   </div>
                 </div>
 

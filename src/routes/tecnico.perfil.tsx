@@ -173,7 +173,7 @@ function Perfil() {
       <div className="p-4 space-y-3 pb-28">
         <Card className="p-4 flex items-center gap-3">
           <Mail className="w-4 h-4 text-muted-foreground" />
-          <span className="text-sm">{user?.email}</span>
+          <span className="text-sm">{user?.email?.includes("techquickops.com") ? user.email.split("@")[0] : user?.email}</span>
         </Card>
 
         <Card className="p-4 space-y-2">

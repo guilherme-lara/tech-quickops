@@ -334,19 +334,17 @@ function EquipePage() {
 
         const novaSenha = generateRandomPassword();
 
-        const dadosAdicionais: any = {};
-        if (form.cidade_atendimento) dadosAdicionais.cidade_atendimento = form.cidade_atendimento;
-        if (form.raio_atendimento) dadosAdicionais.raio_atendimento = Number(form.raio_atendimento);
-
         const { error } = await (supabase.rpc as any)("criar_tecnico", {
           p_nome: form.nome,
-          p_username: form.username.toLowerCase(),
+          p_usuario: form.username.toLowerCase(),
           p_senha: novaSenha,
-          p_tipo_comissao: form.tipo_comissao,
-          p_comissao: Number(form.comissao) || 0,
           p_telefone: form.telefone || null,
+          p_tipo_comissao: form.tipo_comissao,
+          p_valor_comissao: Number(form.comissao) || 0,
           p_chave_pix: form.chave_pix || null,
-          p_dados_adicionais: Object.keys(dadosAdicionais).length > 0 ? dadosAdicionais : null,
+          p_perfil: form.perfil || null,
+          p_cidade: form.cidade_atendimento || null,
+          p_raio: form.raio_atendimento ? Number(form.raio_atendimento) : null,
           p_empresa_id: empresaId,
         });
         if (error) throw error;
