@@ -176,6 +176,10 @@ interface Store {
   clientesTotal: number;
   clientesSearch: string;
   setClientesSearch: (v: string) => void;
+  clientesSortField: "nome" | "cidade" | "ultimo_mes";
+  setClientesSortField: (v: "nome" | "cidade" | "ultimo_mes") => void;
+  clientesSortDirection: "asc" | "desc";
+  setClientesSortDirection: (v: "asc" | "desc") => void;
   setClientesPage: (p: number) => void;
   addCliente: (c: Omit<Cliente, "id">) => Promise<string>;
   updateCliente: (id: string, patch: Partial<Cliente>) => Promise<void>;
@@ -188,6 +192,10 @@ interface Store {
   tecnicosTotal: number;
   tecnicosSearch: string;
   setTecnicosSearch: (v: string) => void;
+  tecnicosSortField: "nome" | "comissao" | "telefone";
+  setTecnicosSortField: (v: "nome" | "comissao" | "telefone") => void;
+  tecnicosSortDirection: "asc" | "desc";
+  setTecnicosSortDirection: (v: "asc" | "desc") => void;
   setTecnicosPage: (p: number) => void;
   addTecnico: (t: Omit<Tecnico, "id">) => Promise<string>;
   updateTecnico: (id: string, patch: Partial<Tecnico>) => Promise<void>;
@@ -199,6 +207,10 @@ interface Store {
   estoqueTotal: number;
   estoqueSearch: string;
   setEstoqueSearch: (v: string) => void;
+  estoqueSortField: "nome" | "quantidade" | "valor";
+  setEstoqueSortField: (v: "nome" | "quantidade" | "valor") => void;
+  estoqueSortDirection: "asc" | "desc";
+  setEstoqueSortDirection: (v: "asc" | "desc") => void;
   setEstoquePage: (p: number) => void;
   addItem: (i: Omit<Item, "id">) => Promise<void>;
   updateItem: (id: string, patch: Partial<Item>) => Promise<void>;
@@ -269,12 +281,18 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const [clientesPage, setClientesPage] = useState(0);
   const [clientesTotal, setClientesTotal] = useState(0);
   const [clientesSearch, setClientesSearch] = useState("");
+  const [clientesSortField, setClientesSortField] = useState<"nome" | "cidade" | "ultimo_mes">("nome");
+  const [clientesSortDirection, setClientesSortDirection] = useState<"asc" | "desc">("asc");
   const [tecnicosPage, setTecnicosPage] = useState(0);
   const [tecnicosTotal, setTecnicosTotal] = useState(0);
   const [tecnicosSearch, setTecnicosSearch] = useState("");
+  const [tecnicosSortField, setTecnicosSortField] = useState<"nome" | "comissao" | "telefone">("nome");
+  const [tecnicosSortDirection, setTecnicosSortDirection] = useState<"asc" | "desc">("asc");
   const [estoquePage, setEstoquePage] = useState(0);
   const [estoqueTotal, setEstoqueTotal] = useState(0);
   const [estoqueSearch, setEstoqueSearch] = useState("");
+  const [estoqueSortField, setEstoqueSortField] = useState<"nome" | "quantidade" | "valor">("nome");
+  const [estoqueSortDirection, setEstoqueSortDirection] = useState<"asc" | "desc">("asc");
 
   // Hydrate auth + perfil
   useEffect(() => {
@@ -470,7 +488,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const empresaId = user?.empresaId;
 
   const clientesQ = useQuery({
-    queryKey: ["clientes", empresaId, clientesPage, clientesSearch],
+    queryKey: ["clientes", empresaId, clientesPage, clientesSearch, clientesSortField, clientesSortDirection],
     enabled,
     queryFn: async (): Promise<Cliente[]> => {
       let query = supabase
@@ -486,7 +504,14 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
       const from = clientesPage * PAGE_SIZE;
       const to = from + PAGE_SIZE - 1;
-      const { data, error, count } = await query.order("nome").range(from, to);
+
+      let orderCol = "nome";
+      if (clientesSortField === "cidade") orderCol = "cidade";
+      if (clientesSortField === "ultimo_mes") orderCol = "ultimo_mes_pago";
+
+      const { data, error, count } = await query
+        .order(orderCol, { ascending: clientesSortDirection === "asc", nullsFirst: false })
+        .range(from, to);
       if (error) {
         console.error("🔥 ERRO SUPABASE CLIENTES:", error.message, error.hint, error.details);
         throw error;
@@ -540,7 +565,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   });
 
   const tecnicosQ = useQuery({
-    queryKey: ["tecnicos", empresaId, tecnicosPage, tecnicosSearch],
+    queryKey: ["tecnicos", empresaId, tecnicosPage, tecnicosSearch, tecnicosSortField, tecnicosSortDirection],
     enabled,
     queryFn: async (): Promise<Tecnico[]> => {
       if (!empresaId) return [];
@@ -555,8 +580,13 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
       const from = tecnicosPage * PAGE_SIZE;
       const to = from + PAGE_SIZE - 1;
+
+      let orderCol = "nome";
+      if (tecnicosSortField === "comissao") orderCol = "comissao";
+      if (tecnicosSortField === "telefone") orderCol = "telefone";
+
       const { data, error, count } = await query
-        .order("created_at", { ascending: false })
+        .order(orderCol, { ascending: tecnicosSortDirection === "asc", nullsFirst: false })
         .range(from, to);
 
       if (error) {
@@ -743,7 +773,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
   // ---------------- Itens estoque ----------------
   const itensQ = useQuery({
-    queryKey: ["itens_inventario", empresaId, estoquePage, estoqueSearch],
+    queryKey: ["itens_inventario", empresaId, estoquePage, estoqueSearch, estoqueSortField, estoqueSortDirection],
     enabled,
     queryFn: async (): Promise<Item[]> => {
       let query = (supabase.from("itens_inventario" as any) as any)
@@ -756,7 +786,14 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
       const from = estoquePage * PAGE_SIZE;
       const to = from + PAGE_SIZE - 1;
-      const { data, error, count } = await query.order("nome").range(from, to);
+
+      let orderCol = "nome";
+      if (estoqueSortField === "quantidade") orderCol = "quantidade";
+      if (estoqueSortField === "valor") orderCol = "valor_venda";
+
+      const { data, error, count } = await query
+        .order(orderCol, { ascending: estoqueSortDirection === "asc", nullsFirst: false })
+        .range(from, to);
       if (error) throw error;
       setEstoqueTotal(count ?? 0);
       return ((data ?? []) as any[]).map((r) => ({
@@ -1277,6 +1314,10 @@ function isValidCpfCnpj(val: string) {
       setClientesPage(0);
       setClientesSearch(v);
     },
+    clientesSortField,
+    setClientesSortField,
+    clientesSortDirection,
+    setClientesSortDirection,
     setClientesPage: (p: number) => {
       setClientesPage(p);
     },
@@ -1300,6 +1341,10 @@ function isValidCpfCnpj(val: string) {
       setTecnicosPage(0);
       setTecnicosSearch(v);
     },
+    tecnicosSortField,
+    setTecnicosSortField,
+    tecnicosSortDirection,
+    setTecnicosSortDirection,
     setTecnicosPage: (p: number) => {
       setTecnicosPage(p);
     },
@@ -1321,6 +1366,10 @@ function isValidCpfCnpj(val: string) {
       setEstoquePage(0);
       setEstoqueSearch(v);
     },
+    estoqueSortField,
+    setEstoqueSortField,
+    estoqueSortDirection,
+    setEstoqueSortDirection,
     setEstoquePage: (p: number) => {
       setEstoquePage(p);
     },

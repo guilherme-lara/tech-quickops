@@ -64,6 +64,10 @@ function EstoquePage() {
     setEstoquePage,
     estoqueSearch,
     setEstoqueSearch,
+    estoqueSortField,
+    setEstoqueSortField,
+    estoqueSortDirection,
+    setEstoqueSortDirection,
   } = useStore();
   const { profile } = useAuth();
   const empresaId = profile?.empresa_id;
@@ -140,10 +144,46 @@ function EstoquePage() {
             <table className="w-full text-sm text-left">
               <thead className="bg-muted/50 text-xs uppercase text-muted-foreground">
                 <tr>
-                  <th className="px-5 py-3 font-semibold">Nome</th>
+                  <th 
+                    className="px-5 py-3 font-semibold cursor-pointer hover:bg-muted/80 transition-colors"
+                    onClick={() => {
+                      if (estoqueSortField === "nome") {
+                        setEstoqueSortDirection(estoqueSortDirection === "asc" ? "desc" : "asc");
+                      } else {
+                        setEstoqueSortField("nome");
+                        setEstoqueSortDirection("asc");
+                      }
+                    }}
+                  >
+                    Nome {estoqueSortField === "nome" && (estoqueSortDirection === "asc" ? "↑" : "↓")}
+                  </th>
                   <th className="px-5 py-3 font-semibold">Código</th>
-                  <th className="px-5 py-3 font-semibold">Quantidade</th>
-                  <th className="px-5 py-3 font-semibold">Valor unit.</th>
+                  <th 
+                    className="px-5 py-3 font-semibold cursor-pointer hover:bg-muted/80 transition-colors"
+                    onClick={() => {
+                      if (estoqueSortField === "quantidade") {
+                        setEstoqueSortDirection(estoqueSortDirection === "asc" ? "desc" : "asc");
+                      } else {
+                        setEstoqueSortField("quantidade");
+                        setEstoqueSortDirection("asc");
+                      }
+                    }}
+                  >
+                    Quantidade {estoqueSortField === "quantidade" && (estoqueSortDirection === "asc" ? "↑" : "↓")}
+                  </th>
+                  <th 
+                    className="px-5 py-3 font-semibold cursor-pointer hover:bg-muted/80 transition-colors"
+                    onClick={() => {
+                      if (estoqueSortField === "valor") {
+                        setEstoqueSortDirection(estoqueSortDirection === "asc" ? "desc" : "asc");
+                      } else {
+                        setEstoqueSortField("valor");
+                        setEstoqueSortDirection("asc");
+                      }
+                    }}
+                  >
+                    Valor unit. {estoqueSortField === "valor" && (estoqueSortDirection === "asc" ? "↑" : "↓")}
+                  </th>
                   <th className="px-5 py-3 font-semibold">Valor total</th>
                   <th className="px-5 py-3 font-semibold w-24"></th>
                 </tr>

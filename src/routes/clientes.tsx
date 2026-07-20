@@ -69,6 +69,10 @@ function ClientesPage() {
     setClientesPage,
     clientesSearch,
     setClientesSearch,
+    clientesSortField,
+    setClientesSortField,
+    clientesSortDirection,
+    setClientesSortDirection,
   } = useStore();
   const { profile } = useAuth();
   const empresaId = profile?.empresa_id;
@@ -624,7 +628,19 @@ function ClientesPage() {
                   <table className="w-full text-sm text-left">
                     <thead className="bg-muted/50 text-xs uppercase text-muted-foreground hidden md:table-header-group">
                       <tr>
-                        <th className="px-5 py-3 font-semibold">Nome Fantasia</th>
+                        <th 
+                          className="px-5 py-3 font-semibold cursor-pointer hover:bg-muted/80 transition-colors"
+                          onClick={() => {
+                            if (clientesSortField === "nome") {
+                              setClientesSortDirection(clientesSortDirection === "asc" ? "desc" : "asc");
+                            } else {
+                              setClientesSortField("nome");
+                              setClientesSortDirection("asc");
+                            }
+                          }}
+                        >
+                          Nome Fantasia {clientesSortField === "nome" && (clientesSortDirection === "asc" ? "↑" : "↓")}
+                        </th>
                         <th className="px-5 py-3 font-semibold">Documento</th>
                         <th className="px-5 py-3 font-semibold">Contato</th>
                         <th className="px-5 py-3"></th>
@@ -632,7 +648,19 @@ function ClientesPage() {
                     </thead>
                     <thead className="bg-muted/50 text-xs uppercase text-muted-foreground md:hidden">
                       <tr>
-                        <th className="px-5 py-3 font-semibold">Nome Fantasia</th>
+                        <th 
+                          className="px-5 py-3 font-semibold cursor-pointer hover:bg-muted/80 transition-colors"
+                          onClick={() => {
+                            if (clientesSortField === "nome") {
+                              setClientesSortDirection(clientesSortDirection === "asc" ? "desc" : "asc");
+                            } else {
+                              setClientesSortField("nome");
+                              setClientesSortDirection("asc");
+                            }
+                          }}
+                        >
+                          Nome Fantasia {clientesSortField === "nome" && (clientesSortDirection === "asc" ? "↑" : "↓")}
+                        </th>
                         <th className="px-5 py-3 font-semibold">Documento</th>
                         <th className="px-5 py-3 font-semibold">Contato</th>
                         <th className="px-5 py-3"></th>

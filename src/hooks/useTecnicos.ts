@@ -2,9 +2,15 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Tecnico, TipoComissao, PAGE_SIZE } from "@/lib/useData";
 
-export function useTecnicos(empresaId?: string, page: number = 0, search: string = "") {
+export function useTecnicos(
+  empresaId?: string,
+  page: number = 0,
+  search: string = "",
+  sortField: "nome" | "comissao" | "telefone" = "nome",
+  sortDirection: "asc" | "desc" = "asc"
+) {
   return useQuery({
-    queryKey: ["equipe_tecnicos", empresaId, page, search],
+    queryKey: ["equipe_tecnicos", empresaId, page, search, sortField, sortDirection],
     enabled: !!empresaId,
     queryFn: async () => {
       if (!empresaId) return { data: [], count: 0 };
@@ -21,8 +27,12 @@ export function useTecnicos(empresaId?: string, page: number = 0, search: string
       const from = page * PAGE_SIZE;
       const to = from + PAGE_SIZE - 1;
 
+      let orderCol = "nome";
+      if (sortField === "comissao") orderCol = "comissao";
+      if (sortField === "telefone") orderCol = "telefone";
+
       const { data, error, count } = await query
-        .order("created_at", { ascending: false })
+        .order(orderCol, { ascending: sortDirection === "asc", nullsFirst: false })
         .range(from, to);
 
       if (error) {

@@ -167,6 +167,8 @@ export const Route = createFileRoute("/equipe")({
 function EquipePage() {
   const [tecnicosPage, setTecnicosPage] = useState(0);
   const [tecnicosSearch, setTecnicosSearch] = useState("");
+  const [tecnicosSortField, setTecnicosSortField] = useState<"nome" | "comissao" | "telefone">("nome");
+  const [tecnicosSortDirection, setTecnicosSortDirection] = useState<"asc" | "desc">("asc");
   const { profile } = useAuth();
   const empresaId = profile?.empresa_id;
   
@@ -186,6 +188,8 @@ function EquipePage() {
     empresaId,
     tecnicosPage,
     tecnicosSearch,
+    tecnicosSortField,
+    tecnicosSortDirection
   );
   const tecnicos = tecnicosData?.data || [];
   const tecnicosTotal = tecnicosData?.count || 0;
@@ -575,10 +579,46 @@ function EquipePage() {
             <table className="w-full text-sm text-left">
               <thead className="bg-muted/50 text-xs uppercase text-muted-foreground">
                 <tr>
-                  <th className="px-5 py-3 font-semibold">Técnico</th>
+                  <th 
+                    className="px-5 py-3 font-semibold cursor-pointer hover:bg-muted/80 transition-colors"
+                    onClick={() => {
+                      if (tecnicosSortField === "nome") {
+                        setTecnicosSortDirection(tecnicosSortDirection === "asc" ? "desc" : "asc");
+                      } else {
+                        setTecnicosSortField("nome");
+                        setTecnicosSortDirection("asc");
+                      }
+                    }}
+                  >
+                    Técnico {tecnicosSortField === "nome" && (tecnicosSortDirection === "asc" ? "↑" : "↓")}
+                  </th>
                   <th className="px-5 py-3 font-semibold">Especialidade</th>
-                  <th className="px-5 py-3 font-semibold">Telefone / PIX</th>
-                  <th className="px-5 py-3 font-semibold">Comissão</th>
+                  <th 
+                    className="px-5 py-3 font-semibold cursor-pointer hover:bg-muted/80 transition-colors"
+                    onClick={() => {
+                      if (tecnicosSortField === "telefone") {
+                        setTecnicosSortDirection(tecnicosSortDirection === "asc" ? "desc" : "asc");
+                      } else {
+                        setTecnicosSortField("telefone");
+                        setTecnicosSortDirection("asc");
+                      }
+                    }}
+                  >
+                    Telefone / PIX {tecnicosSortField === "telefone" && (tecnicosSortDirection === "asc" ? "↑" : "↓")}
+                  </th>
+                  <th 
+                    className="px-5 py-3 font-semibold cursor-pointer hover:bg-muted/80 transition-colors"
+                    onClick={() => {
+                      if (tecnicosSortField === "comissao") {
+                        setTecnicosSortDirection(tecnicosSortDirection === "asc" ? "desc" : "asc");
+                      } else {
+                        setTecnicosSortField("comissao");
+                        setTecnicosSortDirection("asc");
+                      }
+                    }}
+                  >
+                    Comissão {tecnicosSortField === "comissao" && (tecnicosSortDirection === "asc" ? "↑" : "↓")}
+                  </th>
                   <th className="px-5 py-3 font-semibold">OS Ativas</th>
                   <th className="px-5 py-3 font-semibold">Status</th>
                   <th className="px-5 py-3"></th>
