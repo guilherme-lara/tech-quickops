@@ -44,6 +44,9 @@ import {
   Trash,
   Edit,
   AlertTriangle,
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown,
 } from "lucide-react";
 import { useEffect, useState, useRef } from "react";
 import { toast } from "sonner";
@@ -1074,7 +1077,14 @@ function OSPage() {
                           }
                         }}
                       >
-                        Data {osSortField === "data" && (osSortDirection === "asc" ? "↑" : "↓")}
+                        <div className="flex items-center gap-1.5">
+                          Data
+                          {osSortField === "data" ? (
+                            osSortDirection === "asc" ? <ArrowUp className="w-3.5 h-3.5" /> : <ArrowDown className="w-3.5 h-3.5" />
+                          ) : (
+                            <ArrowUpDown className="w-3.5 h-3.5 text-muted-foreground/40" />
+                          )}
+                        </div>
                       </th>
                       <th className="px-5 py-3 font-semibold">Horário</th>
                       <th 
@@ -1088,7 +1098,14 @@ function OSPage() {
                           }
                         }}
                       >
-                        Cliente {osSortField === "cliente" && (osSortDirection === "asc" ? "↑" : "↓")}
+                        <div className="flex items-center gap-1.5">
+                          Cliente
+                          {osSortField === "cliente" ? (
+                            osSortDirection === "asc" ? <ArrowUp className="w-3.5 h-3.5" /> : <ArrowDown className="w-3.5 h-3.5" />
+                          ) : (
+                            <ArrowUpDown className="w-3.5 h-3.5 text-muted-foreground/40" />
+                          )}
+                        </div>
                       </th>
                       <th className="px-5 py-3 font-semibold">Técnico</th>
                       <th 
@@ -1102,7 +1119,14 @@ function OSPage() {
                           }
                         }}
                       >
-                        Valor {osSortField === "valor" && (osSortDirection === "asc" ? "↑" : "↓")}
+                        <div className="flex items-center gap-1.5">
+                          Valor
+                          {osSortField === "valor" ? (
+                            osSortDirection === "asc" ? <ArrowUp className="w-3.5 h-3.5" /> : <ArrowDown className="w-3.5 h-3.5" />
+                          ) : (
+                            <ArrowUpDown className="w-3.5 h-3.5 text-muted-foreground/40" />
+                          )}
+                        </div>
                       </th>
                       <th className="px-5 py-3"></th>
                     </tr>

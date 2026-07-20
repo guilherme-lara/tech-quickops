@@ -49,6 +49,9 @@ import {
   ChevronRight,
   Check,
   KeyRound,
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown,
 } from "lucide-react";
 import { GerarAcessoDialog } from "@/components/GerarAcessoDialog";
 
@@ -590,7 +593,14 @@ function EquipePage() {
                       }
                     }}
                   >
-                    Técnico {tecnicosSortField === "nome" && (tecnicosSortDirection === "asc" ? "↑" : "↓")}
+                    <div className="flex items-center gap-1.5">
+                      Técnico
+                      {tecnicosSortField === "nome" ? (
+                        tecnicosSortDirection === "asc" ? <ArrowUp className="w-3.5 h-3.5" /> : <ArrowDown className="w-3.5 h-3.5" />
+                      ) : (
+                        <ArrowUpDown className="w-3.5 h-3.5 text-muted-foreground/40" />
+                      )}
+                    </div>
                   </th>
                   <th className="px-5 py-3 font-semibold">Especialidade</th>
                   <th 
@@ -604,7 +614,14 @@ function EquipePage() {
                       }
                     }}
                   >
-                    Telefone / PIX {tecnicosSortField === "telefone" && (tecnicosSortDirection === "asc" ? "↑" : "↓")}
+                    <div className="flex items-center gap-1.5">
+                      Telefone / PIX
+                      {tecnicosSortField === "telefone" ? (
+                        tecnicosSortDirection === "asc" ? <ArrowUp className="w-3.5 h-3.5" /> : <ArrowDown className="w-3.5 h-3.5" />
+                      ) : (
+                        <ArrowUpDown className="w-3.5 h-3.5 text-muted-foreground/40" />
+                      )}
+                    </div>
                   </th>
                   <th 
                     className="px-5 py-3 font-semibold cursor-pointer hover:bg-muted/80 transition-colors"
@@ -617,7 +634,14 @@ function EquipePage() {
                       }
                     }}
                   >
-                    Comissão {tecnicosSortField === "comissao" && (tecnicosSortDirection === "asc" ? "↑" : "↓")}
+                    <div className="flex items-center gap-1.5">
+                      Comissão
+                      {tecnicosSortField === "comissao" ? (
+                        tecnicosSortDirection === "asc" ? <ArrowUp className="w-3.5 h-3.5" /> : <ArrowDown className="w-3.5 h-3.5" />
+                      ) : (
+                        <ArrowUpDown className="w-3.5 h-3.5 text-muted-foreground/40" />
+                      )}
+                    </div>
                   </th>
                   <th className="px-5 py-3 font-semibold">OS Ativas</th>
                   <th className="px-5 py-3 font-semibold">Status</th>

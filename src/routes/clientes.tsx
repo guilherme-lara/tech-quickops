@@ -41,7 +41,13 @@ import { EmptyState } from "@/components/EmptyState";
 import { validarDocumento, maskPhoneBR } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { compressImage } from "@/lib/image-compressor";
-import { Trash2 as TrashIcon, Plus as PlusIcon } from "lucide-react";
+import { 
+  Trash2 as TrashIcon, 
+  Plus as PlusIcon,
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown
+} from "lucide-react";
 import { PrivateFileLink } from "@/components/PrivateFileLink";
 import { FiltrosBarGlobal } from "@/components/FiltrosBarGlobal";
 import { useAuth } from "@/lib/auth-context";
@@ -639,7 +645,14 @@ function ClientesPage() {
                             }
                           }}
                         >
-                          Nome Fantasia {clientesSortField === "nome" && (clientesSortDirection === "asc" ? "↑" : "↓")}
+                          <div className="flex items-center gap-1.5">
+                            Nome Fantasia
+                            {clientesSortField === "nome" ? (
+                              clientesSortDirection === "asc" ? <ArrowUp className="w-3.5 h-3.5" /> : <ArrowDown className="w-3.5 h-3.5" />
+                            ) : (
+                              <ArrowUpDown className="w-3.5 h-3.5 text-muted-foreground/40" />
+                            )}
+                          </div>
                         </th>
                         <th className="px-5 py-3 font-semibold">Documento</th>
                         <th className="px-5 py-3 font-semibold">Contato</th>
@@ -659,7 +672,14 @@ function ClientesPage() {
                             }
                           }}
                         >
-                          Nome Fantasia {clientesSortField === "nome" && (clientesSortDirection === "asc" ? "↑" : "↓")}
+                          <div className="flex items-center gap-1.5">
+                            Nome Fantasia
+                            {clientesSortField === "nome" ? (
+                              clientesSortDirection === "asc" ? <ArrowUp className="w-3.5 h-3.5" /> : <ArrowDown className="w-3.5 h-3.5" />
+                            ) : (
+                              <ArrowUpDown className="w-3.5 h-3.5 text-muted-foreground/40" />
+                            )}
+                          </div>
                         </th>
                         <th className="px-5 py-3 font-semibold">Documento</th>
                         <th className="px-5 py-3 font-semibold">Contato</th>
