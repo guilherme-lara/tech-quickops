@@ -20,6 +20,7 @@ import {
   Plus,
   Pencil,
   Trash2,
+  ChevronLeft,
   ChevronRight,
   ArrowUpDown,
   ArrowUp,
