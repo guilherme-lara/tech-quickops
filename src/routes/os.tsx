@@ -47,6 +47,7 @@ import {
   ArrowUpDown,
   ArrowUp,
   ArrowDown,
+  CheckCircle,
 } from "lucide-react";
 import { useEffect, useState, useRef } from "react";
 import { toast } from "sonner";
@@ -1443,7 +1444,7 @@ export function EditOSDialog({
     }
   }, [ordem]);
 
-  const handleSave = async () => {
+  const handleSave = async (overrideStatus?: OSStatus | any) => {
     if (!ordem) return;
     if (!form.titulo || !form.clienteId || !form.tecnicoId) {
       toast.error("Preencha todos os campos obrigatórios");
@@ -1464,7 +1465,7 @@ export function EditOSDialog({
       data_agendamento: dataAgendamento || ordem?.data_agendamento || undefined,
       horario_atendimento: horarioAtendimento || ordem?.horario_atendimento || undefined,
       descricao_problema: descricaoProblema,
-      status: form.status,
+      status: (typeof overrideStatus === "string" ? overrideStatus : form.status) as OSStatus,
       dados_adicionais: dadosExtras,
       pendencias_detalhes: form.pendencias_detalhes || (null as any),
       endereco_servico: form.endereco_servico,
@@ -1989,15 +1990,51 @@ export function EditOSDialog({
           </TabsContent>
         </Tabs>
 
-        <DialogFooter>
-          <Button variant="outline" onClick={onClose} disabled={saving}>
-            Fechar
-          </Button>
-          {!isView && (
-            <Button onClick={handleSave} disabled={saving}>
-              {saving ? "Salvando..." : "Salvar"}
+        <DialogFooter className="sm:justify-between items-center w-full">
+          <div className="flex gap-2">
+            {(ordem?.status === "Concluído Técnico" || form.status === "Concluído Técnico" || ordem?.status === "concluido_tecnico" || form.status === "concluido_tecnico" as any) && ordem && (
+              <>
+                <RatGallery 
+                  osId={ordem.id} 
+                  trigger={
+                    <Button 
+                      type="button" 
+                      variant="outline" 
+                      className="border-blue-500 text-blue-600 bg-blue-50/50 hover:bg-blue-100 dark:border-blue-800/50 dark:text-blue-400 dark:bg-blue-900/20 dark:hover:bg-blue-900/40"
+                    >
+                      Ver Fotos/RAT
+                    </Button>
+                  } 
+                />
+                
+                {!isView && (
+                  <Button 
+                    type="button"
+                    variant="default"
+                    className="bg-emerald-600 hover:bg-emerald-700 text-white"
+                    onClick={() => {
+                      setForm({ ...form, status: "Concluído" });
+                      handleSave("Concluído");
+                    }}
+                    disabled={saving}
+                  >
+                    <CheckCircle className="w-4 h-4 mr-2" />
+                    Aprovar e Finalizar
+                  </Button>
+                )}
+              </>
+            )}
+          </div>
+          <div className="flex gap-2 justify-end">
+            <Button variant="outline" onClick={onClose} disabled={saving}>
+              Fechar
             </Button>
-          )}
+            {!isView && (
+              <Button onClick={handleSave} disabled={saving} id="btn-salvar-os">
+                {saving ? "Salvando..." : "Salvar"}
+              </Button>
+            )}
+          </div>
         </DialogFooter>
       </DialogContent>
       <Dialog open={quickCliOpen} onOpenChange={setQuickCliOpen}>
