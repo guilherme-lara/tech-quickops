@@ -20,8 +20,10 @@ import {
   Plus,
   Pencil,
   Trash2,
-  ChevronLeft,
   ChevronRight,
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown,
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
@@ -155,7 +157,14 @@ function EstoquePage() {
                       }
                     }}
                   >
-                    Nome {estoqueSortField === "nome" && (estoqueSortDirection === "asc" ? "↑" : "↓")}
+                    <div className="flex items-center gap-1.5">
+                      Nome
+                      {estoqueSortField === "nome" ? (
+                        estoqueSortDirection === "asc" ? <ArrowUp className="w-3.5 h-3.5" /> : <ArrowDown className="w-3.5 h-3.5" />
+                      ) : (
+                        <ArrowUpDown className="w-3.5 h-3.5 text-muted-foreground/40" />
+                      )}
+                    </div>
                   </th>
                   <th className="px-5 py-3 font-semibold">Código</th>
                   <th 
@@ -169,7 +178,14 @@ function EstoquePage() {
                       }
                     }}
                   >
-                    Quantidade {estoqueSortField === "quantidade" && (estoqueSortDirection === "asc" ? "↑" : "↓")}
+                    <div className="flex items-center gap-1.5">
+                      Quantidade
+                      {estoqueSortField === "quantidade" ? (
+                        estoqueSortDirection === "asc" ? <ArrowUp className="w-3.5 h-3.5" /> : <ArrowDown className="w-3.5 h-3.5" />
+                      ) : (
+                        <ArrowUpDown className="w-3.5 h-3.5 text-muted-foreground/40" />
+                      )}
+                    </div>
                   </th>
                   <th 
                     className="px-5 py-3 font-semibold cursor-pointer hover:bg-muted/80 transition-colors"
@@ -182,7 +198,14 @@ function EstoquePage() {
                       }
                     }}
                   >
-                    Valor unit. {estoqueSortField === "valor" && (estoqueSortDirection === "asc" ? "↑" : "↓")}
+                    <div className="flex items-center gap-1.5">
+                      Valor unit.
+                      {estoqueSortField === "valor" ? (
+                        estoqueSortDirection === "asc" ? <ArrowUp className="w-3.5 h-3.5" /> : <ArrowDown className="w-3.5 h-3.5" />
+                      ) : (
+                        <ArrowUpDown className="w-3.5 h-3.5 text-muted-foreground/40" />
+                      )}
+                    </div>
                   </th>
                   <th className="px-5 py-3 font-semibold">Valor total</th>
                   <th className="px-5 py-3 font-semibold w-24"></th>
