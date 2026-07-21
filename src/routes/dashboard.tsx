@@ -198,7 +198,7 @@ function PriorityAlerts({ ordens, isLoading, onEdit, logs }: { ordens: any[]; is
                           </span>
                           <span className="text-[10px] font-bold text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950 px-2 py-0.5 rounded-lg border border-red-200 dark:border-red-900">
                             {o.data_agendamento
-                              ? new Date(o.data_agendamento + "T00:00:00").toLocaleDateString("pt-BR")
+                              ? formatDate(o.data_agendamento)
                               : "—"}
                           </span>
                         </>

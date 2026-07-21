@@ -12,6 +12,7 @@ import { useState, useEffect, useRef } from "react";
 import { toast } from "sonner";
 import { logActivity } from "@/lib/logger";
 import { User, Building2, Save, KeyRound, Upload, Camera, Building, Copy, ShieldCheck, ShieldAlert, CalendarClock, LockKeyhole } from "lucide-react";
+import { formatDate } from "@/lib/utils";
 import {
   Dialog,
   DialogContent,
@@ -345,7 +346,7 @@ function ConfiguracoesPage() {
                     <p className="text-xs text-muted-foreground">Renovação</p>
                     <div className="flex flex-col">
                       <span className="font-medium">
-                        {dataVencimento ? new Date(dataVencimento).toLocaleDateString('pt-BR') : '--/--/----'}
+                        {dataVencimento ? formatDate(dataVencimento) : '--/--/----'}
                       </span>
                       {diasRestantes !== null && (
                         <span className={`text-xs ${diasRestantes <= 5 ? 'text-red-500 font-bold' : 'text-muted-foreground'}`}>

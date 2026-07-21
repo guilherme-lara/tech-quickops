@@ -12,6 +12,7 @@ import { toast } from "sonner";
 
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { formatDate } from "@/lib/utils";
 
 export const Route = createFileRoute("/tecnico/os/")({
   component: () => (
@@ -134,7 +135,7 @@ function TecnicoOSPage() {
                   {ordem.data_agendamento && (
                     <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
                       <Calendar className="w-3.5 h-3.5" />{" "}
-                      {new Date(ordem.data_agendamento).toLocaleDateString("pt-BR")}
+                      {formatDate(ordem.data_agendamento)}
                     </div>
                   )}
                 </div>
