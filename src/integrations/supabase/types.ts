@@ -756,12 +756,12 @@ export type Database = {
           }
         | {
             Args: {
-              p_dominio?: string
-              p_empresa_id?: string
+              p_dominio: string
+              p_empresa_id: string
               p_nome: string
               p_role: Database["public"]["Enums"]["app_role"]
               p_senha: string
-              p_telefone?: string
+              p_telefone: string
               p_username: string
             }
             Returns: string
