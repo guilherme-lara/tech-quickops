@@ -78,7 +78,7 @@ function DashboardTecnico() {
 
       const { data, error } = await supabase
         .from("ordens_servico")
-        .select("id, clientes(nome), created_at, status, valor, tecnicos(comissao, tipo_comissao)")
+        .select("id, clientes(nome), created_at, data_agendamento, horario_atendimento, status, valor, tecnicos(comissao, tipo_comissao)")
         .eq("tecnico_id", realTecnicoId as string)
         .order("created_at", { ascending: false })
         .limit(5);
@@ -178,7 +178,19 @@ function DashboardTecnico() {
                 </div>
                 <div className="flex justify-between items-end mt-1">
                   <div className="text-xs text-muted-foreground">
-                    {new Date(os.created_at).toLocaleDateString('pt-BR')}
+                    {os.data_agendamento ? (
+                      <>
+                        {new Date(os.data_agendamento).toLocaleDateString('pt-BR', { timeZone: 'UTC' })}
+                        {os.horario_atendimento && (
+                          <>
+                            <span className="mx-1">•</span>
+                            <span className="font-semibold text-foreground/80">{os.horario_atendimento}</span>
+                          </>
+                        )}
+                      </>
+                    ) : (
+                      new Date(os.created_at).toLocaleDateString('pt-BR')
+                    )}
                   </div>
                   <div className="text-sm font-bold text-emerald-500">
                     {fmtBRL(

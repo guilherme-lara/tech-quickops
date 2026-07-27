@@ -132,10 +132,16 @@ function TecnicoOSPage() {
                     <MapPin className="w-3.5 h-3.5 text-primary" />{" "}
                     {ordem.clientes?.nome || "Cliente não informado"}
                   </div>
-                  {ordem.data_agendamento && (
+                  {(ordem.data_agendamento || ordem.horario_atendimento) && (
                     <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
                       <Calendar className="w-3.5 h-3.5" />{" "}
-                      {formatDate(ordem.data_agendamento)}
+                      {ordem.data_agendamento ? formatDate(ordem.data_agendamento) : ""}
+                      {ordem.horario_atendimento && (
+                        <>
+                          {ordem.data_agendamento && <span className="mx-1">•</span>}
+                          <span className="font-semibold text-foreground/80">{ordem.horario_atendimento}</span>
+                        </>
+                      )}
                     </div>
                   )}
                 </div>

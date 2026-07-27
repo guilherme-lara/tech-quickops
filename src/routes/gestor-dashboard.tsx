@@ -27,6 +27,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import * as XLSX from "xlsx";
 import { toast } from "sonner";
 import { 
@@ -104,6 +105,7 @@ function formatMinutes(minutes: number) {
 function GestorDashboard() {
   const [resumo, setResumo] = useState<any>(null);
   const [ranking, setRanking] = useState<any[]>([]);
+  const [tecnicoSelecionado, setTecnicoSelecionado] = useState<any | null>(null);
   const [topClientes, setTopClientes] = useState<any[]>([]);
   const [painelFinanceiro, setPainelFinanceiro] = useState<any[]>([]);
   const [evolucaoMensal, setEvolucaoMensal] = useState<any[]>([]);
@@ -271,10 +273,11 @@ function GestorDashboard() {
             const tId = os.tecnico_id;
             const tNome = os.tecnicos?.nome || "Desconhecido";
             if (!tecnicosMap.has(tId)) {
-              tecnicosMap.set(tId, { tecnico_nome: tNome, os_finalizadas: 0, faturamento_gerado: 0 });
+              tecnicosMap.set(tId, { tecnico_nome: tNome, tecnico_id: tId, os_finalizadas: 0, faturamento_gerado: 0, os_list: [] });
             }
             const stat = tecnicosMap.get(tId);
             stat.os_finalizadas += 1;
+            stat.os_list.push(os);
             
             const valorServico = Number(os.valor) || 0;
             const kmViagem = Number(os.km_viagem) || 0;
@@ -364,6 +367,8 @@ function GestorDashboard() {
       </div>
     );
   }
+
+
 
   const handlePrint = () => window.print();
 
@@ -631,7 +636,11 @@ function GestorDashboard() {
                   </thead>
                   <tbody className="divide-y divide-border/60">
                     {ranking.map((t, idx) => (
-                      <tr key={idx} className="hover:bg-muted/20 transition-colors">
+                      <tr 
+                        key={idx} 
+                        className="hover:bg-muted/20 transition-colors cursor-pointer"
+                        onClick={() => setTecnicoSelecionado(t)}
+                      >
                         <td className="px-4 py-3 font-medium">{t.tecnico_nome || t.nome || "—"}</td>
                         <td className="px-4 py-3 text-center">
                           <span className="inline-flex items-center justify-center bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 px-2.5 py-0.5 rounded-full font-semibold">
@@ -814,6 +823,51 @@ function GestorDashboard() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Modal de Detalhes do Técnico */}
+      <Dialog open={!!tecnicoSelecionado} onOpenChange={(open) => !open && setTecnicoSelecionado(null)}>
+        <DialogContent className="max-w-3xl">
+          <DialogHeader>
+            <DialogTitle>Ordens de Serviço - {tecnicoSelecionado?.tecnico_nome}</DialogTitle>
+          </DialogHeader>
+          <div className="max-h-[60vh] overflow-y-auto custom-scrollbar mt-4 space-y-3 pr-2">
+            {tecnicoSelecionado?.os_list?.map((os: any) => (
+              <Card key={os.id} className="p-4 shadow-[var(--shadow-card)] border-border/60">
+                <div className="flex justify-between items-start mb-2">
+                  <div>
+                    <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">{os.numero || os.id?.split("-")[0]}</span>
+                    <h3 className="font-semibold text-base">{os.titulo || "Sem título"}</h3>
+                  </div>
+                  <span className="text-[10px] px-2 py-1 rounded-full font-bold uppercase tracking-wider bg-primary/10 text-primary">
+                    {os.status}
+                  </span>
+                </div>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-sm mt-3 pt-3 border-t border-border/30">
+                  <div>
+                    <div className="text-muted-foreground text-xs">Valor</div>
+                    <div className="font-semibold">R$ {Number(os.valor || 0).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</div>
+                  </div>
+                  <div>
+                    <div className="text-muted-foreground text-xs">Despesas</div>
+                    <div className="font-semibold">R$ {(Array.isArray(os.despesas) ? os.despesas.reduce((s: number, d: any) => s + (Number(d?.valor) || 0), 0) : 0).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</div>
+                  </div>
+                  <div>
+                    <div className="text-muted-foreground text-xs">Km Viagem</div>
+                    <div className="font-semibold">{Number(os.km_viagem || 0)} km</div>
+                  </div>
+                  <div>
+                    <div className="text-muted-foreground text-xs">Data</div>
+                    <div className="font-semibold">{os.data_agendamento ? new Date(os.data_agendamento).toLocaleDateString('pt-BR', { timeZone: 'UTC' }) : new Date(os.created_at).toLocaleDateString('pt-BR')}</div>
+                  </div>
+                </div>
+              </Card>
+            ))}
+            {(!tecnicoSelecionado?.os_list || tecnicoSelecionado.os_list.length === 0) && (
+              <div className="text-center py-8 text-muted-foreground">Nenhuma OS encontrada para este técnico.</div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

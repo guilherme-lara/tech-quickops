@@ -590,9 +590,13 @@ function OSPage() {
                     <Label>Valor estimado (R$)</Label>
                     <Input
                       type="number"
+                      min="0"
                       step="0.01"
                       value={form.valor}
-                      onChange={(e) => setForm({ ...form, valor: e.target.value })}
+                      onChange={(e) => {
+                        if (Number(e.target.value) < 0) return;
+                        setForm({ ...form, valor: e.target.value });
+                      }}
                       className="h-10"
                     />
                   </div>
@@ -600,9 +604,11 @@ function OSPage() {
                     <Label>Km viagem</Label>
                     <Input
                       type="number"
+                      min="0"
                       step="0.01"
                       value={form.km_viagem}
                       onChange={(e) => {
+                        if (Number(e.target.value) < 0) return;
                         const cliente = clientes.find((c) => c.id === form.clienteId);
                         const valorPorKm = cliente?.valor_por_km || 0;
                         setForm({
@@ -623,9 +629,13 @@ function OSPage() {
                     <Label>Custo viagem (R$)</Label>
                     <Input
                       type="number"
+                      min="0"
                       step="0.01"
                       value={form.custo_viagem}
-                      onChange={(e) => setForm({ ...form, custo_viagem: e.target.value })}
+                      onChange={(e) => {
+                        if (Number(e.target.value) < 0) return;
+                        setForm({ ...form, custo_viagem: e.target.value });
+                      }}
                       placeholder="0,00"
                       className="h-10"
                     />
@@ -1174,6 +1184,11 @@ function OSPage() {
                             )}
                             {o.status === "Em Andamento" && (
                               <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">
+                                {o.status}
+                              </Badge>
+                            )}
+                            {o.status === "Em Deslocamento" && (
+                              <Badge variant="outline" className="bg-orange-50 text-orange-700 border-orange-200">
                                 {o.status}
                               </Badge>
                             )}
@@ -1755,9 +1770,13 @@ export function EditOSDialog({
               <Input
                 disabled={isView}
                 type="number"
+                min="0"
                 step="0.01"
                 value={form.valor}
-                onChange={(e) => setForm({ ...form, valor: e.target.value })}
+                onChange={(e) => {
+                  if (Number(e.target.value) < 0) return;
+                  setForm({ ...form, valor: e.target.value });
+                }}
               />
             </div>
             <div>
@@ -1765,9 +1784,13 @@ export function EditOSDialog({
               <Input
                 disabled={isView}
                 type="number"
+                min="0"
                 step="0.01"
                 value={form.custo_viagem}
-                onChange={(e) => setForm({ ...form, custo_viagem: e.target.value })}
+                onChange={(e) => {
+                  if (Number(e.target.value) < 0) return;
+                  setForm({ ...form, custo_viagem: e.target.value });
+                }}
               />
             </div>
             <div>
@@ -1775,9 +1798,11 @@ export function EditOSDialog({
               <Input
                 disabled={isView}
                 type="number"
+                min="0"
                 step="0.01"
                 value={form.km_viagem}
                 onChange={(e) => {
+                  if (Number(e.target.value) < 0) return;
                   const cliente = clientes.find((c) => c.id === form.clienteId);
                   const valorPorKm = cliente?.valor_por_km || 0;
                   setForm({
