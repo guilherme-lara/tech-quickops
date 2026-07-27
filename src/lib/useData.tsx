@@ -80,6 +80,8 @@ export interface OS {
   dados_adicionais?: Record<string, any>;
   descricao_problema?: string;
   endereco_servico?: string;
+  valor_adiantado?: number;
+  descricao_adiantamento?: string;
   tecnico?: {
     id: string;
     nome: string;
@@ -950,6 +952,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         dados_adicionais: o.dados_adicionais ?? {},
         pendencias_detalhes: o.pendencias_detalhes ?? null,
         endereco_servico: o.endereco_servico ?? null,
+        valor_adiantado: o.valor_adiantado ?? 0,
+        descricao_adiantamento: o.descricao_adiantamento ?? null,
       });
       if (error) throw error;
     },
@@ -979,6 +983,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         dbPatch.pendencias_detalhes = patch.pendencias_detalhes;
       if (patch.endereco_servico !== undefined)
         dbPatch.endereco_servico = patch.endereco_servico;
+      if (patch.valor_adiantado !== undefined)
+        dbPatch.valor_adiantado = patch.valor_adiantado;
+      if (patch.descricao_adiantamento !== undefined)
+        dbPatch.descricao_adiantamento = patch.descricao_adiantamento;
       const { error } = await (supabase.from("ordens_servico") as any).update(dbPatch).eq("id", id);
       if (error) throw error;
     },

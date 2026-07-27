@@ -159,6 +159,8 @@ function OSPage() {
     descricao_problema: "",
     status: "Orçamento" as OSStatus,
     endereco_servico: "",
+    valor_adiantado: "",
+    descricao_adiantamento: "",
   });
   const { analistas: analistasNovaOS, setAnalistas: setAnalistasNovaOS } = useAnalistasByCliente(form.clienteId);
   const [novosDadosExtras, setNovosDadosExtras] = useState<Record<string, any>>({});
@@ -725,19 +727,30 @@ function OSPage() {
                   );
                 })()}
                 
-                <div className="flex items-center gap-2 p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-xl">
-                  <input 
-                    type="checkbox" 
-                    id="pagoImediatoCreate"
-                    checked={!!novosDadosExtras?.pago_imediatamente}
-                    onChange={(e) => setNovosDadosExtras(prev => ({ ...prev, pago_imediatamente: e.target.checked }))}
-                    className="w-4 h-4 rounded border-emerald-500/50 text-emerald-600 focus:ring-emerald-500"
-                  />
-                  <div className="grid leading-none">
-                    <label htmlFor="pagoImediatoCreate" className="font-semibold text-emerald-700 dark:text-emerald-400 cursor-pointer">
-                      Pagamento Imediato
-                    </label>
-                    <span className="text-[10px] text-muted-foreground mt-1">Marque se a OS foi paga avulsa/antecipada (contabilizará no mês atual)</span>
+                <div className="col-span-full border-t border-border/50 pt-4 mt-2">
+                  <h4 className="text-sm font-semibold mb-3 flex items-center gap-2">
+                    Valores Recebidos Antecipadamente
+                  </h4>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label>Valor Adiantado (R$)</Label>
+                      <Input
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        placeholder="0.00"
+                        value={form.valor_adiantado}
+                        onChange={(e) => setForm({ ...form, valor_adiantado: e.target.value })}
+                      />
+                    </div>
+                    <div>
+                      <Label>Descrição do Adiantamento</Label>
+                      <Input
+                        placeholder="ex: Sinal de viagem, Pagamento Total..."
+                        value={form.descricao_adiantamento}
+                        onChange={(e) => setForm({ ...form, descricao_adiantamento: e.target.value })}
+                      />
+                    </div>
                   </div>
                 </div>
 
@@ -1409,6 +1422,8 @@ export function EditOSDialog({
     status: "Orçamento" as OSStatus,
     pendencias_detalhes: "",
     endereco_servico: "",
+    valor_adiantado: "",
+    descricao_adiantamento: "",
   });
   const [descricaoProblema, setDescricaoProblema] = useState("");
   const [dataAgendamento, setDataAgendamento] = useState("");
@@ -1450,6 +1465,8 @@ export function EditOSDialog({
         status: ordem.status,
         pendencias_detalhes: ordem.pendencias_detalhes ?? "",
         endereco_servico: ordem.endereco_servico ?? "",
+        valor_adiantado: (ordem.valor_adiantado ?? 0).toString(),
+        descricao_adiantamento: ordem.descricao_adiantamento ?? "",
       });
       setDescricaoProblema(ordem?.descricao_problema || "");
       setDataAgendamento(ordem?.data_agendamento || "");
@@ -1483,7 +1500,9 @@ export function EditOSDialog({
       status: (typeof overrideStatus === "string" ? overrideStatus : form.status) as OSStatus,
       dados_adicionais: dadosExtras,
       pendencias_detalhes: form.pendencias_detalhes || (null as any),
-      endereco_servico: form.endereco_servico,
+      endereco_servico: form.endereco_servico || undefined,
+      valor_adiantado: form.valor_adiantado ? parseFloat(form.valor_adiantado) : 0,
+      descricao_adiantamento: form.descricao_adiantamento || undefined,
     };
 
     setSaving(true);
@@ -1842,25 +1861,33 @@ export function EditOSDialog({
               </Select>
             </div>
             {!isView && (
-              <div className="col-span-3 flex items-center justify-end">
-                <div className="flex items-center gap-2 p-2 bg-emerald-500/10 border border-emerald-500/20 rounded-xl h-full w-full max-w-sm ml-auto">
-                  <input 
-                    type="checkbox" 
-                    id="pagoImediatoEditModal"
-                    checked={!!dadosExtras?.pago_imediatamente}
-                    onChange={(e) => setDadosExtras(prev => ({ ...prev, pago_imediatamente: e.target.checked }))}
-                    className="w-4 h-4 rounded border-emerald-500/50 text-emerald-600 focus:ring-emerald-500"
-                  />
-                  <div className="grid leading-none">
-                    <label htmlFor="pagoImediatoEditModal" className="font-semibold text-emerald-700 dark:text-emerald-400 cursor-pointer">
-                      Pagamento Imediato
-                    </label>
-                    <span className="text-[10px] text-muted-foreground mt-1">Marque se a OS foi paga avulsa/antecipada</span>
+                <div className="col-span-full border-t border-border/50 pt-4 mt-2">
+                  <h4 className="text-sm font-semibold mb-3 flex items-center gap-2">
+                    Valores Recebidos Antecipadamente
+                  </h4>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label>Valor Adiantado (R$)</Label>
+                      <Input
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        placeholder="0.00"
+                        value={form.valor_adiantado}
+                        onChange={(e) => setForm({ ...form, valor_adiantado: e.target.value })}
+                      />
+                    </div>
+                    <div>
+                      <Label>Descrição do Adiantamento</Label>
+                      <Input
+                        placeholder="ex: Sinal de viagem, Pagamento Total..."
+                        value={form.descricao_adiantamento}
+                        onChange={(e) => setForm({ ...form, descricao_adiantamento: e.target.value })}
+                      />
+                    </div>
                   </div>
                 </div>
-              </div>
-            )}
-          </div>
+              )}
           <div className="grid grid-cols-2 gap-3">
             <div>
               <Label>Data do Agendamento</Label>
