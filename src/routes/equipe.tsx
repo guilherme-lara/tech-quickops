@@ -304,8 +304,7 @@ function EquipePage() {
     if (!form.id) {
       const planoAtual = (profile?.empresaPlano as PlanType) || "free";
       const limiteTecnicos = PlanLimits[planoAtual].maxTecnicos;
-      const tecnicosAtivos = allTecnicos.filter(t => t.ativo).length; // Conta os ativos ou todos dependendo da regra
-      if (allTecnicos.length >= limiteTecnicos) {
+      if (tecnicosTotal >= limiteTecnicos) {
         return toast.error(`Limite do Plano atingido! Seu plano atual permite no máximo ${limiteTecnicos} técnicos.`);
       }
     }

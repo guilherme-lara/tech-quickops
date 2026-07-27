@@ -255,7 +255,7 @@ export function OSDetalhesModal({ osId, open, onOpenChange }: Props) {
                         <span>
                           {new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(
                             (os.custo_viagem || 0) +
-                              (os.despesas?.reduce((acc: number, d: any) => acc + (Number(d.valor) || 0), 0) || 0)
+                              (((os.despesas as any[]) || []).reduce((acc: number, d: any) => acc + (Number(d.valor) || 0), 0) || 0)
                           )}
                         </span>
                       </div>
@@ -278,7 +278,7 @@ export function OSDetalhesModal({ osId, open, onOpenChange }: Props) {
                           {new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(
                             (os.valor || 0) +
                               (os.custo_viagem || 0) +
-                              (os.despesas?.reduce((acc: number, d: any) => acc + (Number(d.valor) || 0), 0) || 0) -
+                              (((os.despesas as any[]) || []).reduce((acc: number, d: any) => acc + (Number(d.valor) || 0), 0) || 0) -
                               (os.valor_adiantado || 0)
                           )}
                         </span>

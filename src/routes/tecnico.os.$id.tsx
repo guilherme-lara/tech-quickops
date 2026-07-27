@@ -252,8 +252,8 @@ function TecnicoOSDetail() {
 
   const cliente = os.clientes as any;
 
-  const isConcluidoReal = os.status === "Concluído" || os.status === "concluido";
-  const isConcluidoTecnico = os.status === "Concluído Técnico" || os.status === "concluido_tecnico";
+  const isConcluidoReal = (os.status as string) === "Concluído" || os.status === "concluido";
+  const isConcluidoTecnico = (os.status as string) === "Concluído Técnico" || os.status === "concluido_tecnico";
   const isAnyConcluido = isConcluidoReal || isConcluidoTecnico;
 
   return (
@@ -567,7 +567,7 @@ function TecnicoOSDetail() {
         </section>
 
         {/* Status */}
-        {os.status === "concluido" || os.status === "Concluído" ? (
+        {(os.status as string) === "concluido" || (os.status as string) === "Concluído" ? (
           <section className="text-center py-8">
             <div className="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-[var(--shadow-glow)]">
               <CheckCircle2 className="w-8 h-8" />

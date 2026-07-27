@@ -390,7 +390,7 @@ function PagamentoAlerts({ clientes, empresaId }: { clientes: any[], empresaId?:
       const { data, error } = await supabase
         .from("ordens_servico")
         .select("id, numero, titulo, data_agendamento, cliente_id, valor, km_viagem, custo_viagem, despesas, dados_adicionais, clientes(nome, dias_pagamento, ultimo_mes_pago)")
-        .eq("empresa_id", empresaId)
+        .eq("empresa_id", empresaId as string)
         .eq("status", "concluido");
 
       if (error) throw error;
@@ -399,8 +399,8 @@ function PagamentoAlerts({ clientes, empresaId }: { clientes: any[], empresaId?:
       const faturasMap = new Map<string, any>();
 
       (data || []).forEach(os => {
-        const isPaidInstantly = os.dados_adicionais?.pago_imediatamente === true || os.dados_adicionais?.pago_imediatamente === "true";
-        const hasMesRecebimento = !!os.dados_adicionais?.mes_recebimento;
+        const isPaidInstantly = (os.dados_adicionais as any)?.pago_imediatamente === true || (os.dados_adicionais as any)?.pago_imediatamente === "true";
+        const hasMesRecebimento = !!(os.dados_adicionais as any)?.mes_recebimento;
         if (isPaidInstantly || hasMesRecebimento) return;
 
         if (!os.data_agendamento || !os.cliente_id) return;

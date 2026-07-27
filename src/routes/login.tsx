@@ -190,7 +190,7 @@ function LoginPage() {
               </div>
               <Button
                 disabled={loading}
-                onClick={doLogin}
+                onClick={() => doLogin()}
                 className="w-full h-12 rounded-xl text-base font-semibold bg-gradient-to-r from-primary to-violet shadow-[var(--shadow-glow)]"
               >
                 {loading ? (

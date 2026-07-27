@@ -319,14 +319,14 @@ function OSPage() {
       return;
     }
 
-    if (!form.id) {
+    if (!(form as any).id) {
       const planoAtual = (profile?.empresaPlano as PlanType) || "free";
       const limiteOs = PlanLimits[planoAtual].maxOsMes;
       
       const { count, error } = await supabase
         .from("ordens_servico")
         .select("id", { count: "exact", head: true })
-        .eq("empresa_id", profile?.empresa_id)
+        .eq("empresa_id", profile?.empresa_id as string)
         .gte("created_at", new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString());
 
       if (!error && count !== null && count >= limiteOs) {
@@ -367,6 +367,8 @@ function OSPage() {
       descricao_problema: "",
       status: "Orçamento",
       endereco_servico: "",
+      valor_adiantado: "",
+      descricao_adiantamento: "",
     });
     setNovosDadosExtras({});
     setDespesasSelecionadas([]);
@@ -765,9 +767,12 @@ function OSPage() {
                     </div>
                   </div>
                 </div>
+              </>
+            );
+          })()}
 
-                <div>
-                  <Label>Status</Label>
+          <div>
+            <Label>Status</Label>
                   <Select
                     value={form.status}
                     onValueChange={(v) => setForm({ ...form, status: v as OSStatus })}
@@ -1914,14 +1919,9 @@ export function EditOSDialog({
                     </div>
                     </div>
                   </div>
-<<<<<<< HEAD
                 );
               })()}
-=======
-                </div>
-              )}
           </div>
->>>>>>> 590d9577cfcbc5107831e06e054bc48d1fe08b42
           <div className="grid grid-cols-2 gap-3">
             <div>
               <Label>Data do Agendamento</Label>

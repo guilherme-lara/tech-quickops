@@ -12,7 +12,6 @@ export interface AuthProfile {
   empresaNome?: string;
   avatarUrl?: string;
   empresaLogo?: string;
-  empresaLogo?: string;
   empresaCodigo?: string;
   empresaPlano?: string;
 }
@@ -45,7 +44,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           id: user.id,
           nome_completo: user.nome,
           role: user.role,
-          empresa_id: user.empresaId,
+          empresa_id: user.empresaId as string,
           empresaNome: user.empresaNome,
           avatarUrl: user.avatarUrl,
           empresaLogo: user.empresaLogo,
