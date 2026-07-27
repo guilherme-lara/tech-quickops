@@ -69,7 +69,7 @@ function LandingPage() {
             {/* Texto */}
             <div className="lg:col-span-6 text-left max-w-2xl">
               <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-xs font-bold text-primary mb-6 shadow-sm">
-                <Zap className="w-3.5 h-3.5" /> Nova Versão 2.4 - Gestão Operacional & Financeira
+                <Zap className="w-3.5 h-3.5" /> Gestão Operacional & Financeira
               </div>
               <h1 className="text-4xl md:text-5xl lg:text-6.5xl font-extrabold tracking-tight text-white mb-6 leading-[1.05]">
                 Orquestre seu Field Service e Faturamento num só lugar.
