@@ -708,29 +708,41 @@ function OSPage() {
                   const fmt = (n: number) =>
                     n.toLocaleString("pt-BR", { minimumFractionDigits: 2 });
                   return (
-                    <div className="rounded-xl border border-border/60 bg-primary/5 p-3 text-sm space-y-1">
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Subtotal (Serviço)</span>
-                        <span>R$ {fmt(subtotal)}</span>
+                    <>
+                      <div className="rounded-xl border border-border/60 bg-primary/5 p-3 text-sm space-y-1 mb-4">
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Subtotal (Serviço)</span>
+                          <span>R$ {fmt(subtotal)}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">
+                            + Custos Extras (Viagem + Despesas)
+                          </span>
+                          <span>R$ {fmt(custosExtras)}</span>
+                        </div>
+                        <div className="flex justify-between font-semibold pt-1 border-t border-border/60">
+                          <span>= Valor Total Faturado</span>
+                          <span>R$ {fmt(total)}</span>
+                        </div>
                       </div>
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">
-                          + Custos Extras (Viagem + Despesas)
-                        </span>
-                        <span>R$ {fmt(custosExtras)}</span>
-                      </div>
-                      <div className="flex justify-between font-semibold pt-1 border-t border-border/60">
-                        <span>= Valor Total Faturado</span>
-                        <span>R$ {fmt(total)}</span>
-                      </div>
-                    </div>
-                  );
-                })()}
-                
-                <div className="col-span-full border-t border-border/50 pt-4 mt-2">
-                  <h4 className="text-sm font-semibold mb-3 flex items-center gap-2">
-                    Valores Recebidos Antecipadamente
-                  </h4>
+                      
+                      <div className="col-span-full border-t border-border/50 pt-4 mt-2">
+                        <div className="flex items-center justify-between mb-3">
+                          <h4 className="text-sm font-semibold flex items-center gap-2">
+                            Valores Recebidos Antecipadamente
+                          </h4>
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="h-8 text-xs bg-emerald-500/10 text-emerald-600 border-emerald-500/20 hover:bg-emerald-500/20 hover:text-emerald-700"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              setForm({ ...form, valor_adiantado: String(total), descricao_adiantamento: "Pagamento Total" });
+                            }}
+                          >
+                            Pagamento Total
+                          </Button>
+                        </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <Label>Valor Adiantado (R$)</Label>
@@ -1860,11 +1872,26 @@ export function EditOSDialog({
                 </SelectContent>
               </Select>
             </div>
-            {!isView && (
-                <div className="col-span-full border-t border-border/50 pt-4 mt-2">
-                  <h4 className="text-sm font-semibold mb-3 flex items-center gap-2">
-                    Valores Recebidos Antecipadamente
-                  </h4>
+            {!isView && (() => {
+                const total = Number(form.valor || 0) + Number(form.custo_viagem || 0) + despesasEdit.reduce((sum, item) => sum + Number(item.valor || 0), 0);
+                return (
+                  <div className="col-span-full border-t border-border/50 pt-4 mt-2">
+                    <div className="flex items-center justify-between mb-3">
+                      <h4 className="text-sm font-semibold flex items-center gap-2">
+                        Valores Recebidos Antecipadamente
+                      </h4>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="h-8 text-xs bg-emerald-500/10 text-emerald-600 border-emerald-500/20 hover:bg-emerald-500/20 hover:text-emerald-700"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setForm({ ...form, valor_adiantado: String(total), descricao_adiantamento: "Pagamento Total" });
+                        }}
+                      >
+                        Pagamento Total
+                      </Button>
+                    </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <Label>Valor Adiantado (R$)</Label>
@@ -1885,9 +1912,10 @@ export function EditOSDialog({
                         onChange={(e) => setForm({ ...form, descricao_adiantamento: e.target.value })}
                       />
                     </div>
+                    </div>
                   </div>
-                </div>
-              )}
+                );
+              })()}
           <div className="grid grid-cols-2 gap-3">
             <div>
               <Label>Data do Agendamento</Label>
