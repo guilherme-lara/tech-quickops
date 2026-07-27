@@ -60,6 +60,8 @@ function UsuariosPage() {
     texto: string;
     nome: string;
   } | null>(null);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [editFormData, setEditFormData] = useState({ id: "", nome: "", telefone: "", username: "", role: "" });
   const [resetSenhaResult, setResetSenhaResult] = useState<{
     texto: string;
     nome: string;
@@ -118,6 +120,26 @@ function UsuariosPage() {
     },
   });
 
+  const updateMutation = useMutation({
+    mutationFn: async () => {
+      if (!editFormData.nome.trim()) throw new Error("Informe o nome");
+      const { error } = await supabase
+        .from("perfis")
+        .update({
+          nome_completo: editFormData.nome,
+          telefone: editFormData.telefone || null,
+        })
+        .eq("id", editFormData.id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Usuário atualizado com sucesso");
+      setIsEditDialogOpen(false);
+      qc.invalidateQueries({ queryKey: ["usuarios_sistema"] });
+    },
+    onError: (e: any) => toast.error(e.message || "Erro ao atualizar usuário"),
+  });
+
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase.from("perfis").delete().eq("id", id);
@@ -160,6 +182,17 @@ function UsuariosPage() {
     if (window.confirm(`Deseja gerar uma nova senha para ${user.nome_completo}?`)) {
       resetPasswordMutation.mutate(user);
     }
+  };
+
+  const handleEdit = (user: any) => {
+    setEditFormData({
+      id: user.id,
+      nome: user.nome_completo,
+      telefone: user.telefone || "",
+      username: user.username || "",
+      role: user.role || "",
+    });
+    setIsEditDialogOpen(true);
   };
 
   const filteredUsers = usuarios?.filter(
@@ -266,6 +299,10 @@ function UsuariosPage() {
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => handleEdit(user)}>
+                              <Shield className="mr-2 h-4 w-4" /> 
+                              Visualizar / Editar Perfil
+                            </DropdownMenuItem>
                             <DropdownMenuItem onClick={() => handleResetPassword(user)}>
                               <KeyRound className="mr-2 h-4 w-4" /> 
                               Gerar Nova Senha
@@ -343,18 +380,64 @@ function UsuariosPage() {
             </div>
           </div>
           <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setIsDialogOpen(false)}
-              disabled={createMutation.isPending}
-            >
+            <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
               Cancelar
             </Button>
-            <Button
-              onClick={() => createMutation.mutate()}
-              disabled={createMutation.isPending}
-            >
+            <Button onClick={() => createMutation.mutate()} disabled={createMutation.isPending}>
               {createMutation.isPending ? "Criando..." : "Criar Acesso"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal de Edição */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Shield className="w-5 h-5 text-primary" /> Perfil do Usuário
+            </DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label>Nome Completo</Label>
+              <Input
+                placeholder="Ex: Ana Silva"
+                value={editFormData.nome}
+                onChange={(e) => setEditFormData({ ...editFormData, nome: e.target.value })}
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label>Telefone</Label>
+              <Input
+                placeholder="(11) 99999-9999"
+                value={editFormData.telefone}
+                onChange={(e) => setEditFormData({ ...editFormData, telefone: e.target.value })}
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label>Usuário de Login (Apenas Leitura)</Label>
+              <Input
+                value={editFormData.username}
+                disabled
+                className="bg-muted"
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label>Nível de Acesso (Apenas Leitura)</Label>
+              <Input
+                value={editFormData.role === "gestor" ? "Gestor" : editFormData.role === "analista" ? "Analista" : editFormData.role === "tecnico" ? "Técnico" : editFormData.role === "admin" ? "Admin" : editFormData.role}
+                disabled
+                className="bg-muted"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={() => updateMutation.mutate()} disabled={updateMutation.isPending}>
+              {updateMutation.isPending ? "Salvando..." : "Salvar Alterações"}
             </Button>
           </DialogFooter>
         </DialogContent>
