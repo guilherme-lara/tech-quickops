@@ -1888,6 +1888,7 @@ export function EditOSDialog({
                   </div>
                 </div>
               )}
+          </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
               <Label>Data do Agendamento</Label>
