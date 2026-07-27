@@ -14,8 +14,11 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
+import { ErrorBoundary, installGlobalErrorHandlers } from "@/components/ErrorBoundary";
 
 import appCss from "../styles.css?url";
+
+installGlobalErrorHandlers();
 
 function NotFoundComponent() {
   return (
@@ -62,6 +65,22 @@ export const Route = createRootRoute({
   shellComponent: RootShell,
   component: RootComponent,
   notFoundComponent: NotFoundComponent,
+  errorComponent: ({ error, reset }) => {
+    console.error("[RouteError]", error, (error as Error)?.stack);
+    return (
+      <ErrorBoundary scope="route" fallback={(e, r) => (
+        <div className="min-h-screen flex items-center justify-center p-6">
+          <pre className="max-w-2xl w-full overflow-auto rounded border border-destructive/40 bg-destructive/5 p-4 text-xs">
+            {e.name}: {e.message}
+            {"\n\n"}
+            {e.stack}
+          </pre>
+        </div>
+      )}>
+        {(() => { throw error; })()}
+      </ErrorBoundary>
+    );
+  },
 });
 
 function RootShell({ children }: { children: React.ReactNode }) {
@@ -178,10 +197,12 @@ function RootComponent() {
     <QueryClientProvider client={qc}>
       <StoreProvider>
         <AuthProvider>
-          <AuthGate />
-          <Outlet />
-          <Toaster />
-          <CookieConsent />
+          <ErrorBoundary scope="app">
+            <AuthGate />
+            <Outlet />
+            <Toaster />
+            <CookieConsent />
+          </ErrorBoundary>
         </AuthProvider>
       </StoreProvider>
     </QueryClientProvider>

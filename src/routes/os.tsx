@@ -1914,8 +1914,14 @@ export function EditOSDialog({
                     </div>
                     </div>
                   </div>
+<<<<<<< HEAD
                 );
               })()}
+=======
+                </div>
+              )}
+          </div>
+>>>>>>> 590d9577cfcbc5107831e06e054bc48d1fe08b42
           <div className="grid grid-cols-2 gap-3">
             <div>
               <Label>Data do Agendamento</Label>

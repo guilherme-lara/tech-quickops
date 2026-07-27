@@ -71,9 +71,9 @@ export type Database = {
           modelo_rat_url: string | null
           nome: string
           telefone: string | null
+          ultimo_mes_pago: string | null
           valor_km: number
           valor_por_km: number | null
-          ultimo_mes_pago: string | null
         }
         Insert: {
           base_km?: number | null
@@ -89,9 +89,9 @@ export type Database = {
           modelo_rat_url?: string | null
           nome: string
           telefone?: string | null
+          ultimo_mes_pago?: string | null
           valor_km?: number
           valor_por_km?: number | null
-          ultimo_mes_pago?: string | null
         }
         Update: {
           base_km?: number | null
@@ -107,9 +107,9 @@ export type Database = {
           modelo_rat_url?: string | null
           nome?: string
           telefone?: string | null
+          ultimo_mes_pago?: string | null
           valor_km?: number
           valor_por_km?: number | null
-          ultimo_mes_pago?: string | null
         }
         Relationships: [
           {
@@ -246,6 +246,7 @@ export type Database = {
           dados_adicionais: Json
           data_agendamento: string | null
           data_atendimento: string | null
+          descricao_adiantamento: string | null
           descricao_problema: string
           despesas: Json
           empresa_id: string
@@ -260,6 +261,7 @@ export type Database = {
           tecnico_id: string | null
           titulo: string
           valor: number
+          valor_adiantado: number
         }
         Insert: {
           analista_id?: string | null
@@ -269,6 +271,7 @@ export type Database = {
           dados_adicionais?: Json
           data_agendamento?: string | null
           data_atendimento?: string | null
+          descricao_adiantamento?: string | null
           descricao_problema?: string
           despesas?: Json
           empresa_id: string
@@ -283,6 +286,7 @@ export type Database = {
           tecnico_id?: string | null
           titulo?: string
           valor?: number
+          valor_adiantado?: number
         }
         Update: {
           analista_id?: string | null
@@ -292,6 +296,7 @@ export type Database = {
           dados_adicionais?: Json
           data_agendamento?: string | null
           data_atendimento?: string | null
+          descricao_adiantamento?: string | null
           descricao_problema?: string
           despesas?: Json
           empresa_id?: string
@@ -306,6 +311,7 @@ export type Database = {
           tecnico_id?: string | null
           titulo?: string
           valor?: number
+          valor_adiantado?: number
         }
         Relationships: [
           {
@@ -470,6 +476,7 @@ export type Database = {
         Row: {
           avatar_url: string | null
           created_at: string
+          current_session_id: string | null
           empresa_id: string
           id: string
           nome_completo: string
@@ -480,6 +487,7 @@ export type Database = {
         Insert: {
           avatar_url?: string | null
           created_at?: string
+          current_session_id?: string | null
           empresa_id: string
           id: string
           nome_completo?: string
@@ -490,6 +498,7 @@ export type Database = {
         Update: {
           avatar_url?: string | null
           created_at?: string
+          current_session_id?: string | null
           empresa_id?: string
           id?: string
           nome_completo?: string
@@ -745,6 +754,18 @@ export type Database = {
             }
             Returns: string
           }
+        | {
+            Args: {
+              p_dominio: string
+              p_empresa_id: string
+              p_nome: string
+              p_role: Database["public"]["Enums"]["app_role"]
+              p_senha: string
+              p_telefone: string
+              p_username: string
+            }
+            Returns: string
+          }
       gerar_chave_licenca_segura: {
         Args: { p_empresa_id: string }
         Returns: string
@@ -768,24 +789,34 @@ export type Database = {
         Returns: boolean
       }
       validar_chave_licenca: { Args: { p_chave: string }; Returns: boolean }
-      vincular_acesso_tecnico: {
-        Args: { p_senha: string; p_tecnico_id: string; p_username: string }
-        Returns: string
-      }
+      vincular_acesso_tecnico:
+        | {
+            Args: { p_senha: string; p_tecnico_id: string; p_username: string }
+            Returns: string
+          }
+        | {
+            Args: {
+              p_empresa_id?: string
+              p_senha: string
+              p_tecnico_id: string
+              p_username: string
+            }
+            Returns: string
+          }
     }
     Enums: {
       app_role: "superadmin" | "admin" | "gestor" | "analista" | "tecnico"
       os_status:
-        | "agendamento"
-        | "aprovado"
-        | "cancelado"
-        | "concluido"
-        | "concluido_tecnico"
-        | "em_andamento"
-        | "em_deslocamento"
-        | "pendencia"
         | "pendente"
+        | "aprovado"
+        | "em_andamento"
+        | "concluido"
+        | "cancelado"
+        | "agendamento"
         | "reagendado"
+        | "concluido_tecnico"
+        | "pendencia"
+        | "em_deslocamento"
       tipo_comissao_enum: "fixo" | "porcentagem"
     }
     CompositeTypes: {
@@ -925,6 +956,7 @@ export const Constants = {
         "reagendado",
         "concluido_tecnico",
         "pendencia",
+        "em_deslocamento",
       ],
       tipo_comissao_enum: ["fixo", "porcentagem"],
     },
