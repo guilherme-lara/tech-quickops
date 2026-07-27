@@ -1,0 +1,1 @@
+CREATE POLICY "Gestores e Admins podem ver todos os perfis da empresa" ON public.perfis FOR SELECT TO authenticated USING (empresa_id = public.get_current_empresa_id() AND public.has_role(auth.uid(), 'gestor'));

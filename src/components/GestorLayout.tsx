@@ -118,14 +118,6 @@ export function GestorLayout({ children }: { children?: ReactNode }) {
                 <item.icon className="w-4 h-4 shrink-0" />
                 <span className="whitespace-nowrap">{item.label}</span>
               </div>
-              
-              {item.to === "/usuarios" && (
-                <div className="pl-7 mt-1">
-                  <Badge variant="outline" className={`text-[9px] px-1.5 py-0 h-4 border-yellow-500/30 bg-yellow-500/10 text-yellow-600 ${active ? 'text-white border-white/30 bg-white/20' : ''}`}>
-                    Em construção
-                  </Badge>
-                </div>
-              )}
             </div>
           </Link>
         );
