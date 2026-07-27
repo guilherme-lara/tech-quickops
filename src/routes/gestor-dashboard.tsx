@@ -3,6 +3,7 @@ import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { GestorLayout } from "@/components/GestorLayout";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { 
   ClipboardList, 
@@ -100,6 +101,96 @@ function formatMinutes(minutes: number) {
   const hours = Math.floor(minutes / 60);
   const mins = minutes % 60;
   return mins > 0 ? `${hours}h ${mins}m` : `${hours}h`;
+}
+
+function TecnicoOSModalContent({ tecnicoId, tecnicoNome, defaultMes }: { tecnicoId: string, tecnicoNome: string, defaultMes: string }) {
+  const [mes, setMes] = useState(defaultMes);
+
+  const { data: osList, isLoading } = useQuery({
+    queryKey: ['tecnico_os_historico_modal', tecnicoId, mes],
+    queryFn: async () => {
+      let query = supabase
+        .from("ordens_servico")
+        .select("id, numero, titulo, status, valor, custo_viagem, km_viagem, despesas, tecnico_id, data_agendamento, horario_atendimento, created_at")
+        .eq('tecnico_id', tecnicoId)
+        .order("data_agendamento", { ascending: false });
+
+      if (mes !== 'todos') {
+        const [yearStr, monthStr] = mes.split("-");
+        const startOfMonth = `${mes}-01`;
+        const lastDay = new Date(Number(yearStr), Number(monthStr), 0).getDate();
+        const endOfMonth = `${mes}-${String(lastDay).padStart(2, "0")}`;
+        query = query.gte("data_agendamento", startOfMonth).lte("data_agendamento", endOfMonth);
+      }
+
+      const { data, error } = await query;
+      if (error) throw error;
+      return data || [];
+    }
+  });
+
+  return (
+    <DialogContent className="max-w-4xl max-h-[90vh] flex flex-col">
+      <DialogHeader className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b pb-4">
+        <DialogTitle>Ordens de Serviço - {tecnicoNome}</DialogTitle>
+        <Select value={mes} onValueChange={setMes}>
+          <SelectTrigger className="w-[180px]">
+            <SelectValue placeholder="Período" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="todos">Todo o Histórico</SelectItem>
+            {Array.from({ length: 6 }).map((_, i) => {
+              const d = new Date();
+              d.setMonth(d.getMonth() - i);
+              const val = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+              const label = d.toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
+              return <SelectItem key={val} value={val}>{label.charAt(0).toUpperCase() + label.slice(1)}</SelectItem>;
+            })}
+          </SelectContent>
+        </Select>
+      </DialogHeader>
+
+      <div className="flex-1 overflow-y-auto custom-scrollbar mt-2 pr-2 space-y-3">
+        {isLoading ? (
+          <div className="text-center py-8 text-muted-foreground animate-pulse">Carregando Ordens de Serviço...</div>
+        ) : (!osList || osList.length === 0) ? (
+          <div className="text-center py-8 text-muted-foreground">Nenhuma OS encontrada para este técnico neste período.</div>
+        ) : (
+          osList.map((os: any) => (
+            <Card key={os.id} className="p-4 shadow-[var(--shadow-card)] border-border/60">
+              <div className="flex justify-between items-start mb-2">
+                <div>
+                  <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">{os.numero || os.id?.split("-")[0]}</span>
+                  <h3 className="font-semibold text-base">{os.titulo || "Sem título"}</h3>
+                </div>
+                <span className="text-[10px] px-2 py-1 rounded-full font-bold uppercase tracking-wider bg-primary/10 text-primary">
+                  {os.status}
+                </span>
+              </div>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-sm mt-3 pt-3 border-t border-border/30">
+                <div>
+                  <div className="text-muted-foreground text-xs">Valor</div>
+                  <div className="font-semibold">R$ {Number(os.valor || 0).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</div>
+                </div>
+                <div>
+                  <div className="text-muted-foreground text-xs">Despesas</div>
+                  <div className="font-semibold">R$ {(Array.isArray(os.despesas) ? os.despesas.reduce((s: number, d: any) => s + (Number(d?.valor) || 0), 0) : 0).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</div>
+                </div>
+                <div>
+                  <div className="text-muted-foreground text-xs">Km Viagem</div>
+                  <div className="font-semibold">{Number(os.km_viagem || 0)} km</div>
+                </div>
+                <div>
+                  <div className="text-muted-foreground text-xs">Data</div>
+                  <div className="font-semibold">{os.data_agendamento ? new Date(os.data_agendamento).toLocaleDateString('pt-BR', { timeZone: 'UTC' }) : new Date(os.created_at).toLocaleDateString('pt-BR')}</div>
+                </div>
+              </div>
+            </Card>
+          ))
+        )}
+      </div>
+    </DialogContent>
+  );
 }
 
 function GestorDashboard() {
@@ -826,47 +917,13 @@ function GestorDashboard() {
 
       {/* Modal de Detalhes do Técnico */}
       <Dialog open={!!tecnicoSelecionado} onOpenChange={(open) => !open && setTecnicoSelecionado(null)}>
-        <DialogContent className="max-w-3xl">
-          <DialogHeader>
-            <DialogTitle>Ordens de Serviço - {tecnicoSelecionado?.tecnico_nome}</DialogTitle>
-          </DialogHeader>
-          <div className="max-h-[60vh] overflow-y-auto custom-scrollbar mt-4 space-y-3 pr-2">
-            {tecnicoSelecionado?.os_list?.map((os: any) => (
-              <Card key={os.id} className="p-4 shadow-[var(--shadow-card)] border-border/60">
-                <div className="flex justify-between items-start mb-2">
-                  <div>
-                    <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">{os.numero || os.id?.split("-")[0]}</span>
-                    <h3 className="font-semibold text-base">{os.titulo || "Sem título"}</h3>
-                  </div>
-                  <span className="text-[10px] px-2 py-1 rounded-full font-bold uppercase tracking-wider bg-primary/10 text-primary">
-                    {os.status}
-                  </span>
-                </div>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-sm mt-3 pt-3 border-t border-border/30">
-                  <div>
-                    <div className="text-muted-foreground text-xs">Valor</div>
-                    <div className="font-semibold">R$ {Number(os.valor || 0).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</div>
-                  </div>
-                  <div>
-                    <div className="text-muted-foreground text-xs">Despesas</div>
-                    <div className="font-semibold">R$ {(Array.isArray(os.despesas) ? os.despesas.reduce((s: number, d: any) => s + (Number(d?.valor) || 0), 0) : 0).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</div>
-                  </div>
-                  <div>
-                    <div className="text-muted-foreground text-xs">Km Viagem</div>
-                    <div className="font-semibold">{Number(os.km_viagem || 0)} km</div>
-                  </div>
-                  <div>
-                    <div className="text-muted-foreground text-xs">Data</div>
-                    <div className="font-semibold">{os.data_agendamento ? new Date(os.data_agendamento).toLocaleDateString('pt-BR', { timeZone: 'UTC' }) : new Date(os.created_at).toLocaleDateString('pt-BR')}</div>
-                  </div>
-                </div>
-              </Card>
-            ))}
-            {(!tecnicoSelecionado?.os_list || tecnicoSelecionado.os_list.length === 0) && (
-              <div className="text-center py-8 text-muted-foreground">Nenhuma OS encontrada para este técnico.</div>
-            )}
-          </div>
-        </DialogContent>
+        {tecnicoSelecionado && (
+          <TecnicoOSModalContent 
+            tecnicoId={tecnicoSelecionado.tecnico_id} 
+            tecnicoNome={tecnicoSelecionado.tecnico_nome} 
+            defaultMes={mesSelecionado}
+          />
+        )}
       </Dialog>
     </div>
   );
