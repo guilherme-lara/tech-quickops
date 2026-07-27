@@ -16,6 +16,8 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { ErrorBoundary, installGlobalErrorHandlers } from "@/components/ErrorBoundary";
 
+import appCss from "../styles.css?url";
+
 installGlobalErrorHandlers();
 
 function NotFoundComponent() {
