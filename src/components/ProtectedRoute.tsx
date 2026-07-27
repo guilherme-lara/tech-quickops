@@ -37,7 +37,11 @@ export function ProtectedRoute({ children, allowedRoles }: Props) {
         }
 
         if (!isAllowed) {
-          navigate({ to: ["gestor", "analista", "admin", "superadmin"].includes(profile.role) ? "/dashboard" : "/tecnico/os" });
+          let redirectRoute = "/tecnico/os";
+          if (profile.role === "analista") redirectRoute = "/analista-dashboard";
+          else if (["gestor", "admin", "superadmin"].includes(profile.role)) redirectRoute = "/dashboard";
+          
+          navigate({ to: redirectRoute });
           return;
         }
       }

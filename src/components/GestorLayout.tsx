@@ -79,7 +79,7 @@ export function GestorLayout({ children }: { children?: ReactNode }) {
     }
     
     if (profile?.role === "analista") {
-      const allowedForAnalista = ["/analista-dashboard", "/os", "/clientes", "/equipe", "/configuracoes"];
+      const allowedForAnalista = ["/analista-dashboard", "/os", "/clientes", "/equipe", "/estoque", "/configuracoes"];
       return allowedForAnalista.includes(item.to);
     }
     // gestor, admin, superadmin
