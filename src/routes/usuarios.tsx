@@ -30,6 +30,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Shield, Plus, Search, Key, MoreVertical, KeyRound, Ban, Copy } from "lucide-react";
 import { toast } from "sonner";
+import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 
 export const Route = createFileRoute("/usuarios")({
@@ -54,6 +55,7 @@ function UsuariosPage() {
   const qc = useQueryClient();
 
   const [searchTerm, setSearchTerm] = useState("");
+  const [showTecnicos, setMostrarTecnicos] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [formData, setFormData] = useState(emptyForm);
   const [successCreds, setSuccessCreds] = useState<{
@@ -195,11 +197,14 @@ function UsuariosPage() {
     setIsEditDialogOpen(true);
   };
 
-  const filteredUsers = usuarios?.filter(
-    (u) =>
+  const filteredUsers = usuarios?.filter((u) => {
+    if (!showTecnicos && u.role === "tecnico") return false;
+    
+    return (
       u.nome_completo?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (u as any).username?.toLowerCase().includes(searchTerm.toLowerCase()),
-  );
+      (u as any).username?.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  });
 
   const getRoleBadge = (role: string) => {
     switch (role) {
@@ -235,7 +240,7 @@ function UsuariosPage() {
         </div>
 
         <div className="bg-card rounded-3xl shadow-[var(--shadow-card)] border border-border/50 overflow-hidden">
-          <div className="p-4 border-b border-border/50 flex flex-wrap gap-4">
+          <div className="p-4 border-b border-border/50 flex flex-wrap gap-4 justify-between items-center">
             <div className="relative flex-1 min-w-[250px]">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
@@ -244,6 +249,16 @@ function UsuariosPage() {
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
+            </div>
+            <div className="flex items-center gap-2">
+              <Switch
+                id="show-tecnicos"
+                checked={showTecnicos}
+                onCheckedChange={setMostrarTecnicos}
+              />
+              <Label htmlFor="show-tecnicos" className="text-sm text-muted-foreground cursor-pointer">
+                Exibir Técnicos
+              </Label>
             </div>
           </div>
 
