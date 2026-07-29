@@ -163,9 +163,10 @@ function LogsPage() {
             <Label className="text-xs text-muted-foreground">Data Fim</Label>
             <Input
               type="date"
+              max="9999-12-31"
               value={dataFim}
               onChange={(e) => setDataFim(e.target.value)}
-              className="h-9 text-sm"
+              className="h-9 min-w-[130px] rounded-xl"
             />
           </div>
 

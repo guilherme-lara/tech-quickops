@@ -574,6 +574,7 @@ function OSPage() {
                     <Label>Data do Agendamento</Label>
                     <Input
                       type="date"
+                      max="9999-12-31"
                       value={form.data_agendamento}
                       onChange={(e) => setForm({ ...form, data_agendamento: e.target.value })}
                       className="h-10"
@@ -1928,6 +1929,7 @@ export function EditOSDialog({
               <Input
                 disabled={isView}
                 type="date"
+                max="9999-12-31"
                 value={dataAgendamento}
                 onChange={(e) => setDataAgendamento(e.target.value)}
               />

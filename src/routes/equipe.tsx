@@ -342,16 +342,17 @@ function EquipePage() {
 
         const { error } = await (supabase.rpc as any)("criar_tecnico", {
           p_nome: form.nome,
-          p_usuario: form.username.toLowerCase(),
+          p_username: form.username.toLowerCase(),
           p_senha: novaSenha,
           p_telefone: form.telefone || null,
           p_tipo_comissao: form.tipo_comissao,
-          p_valor_comissao: Number(form.comissao) || 0,
+          p_comissao: Number(form.comissao) || 0,
           p_chave_pix: form.chave_pix || null,
-          p_perfil: form.perfil || null,
-          p_cidade: form.cidade_atendimento || null,
-          p_raio: form.raio_atendimento ? Number(form.raio_atendimento) : null,
-          p_empresa_id: empresaId,
+          p_dados_adicionais: {
+            perfil: form.perfil || null,
+            cidade_atendimento: form.cidade_atendimento || null,
+            raio_atendimento: form.raio_atendimento ? Number(form.raio_atendimento) : null,
+          },
         });
         if (error) throw error;
         await registrarLog(
