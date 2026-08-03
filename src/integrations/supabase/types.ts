@@ -71,6 +71,7 @@ export type Database = {
           modelo_rat_url: string | null
           nome: string
           telefone: string | null
+          template_rat_texto: string | null
           ultimo_mes_pago: string | null
           valor_km: number
           valor_por_km: number | null
@@ -89,6 +90,7 @@ export type Database = {
           modelo_rat_url?: string | null
           nome: string
           telefone?: string | null
+          template_rat_texto?: string | null
           ultimo_mes_pago?: string | null
           valor_km?: number
           valor_por_km?: number | null
@@ -107,6 +109,7 @@ export type Database = {
           modelo_rat_url?: string | null
           nome?: string
           telefone?: string | null
+          template_rat_texto?: string | null
           ultimo_mes_pago?: string | null
           valor_km?: number
           valor_por_km?: number | null

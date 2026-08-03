@@ -111,7 +111,7 @@ function TecnicoOSModalContent({ tecnicoId, tecnicoNome, defaultMes }: { tecnico
     queryFn: async () => {
       let query = supabase
         .from("ordens_servico")
-        .select("id, numero, titulo, status, valor, custo_viagem, km_viagem, despesas, tecnico_id, data_agendamento, horario_atendimento, created_at")
+        .select("id, numero, titulo, status, valor, custo_viagem, km_viagem, despesas, tecnico_id, data_agendamento, horario_atendimento, created_at, clientes(nome), tecnicos(comissao, tipo_comissao)")
         .eq('tecnico_id', tecnicoId)
         .order("data_agendamento", { ascending: false });
 
@@ -129,25 +129,67 @@ function TecnicoOSModalContent({ tecnicoId, tecnicoNome, defaultMes }: { tecnico
     }
   });
 
+  const handleExportCSV = () => {
+    if (!osList || osList.length === 0) return;
+    const header = ["ID da OS", "Cliente", "Data", "Faturamento (R$)", "Valor do Técnico (R$)", "Status"];
+    const rows = osList.map((os: any) => {
+      const dataOs = os.data_agendamento ? new Date(os.data_agendamento).toLocaleDateString('pt-BR', { timeZone: 'UTC' }) : new Date(os.created_at).toLocaleDateString('pt-BR');
+      const clienteNome = os.clientes?.nome || "Desconhecido";
+      
+      const valorServico = Number(os.valor) || 0;
+      const custoViagem = Number(os.custo_viagem) || 0;
+      const totalDespesas = Array.isArray(os.despesas) ? os.despesas.reduce((s: number, d: any) => s + (Number(d?.valor) || 0), 0) : 0;
+      const faturamento = valorServico + custoViagem + totalDespesas;
+      
+      const comissao = Number(os.tecnicos?.comissao) || 0;
+      const tipoComissao = os.tecnicos?.tipo_comissao || 'porcentagem';
+      const valorTecnico = tipoComissao === 'fixo' ? comissao : (valorServico * comissao) / 100;
+
+      return [
+        os.numero || os.id,
+        `"${clienteNome}"`,
+        dataOs,
+        faturamento.toFixed(2).replace('.', ','),
+        valorTecnico.toFixed(2).replace('.', ','),
+        os.status
+      ].join(";");
+    });
+    const csvContent = "data:text/csv;charset=utf-8,\uFEFF" + header.join(";") + "\n" + rows.join("\n");
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `Relatorio_Tecnico_${tecnicoNome}_${mes}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
     <DialogContent className="max-w-4xl max-h-[90vh] flex flex-col">
       <DialogHeader className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b pb-4">
-        <DialogTitle>Ordens de Serviço - {tecnicoNome}</DialogTitle>
-        <Select value={mes} onValueChange={setMes}>
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Período" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="todos">Todo o Histórico</SelectItem>
-            {Array.from({ length: 6 }).map((_, i) => {
-              const d = new Date();
-              d.setMonth(d.getMonth() - i);
-              const val = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
-              const label = d.toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
-              return <SelectItem key={val} value={val}>{label.charAt(0).toUpperCase() + label.slice(1)}</SelectItem>;
-            })}
-          </SelectContent>
-        </Select>
+        <div className="flex items-center justify-between w-full">
+          <DialogTitle>Ordens de Serviço - {tecnicoNome}</DialogTitle>
+          <div className="flex items-center gap-2">
+            <Select value={mes} onValueChange={setMes}>
+              <SelectTrigger className="w-[150px] h-9 text-xs">
+                <SelectValue placeholder="Período" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="todos">Todo o Histórico</SelectItem>
+                {Array.from({ length: 6 }).map((_, i) => {
+                  const d = new Date();
+                  d.setMonth(d.getMonth() - i);
+                  const val = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+                  const label = d.toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
+                  return <SelectItem key={val} value={val}>{label.charAt(0).toUpperCase() + label.slice(1)}</SelectItem>;
+                })}
+              </SelectContent>
+            </Select>
+            <Button size="sm" onClick={handleExportCSV} variant="outline" className="h-9 gap-1.5 shrink-0 bg-emerald-500/10 text-emerald-600 border-emerald-500/20 hover:bg-emerald-500/20 hover:text-emerald-700">
+              <Download className="w-4 h-4" /> Exportar (CSV)
+            </Button>
+          </div>
+        </div>
       </DialogHeader>
 
       <div className="flex-1 overflow-y-auto custom-scrollbar mt-2 pr-2 space-y-3">
@@ -232,7 +274,7 @@ function GestorDashboard() {
             .in("status", ["pendente", "em_andamento", "agendamento", "reagendado"]),
           supabase
             .from("ordens_servico")
-            .select("id, numero, titulo, status, valor, custo_viagem, km_viagem, despesas, tecnico_id, tecnicos(nome), data_agendamento, horario_atendimento, created_at, cliente_id, clientes(nome, ultimo_mes_pago), os_historico(created_at, status_novo), dados_adicionais")
+            .select("id, numero, titulo, status, valor, custo_viagem, km_viagem, despesas, tecnico_id, tecnicos(nome, comissao, tipo_comissao), data_agendamento, horario_atendimento, created_at, cliente_id, clientes(nome, ultimo_mes_pago), os_historico(created_at, status_novo), dados_adicionais")
             .gte("data_agendamento", startOfMonth)
             .lte("data_agendamento", endOfMonth),
           supabase
@@ -364,20 +406,25 @@ function GestorDashboard() {
             const tId = os.tecnico_id;
             const tNome = os.tecnicos?.nome || "Desconhecido";
             if (!tecnicosMap.has(tId)) {
-              tecnicosMap.set(tId, { tecnico_nome: tNome, tecnico_id: tId, os_finalizadas: 0, faturamento_gerado: 0, os_list: [] });
+              tecnicosMap.set(tId, { tecnico_nome: tNome, tecnico_id: tId, os_finalizadas: 0, faturamento_gerado: 0, valor_a_pagar: 0, os_list: [] });
             }
             const stat = tecnicosMap.get(tId);
             stat.os_finalizadas += 1;
             stat.os_list.push(os);
             
             const valorServico = Number(os.valor) || 0;
-            const kmViagem = Number(os.km_viagem) || 0;
+            const custoViagem = Number(os.custo_viagem) || 0;
             let totalDespesas = 0;
             if (Array.isArray(os.despesas)) {
               totalDespesas = (os.despesas as any[]).reduce((s: number, d: any) => s + (Number(d?.valor) || 0), 0);
             }
             
-            stat.faturamento_gerado += valorServico + kmViagem + totalDespesas;
+            stat.faturamento_gerado += valorServico + custoViagem + totalDespesas;
+
+            const comissao = Number(os.tecnicos?.comissao) || 0;
+            const tipoComissao = os.tecnicos?.tipo_comissao || 'porcentagem';
+            const comissaoValor = tipoComissao === 'fixo' ? comissao : (valorServico * comissao) / 100;
+            stat.valor_a_pagar += comissaoValor;
           }
         });
         const rankingArr = Array.from(tecnicosMap.values()).sort((a, b) => b.faturamento_gerado - a.faturamento_gerado);
@@ -404,16 +451,16 @@ function GestorDashboard() {
             stat.os_solicitadas += 1;
             if (os.status === 'concluido') {
               const valorServico = Number(os.valor) || 0;
-              const kmViagem = Number(os.km_viagem) || 0;
+              const custoViagem = Number(os.custo_viagem) || 0;
               let totalDespesas = 0;
               if (Array.isArray(os.despesas)) {
                 totalDespesas = (os.despesas as any[]).reduce((s: number, d: any) => s + (Number(d?.valor) || 0), 0);
               }
-              stat.valor_gerado += valorServico + kmViagem + totalDespesas;
+              stat.valor_gerado += valorServico + custoViagem + totalDespesas;
               if ((os.dados_adicionais as any)?.mes_recebimento === mesSelecionado || (os.dados_adicionais as any)?.pago_imediatamente || stat.ultimo_mes_pago === mesSelecionado) {
-                stat.valor_pago += valorServico + kmViagem + totalDespesas;
+                stat.valor_pago += valorServico + custoViagem + totalDespesas;
               } else {
-                stat.valor_pendente += valorServico + kmViagem + totalDespesas;
+                stat.valor_pendente += valorServico + custoViagem + totalDespesas;
               }
             }
           }
@@ -483,6 +530,7 @@ function GestorDashboard() {
       "Técnico": t.tecnico_nome || t.nome || "—",
       "OS Finalizadas": t.os_finalizadas ?? 0,
       "Faturamento Gerado (R$)": Number(t.faturamento_gerado ?? 0).toFixed(2),
+      "Valor a Pagar (R$)": Number(t.valor_a_pagar ?? 0).toFixed(2),
     }));
     const wsRanking = XLSX.utils.json_to_sheet(rankingData);
     XLSX.utils.book_append_sheet(wb, wsRanking, "Ranking");
@@ -722,7 +770,8 @@ function GestorDashboard() {
                     <tr>
                       <th className="px-4 py-3 rounded-tl-lg font-medium">Técnico</th>
                       <th className="px-4 py-3 font-medium text-center">OS Finalizadas</th>
-                      <th className="px-4 py-3 rounded-tr-lg font-medium text-right">Faturamento Gerado</th>
+                      <th className="px-4 py-3 font-medium text-right">Faturamento Gerado</th>
+                      <th className="px-4 py-3 rounded-tr-lg font-medium text-right text-emerald-600 dark:text-emerald-400">Valor a Pagar (Técnico)</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border/60">
@@ -740,6 +789,9 @@ function GestorDashboard() {
                         </td>
                         <td className="px-4 py-3 text-right font-bold">
                           R$ {Number(t.faturamento_gerado ?? 0).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                        </td>
+                        <td className="px-4 py-3 text-right font-bold text-emerald-600 dark:text-emerald-400">
+                          R$ {Number(t.valor_a_pagar ?? 0).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
                         </td>
                       </tr>
                     ))}

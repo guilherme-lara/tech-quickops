@@ -162,6 +162,7 @@ function OSPage() {
     valor_adiantado: "",
     descricao_adiantamento: "",
   });
+  const [valorKmInput, setValorKmInput] = useState("");
   const { analistas: analistasNovaOS, setAnalistas: setAnalistasNovaOS } = useAnalistasByCliente(form.clienteId);
   const [novosDadosExtras, setNovosDadosExtras] = useState<Record<string, any>>({});
   const [novoCampoNome, setNovoCampoNome] = useState("");
@@ -486,13 +487,26 @@ function OSPage() {
                       value={form.clienteId}
                       onChange={(v) => {
                         const cliente = clientes.find((c) => c.id === v);
+                        const oldCliente = clientes.find((c) => c.id === form.clienteId);
+                        
                         const baseKm = cliente?.base_km || 0;
                         const valorPorKm = cliente?.valor_por_km || 0;
+                        const novoTemplate = cliente?.template_rat_texto || "";
+                        const oldTemplate = oldCliente?.template_rat_texto || "";
+                        
+                        let novaDescricao = form.descricao_problema;
+                        if (!novaDescricao || novaDescricao === oldTemplate) {
+                          novaDescricao = novoTemplate;
+                        }
+
+                        setValorKmInput(valorPorKm ? String(valorPorKm) : "");
+
                         setForm({
                           ...form,
                           clienteId: v,
                           km_viagem: baseKm ? String(baseKm) : "",
                           custo_viagem: baseKm && valorPorKm ? String(baseKm * valorPorKm) : "",
+                          descricao_problema: novaDescricao,
                         });
                       }}
                       placeholder="Selecione um cliente..."
@@ -590,7 +604,7 @@ function OSPage() {
                     />
                   </div>
                 </div>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-3 gap-4">
                   <div>
                     <Label>Valor estimado (R$)</Label>
                     <Input
@@ -614,17 +628,38 @@ function OSPage() {
                       value={form.km_viagem}
                       onChange={(e) => {
                         if (Number(e.target.value) < 0) return;
-                        const cliente = clientes.find((c) => c.id === form.clienteId);
-                        const valorPorKm = cliente?.valor_por_km || 0;
+                        const vKm = Number(valorKmInput);
                         setForm({
                           ...form,
                           km_viagem: e.target.value,
-                          custo_viagem: valorPorKm
-                            ? String(Number(e.target.value) * valorPorKm)
+                          custo_viagem: vKm
+                            ? String(Number(e.target.value) * vKm)
                             : form.custo_viagem,
                         });
                       }}
                       placeholder="0"
+                      className="h-10"
+                    />
+                  </div>
+                  <div>
+                    <Label>Valor do KM (R$)</Label>
+                    <Input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={valorKmInput}
+                      onChange={(e) => {
+                        if (Number(e.target.value) < 0) return;
+                        setValorKmInput(e.target.value);
+                        const vKm = Number(e.target.value);
+                        setForm({
+                          ...form,
+                          custo_viagem: vKm
+                            ? String(Number(form.km_viagem) * vKm)
+                            : form.custo_viagem,
+                        });
+                      }}
+                      placeholder="0,00"
                       className="h-10"
                     />
                   </div>

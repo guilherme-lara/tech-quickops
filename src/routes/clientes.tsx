@@ -101,6 +101,7 @@ function ClientesPage() {
     dias_pagamento: "",
     dia_envio_planilha: "",
     modelo_rat_url: "",
+    template_rat_texto: "",
   });
   const [analistas, setAnalistas] = useState<Analista[]>([]);
   const [loadingAnalistas, setLoadingAnalistas] = useState(false);
@@ -124,6 +125,7 @@ function ClientesPage() {
       dias_pagamento: "",
       dia_envio_planilha: "",
       modelo_rat_url: "",
+      template_rat_texto: "",
     });
     setAnalistas([]);
     setNovoDiaPagamento("");
@@ -144,6 +146,7 @@ function ClientesPage() {
       dias_pagamento: c.dias_pagamento || "",
       dia_envio_planilha: c.dia_envio_planilha != null ? String(c.dia_envio_planilha) : "",
       modelo_rat_url: c.modelo_rat_url ?? "",
+      template_rat_texto: c.template_rat_texto ?? "",
     });
     setAnalistas([]);
     setNovoDiaPagamento("");
@@ -290,6 +293,7 @@ function ClientesPage() {
         dias_pagamento: "",
         dia_envio_planilha: "",
         modelo_rat_url: "",
+        template_rat_texto: "",
       });
       setAnalistas([]);
     } catch (e: any) {
@@ -513,6 +517,20 @@ function ClientesPage() {
                       </PrivateFileLink>
                     </div>
                   )}
+                </div>
+
+                {/* Template RAT Texto */}
+                <div className="rounded-xl border border-border/60 bg-muted/30 p-3 mt-4">
+                  <div className="text-sm font-semibold mb-1">Texto Padrão da RAT (Opcional)</div>
+                  <div className="text-xs text-muted-foreground mb-3">
+                    Este texto será inserido automaticamente na descrição da OS ao selecionar este cliente.
+                  </div>
+                  <textarea
+                    value={form.template_rat_texto}
+                    onChange={(e) => setForm({ ...form, template_rat_texto: e.target.value })}
+                    placeholder="Ex: Favor verificar ar condicionado. Manutenção preventiva..."
+                    className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  />
                 </div>
 
                 {/* Contatos de Suporte / Analistas */}

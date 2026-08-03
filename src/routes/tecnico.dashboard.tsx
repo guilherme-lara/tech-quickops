@@ -8,6 +8,7 @@ import { Card } from "@/components/ui/card";
 import { useState } from "react";
 import { Loader2, ClipboardList, Clock, CheckCircle2, Wallet, CalendarDays } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { formatDate } from "@/lib/utils";
 
 export const Route = createFileRoute("/tecnico/dashboard")({
   component: () => (
@@ -180,7 +181,7 @@ function DashboardTecnico() {
                   <div className="text-xs text-muted-foreground">
                     {os.data_agendamento ? (
                       <>
-                        {new Date(os.data_agendamento).toLocaleDateString('pt-BR', { timeZone: 'UTC' })}
+                        {formatDate(os.data_agendamento)}
                         {os.horario_atendimento && (
                           <>
                             <span className="mx-1">•</span>
@@ -189,7 +190,7 @@ function DashboardTecnico() {
                         )}
                       </>
                     ) : (
-                      new Date(os.created_at).toLocaleDateString('pt-BR')
+                      formatDate(os.created_at)
                     )}
                   </div>
                   <div className="text-sm font-bold text-emerald-500">
