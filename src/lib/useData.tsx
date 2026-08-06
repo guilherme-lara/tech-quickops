@@ -496,7 +496,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     queryFn: async (): Promise<Cliente[]> => {
       let query = supabase
         .from("clientes")
-        .select("id, nome, documento, telefone, email, cidade, endereco_completo, base_km, valor_por_km, dias_pagamento, dia_envio_planilha, modelo_rat_url, template_rat_texto, ultimo_mes_pago", {
+        .select("*", {
           count: "exact",
         })
         .eq("empresa_id", empresaId!);
@@ -546,7 +546,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       if (!empresaId) return [];
       const { data, error } = await supabase
         .from("clientes")
-        .select("id, nome, documento, telefone, email, cidade, endereco_completo, base_km, valor_por_km, dias_pagamento, dia_envio_planilha, modelo_rat_url, template_rat_texto, ultimo_mes_pago")
+        .select("*")
         .eq("empresa_id", empresaId)
         .order("nome");
       if (error) throw error;
