@@ -38,7 +38,7 @@ import {
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { EmptyState } from "@/components/EmptyState";
-import { validarDocumento, maskPhoneBR } from "@/lib/utils";
+import { validarDocumento, maskPhoneBR, maskDocumento, verificarDocumentoErro } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { compressImage } from "@/lib/image-compressor";
 import { 
@@ -244,8 +244,9 @@ function ClientesPage() {
     if (!form.nome) {
       return toast.error("Nome fantasia é obrigatório.");
     }
-    if (form.documento && !validarDocumento(form.documento)) {
-      return toast.error("Documento (CNPJ/CPF) inválido.");
+    if (form.documento) {
+      const erro = verificarDocumentoErro(form.documento);
+      if (erro) return toast.error(erro);
     }
 
     try {
@@ -372,7 +373,7 @@ function ClientesPage() {
                   <Label>CNPJ / CPF</Label>
                   <Input
                     value={form.documento}
-                    onChange={(e) => setForm({ ...form, documento: e.target.value })}
+                    onChange={(e) => setForm({ ...form, documento: maskDocumento(e.target.value) })}
                   />
                 </div>
                 <div>

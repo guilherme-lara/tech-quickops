@@ -172,32 +172,92 @@ export type Database = {
         }
         Relationships: []
       }
+      equipamentos_clientes: {
+        Row: {
+          cliente_id: string
+          created_at: string
+          data_recebimento: string | null
+          empresa_id: string
+          fotos: string[] | null
+          id: string
+          modelo: string | null
+          nome: string
+          nota_fiscal: string | null
+          numero_serie: string | null
+        }
+        Insert: {
+          cliente_id: string
+          created_at?: string
+          data_recebimento?: string | null
+          empresa_id: string
+          fotos?: string[] | null
+          id?: string
+          modelo?: string | null
+          nome: string
+          nota_fiscal?: string | null
+          numero_serie?: string | null
+        }
+        Update: {
+          cliente_id?: string
+          created_at?: string
+          data_recebimento?: string | null
+          empresa_id?: string
+          fotos?: string[] | null
+          id?: string
+          modelo?: string | null
+          nome?: string
+          nota_fiscal?: string | null
+          numero_serie?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "equipamentos_clientes_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "equipamentos_clientes_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: false
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       itens_inventario: {
         Row: {
           codigo: string | null
           created_at: string
+          descricao: string | null
           empresa_id: string
           id: string
           nome: string
           quantidade: number
+          tipo: string | null
           valor_unitario: number
         }
         Insert: {
           codigo?: string | null
           created_at?: string
+          descricao?: string | null
           empresa_id: string
           id?: string
           nome: string
           quantidade?: number
+          tipo?: string | null
           valor_unitario?: number
         }
         Update: {
           codigo?: string | null
           created_at?: string
+          descricao?: string | null
           empresa_id?: string
           id?: string
           nome?: string
           quantidade?: number
+          tipo?: string | null
           valor_unitario?: number
         }
         Relationships: [
@@ -206,6 +266,58 @@ export type Database = {
             columns: ["empresa_id"]
             isOneToOne: false
             referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tecnico_ferramentas: {
+        Row: {
+          created_at: string
+          data_atribuicao: string | null
+          empresa_id: string
+          id: string
+          item_id: string
+          quantidade: number
+          tecnico_id: string
+        }
+        Insert: {
+          created_at?: string
+          data_atribuicao?: string | null
+          empresa_id: string
+          id?: string
+          item_id: string
+          quantidade?: number
+          tecnico_id: string
+        }
+        Update: {
+          created_at?: string
+          data_atribuicao?: string | null
+          empresa_id?: string
+          id?: string
+          item_id?: string
+          quantidade?: number
+          tecnico_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tecnico_ferramentas_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: false
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tecnico_ferramentas_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "itens_inventario"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tecnico_ferramentas_tecnico_id_fkey"
+            columns: ["tecnico_id"]
+            isOneToOne: false
+            referencedRelation: "tecnicos"
             referencedColumns: ["id"]
           },
         ]

@@ -12,6 +12,35 @@ export function validarDocumento(doc: string): boolean {
   return false;
 }
 
+export function verificarDocumentoErro(doc: string): string | null {
+  const digits = doc.replace(/\D/g, "");
+  if (digits.length === 0) return "Documento é obrigatório.";
+  if (digits.length < 11) return "O CPF deve conter 11 dígitos.";
+  if (digits.length > 11 && digits.length < 14) return "O CNPJ deve conter 14 dígitos.";
+  if (digits.length > 14) return "Documento longo demais.";
+  if (digits.length === 11 && !isValidCPF(digits)) return "CPF inválido.";
+  if (digits.length === 14 && !isValidCNPJ(digits)) return "CNPJ inválido.";
+  return null;
+}
+
+export function maskDocumento(value: string): string {
+  const digits = value.replace(/\D/g, "").slice(0, 14);
+  if (digits.length <= 11) {
+    // Mask as CPF: 999.999.999-99
+    return digits
+      .replace(/(\d{3})(\d)/, "$1.$2")
+      .replace(/(\d{3})(\d)/, "$1.$2")
+      .replace(/(\d{3})(\d{1,2})$/, "$1-$2");
+  } else {
+    // Mask as CNPJ: 99.999.999/9999-99
+    return digits
+      .replace(/(\d{2})(\d)/, "$1.$2")
+      .replace(/(\d{3})(\d)/, "$1.$2")
+      .replace(/(\d{3})(\d)/, "$1/$2")
+      .replace(/(\d{4})(\d{1,2})$/, "$1-$2");
+  }
+}
+
 function isValidCPF(cpf: string): boolean {
   if (/^(\d)\1{10}$/.test(cpf)) return false;
   let sum = 0;

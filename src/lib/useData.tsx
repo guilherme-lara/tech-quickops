@@ -46,6 +46,28 @@ export interface Item {
   codigo: string;
   quantidade: number;
   valor_unitario: number;
+  tipo?: "insumo" | "ferramenta" | string;
+  descricao?: string;
+}
+
+export interface EquipamentoCliente {
+  id: string;
+  cliente_id: string;
+  nome: string;
+  modelo?: string;
+  numero_serie?: string;
+  data_recebimento?: string;
+  fotos?: string[];
+  nota_fiscal?: string;
+  created_at?: string;
+}
+
+export interface TecnicoFerramenta {
+  id: string;
+  tecnico_id: string;
+  item_id: string;
+  quantidade: number;
+  data_atribuicao?: string;
 }
 
 export interface OSItem {
@@ -218,6 +240,17 @@ interface Store {
   addItem: (i: Omit<Item, "id">) => Promise<void>;
   updateItem: (id: string, patch: Partial<Item>) => Promise<void>;
   deleteItem: (id: string) => Promise<void>;
+
+  equipamentos: EquipamentoCliente[];
+  loadingEquipamentos: boolean;
+  addEquipamento: (e: Omit<EquipamentoCliente, "id">) => Promise<void>;
+  updateEquipamento: (id: string, patch: Partial<EquipamentoCliente>) => Promise<void>;
+  deleteEquipamento: (id: string) => Promise<void>;
+
+  tecnicoFerramentas: TecnicoFerramenta[];
+  loadingTecnicoFerramentas: boolean;
+  addTecnicoFerramenta: (f: Omit<TecnicoFerramenta, "id">) => Promise<void>;
+  deleteTecnicoFerramenta: (id: string) => Promise<void>;
 
   os: OS[];
   loadingOS: boolean;
@@ -782,7 +815,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     enabled,
     queryFn: async (): Promise<Item[]> => {
       let query = (supabase.from("itens_inventario" as any) as any)
-        .select("id, nome, codigo, quantidade, valor_unitario", { count: "exact" })
+        .select("id, nome, codigo, quantidade, valor_unitario, tipo, descricao", { count: "exact" })
         .eq("empresa_id", empresaId!);
 
       if (estoqueSearch) {
@@ -807,6 +840,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         codigo: r.codigo ?? "",
         quantidade: Number(r.quantidade ?? 0),
         valor_unitario: Number(r.valor_unitario ?? 0),
+        tipo: r.tipo ?? "insumo",
+        descricao: r.descricao ?? "",
       }));
     },
   });
@@ -1005,6 +1040,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         codigo: i.codigo || null,
         quantidade: i.quantidade,
         valor_unitario: i.valor_unitario,
+        tipo: i.tipo || "insumo",
+        descricao: i.descricao || null,
       });
       if (error) throw error;
     },
@@ -1019,6 +1056,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       if (patch.codigo !== undefined) dbPatch.codigo = patch.codigo || null;
       if (patch.quantidade !== undefined) dbPatch.quantidade = patch.quantidade;
       if (patch.valor_unitario !== undefined) dbPatch.valor_unitario = patch.valor_unitario;
+      if (patch.tipo !== undefined) dbPatch.tipo = patch.tipo;
+      if (patch.descricao !== undefined) dbPatch.descricao = patch.descricao || null;
       const { error } = await (supabase.from("itens_inventario" as any) as any)
         .update(dbPatch)
         .eq("id", id);
@@ -1038,6 +1077,102 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     onSuccess: () => qc.invalidateQueries({ queryKey: ["itens_inventario"] }),
     onError: (e: Error) => toast.error(e.message),
   });
+
+  // ---------------- Equipamentos de Clientes ----------------
+  const equipamentosQ = useQuery({
+    queryKey: ["equipamentos_clientes", empresaId],
+    enabled,
+    queryFn: async (): Promise<EquipamentoCliente[]> => {
+      const { data, error } = await (supabase.from("equipamentos_clientes" as any) as any)
+        .select("*")
+        .eq("empresa_id", empresaId!)
+        .order("nome");
+      if (error) throw error;
+      return (data || []) as EquipamentoCliente[];
+    },
+  });
+
+  const addEquipamentoM = useMutation({
+    mutationFn: async (e: Omit<EquipamentoCliente, "id">) => {
+      const { error } = await (supabase.from("equipamentos_clientes" as any) as any).insert({
+        empresa_id: empresaId!,
+        cliente_id: e.cliente_id,
+        nome: e.nome,
+        modelo: e.modelo || null,
+        numero_serie: e.numero_serie || null,
+        data_recebimento: e.data_recebimento || null,
+        fotos: e.fotos || [],
+        nota_fiscal: e.nota_fiscal || null,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["equipamentos_clientes"] }),
+    onError: (err: Error) => toast.error(err.message),
+  });
+
+  const updateEquipamentoM = useMutation({
+    mutationFn: async ({ id, patch }: { id: string; patch: Partial<EquipamentoCliente> }) => {
+      const dbPatch: Record<string, any> = { ...patch };
+      delete dbPatch.id;
+      delete dbPatch.empresa_id;
+      const { error } = await (supabase.from("equipamentos_clientes" as any) as any)
+        .update(dbPatch)
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["equipamentos_clientes"] }),
+    onError: (err: Error) => toast.error(err.message),
+  });
+
+  const deleteEquipamentoM = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await (supabase.from("equipamentos_clientes" as any) as any)
+        .delete()
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["equipamentos_clientes"] }),
+    onError: (err: Error) => toast.error(err.message),
+  });
+
+  // ---------------- Tecnico Ferramentas ----------------
+  const tecnicoFerramentasQ = useQuery({
+    queryKey: ["tecnico_ferramentas", empresaId],
+    enabled,
+    queryFn: async (): Promise<TecnicoFerramenta[]> => {
+      const { data, error } = await (supabase.from("tecnico_ferramentas" as any) as any)
+        .select("*")
+        .eq("empresa_id", empresaId!);
+      if (error) throw error;
+      return (data || []) as TecnicoFerramenta[];
+    },
+  });
+
+  const addTecnicoFerramentaM = useMutation({
+    mutationFn: async (f: Omit<TecnicoFerramenta, "id">) => {
+      const { error } = await (supabase.from("tecnico_ferramentas" as any) as any).insert({
+        empresa_id: empresaId!,
+        tecnico_id: f.tecnico_id,
+        item_id: f.item_id,
+        quantidade: f.quantidade,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["tecnico_ferramentas"] }),
+    onError: (err: Error) => toast.error(err.message),
+  });
+
+  const deleteTecnicoFerramentaM = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await (supabase.from("tecnico_ferramentas" as any) as any)
+        .delete()
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["tecnico_ferramentas"] }),
+    onError: (err: Error) => toast.error(err.message),
+  });
+
 
   // ---------------- Auth methods ----------------
   const login = useCallback(async (emailInput: string, senha: string, codigoEmpresa?: string, forceOverwrite?: boolean) => {
@@ -1392,6 +1527,25 @@ function isValidCpfCnpj(val: string) {
     },
     deleteItem: async (id) => {
       await deleteItemM.mutateAsync(id);
+    },
+    equipamentos: equipamentosQ.data ?? [],
+    loadingEquipamentos: equipamentosQ.isLoading,
+    addEquipamento: async (e) => {
+      await addEquipamentoM.mutateAsync(e);
+    },
+    updateEquipamento: async (id, patch) => {
+      await updateEquipamentoM.mutateAsync({ id, patch });
+    },
+    deleteEquipamento: async (id) => {
+      await deleteEquipamentoM.mutateAsync(id);
+    },
+    tecnicoFerramentas: tecnicoFerramentasQ.data ?? [],
+    loadingTecnicoFerramentas: tecnicoFerramentasQ.isLoading,
+    addTecnicoFerramenta: async (f) => {
+      await addTecnicoFerramentaM.mutateAsync(f);
+    },
+    deleteTecnicoFerramenta: async (id) => {
+      await deleteTecnicoFerramentaM.mutateAsync(id);
     },
     os: osQ.data ?? [],
     loadingOS: osQ.isLoading,
