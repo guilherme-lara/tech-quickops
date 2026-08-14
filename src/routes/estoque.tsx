@@ -106,16 +106,18 @@ function InsumosTab() {
   const {
     itens, loadingItens, addItem, updateItem, deleteItem,
     estoquePage, estoqueTotal, setEstoquePage,
-    estoqueSearch, setEstoqueSearch,
-    estoqueSortField, setEstoqueSortField,
-    estoqueSortDirection, setEstoqueSortDirection,
+    estoqueSearch, setEstoqueSearch, setEstoqueTipo,
   } = useStore();
   const { profile } = useAuth();
   
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Item | null>(null);
 
-  const insumos = itens.filter((i) => i.tipo !== "ferramenta");
+  useEffect(() => {
+    setEstoqueTipo("insumo");
+  }, [setEstoqueTipo]);
+
+  const insumos = itens; // The backend now filters out 'ferramenta' when 'insumo' is set
   const totalPages = Math.max(1, Math.ceil(estoqueTotal / PAGE_SIZE));
 
   const handleDelete = async (i: Item) => {
@@ -192,6 +194,21 @@ function InsumosTab() {
               </tbody>
             </table>
           </div>
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between px-5 py-3 border-t border-border bg-muted/20">
+              <span className="text-sm text-muted-foreground">
+                Página {estoquePage + 1} de {totalPages}
+              </span>
+              <div className="flex gap-2">
+                <Button variant="outline" size="sm" onClick={() => setEstoquePage(Math.max(0, estoquePage - 1))} disabled={estoquePage === 0}>
+                  <ChevronLeft className="w-4 h-4 mr-1" /> Anterior
+                </Button>
+                <Button variant="outline" size="sm" onClick={() => setEstoquePage(estoquePage + 1)} disabled={estoquePage >= totalPages - 1}>
+                  Próxima <ChevronRight className="w-4 h-4 ml-1" />
+                </Button>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
@@ -210,7 +227,10 @@ function InsumosTab() {
 
 function FerramentasTab() {
   const {
-    itens, loadingItens, addItem, updateItem, deleteItem, addTecnicoFerramenta
+    itens, loadingItens, addItem, updateItem, deleteItem,
+    estoquePage, estoqueTotal, setEstoquePage,
+    estoqueSearch, setEstoqueSearch, setEstoqueTipo,
+    tecnicos, tecnicoFerramentas
   } = useStore();
   const { profile } = useAuth();
   
@@ -218,7 +238,12 @@ function FerramentasTab() {
   const [editing, setEditing] = useState<Item | null>(null);
   const [vincular, setVincular] = useState<Item | null>(null);
 
-  const ferramentas = itens.filter((i) => i.tipo === "ferramenta");
+  useEffect(() => {
+    setEstoqueTipo("ferramenta");
+  }, [setEstoqueTipo]);
+
+  const ferramentas = itens; // Backend already filters
+  const totalPages = Math.max(1, Math.ceil(estoqueTotal / PAGE_SIZE));
 
   const handleDelete = async (i: Item) => {
     if (!window.confirm(`Excluir "${i.nome}"?`)) return;
@@ -233,7 +258,7 @@ function FerramentasTab() {
   return (
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 justify-between">
-        <FiltrosBarGlobal showSearch searchValue="" onSearchChange={() => {}} searchLabel="Ferramenta" searchPlaceholder="Buscar..." />
+        <FiltrosBarGlobal showSearch searchValue={estoqueSearch} onSearchChange={setEstoqueSearch} searchLabel="Ferramenta" searchPlaceholder="Buscar ferramenta..." />
         <Button onClick={() => { setEditing(null); setOpen(true); }} className="h-11 rounded-xl gap-2 shrink-0">
           <Plus className="w-4 h-4" /> Nova Ferramenta
         </Button>
@@ -252,35 +277,66 @@ function FerramentasTab() {
                   <th className="px-5 py-3 font-semibold">Nome</th>
                   <th className="px-5 py-3 font-semibold">Descrição</th>
                   <th className="px-5 py-3 font-semibold">Quantidade</th>
+                  <th className="px-5 py-3 font-semibold">Com Técnicos</th>
                   <th className="px-5 py-3 font-semibold">Valor</th>
                   <th className="px-5 py-3 font-semibold text-right w-48">Ações</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
-                {ferramentas.map((i) => (
-                  <tr key={i.id} className="hover:bg-muted/30">
-                    <td className="px-5 py-3 font-medium">{i.nome}</td>
-                    <td className="px-5 py-3 text-muted-foreground">{i.descricao || "—"}</td>
-                    <td className="px-5 py-3">{i.quantidade} un.</td>
-                    <td className="px-5 py-3">R$ {i.valor_unitario.toFixed(2)}</td>
-                    <td className="px-5 py-3">
-                      <div className="flex gap-1 justify-end">
-                        <Button variant="outline" size="sm" onClick={() => setVincular(i)} className="gap-1">
-                          <LinkIcon className="w-3.5 h-3.5" /> Vincular
-                        </Button>
-                        <Button variant="ghost" size="icon" onClick={() => { setEditing(i); setOpen(true); }}>
-                          <Pencil className="w-4 h-4" />
-                        </Button>
-                        <Button variant="ghost" size="icon" className="text-destructive" onClick={() => handleDelete(i)}>
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+                {ferramentas.map((i) => {
+                  const vinculados = tecnicoFerramentas.filter(f => f.item_id === i.id);
+                  const nomesTecnicos = vinculados.map(f => {
+                    const t = tecnicos.find(tec => tec.id === f.tecnico_id);
+                    return t ? `${t.nome} (${f.quantidade})` : `Técnico Removido (${f.quantidade})`;
+                  });
+
+                  return (
+                    <tr key={i.id} className="hover:bg-muted/30">
+                      <td className="px-5 py-3 font-medium">{i.nome}</td>
+                      <td className="px-5 py-3 text-muted-foreground">{i.descricao || "—"}</td>
+                      <td className="px-5 py-3">{i.quantidade} un.</td>
+                      <td className="px-5 py-3 text-muted-foreground text-xs">
+                        {nomesTecnicos.length > 0 ? (
+                           <div className="flex flex-col gap-1">
+                             {nomesTecnicos.map((n, idx) => <span key={idx} className="bg-muted px-2 py-0.5 rounded-full w-fit">{n}</span>)}
+                           </div>
+                        ) : "Nenhum"}
+                      </td>
+                      <td className="px-5 py-3">R$ {i.valor_unitario.toFixed(2)}</td>
+                      <td className="px-5 py-3">
+                        <div className="flex gap-1 justify-end">
+                          <Button variant="outline" size="sm" onClick={() => setVincular(i)} className="gap-1">
+                            <LinkIcon className="w-3.5 h-3.5" /> Vincular
+                          </Button>
+                          <Button variant="ghost" size="icon" onClick={() => { setEditing(i); setOpen(true); }}>
+                            <Pencil className="w-4 h-4" />
+                          </Button>
+                          <Button variant="ghost" size="icon" className="text-destructive" onClick={() => handleDelete(i)}>
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between px-5 py-3 border-t border-border bg-muted/20">
+              <span className="text-sm text-muted-foreground">
+                Página {estoquePage + 1} de {totalPages}
+              </span>
+              <div className="flex gap-2">
+                <Button variant="outline" size="sm" onClick={() => setEstoquePage(Math.max(0, estoquePage - 1))} disabled={estoquePage === 0}>
+                  <ChevronLeft className="w-4 h-4 mr-1" /> Anterior
+                </Button>
+                <Button variant="outline" size="sm" onClick={() => setEstoquePage(estoquePage + 1)} disabled={estoquePage >= totalPages - 1}>
+                  Próxima <ChevronRight className="w-4 h-4 ml-1" />
+                </Button>
+              </div>
+            </div>
+          )}
         </div>
       )}
 

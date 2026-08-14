@@ -235,8 +235,10 @@ interface Store {
   estoqueSortField: "nome" | "quantidade" | "valor";
   setEstoqueSortField: (v: "nome" | "quantidade" | "valor") => void;
   estoqueSortDirection: "asc" | "desc";
-  setEstoqueSortDirection: (v: "asc" | "desc") => void;
+  setEstoqueSortDirection: (d: "asc" | "desc") => void;
   setEstoquePage: (p: number) => void;
+  estoqueTipo: "insumo" | "ferramenta" | "";
+  setEstoqueTipo: (t: "insumo" | "ferramenta" | "") => void;
   addItem: (i: Omit<Item, "id">) => Promise<void>;
   updateItem: (id: string, patch: Partial<Item>) => Promise<void>;
   deleteItem: (id: string) => Promise<void>;
@@ -329,6 +331,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const [estoqueSearch, setEstoqueSearch] = useState("");
   const [estoqueSortField, setEstoqueSortField] = useState<"nome" | "quantidade" | "valor">("nome");
   const [estoqueSortDirection, setEstoqueSortDirection] = useState<"asc" | "desc">("asc");
+  const [estoqueTipo, setEstoqueTipo] = useState<"insumo" | "ferramenta" | "">("");
 
   // Hydrate auth + perfil
   useEffect(() => {
@@ -811,7 +814,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
   // ---------------- Itens estoque ----------------
   const itensQ = useQuery({
-    queryKey: ["itens_inventario", empresaId, estoquePage, estoqueSearch, estoqueSortField, estoqueSortDirection],
+    queryKey: ["itens_inventario", empresaId, estoquePage, estoqueSearch, estoqueSortField, estoqueSortDirection, estoqueTipo],
     enabled,
     queryFn: async (): Promise<Item[]> => {
       let query = (supabase.from("itens_inventario" as any) as any)
@@ -820,6 +823,12 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
       if (estoqueSearch) {
         query = query.or(`nome.ilike.%${estoqueSearch}%,codigo.ilike.%${estoqueSearch}%`);
+      }
+
+      if (estoqueTipo === "insumo") {
+        query = query.neq("tipo", "ferramenta");
+      } else if (estoqueTipo === "ferramenta") {
+        query = query.eq("tipo", "ferramenta");
       }
 
       const from = estoquePage * PAGE_SIZE;
@@ -1518,6 +1527,11 @@ function isValidCpfCnpj(val: string) {
     setEstoqueSortDirection,
     setEstoquePage: (p: number) => {
       setEstoquePage(p);
+    },
+    estoqueTipo,
+    setEstoqueTipo: (t) => {
+      setEstoquePage(0);
+      setEstoqueTipo(t);
     },
     addItem: async (i) => {
       await addItemM.mutateAsync(i);
