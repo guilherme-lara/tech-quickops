@@ -52,6 +52,7 @@ import {
   ArrowUpDown,
   ArrowUp,
   ArrowDown,
+  Wrench
 } from "lucide-react";
 import { GerarAcessoDialog } from "@/components/GerarAcessoDialog";
 
@@ -224,6 +225,7 @@ function EquipePage() {
   };
   const [form, setForm] = useState(emptyForm);
   const [gerarAcessoFor, setGerarAcessoFor] = useState<any>(null);
+  const [viewFerramentasFor, setViewFerramentasFor] = useState<any>(null);
   const [resetSenhaResult, setResetSenhaResult] = useState<{ texto: string; nome: string } | null>(null);
   const [successCreds, setSuccessCreds] = useState<{ texto: string; nome: string } | null>(null);
   const [viewMode, setViewMode] = useState<"list" | "card">("list");
@@ -708,18 +710,19 @@ function EquipePage() {
                       <td className="px-5 py-3">
                         {(() => {
                           const ferramentas = tecnicoFerramentas.filter(f => f.tecnico_id === t.id);
-                          if (ferramentas.length === 0) return <span className="text-muted-foreground text-xs">Nenhuma</span>;
+                          const validFerramentas = ferramentas.filter(f => itens.find(i => i.id === f.item_id));
+                          
+                          if (validFerramentas.length === 0) return <span className="text-muted-foreground text-xs">Nenhuma</span>;
                           return (
-                            <div className="flex flex-col gap-1">
-                              {ferramentas.map(f => {
-                                const item = itens.find(i => i.id === f.item_id);
-                                return (
-                                  <span key={f.id} className="text-[10px] bg-muted/80 px-1.5 py-0.5 rounded-full w-max border border-border">
-                                    {item?.nome || "Item excluído"} ({f.quantidade})
-                                  </span>
-                                );
-                              })}
-                            </div>
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              className="h-7 text-xs" 
+                              onClick={() => setViewFerramentasFor(t)}
+                            >
+                              <Wrench className="w-3 h-3 mr-1.5" />
+                              {validFerramentas.length} Ferramenta{validFerramentas.length !== 1 ? 's' : ''}
+                            </Button>
                           );
                         })()}
                       </td>
@@ -865,17 +868,20 @@ function EquipePage() {
                     <span className="text-muted-foreground text-xs font-medium">Ferramentas vinculadas</span>
                     {(() => {
                       const ferramentas = tecnicoFerramentas.filter(f => f.tecnico_id === t.id);
-                      if (ferramentas.length === 0) return <span className="text-xs text-muted-foreground">Nenhuma ferramenta</span>;
+                      const validFerramentas = ferramentas.filter(f => itens.find(i => i.id === f.item_id));
+                      
+                      if (validFerramentas.length === 0) return <span className="text-xs text-muted-foreground">Nenhuma ferramenta</span>;
                       return (
-                        <div className="flex flex-wrap gap-1">
-                          {ferramentas.map(f => {
-                            const item = itens.find(i => i.id === f.item_id);
-                            return (
-                              <Badge key={f.id} variant="secondary" className="text-[10px] bg-muted hover:bg-muted font-normal">
-                                {item?.nome || "Item excluído"} ({f.quantidade})
-                              </Badge>
-                            );
-                          })}
+                        <div>
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="h-7 text-xs" 
+                            onClick={() => setViewFerramentasFor(t)}
+                          >
+                            <Wrench className="w-3 h-3 mr-1.5" />
+                            {validFerramentas.length} Ferramenta{validFerramentas.length !== 1 ? 's' : ''}
+                          </Button>
                         </div>
                       );
                     })()}
@@ -975,6 +981,42 @@ function EquipePage() {
               </DialogFooter>
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog de Ferramentas Vinculadas */}
+      <Dialog open={!!viewFerramentasFor} onOpenChange={(v) => !v && setViewFerramentasFor(null)}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Ferramentas de {viewFerramentasFor?.nome}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3 py-4">
+            {viewFerramentasFor && (() => {
+              const ferramentas = tecnicoFerramentas.filter(f => f.tecnico_id === viewFerramentasFor.id);
+              const validFerramentas = ferramentas.filter(f => itens.find(i => i.id === f.item_id));
+
+              if (validFerramentas.length === 0) {
+                return <p className="text-sm text-muted-foreground">Nenhuma ferramenta encontrada.</p>;
+              }
+
+              return (
+                <div className="divide-y divide-border border rounded-xl overflow-hidden">
+                  {validFerramentas.map(f => {
+                    const item = itens.find(i => i.id === f.item_id);
+                    return (
+                      <div key={f.id} className="flex justify-between items-center p-3 text-sm bg-card hover:bg-muted/50 transition-colors">
+                        <span className="font-medium">{item?.nome}</span>
+                        <Badge variant="secondary">{f.quantidade} un.</Badge>
+                      </div>
+                    );
+                  })}
+                </div>
+              );
+            })()}
+          </div>
+          <DialogFooter>
+            <Button onClick={() => setViewFerramentasFor(null)}>Fechar</Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
 
