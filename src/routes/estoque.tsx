@@ -115,7 +115,8 @@ function InsumosTab() {
 
   useEffect(() => {
     setEstoqueTipo("insumo");
-  }, [setEstoqueTipo]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const insumos = itens; // The backend now filters out 'ferramenta' when 'insumo' is set
   const totalPages = Math.max(1, Math.ceil(estoqueTotal / PAGE_SIZE));
@@ -240,7 +241,8 @@ function FerramentasTab() {
 
   useEffect(() => {
     setEstoqueTipo("ferramenta");
-  }, [setEstoqueTipo]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const ferramentas = itens; // Backend already filters
   const totalPages = Math.max(1, Math.ceil(estoqueTotal / PAGE_SIZE));

@@ -28,7 +28,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { type TipoComissao, PAGE_SIZE } from "@/lib/useData";
+import { type TipoComissao, PAGE_SIZE, useStore } from "@/lib/useData";
 import { useTecnicos, useUpdateTecnico, useDeleteTecnico, useActiveOSCount } from "@/hooks/useTecnicos";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient, useQuery, useMutation } from "@tanstack/react-query";
@@ -174,6 +174,8 @@ function EquipePage() {
   const [tecnicosSortDirection, setTecnicosSortDirection] = useState<"asc" | "desc">("asc");
   const { profile } = useAuth();
   const empresaId = profile?.empresa_id;
+  
+  const { tecnicoFerramentas, itens } = useStore();
   
   const { data: empresaData } = useQuery({
     queryKey: ["empresa_codigo", empresaId],
@@ -644,6 +646,7 @@ function EquipePage() {
                     </div>
                   </th>
                   <th className="px-5 py-3 font-semibold">OS Ativas</th>
+                  <th className="px-5 py-3 font-semibold">Ferramentas</th>
                   <th className="px-5 py-3 font-semibold">Status</th>
                   <th className="px-5 py-3"></th>
                 </tr>
@@ -702,6 +705,24 @@ function EquipePage() {
                         {formatComissao(t.comissao, t.tipo_comissao)}
                       </td>
                       <td className="px-5 py-3 font-medium">{ativas}</td>
+                      <td className="px-5 py-3">
+                        {(() => {
+                          const ferramentas = tecnicoFerramentas.filter(f => f.tecnico_id === t.id);
+                          if (ferramentas.length === 0) return <span className="text-muted-foreground text-xs">Nenhuma</span>;
+                          return (
+                            <div className="flex flex-col gap-1">
+                              {ferramentas.map(f => {
+                                const item = itens.find(i => i.id === f.item_id);
+                                return (
+                                  <span key={f.id} className="text-[10px] bg-muted/80 px-1.5 py-0.5 rounded-full w-max border border-border">
+                                    {item?.nome || "Item excluído"} ({f.quantidade})
+                                  </span>
+                                );
+                              })}
+                            </div>
+                          );
+                        })()}
+                      </td>
                       <td className="px-5 py-3">
                         <span
                           className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium ${t.ativo ? "bg-success/10 text-success" : "bg-muted text-muted-foreground"}`}
@@ -839,6 +860,25 @@ function EquipePage() {
                     >
                       {t.ativo ? "Ativo" : "Inativo"}
                     </span>
+                  </div>
+                  <div className="pt-2 border-t border-border mt-2 flex flex-col gap-1.5">
+                    <span className="text-muted-foreground text-xs font-medium">Ferramentas vinculadas</span>
+                    {(() => {
+                      const ferramentas = tecnicoFerramentas.filter(f => f.tecnico_id === t.id);
+                      if (ferramentas.length === 0) return <span className="text-xs text-muted-foreground">Nenhuma ferramenta</span>;
+                      return (
+                        <div className="flex flex-wrap gap-1">
+                          {ferramentas.map(f => {
+                            const item = itens.find(i => i.id === f.item_id);
+                            return (
+                              <Badge key={f.id} variant="secondary" className="text-[10px] bg-muted hover:bg-muted font-normal">
+                                {item?.nome || "Item excluído"} ({f.quantidade})
+                              </Badge>
+                            );
+                          })}
+                        </div>
+                      );
+                    })()}
                   </div>
                 </div>
               </Card>
