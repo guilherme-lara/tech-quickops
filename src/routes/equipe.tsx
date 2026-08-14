@@ -52,7 +52,8 @@ import {
   ArrowUpDown,
   ArrowUp,
   ArrowDown,
-  Wrench
+  Wrench,
+  Trash2
 } from "lucide-react";
 import { GerarAcessoDialog } from "@/components/GerarAcessoDialog";
 
@@ -176,7 +177,7 @@ function EquipePage() {
   const { profile } = useAuth();
   const empresaId = profile?.empresa_id;
   
-  const { tecnicoFerramentas, itens } = useStore();
+  const { tecnicoFerramentas, itens, deleteTecnicoFerramenta } = useStore();
   
   const { data: empresaData } = useQuery({
     queryKey: ["empresa_codigo", empresaId],
@@ -1005,7 +1006,24 @@ function EquipePage() {
                     return (
                       <div key={f.id} className="flex justify-between items-center p-3 text-sm bg-card hover:bg-muted/50 transition-colors">
                         <span className="font-medium">{f.itens_inventario?.nome}</span>
-                        <Badge variant="secondary">{f.quantidade} un.</Badge>
+                        <div className="flex items-center gap-2">
+                          <Badge variant="secondary">{f.quantidade} un.</Badge>
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            className="h-8 w-8 text-destructive hover:bg-destructive/10"
+                            onClick={async () => {
+                              try {
+                                await deleteTecnicoFerramenta(f.id);
+                                toast.success("Ferramenta desvinculada com sucesso!");
+                              } catch (err: any) {
+                                toast.error(err.message || "Erro ao desvincular");
+                              }
+                            }}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
                       </div>
                     );
                   })}

@@ -471,14 +471,21 @@ function ItemDialog({
 }
 
 function VincularDialog({ open, onOpenChange, item }: { open: boolean; onOpenChange: (v: boolean) => void; item: Item | null }) {
-  const { tecnicos, addTecnicoFerramenta } = useStore();
+  const { tecnicos, tecnicoFerramentas, addTecnicoFerramenta } = useStore();
   const { register, handleSubmit, setValue, watch, reset } = useForm<VincularFormData>({ resolver: zodResolver(vincularSchema) });
   const selectedTecnico = watch("tecnico_id");
 
   useEffect(() => { reset({ tecnico_id: "", quantidade: 1 }); }, [item, reset, open]);
 
+  const quantidadeJaAtribuida = item ? tecnicoFerramentas.filter(f => f.item_id === item.id).reduce((acc, f) => acc + f.quantidade, 0) : 0;
+  const quantidadeDisponivel = item ? item.quantidade - quantidadeJaAtribuida : 0;
+
   const onSubmit = async (data: VincularFormData) => {
     if (!item) return;
+    if (data.quantidade > quantidadeDisponivel) {
+      toast.error(`Apenas ${quantidadeDisponivel} un. disponível.`);
+      return;
+    }
     try {
       await addTecnicoFerramenta({
         tecnico_id: data.tecnico_id,
@@ -504,10 +511,13 @@ function VincularDialog({ open, onOpenChange, item }: { open: boolean; onOpenCha
               </SelectContent>
             </Select>
           </div>
-          <div><Label>Quantidade *</Label><Input type="number" min="1" max={item?.quantidade || 1} {...register("quantidade")} /></div>
+          <div>
+            <Label>Quantidade * (Disponível: {quantidadeDisponivel})</Label>
+            <Input type="number" min="1" max={quantidadeDisponivel} disabled={quantidadeDisponivel <= 0} {...register("quantidade")} />
+          </div>
           <DialogFooter>
             <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>Cancelar</Button>
-            <Button type="submit">Vincular</Button>
+            <Button type="submit" disabled={quantidadeDisponivel <= 0}>Vincular</Button>
           </DialogFooter>
         </form>
       </DialogContent>
