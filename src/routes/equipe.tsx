@@ -710,7 +710,7 @@ function EquipePage() {
                       <td className="px-5 py-3">
                         {(() => {
                           const ferramentas = tecnicoFerramentas.filter(f => f.tecnico_id === t.id);
-                          const validFerramentas = ferramentas.filter(f => itens.find(i => i.id === f.item_id));
+                          const validFerramentas = ferramentas.filter(f => f.itens_inventario?.nome);
                           
                           if (validFerramentas.length === 0) return <span className="text-muted-foreground text-xs">Nenhuma</span>;
                           return (
@@ -868,7 +868,7 @@ function EquipePage() {
                     <span className="text-muted-foreground text-xs font-medium">Ferramentas vinculadas</span>
                     {(() => {
                       const ferramentas = tecnicoFerramentas.filter(f => f.tecnico_id === t.id);
-                      const validFerramentas = ferramentas.filter(f => itens.find(i => i.id === f.item_id));
+                      const validFerramentas = ferramentas.filter(f => f.itens_inventario?.nome);
                       
                       if (validFerramentas.length === 0) return <span className="text-xs text-muted-foreground">Nenhuma ferramenta</span>;
                       return (
@@ -993,7 +993,7 @@ function EquipePage() {
           <div className="space-y-3 py-4">
             {viewFerramentasFor && (() => {
               const ferramentas = tecnicoFerramentas.filter(f => f.tecnico_id === viewFerramentasFor.id);
-              const validFerramentas = ferramentas.filter(f => itens.find(i => i.id === f.item_id));
+              const validFerramentas = ferramentas.filter(f => f.itens_inventario?.nome);
 
               if (validFerramentas.length === 0) {
                 return <p className="text-sm text-muted-foreground">Nenhuma ferramenta encontrada.</p>;
@@ -1002,10 +1002,9 @@ function EquipePage() {
               return (
                 <div className="divide-y divide-border border rounded-xl overflow-hidden">
                   {validFerramentas.map(f => {
-                    const item = itens.find(i => i.id === f.item_id);
                     return (
                       <div key={f.id} className="flex justify-between items-center p-3 text-sm bg-card hover:bg-muted/50 transition-colors">
-                        <span className="font-medium">{item?.nome}</span>
+                        <span className="font-medium">{f.itens_inventario?.nome}</span>
                         <Badge variant="secondary">{f.quantidade} un.</Badge>
                       </div>
                     );

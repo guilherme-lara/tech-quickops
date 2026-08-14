@@ -68,6 +68,7 @@ export interface TecnicoFerramenta {
   item_id: string;
   quantidade: number;
   data_atribuicao?: string;
+  itens_inventario?: { nome: string };
 }
 
 export interface OSItem {
@@ -1150,7 +1151,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     enabled,
     queryFn: async (): Promise<TecnicoFerramenta[]> => {
       const { data, error } = await (supabase.from("tecnico_ferramentas" as any) as any)
-        .select("*")
+        .select("*, itens_inventario(nome)")
         .eq("empresa_id", empresaId!);
       if (error) throw error;
       return (data || []) as TecnicoFerramenta[];
