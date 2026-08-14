@@ -12,6 +12,8 @@ import { useState, useEffect } from "react";
 import { logActivity } from "@/lib/logger";
 import { useAuth } from "@/lib/auth-context";
 import { PlanLimits, PlanType } from "@/lib/planLimits";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
 
 export const Route = createFileRoute("/admin-sistema")({
   component: AdminSistemaPage,
@@ -265,15 +267,36 @@ function LicencasTable() {
 
                   <td className="p-4 align-middle">
                     <div className="flex flex-col items-start gap-2">
-                      {empresa.status_licenca === 'bloqueado' ? (
-                        <Badge variant="destructive" className="flex items-center gap-1 text-[10px]">
-                          <ShieldAlert className="w-3 h-3" /> Bloqueado
-                        </Badge>
-                      ) : (
-                        <Badge variant="default" className="bg-green-500 hover:bg-green-600 flex items-center gap-1 text-[10px]">
-                          <ShieldCheck className="w-3 h-3" /> Ativo
-                        </Badge>
-                      )}
+                      {(() => {
+                        const isExpired = empresa.data_vencimento && new Date(empresa.data_vencimento).getTime() < new Date().getTime();
+                        if (empresa.status_licenca === 'bloqueado' || isExpired) {
+                          return (
+                            <div className="flex flex-col gap-1">
+                              <Badge variant="destructive" className="flex items-center gap-1 text-[10px] w-fit">
+                                <ShieldAlert className="w-3 h-3" /> Bloqueado {isExpired ? "(Vencido)" : ""}
+                              </Badge>
+                              {empresa.data_vencimento && (
+                                <span className="text-[10px] text-destructive font-medium">
+                                  Venceu: {format(new Date(empresa.data_vencimento), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+                                </span>
+                              )}
+                            </div>
+                          );
+                        } else {
+                          return (
+                            <div className="flex flex-col gap-1">
+                              <Badge variant="default" className="bg-green-500 hover:bg-green-600 flex items-center gap-1 text-[10px] w-fit">
+                                <ShieldCheck className="w-3 h-3" /> Ativo
+                              </Badge>
+                              {empresa.data_vencimento && (
+                                <span className="text-[10px] text-muted-foreground font-medium">
+                                  Vence: {format(new Date(empresa.data_vencimento), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+                                </span>
+                              )}
+                            </div>
+                          );
+                        }
+                      })()}
                       <div className="flex items-center gap-2 mt-1">
                         <span className="text-[10px] font-medium text-slate-500">Travar Acesso:</span>
                         <Switch
