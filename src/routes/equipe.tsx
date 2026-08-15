@@ -991,7 +991,7 @@ function EquipePage() {
           <DialogHeader>
             <DialogTitle>Ferramentas de {viewFerramentasFor?.nome}</DialogTitle>
           </DialogHeader>
-          <div className="space-y-3 py-4">
+          <div className="space-y-3 py-4 max-h-[60vh] overflow-y-auto pr-2">
             {viewFerramentasFor && (() => {
               const ferramentas = tecnicoFerramentas.filter(f => f.tecnico_id === viewFerramentasFor.id);
               const validFerramentas = ferramentas.filter(f => f.itens_inventario?.nome);
