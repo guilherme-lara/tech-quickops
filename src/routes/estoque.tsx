@@ -54,6 +54,7 @@ const equipamentoSchema = z.object({
   nome: z.string().min(1, "Nome é obrigatório"),
   modelo: z.string().optional(),
   numero_serie: z.string().optional(),
+  patrimonio: z.string().optional(),
 });
 type EquipamentoFormData = z.infer<typeof equipamentoSchema>;
 
@@ -372,10 +373,31 @@ function EquipamentosTab() {
     }
   };
 
+  const [statusFilter, setStatusFilter] = useState("todos");
+  
+  const filtrados = equipamentos.filter(e => {
+    if (statusFilter === "todos") return true;
+    return e.status === statusFilter;
+  });
+
   return (
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 justify-between">
-        <FiltrosBarGlobal showSearch searchValue="" onSearchChange={() => {}} searchLabel="Equipamento" searchPlaceholder="Buscar..." />
+        <div className="flex items-center gap-3">
+          <FiltrosBarGlobal showSearch searchValue="" onSearchChange={() => {}} searchLabel="Equipamento" searchPlaceholder="Buscar..." />
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="w-[160px] h-10 bg-background">
+              <SelectValue placeholder="Status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="todos">Todos os Status</SelectItem>
+              <SelectItem value="em_estoque">Em Estoque</SelectItem>
+              <SelectItem value="em_transito">Em Trânsito</SelectItem>
+              <SelectItem value="instalado">Instalados</SelectItem>
+              <SelectItem value="retirado_em_estoque">Retirados</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
         <Button onClick={() => { setEditing(null); setOpen(true); }} className="h-11 rounded-xl gap-2 shrink-0">
           <Plus className="w-4 h-4" /> Novo Equipamento
         </Button>
@@ -391,18 +413,38 @@ function EquipamentosTab() {
             <table className="w-full text-sm text-left">
               <thead className="bg-muted/50 text-xs uppercase text-muted-foreground">
                 <tr>
+                  <th className="px-5 py-3 font-semibold">Cliente</th>
                   <th className="px-5 py-3 font-semibold">Nome</th>
                   <th className="px-5 py-3 font-semibold">Modelo</th>
-                  <th className="px-5 py-3 font-semibold">Série</th>
+                  <th className="px-5 py-3 font-semibold">Série / Pat.</th>
+                  <th className="px-5 py-3 font-semibold">Status</th>
                   <th className="px-5 py-3 font-semibold w-24">Ações</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
-                {equipamentos.map((e) => (
+                {filtrados.map((e) => (
                   <tr key={e.id} className="hover:bg-muted/30">
+                    <td className="px-5 py-3 font-medium text-muted-foreground">{e.cliente?.nome || "—"}</td>
                     <td className="px-5 py-3 font-medium">{e.nome}</td>
                     <td className="px-5 py-3 text-muted-foreground">{e.modelo || "—"}</td>
-                    <td className="px-5 py-3 text-muted-foreground">{e.numero_serie || "—"}</td>
+                    <td className="px-5 py-3 text-muted-foreground">
+                      <div className="flex flex-col gap-0.5">
+                        <span>{e.numero_serie || "Sem SN"}</span>
+                        {e.patrimonio && <span className="text-xs bg-muted/50 px-1.5 py-0.5 rounded w-fit">{e.patrimonio}</span>}
+                      </div>
+                    </td>
+                    <td className="px-5 py-3">
+                      <span className={`text-xs px-2 py-1 rounded-full ${
+                        e.status === 'em_estoque' || e.status === 'retirado_em_estoque' ? 'bg-emerald-500/10 text-emerald-600' :
+                        e.status === 'em_transito' ? 'bg-amber-500/10 text-amber-600' :
+                        'bg-blue-500/10 text-blue-600'
+                      }`}>
+                        {e.status === 'em_estoque' ? 'Em Estoque' :
+                         e.status === 'em_transito' ? 'Em Trânsito' :
+                         e.status === 'retirado_em_estoque' ? 'Retirado' :
+                         'Instalado'}
+                      </span>
+                    </td>
                     <td className="px-5 py-3">
                       <div className="flex gap-1 justify-end">
                         <Button variant="ghost" size="icon" onClick={() => { setEditing(e); setOpen(true); }}>
@@ -536,6 +578,7 @@ function EquipamentoDialog({ open, onOpenChange, equipamento }: { open: boolean;
       nome: equipamento?.nome ?? "",
       modelo: equipamento?.modelo ?? "",
       numero_serie: equipamento?.numero_serie ?? "",
+      patrimonio: equipamento?.patrimonio ?? "",
     });
   }, [equipamento, reset, open]);
 
@@ -557,13 +600,14 @@ function EquipamentoDialog({ open, onOpenChange, equipamento }: { open: boolean;
             <Label>Cliente *</Label>
             <Select value={cliente_id} onValueChange={(v) => setValue("cliente_id", v)}>
               <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
-              <SelectContent>
+              <SelectContent className="max-h-[200px] overflow-y-auto">
                 {clientes.map(c => <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>)}
               </SelectContent>
             </Select>
           </div>
           <div><Label>Nome/Tipo *</Label><Input {...register("nome")} placeholder="Ex: Ar Condicionado 9000 BTUs" /></div>
           <div><Label>Modelo</Label><Input {...register("modelo")} /></div>
+          <div><Label>Patrimônio</Label><Input {...register("patrimonio")} /></div>
           <div><Label>Número de Série</Label><Input {...register("numero_serie")} /></div>
           <DialogFooter>
             <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>Cancelar</Button>

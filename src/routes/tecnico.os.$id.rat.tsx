@@ -40,7 +40,7 @@ const steps = ["Contexto", "Execução", "Peças", "Assinatura"];
 function RATWizard() {
   const { id } = Route.useParams();
   const navigate = useNavigate();
-  const { os, clientes, itens, updateRAT, updateOS } = useStore();
+  const { os, clientes, itens, updateRAT, updateOS, addEquipamento } = useStore();
   const ordem = os.find((o) => o.id === id);
   const [step, setStep] = useState(0);
 
@@ -89,6 +89,7 @@ function RATWizard() {
             ordem={ordem}
             updateRAT={updateRAT}
             updateOS={updateOS}
+            addEquipamento={addEquipamento}
             onFinish={() => navigate({ to: "/tecnico/os" })}
           />
         )}
@@ -366,18 +367,43 @@ function StepPecas({ ordem, itens, updateRAT }: any) {
   );
 }
 
-function StepConclusao({ ordem, updateRAT, updateOS, onFinish }: any) {
+function StepConclusao({ ordem, updateRAT, updateOS, addEquipamento, onFinish }: any) {
   const sigRef = useRef<SignatureCanvas | null>(null);
   const [hasSig, setHasSig] = useState(!!ordem.rat.assinatura);
   const [evidencias, setEvidencias] = useState<string[]>(ordem.rat.evidencias || []);
+  const [retirados, setRetirados] = useState<Array<{ modelo: string; numero_serie: string; patrimonio: string; foto: string }>>([]);
 
   const clear = () => {
     sigRef.current?.clear();
     setHasSig(false);
   };
-  const concluir = () => {
+  const concluir = async () => {
     if (!ordem.rat.checkin) return toast.error("Faça o check-in primeiro");
     if (!hasSig) return toast.error("Capture a assinatura do cliente");
+    
+    // Validar e salvar equipamentos retirados
+    for (const ret of retirados) {
+      if (!ret.modelo || !ret.numero_serie || !ret.foto) {
+        return toast.error("Preencha todos os campos obrigatórios (Modelo, Série e Foto) dos equipamentos retirados");
+      }
+    }
+    
+    for (const ret of retirados) {
+      try {
+        await addEquipamento({
+          cliente_id: ordem.clienteId,
+          nome: `Equipamento Retirado - OS ${ordem.numero}`,
+          modelo: ret.modelo,
+          numero_serie: ret.numero_serie,
+          patrimonio: ret.patrimonio || undefined,
+          fotos: [ret.foto],
+          status: "retirado_em_estoque",
+        });
+      } catch(e: any) {
+        return toast.error("Erro ao salvar equipamento retirado: " + e.message);
+      }
+    }
+
     const data = sigRef.current?.toDataURL();
     updateRAT(ordem.id, {
       checkout: new Date().toLocaleTimeString("pt-BR"),
@@ -393,6 +419,17 @@ function StepConclusao({ ordem, updateRAT, updateOS, onFinish }: any) {
     const id = `ev-${Date.now()}`;
     setEvidencias((p) => [...p, id]);
     toast.success("Foto adicionada");
+  };
+
+  const fakeUploadRetirado = (index: number) => {
+    const novos = [...retirados];
+    novos[index].foto = `ev-${Date.now()}`;
+    setRetirados(novos);
+    toast.success("Foto do equipamento adicionada");
+  };
+
+  const adicionarRetirado = () => {
+    setRetirados([...retirados, { modelo: "", numero_serie: "", patrimonio: "", foto: "" }]);
   };
 
   return (
@@ -444,6 +481,74 @@ function StepConclusao({ ordem, updateRAT, updateOS, onFinish }: any) {
         <p className="text-[11px] text-muted-foreground mt-2 text-center">
           Assine usando o dedo ou a caneta
         </p>
+      </Card>
+
+      <Card>
+        <div className="flex items-center justify-between mb-3">
+          <div className="text-[10px] text-muted-foreground uppercase tracking-wider font-bold flex items-center gap-1.5">
+            <Package className="w-3.5 h-3.5" /> Equipamentos Retirados
+          </div>
+          <button onClick={adicionarRetirado} className="text-xs text-primary font-semibold flex items-center gap-1 bg-primary/10 px-2 py-1 rounded-md">
+            <Plus className="w-3 h-3" /> Adicionar
+          </button>
+        </div>
+        
+        {retirados.length === 0 ? (
+          <p className="text-xs text-muted-foreground text-center py-2">Nenhum equipamento retirado.</p>
+        ) : (
+          <div className="space-y-4">
+            {retirados.map((ret, index) => (
+              <div key={index} className="border border-border/50 rounded-xl p-3 space-y-3 bg-muted/20 relative">
+                <button 
+                  onClick={() => setRetirados(retirados.filter((_, i) => i !== index))}
+                  className="absolute top-2 right-2 text-destructive p-1"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+                <div className="text-xs font-semibold">Equipamento #{index + 1}</div>
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="text-[10px] text-muted-foreground uppercase mb-1 block">Modelo *</label>
+                    <Input 
+                      className="h-8 text-xs" 
+                      value={ret.modelo} 
+                      onChange={e => { const n = [...retirados]; n[index].modelo = e.target.value; setRetirados(n); }}
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] text-muted-foreground uppercase mb-1 block">Série *</label>
+                    <Input 
+                      className="h-8 text-xs" 
+                      value={ret.numero_serie} 
+                      onChange={e => { const n = [...retirados]; n[index].numero_serie = e.target.value; setRetirados(n); }}
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="text-[10px] text-muted-foreground uppercase mb-1 block">Patrimônio (Opcional)</label>
+                  <Input 
+                    className="h-8 text-xs" 
+                    value={ret.patrimonio} 
+                    onChange={e => { const n = [...retirados]; n[index].patrimonio = e.target.value; setRetirados(n); }}
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] text-muted-foreground uppercase mb-1 block">Foto do Equipamento *</label>
+                  {ret.foto ? (
+                     <div className="h-10 rounded-md bg-gradient-to-br from-muted to-accent flex items-center justify-center text-xs text-muted-foreground">Foto Adicionada</div>
+                  ) : (
+                    <button
+                      onClick={() => fakeUploadRetirado(index)}
+                      className="h-10 w-full rounded-md border-2 border-dashed border-border flex items-center justify-center text-muted-foreground hover:border-primary hover:text-primary active:scale-95 transition"
+                    >
+                      <Camera className="w-4 h-4 mr-2" /> Capturar Foto
+                    </button>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </Card>
 
       <button
