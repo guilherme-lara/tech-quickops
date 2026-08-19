@@ -365,9 +365,21 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
           // Preserva o role real vindo do banco (gestor | tecnico | analista | admin | superadmin)
           const allowedRoles: Role[] = ["gestor", "tecnico", "analista", "admin", "superadmin"];
-          const role: Role = (allowedRoles as string[]).includes(data.role)
+          let role: Role = (allowedRoles as string[]).includes(data.role)
             ? (data.role as Role)
             : "gestor";
+
+          // Trava: se o usuário está vinculado a um registro de técnico, ele SEMPRE é técnico
+          if (role !== "tecnico") {
+            const { data: tec } = await supabase
+              .from("tecnicos")
+              .select("id")
+              .or(`user_id.eq.${uid},id.eq.${uid}`)
+              .limit(1)
+              .maybeSingle();
+            if (tec) role = "tecnico";
+          }
+
 
           // Trava de segurança: analista/gestor/admin sem empresa vinculada não pode entrar
           if (!data.empresa_id && role !== "superadmin") {
@@ -570,7 +582,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         dias_pagamento: r.dias_pagamento ?? undefined,
         dia_envio_planilha: r.dia_envio_planilha ?? undefined,
         modelo_rat_url: r.modelo_rat_url ?? undefined,
-        template_rat_texto: r.template_rat_texto ?? null,
+        template_rat_texto: (r as any).template_rat_texto ?? null,
         ultimo_mes_pago: r.ultimo_mes_pago ?? null,
       }));
     },
@@ -600,7 +612,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         dias_pagamento: r.dias_pagamento ?? undefined,
         dia_envio_planilha: r.dia_envio_planilha ?? undefined,
         modelo_rat_url: r.modelo_rat_url ?? undefined,
-        template_rat_texto: r.template_rat_texto ?? null,
+        template_rat_texto: (r as any).template_rat_texto ?? null,
         ultimo_mes_pago: r.ultimo_mes_pago ?? null,
       }));
     },
@@ -1244,7 +1256,18 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     localStorage.setItem("tqo_session_id", newSessionId);
     await supabase.from("perfis").update({ current_session_id: newSessionId }).eq("id", perfil.id);
 
-    const role: Role = perfil.role === "tecnico" ? "tecnico" : "gestor";
+    const allowedRoles = ["gestor", "tecnico", "analista", "admin", "superadmin"];
+    let role: Role = (allowedRoles.includes(perfil.role) ? perfil.role : "gestor") as Role;
+    if (role !== "tecnico") {
+      const { data: tec } = await supabase
+        .from("tecnicos")
+        .select("id")
+        .or(`user_id.eq.${perfil.id},id.eq.${perfil.id}`)
+        .limit(1)
+        .maybeSingle();
+      if (tec) role = "tecnico";
+    }
+
     const { data: emp } = await supabase
       .from("empresas")
       .select("nome_fantasia, codigo_empresa, plano, logo_url")
