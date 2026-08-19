@@ -56,6 +56,10 @@ export interface EquipamentoCliente {
   nome: string;
   modelo?: string;
   numero_serie?: string;
+  patrimonio?: string;
+  status?: string;
+  os_id?: string;
+  cliente?: { nome: string };
   data_recebimento?: string;
   fotos?: string[];
   nota_fiscal?: string;
@@ -276,7 +280,7 @@ interface Store {
   setOsSortField: (v: "data" | "cliente" | "valor") => void;
   osSortDirection: "asc" | "desc";
   setOsSortDirection: (v: "asc" | "desc") => void;
-  addOS: (o: Omit<OS, "id" | "numero" | "criadaEm" | "rat">) => Promise<void>;
+  addOS: (o: Omit<OS, "id" | "numero" | "criadaEm" | "rat"> & { equipamentoId?: string }) => Promise<void>;
   updateOS: (id: string, patch: Partial<OS>) => Promise<void>;
   updateRAT: (id: string, patch: Partial<RAT>) => void;
 
@@ -994,8 +998,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   });
 
   const addOSM = useMutation({
-    mutationFn: async (o: Omit<OS, "id" | "numero" | "criadaEm" | "rat">) => {
-      const { error } = await (supabase.from("ordens_servico") as any).insert({
+    mutationFn: async (o: Omit<OS, "id" | "numero" | "criadaEm" | "rat"> & { equipamentoId?: string }) => {
+      const { data, error } = await (supabase.from("ordens_servico") as any).insert({
         empresa_id: empresaId!,
         cliente_id: o.clienteId,
         tecnico_id: o.tecnicoId || null,
@@ -1014,10 +1018,20 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         endereco_servico: o.endereco_servico ?? null,
         valor_adiantado: o.valor_adiantado ?? 0,
         descricao_adiantamento: o.descricao_adiantamento ?? null,
-      });
+      }).select("id").single();
       if (error) throw error;
+      
+      if (o.equipamentoId && data?.id) {
+        await (supabase.from("equipamentos_clientes") as any).update({
+          status: "em_transito",
+          os_id: data.id,
+        }).eq("id", o.equipamentoId);
+      }
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["ordens_servico"] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["ordens_servico"] });
+      qc.invalidateQueries({ queryKey: ["equipamentos_clientes"] });
+    },
     onError: (e: Error) => toast.error(e.message),
   });
 
@@ -1049,8 +1063,18 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         dbPatch.descricao_adiantamento = patch.descricao_adiantamento;
       const { error } = await (supabase.from("ordens_servico") as any).update(dbPatch).eq("id", id);
       if (error) throw error;
+      
+      if (patch.status === "Concluído") {
+        await (supabase.from("equipamentos_clientes") as any).update({
+          status: "instalado",
+          os_id: null,
+        }).eq("os_id", id);
+      }
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["ordens_servico"] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["ordens_servico"] });
+      qc.invalidateQueries({ queryKey: ["equipamentos_clientes"] });
+    },
     onError: (e: Error) => toast.error(e.message),
   });
 
@@ -1106,7 +1130,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     enabled,
     queryFn: async (): Promise<EquipamentoCliente[]> => {
       const { data, error } = await (supabase.from("equipamentos_clientes" as any) as any)
-        .select("*")
+        .select("*, cliente:clientes(nome)")
         .eq("empresa_id", empresaId!)
         .order("nome");
       if (error) throw error;
@@ -1122,6 +1146,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         nome: e.nome,
         modelo: e.modelo || null,
         numero_serie: e.numero_serie || null,
+        patrimonio: e.patrimonio || null,
+        status: e.status || "em_estoque",
+        os_id: e.os_id || null,
         data_recebimento: e.data_recebimento || null,
         fotos: e.fotos || [],
         nota_fiscal: e.nota_fiscal || null,
@@ -1137,6 +1164,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       const dbPatch: Record<string, any> = { ...patch };
       delete dbPatch.id;
       delete dbPatch.empresa_id;
+      delete dbPatch.cliente;
       const { error } = await (supabase.from("equipamentos_clientes" as any) as any)
         .update(dbPatch)
         .eq("id", id);

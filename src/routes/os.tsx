@@ -111,6 +111,7 @@ function OSPage() {
     updateOS,
     addCliente,
     addTecnico,
+    equipamentos,
     loadingOS,
     osPage,
     osTotal,
@@ -161,6 +162,7 @@ function OSPage() {
     endereco_servico: "",
     valor_adiantado: "",
     descricao_adiantamento: "",
+    equipamentoId: "",
   });
   const [valorKmInput, setValorKmInput] = useState("");
   const { analistas: analistasNovaOS, setAnalistas: setAnalistasNovaOS } = useAnalistasByCliente(form.clienteId);
@@ -351,6 +353,7 @@ function OSPage() {
       status: form.status,
       dados_adicionais: novosDadosExtras,
       endereco_servico: form.endereco_servico,
+      equipamentoId: form.equipamentoId || undefined,
     });
     await registrarLog("os_criada", `OS "${form.titulo}" criada por ${nomeUsuario}`);
     toast.success("OS criada com sucesso");
@@ -370,6 +373,7 @@ function OSPage() {
       endereco_servico: "",
       valor_adiantado: "",
       descricao_adiantamento: "",
+      equipamentoId: "",
     });
     setNovosDadosExtras({});
     setDespesasSelecionadas([]);
@@ -1758,6 +1762,35 @@ export function EditOSDialog({
                 />
               )}
             </div>
+            {form.clienteId && (
+              <div>
+                <Label className="mb-1 block">Equipamento a Instalar</Label>
+                {isView ? (
+                  <div className="h-10 px-3 flex items-center rounded-md border border-input bg-muted/40 text-sm">
+                    {equipamentos.find((e) => e.id === form.equipamentoId)?.nome || "—"}
+                  </div>
+                ) : (
+                  <Select
+                    value={form.equipamentoId}
+                    onValueChange={(v) => setForm({ ...form, equipamentoId: v })}
+                  >
+                    <SelectTrigger className="h-10 w-full">
+                      <SelectValue placeholder="Selecione um equipamento..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="">Nenhum equipamento</SelectItem>
+                      {equipamentos
+                        .filter(e => e.cliente_id === form.clienteId && e.status === 'em_estoque')
+                        .map(e => (
+                          <SelectItem key={e.id} value={e.id}>
+                            {e.nome} {e.numero_serie ? `(SN: ${e.numero_serie})` : ''}
+                          </SelectItem>
+                        ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              </div>
+            )}
             <div>
               <div className="flex items-center justify-between gap-2 mb-1">
                 <Label>Técnico</Label>

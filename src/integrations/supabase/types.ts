@@ -181,6 +181,9 @@ export type Database = {
           nome: string
           nota_fiscal: string | null
           numero_serie: string | null
+          patrimonio: string | null
+          status: string | null
+          os_id: string | null
         }
         Insert: {
           cliente_id: string
@@ -193,6 +196,9 @@ export type Database = {
           nome: string
           nota_fiscal?: string | null
           numero_serie?: string | null
+          patrimonio?: string | null
+          status?: string | null
+          os_id?: string | null
         }
         Update: {
           cliente_id?: string
@@ -205,6 +211,9 @@ export type Database = {
           nome?: string
           nota_fiscal?: string | null
           numero_serie?: string | null
+          patrimonio?: string | null
+          status?: string | null
+          os_id?: string | null
         }
         Relationships: [
           {
@@ -219,6 +228,13 @@ export type Database = {
             columns: ["empresa_id"]
             isOneToOne: false
             referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "equipamentos_clientes_os_id_fkey"
+            columns: ["os_id"]
+            isOneToOne: false
+            referencedRelation: "ordens_servico"
             referencedColumns: ["id"]
           },
         ]
