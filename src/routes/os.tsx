@@ -1774,14 +1774,14 @@ export function EditOSDialog({
                   </div>
                 ) : (
                   <Select
-                    value={form.equipamentoId}
-                    onValueChange={(v) => setForm({ ...form, equipamentoId: v })}
+                    value={form.equipamentoId || "none"}
+                    onValueChange={(v) => setForm({ ...form, equipamentoId: v === "none" ? "" : v })}
                   >
                     <SelectTrigger className="h-10 w-full">
                       <SelectValue placeholder="Selecione um equipamento..." />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">Nenhum equipamento</SelectItem>
+                      <SelectItem value="none">Nenhum equipamento</SelectItem>
                       {equipamentos
                         .filter(e => e.cliente_id === form.clienteId && e.status === 'em_estoque')
                         .map(e => (
