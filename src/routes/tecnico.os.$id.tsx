@@ -5,7 +5,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { ArrowLeft, Loader2, MapPin, Receipt, Upload, Plus, FileText, Download, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, Loader2, MapPin, Receipt, Upload, Plus, FileText, Download, CheckCircle2, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
@@ -229,6 +229,22 @@ function TecnicoOSDetail() {
     } finally {
       setIsUploading(false);
       if (e.target) e.target.value = ''; // Reset input
+    }
+  };
+
+  const handleDeleteArquivo = async (arquivoId: string, arquivoUrl: string) => {
+    if (!window.confirm("Deseja realmente excluir este arquivo?")) return;
+    try {
+      const { error: storageError } = await supabase.storage.from('rats').remove([arquivoUrl]);
+      if (storageError) console.error("Erro ao remover do storage:", storageError);
+      
+      const { error: dbError } = await supabase.from('rat_arquivos').delete().eq('id', arquivoId);
+      if (dbError) throw dbError;
+
+      toast.success("Arquivo excluído com sucesso!");
+      queryClient.invalidateQueries({ queryKey: ["os_rat_arquivos", id] });
+    } catch (error: any) {
+      toast.error("Erro ao excluir arquivo: " + error.message);
     }
   };
 
@@ -502,9 +518,14 @@ function TecnicoOSDetail() {
                         <FileText className="w-4 h-4 text-primary shrink-0" />
                         <span className="text-xs font-medium truncate">{arq.nome_arquivo}</span>
                       </div>
-                      <PrivateFileLink urlOrPath={arq.arquivo_url} bucket="rats" className="p-2 text-muted-foreground hover:text-primary transition">
-                        <Download className="w-4 h-4" />
-                      </PrivateFileLink>
+                      <div className="flex items-center gap-1">
+                        <button onClick={() => handleDeleteArquivo(arq.id, arq.arquivo_url)} className="p-2 text-destructive hover:bg-destructive/10 rounded-md transition">
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                        <PrivateFileLink urlOrPath={arq.arquivo_url} bucket="rats" className="p-2 text-muted-foreground hover:text-primary transition">
+                          <Download className="w-4 h-4" />
+                        </PrivateFileLink>
+                      </div>
                     </div>
                     <span className="text-[10px] text-muted-foreground opacity-70 ml-6">
                       Enviado por: {arq.enviado_por_role === 'gestor' ? 'Gestor (Modelo Padrão)' : 'Técnico'}
@@ -556,9 +577,14 @@ function TecnicoOSDetail() {
                       <FileText className="w-4 h-4 text-primary shrink-0" />
                       <span className="text-xs font-medium truncate">{arq.nome_arquivo}</span>
                     </div>
-                    <PrivateFileLink urlOrPath={arq.arquivo_url} bucket="rats" className="p-2 text-muted-foreground hover:text-primary transition">
-                      <Download className="w-4 h-4" />
-                    </PrivateFileLink>
+                    <div className="flex items-center gap-1">
+                      <button onClick={() => handleDeleteArquivo(arq.id, arq.arquivo_url)} className="p-2 text-destructive hover:bg-destructive/10 rounded-md transition">
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                      <PrivateFileLink urlOrPath={arq.arquivo_url} bucket="rats" className="p-2 text-muted-foreground hover:text-primary transition">
+                        <Download className="w-4 h-4" />
+                      </PrivateFileLink>
+                    </div>
                   </div>
                 ))
               )}

@@ -1467,6 +1467,7 @@ export function EditOSDialog({
 }) {
   const isView = mode === "view";
   const { profile } = useAuth();
+  const { equipamentos } = useStore();
   const empresaId = profile?.empresa_id;
   const [form, setForm] = useState({
     titulo: "",
