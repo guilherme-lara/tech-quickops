@@ -103,5 +103,34 @@ export function ProtectedRoute({ children, allowedRoles }: Props) {
     return <Paywall />;
   }
 
+  // Bloqueia a renderização enquanto o perfil carrega ou se o papel não é permitido
+  // (evita "flash" da tela do gestor para técnicos antes do redirect)
+  if (!profile) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="flex flex-col items-center gap-3 text-muted-foreground">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+          <span className="text-sm">Carregando perfil…</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (allowedRoles && allowedRoles.length > 0) {
+    const master = user.email === "guiigo9@gmail.com" || profile.role === "superadmin";
+    const adminAsGestor = profile.role === "admin" && allowedRoles.includes("gestor");
+    const allowed = master || adminAsGestor || (allowedRoles as string[]).includes(profile.role);
+    if (!allowed) {
+      return (
+        <div className="min-h-screen flex items-center justify-center bg-background">
+          <div className="flex flex-col items-center gap-3 text-muted-foreground">
+            <Loader2 className="w-8 h-8 animate-spin text-primary" />
+            <span className="text-sm">Redirecionando…</span>
+          </div>
+        </div>
+      );
+    }
+  }
+
   return <>{children}</>;
 }
