@@ -63,6 +63,7 @@ export interface EquipamentoCliente {
   data_recebimento?: string;
   fotos?: string[];
   nota_fiscal?: string;
+  os?: { numero: string; titulo: string };
   created_at?: string;
 }
 
@@ -1134,7 +1135,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     enabled,
     queryFn: async (): Promise<EquipamentoCliente[]> => {
       const { data, error } = await (supabase.from("equipamentos_clientes" as any) as any)
-        .select("*, cliente:clientes(nome)")
+        .select("*, cliente:clientes(nome), os:ordens_servico!os_id(numero, titulo)")
         .eq("empresa_id", empresaId!)
         .order("nome");
       if (error) throw error;

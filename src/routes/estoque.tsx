@@ -418,6 +418,7 @@ function EquipamentosTab() {
                   <th className="px-5 py-3 font-semibold">Modelo</th>
                   <th className="px-5 py-3 font-semibold">Série / Pat.</th>
                   <th className="px-5 py-3 font-semibold">Status</th>
+                  <th className="px-5 py-3 font-semibold">Chamado / OS</th>
                   <th className="px-5 py-3 font-semibold w-24">Ações</th>
                 </tr>
               </thead>
@@ -444,6 +445,16 @@ function EquipamentosTab() {
                          e.status === 'retirado_em_estoque' ? 'Retirado' :
                          'Instalado'}
                       </span>
+                    </td>
+                    <td className="px-5 py-3">
+                      {e.os ? (
+                        <div className="flex flex-col gap-0.5" title={e.os.titulo}>
+                          <span className="text-sm font-medium">#{e.os.numero || "?"}</span>
+                          <span className="text-xs text-muted-foreground line-clamp-1 max-w-[120px]">{e.os.titulo || "—"}</span>
+                        </div>
+                      ) : (
+                        <span className="text-muted-foreground text-xs">—</span>
+                      )}
                     </td>
                     <td className="px-5 py-3">
                       <div className="flex gap-1 justify-end">
