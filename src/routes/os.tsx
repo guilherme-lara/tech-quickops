@@ -355,7 +355,14 @@ function OSPage() {
       endereco_servico: form.endereco_servico,
       equipamentoId: form.equipamentoId || undefined,
     });
-    await registrarLog("os_criada", `OS "${form.titulo}" criada por ${nomeUsuario}`);
+    
+    let logMsg = `OS "${form.titulo}" criada por ${nomeUsuario}`;
+    if (form.equipamentoId) {
+      const equip = equipamentos.find(e => e.id === form.equipamentoId);
+      if (equip) logMsg += ` e vinculada ao equipamento "${equip.nome}"`;
+    }
+    await registrarLog("os_criada", logMsg);
+    
     toast.success("OS criada com sucesso");
     setOpen(false);
     setForm({
@@ -1434,6 +1441,22 @@ function OSPage() {
                 "os_tecnico_alterado",
                 `OS "${editing.titulo}" atribuída ao técnico ${tecnico?.nome || "sem técnico"} por ${nomeUsuario}`,
               );
+            }
+            const mudouEquipamento =
+              patch.equipamentoClienteId !== undefined && patch.equipamentoClienteId !== editing.equipamentoClienteId;
+            if (mudouEquipamento) {
+              if (patch.equipamentoClienteId) {
+                const equipamento = equipamentos.find((e) => e.id === patch.equipamentoClienteId);
+                await registrarLog(
+                  "os_equipamento_alterado",
+                  `Equipamento "${equipamento?.nome || "desconhecido"}" vinculado à OS "${editing.titulo}" por ${nomeUsuario}`
+                );
+              } else {
+                await registrarLog(
+                  "os_equipamento_removido",
+                  `Equipamento desvinculado da OS "${editing.titulo}" por ${nomeUsuario}`
+                );
+              }
             }
             toast.success("OS atualizada");
             setEditing(null);
