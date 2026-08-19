@@ -71,7 +71,6 @@ export type Database = {
           modelo_rat_url: string | null
           nome: string
           telefone: string | null
-          template_rat_texto: string | null
           ultimo_mes_pago: string | null
           valor_km: number
           valor_por_km: number | null
@@ -90,7 +89,6 @@ export type Database = {
           modelo_rat_url?: string | null
           nome: string
           telefone?: string | null
-          template_rat_texto?: string | null
           ultimo_mes_pago?: string | null
           valor_km?: number
           valor_por_km?: number | null
@@ -109,7 +107,6 @@ export type Database = {
           modelo_rat_url?: string | null
           nome?: string
           telefone?: string | null
-          template_rat_texto?: string | null
           ultimo_mes_pago?: string | null
           valor_km?: number
           valor_por_km?: number | null
@@ -175,7 +172,7 @@ export type Database = {
       equipamentos_clientes: {
         Row: {
           cliente_id: string
-          created_at: string
+          created_at: string | null
           data_recebimento: string | null
           empresa_id: string
           fotos: string[] | null
@@ -187,7 +184,7 @@ export type Database = {
         }
         Insert: {
           cliente_id: string
-          created_at?: string
+          created_at?: string | null
           data_recebimento?: string | null
           empresa_id: string
           fotos?: string[] | null
@@ -199,7 +196,7 @@ export type Database = {
         }
         Update: {
           cliente_id?: string
-          created_at?: string
+          created_at?: string | null
           data_recebimento?: string | null
           empresa_id?: string
           fotos?: string[] | null
@@ -266,58 +263,6 @@ export type Database = {
             columns: ["empresa_id"]
             isOneToOne: false
             referencedRelation: "empresas"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      tecnico_ferramentas: {
-        Row: {
-          created_at: string
-          data_atribuicao: string | null
-          empresa_id: string
-          id: string
-          item_id: string
-          quantidade: number
-          tecnico_id: string
-        }
-        Insert: {
-          created_at?: string
-          data_atribuicao?: string | null
-          empresa_id: string
-          id?: string
-          item_id: string
-          quantidade?: number
-          tecnico_id: string
-        }
-        Update: {
-          created_at?: string
-          data_atribuicao?: string | null
-          empresa_id?: string
-          id?: string
-          item_id?: string
-          quantidade?: number
-          tecnico_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "tecnico_ferramentas_empresa_id_fkey"
-            columns: ["empresa_id"]
-            isOneToOne: false
-            referencedRelation: "empresas"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "tecnico_ferramentas_item_id_fkey"
-            columns: ["item_id"]
-            isOneToOne: false
-            referencedRelation: "itens_inventario"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "tecnico_ferramentas_tecnico_id_fkey"
-            columns: ["tecnico_id"]
-            isOneToOne: false
-            referencedRelation: "tecnicos"
             referencedColumns: ["id"]
           },
         ]
@@ -666,6 +611,72 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "ordens_servico"
             referencedColumns: ["id"]
+          },
+        ]
+      }
+      tecnico_ferramentas: {
+        Row: {
+          created_at: string | null
+          data_atribuicao: string | null
+          empresa_id: string
+          id: string
+          item_id: string
+          quantidade: number
+          tecnico_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          data_atribuicao?: string | null
+          empresa_id: string
+          id?: string
+          item_id: string
+          quantidade?: number
+          tecnico_id: string
+        }
+        Update: {
+          created_at?: string | null
+          data_atribuicao?: string | null
+          empresa_id?: string
+          id?: string
+          item_id?: string
+          quantidade?: number
+          tecnico_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tecnico_ferramentas_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: false
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tecnico_ferramentas_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "itens_inventario"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tecnico_ferramentas_tecnico_id_fkey"
+            columns: ["tecnico_id"]
+            isOneToOne: false
+            referencedRelation: "tecnicos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tecnico_ferramentas_tecnico_id_fkey"
+            columns: ["tecnico_id"]
+            isOneToOne: false
+            referencedRelation: "view_ranking_tecnicos_mensal"
+            referencedColumns: ["tecnico_id"]
+          },
+          {
+            foreignKeyName: "tecnico_ferramentas_tecnico_id_fkey"
+            columns: ["tecnico_id"]
+            isOneToOne: false
+            referencedRelation: "vw_produtividade_tecnico"
+            referencedColumns: ["tecnico_id"]
           },
         ]
       }
