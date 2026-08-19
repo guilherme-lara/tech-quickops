@@ -582,7 +582,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         dias_pagamento: r.dias_pagamento ?? undefined,
         dia_envio_planilha: r.dia_envio_planilha ?? undefined,
         modelo_rat_url: r.modelo_rat_url ?? undefined,
-        template_rat_texto: r.template_rat_texto ?? null,
+        template_rat_texto: (r as any).template_rat_texto ?? null,
         ultimo_mes_pago: r.ultimo_mes_pago ?? null,
       }));
     },
@@ -612,7 +612,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         dias_pagamento: r.dias_pagamento ?? undefined,
         dia_envio_planilha: r.dia_envio_planilha ?? undefined,
         modelo_rat_url: r.modelo_rat_url ?? undefined,
-        template_rat_texto: r.template_rat_texto ?? null,
+        template_rat_texto: (r as any).template_rat_texto ?? null,
         ultimo_mes_pago: r.ultimo_mes_pago ?? null,
       }));
     },

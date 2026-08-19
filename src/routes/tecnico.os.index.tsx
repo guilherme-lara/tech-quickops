@@ -146,7 +146,7 @@ function TecnicoOSPage() {
                   )}
                 </div>
 
-                <Link to={`/tecnico/os/${ordem.id}`}>
+                <Link to="/tecnico/os/$id" params={{ id: ordem.id }}>
                   <Button
                     className="w-full h-10 rounded-xl font-semibold"
                     variant={isConcluido ? "outline" : "default"}

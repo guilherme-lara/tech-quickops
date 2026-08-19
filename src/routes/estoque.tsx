@@ -452,7 +452,7 @@ function ItemDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader><DialogTitle>{item ? "Editar" : "Novo"} {defaultTipo === "ferramenta" ? "Ferramenta" : "Insumo"}</DialogTitle></DialogHeader>
-        <form onSubmit={handleSubmit(async (d) => await onSubmit({ ...d, tipo: defaultTipo }))} className="space-y-4">
+        <form onSubmit={handleSubmit(async (d) => await onSubmit({ ...d, codigo: d.codigo ?? "", descricao: d.descricao ?? "", tipo: defaultTipo }))} className="space-y-4">
           <div><Label>Nome *</Label><Input {...register("nome")} /></div>
           {defaultTipo === "ferramenta" && <div><Label>Descrição</Label><Input {...register("descricao")} /></div>}
           {defaultTipo !== "ferramenta" && <div><Label>Código</Label><Input {...register("codigo")} /></div>}
