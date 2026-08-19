@@ -1256,7 +1256,18 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     localStorage.setItem("tqo_session_id", newSessionId);
     await supabase.from("perfis").update({ current_session_id: newSessionId }).eq("id", perfil.id);
 
-    const role: Role = perfil.role === "tecnico" ? "tecnico" : "gestor";
+    const allowedRoles = ["gestor", "tecnico", "analista", "admin", "superadmin"];
+    let role: Role = (allowedRoles.includes(perfil.role) ? perfil.role : "gestor") as Role;
+    if (role !== "tecnico") {
+      const { data: tec } = await supabase
+        .from("tecnicos")
+        .select("id")
+        .or(`user_id.eq.${perfil.id},id.eq.${perfil.id}`)
+        .limit(1)
+        .maybeSingle();
+      if (tec) role = "tecnico";
+    }
+
     const { data: emp } = await supabase
       .from("empresas")
       .select("nome_fantasia, codigo_empresa, plano, logo_url")
