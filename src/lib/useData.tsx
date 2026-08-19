@@ -365,9 +365,21 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
           // Preserva o role real vindo do banco (gestor | tecnico | analista | admin | superadmin)
           const allowedRoles: Role[] = ["gestor", "tecnico", "analista", "admin", "superadmin"];
-          const role: Role = (allowedRoles as string[]).includes(data.role)
+          let role: Role = (allowedRoles as string[]).includes(data.role)
             ? (data.role as Role)
             : "gestor";
+
+          // Trava: se o usuário está vinculado a um registro de técnico, ele SEMPRE é técnico
+          if (role !== "tecnico") {
+            const { data: tec } = await supabase
+              .from("tecnicos")
+              .select("id")
+              .or(`user_id.eq.${uid},id.eq.${uid}`)
+              .limit(1)
+              .maybeSingle();
+            if (tec) role = "tecnico";
+          }
+
 
           // Trava de segurança: analista/gestor/admin sem empresa vinculada não pode entrar
           if (!data.empresa_id && role !== "superadmin") {
