@@ -1068,6 +1068,22 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         dbPatch.descricao_adiantamento = patch.descricao_adiantamento;
       const { error } = await (supabase.from("ordens_servico") as any).update(dbPatch).eq("id", id);
       if (error) throw error;
+
+      if (patch.equipamentoClienteId !== undefined) {
+        if (patch.equipamentoClienteId) {
+          // Atualiza o equipamento selecionado para referenciar esta OS
+          await (supabase.from("equipamentos_clientes") as any).update({
+            status: "em_transito",
+            os_id: id,
+          }).eq("id", patch.equipamentoClienteId);
+        } else {
+          // Se desvinculou, remove a referência da OS no equipamento anterior
+          await (supabase.from("equipamentos_clientes") as any).update({
+            status: "em_estoque",
+            os_id: null,
+          }).eq("os_id", id);
+        }
+      }
       
       if (patch.status === "Concluído") {
         await (supabase.from("equipamentos_clientes") as any).update({

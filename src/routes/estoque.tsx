@@ -1,5 +1,5 @@
 import { ProtectedRoute } from "@/components/ProtectedRoute";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { GestorLayout } from "@/components/GestorLayout";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -359,7 +359,8 @@ function FerramentasTab() {
 }
 
 function EquipamentosTab() {
-  const { equipamentos, loadingEquipamentos, deleteEquipamento } = useStore();
+  const { equipamentos, loadingEquipamentos, deleteEquipamento, setOsSearchCliente } = useStore();
+  const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<EquipamentoCliente | null>(null);
 
@@ -448,10 +449,17 @@ function EquipamentosTab() {
                     </td>
                     <td className="px-5 py-3">
                       {e.os ? (
-                        <div className="flex flex-col gap-0.5" title={e.os.titulo}>
-                          <span className="text-sm font-medium">#{e.os.numero || "?"}</span>
+                        <button 
+                          onClick={() => {
+                            setOsSearchCliente(e.os!.numero);
+                            navigate({ to: "/os" });
+                          }}
+                          className="flex flex-col gap-0.5 hover:bg-muted p-1 -ml-1 rounded transition-colors text-left cursor-pointer" 
+                          title={`Ver OS: ${e.os.titulo}`}
+                        >
+                          <span className="text-sm font-medium text-primary">#{e.os.numero || "?"}</span>
                           <span className="text-xs text-muted-foreground line-clamp-1 max-w-[120px]">{e.os.titulo || "—"}</span>
-                        </div>
+                        </button>
                       ) : (
                         <span className="text-muted-foreground text-xs">—</span>
                       )}
