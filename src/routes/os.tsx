@@ -1563,6 +1563,7 @@ export function EditOSDialog({
       endereco_servico: form.endereco_servico || undefined,
       valor_adiantado: form.valor_adiantado ? parseFloat(form.valor_adiantado) : 0,
       descricao_adiantamento: form.descricao_adiantamento || undefined,
+      equipamentoClienteId: form.equipamentoId || undefined,
     };
 
     setSaving(true);
