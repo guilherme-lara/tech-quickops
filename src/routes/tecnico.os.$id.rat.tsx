@@ -22,6 +22,7 @@ import {
   FileText,
   MapPin,
   Sparkles,
+  X,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
@@ -442,9 +443,15 @@ function StepConclusao({ ordem, updateRAT, updateOS, addEquipamento, onFinish }:
           {evidencias.map((e) => (
             <div
               key={e}
-              className="aspect-square rounded-xl bg-gradient-to-br from-muted to-accent flex items-center justify-center text-muted-foreground"
+              className="aspect-square rounded-xl bg-gradient-to-br from-muted to-accent flex items-center justify-center text-muted-foreground relative group"
             >
               <Camera className="w-5 h-5" />
+              <button
+                onClick={() => setEvidencias(evidencias.filter(item => item !== e))}
+                className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground rounded-full p-1 shadow-md opacity-0 group-hover:opacity-100 transition-opacity"
+              >
+                <X className="w-3 h-3" />
+              </button>
             </div>
           ))}
           <button
@@ -535,7 +542,15 @@ function StepConclusao({ ordem, updateRAT, updateOS, addEquipamento, onFinish }:
                 <div>
                   <label className="text-[10px] text-muted-foreground uppercase mb-1 block">Foto do Equipamento *</label>
                   {ret.foto ? (
-                     <div className="h-10 rounded-md bg-gradient-to-br from-muted to-accent flex items-center justify-center text-xs text-muted-foreground">Foto Adicionada</div>
+                     <div className="h-10 rounded-md bg-gradient-to-br from-muted to-accent flex items-center justify-center text-xs text-muted-foreground relative">
+                       Foto Adicionada
+                       <button
+                         onClick={() => { const n = [...retirados]; n[index].foto = ""; setRetirados(n); }}
+                         className="absolute right-2 text-destructive"
+                       >
+                         <Trash2 className="w-4 h-4" />
+                       </button>
+                     </div>
                   ) : (
                     <button
                       onClick={() => fakeUploadRetirado(index)}

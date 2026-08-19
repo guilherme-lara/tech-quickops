@@ -108,6 +108,7 @@ export interface OS {
   dados_adicionais?: Record<string, any>;
   descricao_problema?: string;
   endereco_servico?: string;
+  equipamentoClienteId?: string;
   valor_adiantado?: number;
   descricao_adiantamento?: string;
   tecnico?: {
@@ -815,6 +816,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
           dados_adicionais: r.dados_adicionais ?? {},
           pendencias_detalhes: r.pendencias_detalhes ?? "",
           endereco_servico: r.endereco_servico ?? "",
+          equipamentoClienteId: r.equipamento_cliente_id ?? undefined,
           tecnico: r.tecnico
             ? {
                 id: r.tecnico.id,
@@ -1002,6 +1004,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       const { data, error } = await (supabase.from("ordens_servico") as any).insert({
         empresa_id: empresaId!,
         cliente_id: o.clienteId,
+        equipamento_cliente_id: o.equipamentoId || null,
         tecnico_id: o.tecnicoId || null,
         analista_id: o.analistaId || null,
         titulo: o.titulo,
@@ -1047,6 +1050,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       if (patch.tecnicoId !== undefined) dbPatch.tecnico_id = patch.tecnicoId || null;
       if (patch.analistaId !== undefined) dbPatch.analista_id = patch.analistaId || null;
       if (patch.clienteId !== undefined) dbPatch.cliente_id = patch.clienteId;
+      if (patch.equipamentoClienteId !== undefined) dbPatch.equipamento_cliente_id = patch.equipamentoClienteId || null;
       if (patch.dados_adicionais !== undefined) dbPatch.dados_adicionais = patch.dados_adicionais;
       if (patch.descricao_problema !== undefined)
         dbPatch.descricao_problema = patch.descricao_problema;

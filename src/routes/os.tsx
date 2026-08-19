@@ -1481,6 +1481,7 @@ export function EditOSDialog({
     endereco_servico: "",
     valor_adiantado: "",
     descricao_adiantamento: "",
+    equipamentoId: "",
   });
   const [descricaoProblema, setDescricaoProblema] = useState("");
   const [dataAgendamento, setDataAgendamento] = useState("");
@@ -1524,6 +1525,7 @@ export function EditOSDialog({
         endereco_servico: ordem.endereco_servico ?? "",
         valor_adiantado: (ordem.valor_adiantado ?? 0).toString(),
         descricao_adiantamento: ordem.descricao_adiantamento ?? "",
+        equipamentoId: ordem.equipamentoClienteId ?? "",
       });
       setDescricaoProblema(ordem?.descricao_problema || "");
       setDataAgendamento(ordem?.data_agendamento || "");
