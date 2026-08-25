@@ -8,7 +8,17 @@ import { Wrench, Sparkles, ArrowRight, Loader2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
-export const Route = createFileRoute("/login")({ component: LoginPage });
+export const Route = createFileRoute("/login")({
+  component: LoginPage,
+  validateSearch: (s: Record<string, unknown>) => ({
+    next: typeof s.next === "string" ? s.next : undefined,
+  }),
+});
+
+function safeNext(next?: string) {
+  return next && next.startsWith("/") && !next.startsWith("//") ? next : null;
+}
+
 
 function LoginPage() {
   const { login, signup, logout } = useStore();
