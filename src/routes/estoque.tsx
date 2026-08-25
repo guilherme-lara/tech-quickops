@@ -496,7 +496,7 @@ function ItemDialog({
   onSubmit: (data: Omit<Item, "id">) => Promise<void>;
 }) {
   const { register, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm<ItemFormData>({
-    resolver: zodResolver(itemSchema),
+    resolver: zodResolver(itemSchema) as never,
   });
 
   useEffect(() => {
@@ -533,7 +533,7 @@ function ItemDialog({
 
 function VincularDialog({ open, onOpenChange, item }: { open: boolean; onOpenChange: (v: boolean) => void; item: Item | null }) {
   const { tecnicos, tecnicoFerramentas, addTecnicoFerramenta } = useStore();
-  const { register, handleSubmit, setValue, watch, reset } = useForm<VincularFormData>({ resolver: zodResolver(vincularSchema) });
+  const { register, handleSubmit, setValue, watch, reset } = useForm<VincularFormData>({ resolver: zodResolver(vincularSchema) as never });
   const selectedTecnico = watch("tecnico_id");
 
   useEffect(() => { reset({ tecnico_id: "", quantidade: 1 }); }, [item, reset, open]);
