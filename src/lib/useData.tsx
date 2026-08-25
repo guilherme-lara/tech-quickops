@@ -109,7 +109,7 @@ export interface OS {
   dados_adicionais?: Record<string, any>;
   descricao_problema?: string;
   endereco_servico?: string;
-  equipamentoClienteId?: string;
+  equipamentosClienteIds?: string[];
   valor_adiantado?: number;
   descricao_adiantamento?: string;
   tecnico?: {
@@ -282,7 +282,7 @@ interface Store {
   setOsSortField: (v: "data" | "cliente" | "valor") => void;
   osSortDirection: "asc" | "desc";
   setOsSortDirection: (v: "asc" | "desc") => void;
-  addOS: (o: Omit<OS, "id" | "numero" | "criadaEm" | "rat"> & { equipamentoId?: string }) => Promise<void>;
+  addOS: (o: Omit<OS, "id" | "numero" | "criadaEm" | "rat"> & { equipamentosIds?: string[] }) => Promise<void>;
   updateOS: (id: string, patch: Partial<OS>) => Promise<void>;
   updateRAT: (id: string, patch: Partial<RAT>) => void;
 
@@ -817,7 +817,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
           dados_adicionais: r.dados_adicionais ?? {},
           pendencias_detalhes: r.pendencias_detalhes ?? "",
           endereco_servico: r.endereco_servico ?? "",
-          equipamentoClienteId: r.equipamento_cliente_id ?? undefined,
+          equipamentosClienteIds: r.equipamentos_cliente_ids || [],
           tecnico: r.tecnico
             ? {
                 id: r.tecnico.id,
@@ -1001,11 +1001,11 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   });
 
   const addOSM = useMutation({
-    mutationFn: async (o: Omit<OS, "id" | "numero" | "criadaEm" | "rat"> & { equipamentoId?: string }) => {
+    mutationFn: async (o: Omit<OS, "id" | "numero" | "criadaEm" | "rat"> & { equipamentosIds?: string[] }) => {
       const { data, error } = await (supabase.from("ordens_servico") as any).insert({
         empresa_id: empresaId!,
         cliente_id: o.clienteId,
-        equipamento_cliente_id: o.equipamentoId || null,
+        equipamentos_cliente_ids: o.equipamentosIds || [],
         tecnico_id: o.tecnicoId || null,
         analista_id: o.analistaId || null,
         titulo: o.titulo,
@@ -1025,11 +1025,11 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       }).select("id").single();
       if (error) throw error;
       
-      if (o.equipamentoId && data?.id) {
+      if (o.equipamentosIds && o.equipamentosIds.length > 0 && data?.id) {
         await (supabase.from("equipamentos_clientes") as any).update({
           status: "em_transito",
           os_id: data.id,
-        }).eq("id", o.equipamentoId);
+        }).in("id", o.equipamentosIds);
       }
     },
     onSuccess: () => {
@@ -1051,7 +1051,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       if (patch.tecnicoId !== undefined) dbPatch.tecnico_id = patch.tecnicoId || null;
       if (patch.analistaId !== undefined) dbPatch.analista_id = patch.analistaId || null;
       if (patch.clienteId !== undefined) dbPatch.cliente_id = patch.clienteId;
-      if (patch.equipamentoClienteId !== undefined) dbPatch.equipamento_cliente_id = patch.equipamentoClienteId || null;
+      if (patch.equipamentosClienteIds !== undefined) dbPatch.equipamentos_cliente_ids = patch.equipamentosClienteIds || [];
       if (patch.dados_adicionais !== undefined) dbPatch.dados_adicionais = patch.dados_adicionais;
       if (patch.descricao_problema !== undefined)
         dbPatch.descricao_problema = patch.descricao_problema;
@@ -1069,19 +1069,19 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       const { error } = await (supabase.from("ordens_servico") as any).update(dbPatch).eq("id", id);
       if (error) throw error;
 
-      if (patch.equipamentoClienteId !== undefined) {
-        if (patch.equipamentoClienteId) {
-          // Atualiza o equipamento selecionado para referenciar esta OS
+      if (patch.equipamentosClienteIds !== undefined) {
+        // Limpa referências anteriores
+        await (supabase.from("equipamentos_clientes") as any).update({
+          status: "em_estoque",
+          os_id: null,
+        }).eq("os_id", id);
+
+        if (patch.equipamentosClienteIds.length > 0) {
+          // Atualiza os equipamentos selecionados para referenciar esta OS
           await (supabase.from("equipamentos_clientes") as any).update({
             status: "em_transito",
             os_id: id,
-          }).eq("id", patch.equipamentoClienteId);
-        } else {
-          // Se desvinculou, remove a referência da OS no equipamento anterior
-          await (supabase.from("equipamentos_clientes") as any).update({
-            status: "em_estoque",
-            os_id: null,
-          }).eq("os_id", id);
+          }).in("id", patch.equipamentosClienteIds);
         }
       }
       

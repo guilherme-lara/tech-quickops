@@ -99,6 +99,7 @@ function UsuariosPage() {
         p_senha: novaSenha,
         p_role: formData.role,
         p_telefone: formData.telefone || null,
+        p_dominio: null,
         p_empresa_id: empresaId,
       });
       if (error) throw error;

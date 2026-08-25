@@ -162,7 +162,7 @@ function OSPage() {
     endereco_servico: "",
     valor_adiantado: "",
     descricao_adiantamento: "",
-    equipamentoId: "",
+    equipamentosIds: [] as string[],
   });
   const [valorKmInput, setValorKmInput] = useState("");
   const { analistas: analistasNovaOS, setAnalistas: setAnalistasNovaOS } = useAnalistasByCliente(form.clienteId);
@@ -353,13 +353,13 @@ function OSPage() {
       status: form.status,
       dados_adicionais: novosDadosExtras,
       endereco_servico: form.endereco_servico,
-      equipamentoId: form.equipamentoId || undefined,
+      equipamentosIds: form.equipamentosIds,
     });
     
     let logMsg = `OS "${form.titulo}" criada por ${nomeUsuario}`;
-    if (form.equipamentoId) {
-      const equip = equipamentos.find(e => e.id === form.equipamentoId);
-      if (equip) logMsg += ` e vinculada ao equipamento "${equip.nome}"`;
+    if (form.equipamentosIds && form.equipamentosIds.length > 0) {
+      const equipNames = equipamentos.filter(e => form.equipamentosIds.includes(e.id)).map(e => e.nome).join(", ");
+      logMsg += ` e vinculada aos equipamentos: ${equipNames}`;
     }
     await registrarLog("os_criada", logMsg);
     
@@ -380,7 +380,7 @@ function OSPage() {
       endereco_servico: "",
       valor_adiantado: "",
       descricao_adiantamento: "",
-      equipamentoId: "",
+      equipamentosIds: [],
     });
     setNovosDadosExtras({});
     setDespesasSelecionadas([]);
@@ -1442,21 +1442,12 @@ function OSPage() {
                 `OS "${editing.titulo}" atribuída ao técnico ${tecnico?.nome || "sem técnico"} por ${nomeUsuario}`,
               );
             }
-            const mudouEquipamento =
-              patch.equipamentoClienteId !== undefined && patch.equipamentoClienteId !== editing.equipamentoClienteId;
+            const mudouEquipamento = patch.equipamentosClienteIds !== undefined;
             if (mudouEquipamento) {
-              if (patch.equipamentoClienteId) {
-                const equipamento = equipamentos.find((e) => e.id === patch.equipamentoClienteId);
-                await registrarLog(
-                  "os_equipamento_alterado",
-                  `Equipamento "${equipamento?.nome || "desconhecido"}" vinculado à OS "${editing.titulo}" por ${nomeUsuario}`
-                );
-              } else {
-                await registrarLog(
-                  "os_equipamento_removido",
-                  `Equipamento desvinculado da OS "${editing.titulo}" por ${nomeUsuario}`
-                );
-              }
+              await registrarLog(
+                "os_equipamentos_alterados",
+                `Equipamentos vinculados à OS "${editing.titulo}" atualizados por ${nomeUsuario}`
+              );
             }
             toast.success("OS atualizada");
             setEditing(null);
@@ -1505,7 +1496,7 @@ export function EditOSDialog({
     endereco_servico: "",
     valor_adiantado: "",
     descricao_adiantamento: "",
-    equipamentoId: "",
+    equipamentosIds: [] as string[],
   });
   const [descricaoProblema, setDescricaoProblema] = useState("");
   const [dataAgendamento, setDataAgendamento] = useState("");
@@ -1549,7 +1540,7 @@ export function EditOSDialog({
         endereco_servico: ordem.endereco_servico ?? "",
         valor_adiantado: (ordem.valor_adiantado ?? 0).toString(),
         descricao_adiantamento: ordem.descricao_adiantamento ?? "",
-        equipamentoId: ordem.equipamentoClienteId ?? "",
+        equipamentosIds: ordem.equipamentosClienteIds || [],
       });
       setDescricaoProblema(ordem?.descricao_problema || "");
       setDataAgendamento(ordem?.data_agendamento || "");
@@ -1586,7 +1577,7 @@ export function EditOSDialog({
       endereco_servico: form.endereco_servico || undefined,
       valor_adiantado: form.valor_adiantado ? parseFloat(form.valor_adiantado) : 0,
       descricao_adiantamento: form.descricao_adiantamento || undefined,
-      equipamentoClienteId: form.equipamentoId || undefined,
+      equipamentosClienteIds: form.equipamentosIds,
     };
 
     setSaving(true);
@@ -1791,30 +1782,66 @@ export function EditOSDialog({
             </div>
             {form.clienteId && (
               <div>
-                <Label className="mb-1 block">Equipamento a Instalar</Label>
+                <Label className="mb-1 block">Equipamento(s) a Instalar</Label>
                 {isView ? (
-                  <div className="h-10 px-3 flex items-center rounded-md border border-input bg-muted/40 text-sm">
-                    {equipamentos.find((e) => e.id === form.equipamentoId)?.nome || "—"}
+                  <div className="min-h-[40px] px-3 py-2 flex flex-wrap gap-2 items-center rounded-md border border-input bg-muted/40 text-sm">
+                    {form.equipamentosIds.length > 0
+                      ? form.equipamentosIds.map(id => {
+                          const eq = equipamentos.find(e => e.id === id);
+                          return <Badge key={id} variant="secondary">{eq?.nome}</Badge>;
+                        })
+                      : "—"}
                   </div>
                 ) : (
-                  <Select
-                    value={form.equipamentoId || "none"}
-                    onValueChange={(v) => setForm({ ...form, equipamentoId: v === "none" ? "" : v })}
-                  >
-                    <SelectTrigger className="h-10 w-full">
-                      <SelectValue placeholder="Selecione um equipamento..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="none">Nenhum equipamento</SelectItem>
-                      {equipamentos
-                        .filter(e => e.cliente_id === form.clienteId && e.status === 'em_estoque')
-                        .map(e => (
-                          <SelectItem key={e.id} value={e.id}>
-                            {e.nome} {e.numero_serie ? `(SN: ${e.numero_serie})` : ''}
-                          </SelectItem>
-                        ))}
-                    </SelectContent>
-                  </Select>
+                  <div className="space-y-2">
+                    {form.equipamentosIds.map((eqId, idx) => (
+                      <div key={idx} className="flex gap-2">
+                        <div className="h-10 px-3 flex-1 flex items-center rounded-md border border-input bg-muted/20 text-sm">
+                          {equipamentos.find(e => e.id === eqId)?.nome || "Desconhecido"}
+                        </div>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="icon"
+                          onClick={() => {
+                            setForm(f => ({
+                              ...f,
+                              equipamentosIds: f.equipamentosIds.filter((_, i) => i !== idx)
+                            }));
+                          }}
+                        >
+                          <Trash className="w-4 h-4 text-destructive" />
+                        </Button>
+                      </div>
+                    ))}
+                    <div className="flex gap-2">
+                      <Select
+                        value="none"
+                        onValueChange={(v) => {
+                          if (v !== "none" && !form.equipamentosIds.includes(v)) {
+                            setForm(f => ({ ...f, equipamentosIds: [...f.equipamentosIds, v] }));
+                          }
+                        }}
+                      >
+                        <SelectTrigger className="h-10 flex-1">
+                          <SelectValue placeholder="Adicionar equipamento..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="none">Selecione para adicionar...</SelectItem>
+                          {equipamentos
+                            .filter(e => e.cliente_id === form.clienteId && e.status === 'em_estoque' && !form.equipamentosIds.includes(e.id))
+                            .map(e => (
+                              <SelectItem key={e.id} value={e.id}>
+                                {e.nome} {e.numero_serie ? `(SN: ${e.numero_serie})` : ''}
+                              </SelectItem>
+                            ))}
+                        </SelectContent>
+                      </Select>
+                      <Button type="button" size="icon" variant="secondary" className="h-10 w-10 shrink-0 pointer-events-none">
+                        <Plus className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </div>
                 )}
               </div>
             )}

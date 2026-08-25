@@ -260,13 +260,26 @@ function EquipePage() {
 
   const handleDelete = async (id: string) => {
     if (window.confirm("Deseja inativar/excluir este técnico?")) {
-      const tecnico = tecnicos.find((t) => t.id === id);
-      await deleteTecnico(id);
-      await registrarLog(
-        "tecnico_inativado",
-        `Técnico "${tecnico?.nome || id}" inativado por ${nomeUsuario}`,
-      );
-      toast.success("Técnico excluído!");
+      try {
+        const tecnico = tecnicos.find((t) => t.id === id);
+        await deleteTecnico(id);
+        await registrarLog(
+          "tecnico_inativado",
+          `Técnico "${tecnico?.nome || id}" excluído por ${nomeUsuario}`,
+        );
+        toast.success("Técnico excluído!");
+      } catch (e: any) {
+        if (e.code === '23503' || /violates foreign key constraint/i.test(e.message)) {
+          toast.info("Técnico possui histórico. Ele será inativado ao invés de excluído.");
+          const tecnico = tecnicos.find((t) => t.id === id);
+          if (tecnico) {
+            await updateTecnico({ id, patch: { ativo: false } });
+            toast.success("Técnico inativado com sucesso.");
+          }
+        } else {
+          toast.error("Erro ao excluir técnico: " + e.message);
+        }
+      }
     }
   };
 
