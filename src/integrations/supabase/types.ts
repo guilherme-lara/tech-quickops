@@ -328,6 +328,7 @@ export type Database = {
           empresa_id: string
           endereco_servico: string | null
           equipamento_cliente_id: string | null
+          equipamentos_cliente_ids: string[] | null
           horario_atendimento: string | null
           id: string
           km_viagem: number
@@ -354,6 +355,7 @@ export type Database = {
           empresa_id: string
           endereco_servico?: string | null
           equipamento_cliente_id?: string | null
+          equipamentos_cliente_ids?: string[] | null
           horario_atendimento?: string | null
           id?: string
           km_viagem?: number
@@ -380,6 +382,7 @@ export type Database = {
           empresa_id?: string
           endereco_servico?: string | null
           equipamento_cliente_id?: string | null
+          equipamentos_cliente_ids?: string[] | null
           horario_atendimento?: string | null
           id?: string
           km_viagem?: number
@@ -412,13 +415,6 @@ export type Database = {
             columns: ["empresa_id"]
             isOneToOne: false
             referencedRelation: "empresas"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "ordens_servico_equipamento_cliente_id_fkey"
-            columns: ["equipamento_cliente_id"]
-            isOneToOne: false
-            referencedRelation: "equipamentos_clientes"
             referencedColumns: ["id"]
           },
           {
