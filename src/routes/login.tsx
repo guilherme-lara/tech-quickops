@@ -8,14 +8,9 @@ import { Wrench, Sparkles, ArrowRight, Loader2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
-export const Route = createFileRoute("/login")({
-  component: LoginPage,
-  validateSearch: (s: Record<string, unknown>) => ({
-    next: typeof s.next === "string" ? s.next : undefined,
-  }),
-});
+export const Route = createFileRoute("/login")({ component: LoginPage });
 
-function safeNext(next?: string) {
+function safeNext(next?: string | null) {
   return next && next.startsWith("/") && !next.startsWith("//") ? next : null;
 }
 
@@ -23,7 +18,7 @@ function safeNext(next?: string) {
 function LoginPage() {
   const { login, signup, logout } = useStore();
   const navigate = useNavigate();
-  const search = Route.useSearch();
+  const search = { next: typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("next") ?? undefined : undefined };
   const [loading, setLoading] = useState(false);
   const [showSessionWarning, setShowSessionWarning] = useState(false);
 
