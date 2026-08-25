@@ -181,9 +181,9 @@ export type Database = {
           nome: string
           nota_fiscal: string | null
           numero_serie: string | null
+          os_id: string | null
           patrimonio: string | null
           status: string | null
-          os_id: string | null
         }
         Insert: {
           cliente_id: string
@@ -196,9 +196,9 @@ export type Database = {
           nome: string
           nota_fiscal?: string | null
           numero_serie?: string | null
+          os_id?: string | null
           patrimonio?: string | null
           status?: string | null
-          os_id?: string | null
         }
         Update: {
           cliente_id?: string
@@ -211,9 +211,9 @@ export type Database = {
           nome?: string
           nota_fiscal?: string | null
           numero_serie?: string | null
+          os_id?: string | null
           patrimonio?: string | null
           status?: string | null
-          os_id?: string | null
         }
         Relationships: [
           {
@@ -327,6 +327,7 @@ export type Database = {
           despesas: Json
           empresa_id: string
           endereco_servico: string | null
+          equipamento_cliente_id: string | null
           horario_atendimento: string | null
           id: string
           km_viagem: number
@@ -352,6 +353,7 @@ export type Database = {
           despesas?: Json
           empresa_id: string
           endereco_servico?: string | null
+          equipamento_cliente_id?: string | null
           horario_atendimento?: string | null
           id?: string
           km_viagem?: number
@@ -377,6 +379,7 @@ export type Database = {
           despesas?: Json
           empresa_id?: string
           endereco_servico?: string | null
+          equipamento_cliente_id?: string | null
           horario_atendimento?: string | null
           id?: string
           km_viagem?: number
@@ -409,6 +412,13 @@ export type Database = {
             columns: ["empresa_id"]
             isOneToOne: false
             referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ordens_servico_equipamento_cliente_id_fkey"
+            columns: ["equipamento_cliente_id"]
+            isOneToOne: false
+            referencedRelation: "equipamentos_clientes"
             referencedColumns: ["id"]
           },
           {
