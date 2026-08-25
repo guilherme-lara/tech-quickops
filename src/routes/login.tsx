@@ -23,6 +23,7 @@ function safeNext(next?: string) {
 function LoginPage() {
   const { login, signup, logout } = useStore();
   const navigate = useNavigate();
+  const search = Route.useSearch();
   const [loading, setLoading] = useState(false);
   const [showSessionWarning, setShowSessionWarning] = useState(false);
 
@@ -103,7 +104,7 @@ function LoginPage() {
         return;
       }
       toast.success("Conta criada com sucesso!");
-      window.location.href = "/dashboard";
+      window.location.href = safeNext(search.next) ?? "/dashboard";
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Erro inesperado ao criar conta";
       toast.error(errorMessage);
