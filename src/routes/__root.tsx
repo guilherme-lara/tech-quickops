@@ -106,7 +106,15 @@ function AuthGate() {
     const homeFor = (role: string) =>
       role === "tecnico" ? "/tecnico/os" : role === "analista" ? "/analista-dashboard" : "/dashboard";
 
+    // Fluxo de consentimento OAuth (integrações de agentes) tem auth própria
+    if (path.startsWith("/.lovable/oauth/")) return;
+
     if (user && (path === "/" || path === "/login")) {
+      const next = new URLSearchParams(window.location.search).get("next");
+      if (path === "/login" && next && next.startsWith("/") && !next.startsWith("//")) {
+        window.location.href = next;
+        return;
+      }
       navigate({ to: homeFor(user.role) });
       return;
     }
@@ -115,6 +123,7 @@ function AuthGate() {
       navigate({ to: "/login" });
     }
   }, [user, loadingAuth, path, navigate]);
+
   return null;
 }
 
