@@ -10,9 +10,15 @@ import { toast } from "sonner";
 
 export const Route = createFileRoute("/login")({ component: LoginPage });
 
+function safeNext(next?: string | null) {
+  return next && next.startsWith("/") && !next.startsWith("//") ? next : null;
+}
+
+
 function LoginPage() {
   const { login, signup, logout } = useStore();
   const navigate = useNavigate();
+  const search = { next: typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("next") ?? undefined : undefined };
   const [loading, setLoading] = useState(false);
   const [showSessionWarning, setShowSessionWarning] = useState(false);
 
@@ -61,8 +67,10 @@ function LoginPage() {
       }
       
       toast.success("Bem-vindo!");
-      // Remoção do window.location.href para evitar full page reload
-      // O AuthGate em __root.tsx vai redirecionar suavemente quando o user for setado.
+      const dest = safeNext(search.next);
+      if (dest) window.location.href = dest;
+      // Caso contrário, o AuthGate em __root.tsx redireciona suavemente.
+
     } catch (err: any) {
       toast.error(err?.message ?? "Erro ao entrar");
     } finally {
@@ -91,7 +99,7 @@ function LoginPage() {
         return;
       }
       toast.success("Conta criada com sucesso!");
-      window.location.href = "/dashboard";
+      window.location.href = safeNext(search.next) ?? "/dashboard";
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Erro inesperado ao criar conta";
       toast.error(errorMessage);
