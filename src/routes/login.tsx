@@ -71,8 +71,10 @@ function LoginPage() {
       }
       
       toast.success("Bem-vindo!");
-      // Remoção do window.location.href para evitar full page reload
-      // O AuthGate em __root.tsx vai redirecionar suavemente quando o user for setado.
+      const dest = safeNext(search.next);
+      if (dest) window.location.href = dest;
+      // Caso contrário, o AuthGate em __root.tsx redireciona suavemente.
+
     } catch (err: any) {
       toast.error(err?.message ?? "Erro ao entrar");
     } finally {
