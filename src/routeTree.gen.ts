@@ -35,6 +35,7 @@ import { Route as Char91DotmcpChar93ListToolsRouteImport } from './routes/[.mcp]
 import { Route as TecnicoOsIndexRouteImport } from './routes/tecnico.os.index'
 import { Route as TecnicoOsIdRouteImport } from './routes/tecnico.os.$id'
 import { Route as Char91DotmcpChar93InvokeToolToolRouteImport } from './routes/[.mcp]/invoke-tool/$tool'
+import { Route as DotlovableOauthConsentRouteImport } from './routes/[.]lovable.oauth.consent'
 import { Route as TecnicoOsIdRatRouteImport } from './routes/tecnico.os.$id.rat'
 
 const UsuariosRoute = UsuariosRouteImport.update({
@@ -170,6 +171,11 @@ const Char91DotmcpChar93InvokeToolToolRoute =
     path: '/.mcp/invoke-tool/$tool',
     getParentRoute: () => rootRouteImport,
   } as any)
+const DotlovableOauthConsentRoute = DotlovableOauthConsentRouteImport.update({
+  id: '/.lovable/oauth/consent',
+  path: '/.lovable/oauth/consent',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const TecnicoOsIdRatRoute = TecnicoOsIdRatRouteImport.update({
   id: '/rat',
   path: '/rat',
@@ -200,6 +206,7 @@ export interface FileRoutesByFullPath {
   '/tecnico/dashboard': typeof TecnicoDashboardRoute
   '/tecnico/historico': typeof TecnicoHistoricoRoute
   '/tecnico/perfil': typeof TecnicoPerfilRoute
+  '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/tecnico/os/$id': typeof TecnicoOsIdRouteWithChildren
   '/tecnico/os/': typeof TecnicoOsIndexRoute
@@ -229,6 +236,7 @@ export interface FileRoutesByTo {
   '/tecnico/dashboard': typeof TecnicoDashboardRoute
   '/tecnico/historico': typeof TecnicoHistoricoRoute
   '/tecnico/perfil': typeof TecnicoPerfilRoute
+  '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/tecnico/os/$id': typeof TecnicoOsIdRouteWithChildren
   '/tecnico/os': typeof TecnicoOsIndexRoute
@@ -259,6 +267,7 @@ export interface FileRoutesById {
   '/tecnico/dashboard': typeof TecnicoDashboardRoute
   '/tecnico/historico': typeof TecnicoHistoricoRoute
   '/tecnico/perfil': typeof TecnicoPerfilRoute
+  '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/tecnico/os/$id': typeof TecnicoOsIdRouteWithChildren
   '/tecnico/os/': typeof TecnicoOsIndexRoute
@@ -290,6 +299,7 @@ export interface FileRouteTypes {
     | '/tecnico/dashboard'
     | '/tecnico/historico'
     | '/tecnico/perfil'
+    | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
     | '/tecnico/os/$id'
     | '/tecnico/os/'
@@ -319,6 +329,7 @@ export interface FileRouteTypes {
     | '/tecnico/dashboard'
     | '/tecnico/historico'
     | '/tecnico/perfil'
+    | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
     | '/tecnico/os/$id'
     | '/tecnico/os'
@@ -348,6 +359,7 @@ export interface FileRouteTypes {
     | '/tecnico/dashboard'
     | '/tecnico/historico'
     | '/tecnico/perfil'
+    | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
     | '/tecnico/os/$id'
     | '/tecnico/os/'
@@ -378,6 +390,7 @@ export interface RootRouteChildren {
   TecnicoDashboardRoute: typeof TecnicoDashboardRoute
   TecnicoHistoricoRoute: typeof TecnicoHistoricoRoute
   TecnicoPerfilRoute: typeof TecnicoPerfilRoute
+  DotlovableOauthConsentRoute: typeof DotlovableOauthConsentRoute
   Char91DotmcpChar93InvokeToolToolRoute: typeof Char91DotmcpChar93InvokeToolToolRoute
   TecnicoOsIdRoute: typeof TecnicoOsIdRouteWithChildren
   TecnicoOsIndexRoute: typeof TecnicoOsIndexRoute
@@ -567,6 +580,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof Char91DotmcpChar93InvokeToolToolRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/.lovable/oauth/consent': {
+      id: '/.lovable/oauth/consent'
+      path: '/.lovable/oauth/consent'
+      fullPath: '/.lovable/oauth/consent'
+      preLoaderRoute: typeof DotlovableOauthConsentRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/tecnico/os/$id/rat': {
       id: '/tecnico/os/$id/rat'
       path: '/rat'
@@ -614,6 +634,7 @@ const rootRouteChildren: RootRouteChildren = {
   TecnicoDashboardRoute: TecnicoDashboardRoute,
   TecnicoHistoricoRoute: TecnicoHistoricoRoute,
   TecnicoPerfilRoute: TecnicoPerfilRoute,
+  DotlovableOauthConsentRoute: DotlovableOauthConsentRoute,
   Char91DotmcpChar93InvokeToolToolRoute: Char91DotmcpChar93InvokeToolToolRoute,
   TecnicoOsIdRoute: TecnicoOsIdRouteWithChildren,
   TecnicoOsIndexRoute: TecnicoOsIndexRoute,
