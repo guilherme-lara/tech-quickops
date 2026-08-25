@@ -1,0 +1,268 @@
+{
+  "version": 1,
+  "sdk_version": "0.28.0",
+  "path": "/mcp",
+  "auth": {
+    "type": "oauth",
+    "issuer": "https://asgzbhrxdlhqdalxjolb.supabase.co/auth/v1",
+    "accepted_audiences": [
+      "authenticated"
+    ]
+  },
+  "mcp": {
+    "server": {
+      "name": "quickops-dashboard",
+      "version": "0.1.0",
+      "title": "QuickOps Dashboard"
+    },
+    "tools": [
+      {
+        "name": "list_ordens_servico",
+        "title": "Listar ordens de serviço",
+        "description": "Lista as ordens de serviço visíveis para o usuário autenticado, com filtros opcionais de status, cliente e período.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "status": {
+              "description": "Status da OS (pendente, aprovado, em_andamento, concluido, cancelado, agendamento, reagendado, concluido_tecnico, pendencia, em_deslocamento).",
+              "type": "string"
+            },
+            "cliente_id": {
+              "description": "UUID do cliente.",
+              "type": "string"
+            },
+            "tecnico_id": {
+              "description": "UUID do técnico.",
+              "type": "string"
+            },
+            "desde": {
+              "description": "Data inicial ISO (created_at >=).",
+              "type": "string"
+            },
+            "ate": {
+              "description": "Data final ISO (created_at <=).",
+              "type": "string"
+            },
+            "limite": {
+              "description": "Quantidade máxima de registros (padrão 25).",
+              "type": "number"
+            }
+          }
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "get_ordem_servico",
+        "title": "Detalhar ordem de serviço",
+        "description": "Retorna os detalhes completos de uma ordem de serviço, incluindo os últimos eventos do histórico.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "description": "UUID da ordem de serviço."
+            }
+          },
+          "required": [
+            "id"
+          ]
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "create_ordem_servico",
+        "title": "Criar ordem de serviço",
+        "description": "Cria uma nova ordem de serviço na empresa do usuário autenticado.",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": false,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "titulo": {
+              "type": "string",
+              "description": "Título da OS."
+            },
+            "cliente_id": {
+              "type": "string",
+              "description": "UUID do cliente."
+            },
+            "descricao_problema": {
+              "type": "string",
+              "description": "Descrição do problema relatado."
+            },
+            "tecnico_id": {
+              "description": "UUID do técnico responsável.",
+              "type": "string"
+            },
+            "endereco_servico": {
+              "description": "Endereço onde o serviço será executado.",
+              "type": "string"
+            },
+            "data_agendamento": {
+              "description": "Data/hora de agendamento em ISO.",
+              "type": "string"
+            },
+            "valor": {
+              "description": "Valor do serviço.",
+              "type": "number"
+            },
+            "status": {
+              "description": "Status inicial (padrão: pendente).",
+              "type": "string"
+            }
+          },
+          "required": [
+            "titulo",
+            "cliente_id",
+            "descricao_problema"
+          ]
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "update_ordem_servico",
+        "title": "Atualizar ordem de serviço",
+        "description": "Atualiza status, técnico responsável, agendamento, valor ou solução de uma ordem de serviço existente.",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "description": "UUID da ordem de serviço."
+            },
+            "status": {
+              "description": "Novo status da OS.",
+              "type": "string"
+            },
+            "tecnico_id": {
+              "description": "UUID do técnico responsável.",
+              "type": "string"
+            },
+            "data_agendamento": {
+              "description": "Nova data/hora de agendamento em ISO.",
+              "type": "string"
+            },
+            "valor": {
+              "description": "Novo valor do serviço.",
+              "type": "number"
+            },
+            "solucao": {
+              "description": "Solução aplicada.",
+              "type": "string"
+            },
+            "pendencias_detalhes": {
+              "description": "Detalhes das pendências.",
+              "type": "string"
+            }
+          },
+          "required": [
+            "id"
+          ]
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "list_clientes",
+        "title": "Listar clientes",
+        "description": "Lista os clientes da empresa do usuário autenticado, com busca opcional por nome.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "busca": {
+              "description": "Trecho do nome do cliente.",
+              "type": "string"
+            },
+            "limite": {
+              "description": "Quantidade máxima de registros (padrão 25).",
+              "type": "number"
+            }
+          }
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "list_tecnicos",
+        "title": "Listar técnicos",
+        "description": "Lista os técnicos da empresa do usuário autenticado, com busca opcional por nome.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "busca": {
+              "description": "Trecho do nome do técnico.",
+              "type": "string"
+            },
+            "apenas_ativos": {
+              "description": "Retornar somente técnicos ativos (padrão true).",
+              "type": "boolean"
+            },
+            "limite": {
+              "description": "Quantidade máxima de registros (padrão 25).",
+              "type": "number"
+            }
+          }
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "list_inventario",
+        "title": "Listar inventário",
+        "description": "Lista os itens de inventário da empresa do usuário autenticado, com busca opcional por nome.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "busca": {
+              "description": "Trecho do nome do item.",
+              "type": "string"
+            },
+            "limite": {
+              "description": "Quantidade máxima de registros (padrão 25).",
+              "type": "number"
+            }
+          }
+        },
+        "outputSchema": null
+      }
+    ]
+  }
+}
