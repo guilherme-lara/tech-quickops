@@ -14,6 +14,7 @@ import { Route as TermosDeUsoRouteImport } from './routes/termos-de-uso'
 import { Route as PrivacidadeRouteImport } from './routes/privacidade'
 import { Route as PlanosRouteImport } from './routes/planos'
 import { Route as OsRouteImport } from './routes/os'
+import { Route as McpRouteImport } from './routes/mcp'
 import { Route as LogsRouteImport } from './routes/logs'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as GestorDashboardRouteImport } from './routes/gestor-dashboard'
@@ -29,8 +30,11 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as TecnicoPerfilRouteImport } from './routes/tecnico.perfil'
 import { Route as TecnicoHistoricoRouteImport } from './routes/tecnico.historico'
 import { Route as TecnicoDashboardRouteImport } from './routes/tecnico.dashboard'
+import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
+import { Route as Char91DotmcpChar93ListToolsRouteImport } from './routes/[.mcp]/list-tools'
 import { Route as TecnicoOsIndexRouteImport } from './routes/tecnico.os.index'
 import { Route as TecnicoOsIdRouteImport } from './routes/tecnico.os.$id'
+import { Route as Char91DotmcpChar93InvokeToolToolRouteImport } from './routes/[.mcp]/invoke-tool/$tool'
 import { Route as TecnicoOsIdRatRouteImport } from './routes/tecnico.os.$id.rat'
 
 const UsuariosRoute = UsuariosRouteImport.update({
@@ -56,6 +60,11 @@ const PlanosRoute = PlanosRouteImport.update({
 const OsRoute = OsRouteImport.update({
   id: '/os',
   path: '/os',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const McpRoute = McpRouteImport.update({
+  id: '/mcp',
+  path: '/mcp',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LogsRoute = LogsRouteImport.update({
@@ -133,6 +142,18 @@ const TecnicoDashboardRoute = TecnicoDashboardRouteImport.update({
   path: '/tecnico/dashboard',
   getParentRoute: () => rootRouteImport,
 } as any)
+const Char91DotwellKnownChar93OauthProtectedResourceRoute =
+  Char91DotwellKnownChar93OauthProtectedResourceRouteImport.update({
+    id: '/.well-known/oauth-protected-resource',
+    path: '/.well-known/oauth-protected-resource',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const Char91DotmcpChar93ListToolsRoute =
+  Char91DotmcpChar93ListToolsRouteImport.update({
+    id: '/.mcp/list-tools',
+    path: '/.mcp/list-tools',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const TecnicoOsIndexRoute = TecnicoOsIndexRouteImport.update({
   id: '/tecnico/os/',
   path: '/tecnico/os/',
@@ -143,6 +164,12 @@ const TecnicoOsIdRoute = TecnicoOsIdRouteImport.update({
   path: '/tecnico/os/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const Char91DotmcpChar93InvokeToolToolRoute =
+  Char91DotmcpChar93InvokeToolToolRouteImport.update({
+    id: '/.mcp/invoke-tool/$tool',
+    path: '/.mcp/invoke-tool/$tool',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const TecnicoOsIdRatRoute = TecnicoOsIdRatRouteImport.update({
   id: '/rat',
   path: '/rat',
@@ -162,14 +189,18 @@ export interface FileRoutesByFullPath {
   '/gestor-dashboard': typeof GestorDashboardRoute
   '/login': typeof LoginRoute
   '/logs': typeof LogsRoute
+  '/mcp': typeof McpRoute
   '/os': typeof OsRoute
   '/planos': typeof PlanosRoute
   '/privacidade': typeof PrivacidadeRoute
   '/termos-de-uso': typeof TermosDeUsoRoute
   '/usuarios': typeof UsuariosRoute
+  '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
+  '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/tecnico/dashboard': typeof TecnicoDashboardRoute
   '/tecnico/historico': typeof TecnicoHistoricoRoute
   '/tecnico/perfil': typeof TecnicoPerfilRoute
+  '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/tecnico/os/$id': typeof TecnicoOsIdRouteWithChildren
   '/tecnico/os/': typeof TecnicoOsIndexRoute
   '/tecnico/os/$id/rat': typeof TecnicoOsIdRatRoute
@@ -187,14 +218,18 @@ export interface FileRoutesByTo {
   '/gestor-dashboard': typeof GestorDashboardRoute
   '/login': typeof LoginRoute
   '/logs': typeof LogsRoute
+  '/mcp': typeof McpRoute
   '/os': typeof OsRoute
   '/planos': typeof PlanosRoute
   '/privacidade': typeof PrivacidadeRoute
   '/termos-de-uso': typeof TermosDeUsoRoute
   '/usuarios': typeof UsuariosRoute
+  '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
+  '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/tecnico/dashboard': typeof TecnicoDashboardRoute
   '/tecnico/historico': typeof TecnicoHistoricoRoute
   '/tecnico/perfil': typeof TecnicoPerfilRoute
+  '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/tecnico/os/$id': typeof TecnicoOsIdRouteWithChildren
   '/tecnico/os': typeof TecnicoOsIndexRoute
   '/tecnico/os/$id/rat': typeof TecnicoOsIdRatRoute
@@ -213,14 +248,18 @@ export interface FileRoutesById {
   '/gestor-dashboard': typeof GestorDashboardRoute
   '/login': typeof LoginRoute
   '/logs': typeof LogsRoute
+  '/mcp': typeof McpRoute
   '/os': typeof OsRoute
   '/planos': typeof PlanosRoute
   '/privacidade': typeof PrivacidadeRoute
   '/termos-de-uso': typeof TermosDeUsoRoute
   '/usuarios': typeof UsuariosRoute
+  '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
+  '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/tecnico/dashboard': typeof TecnicoDashboardRoute
   '/tecnico/historico': typeof TecnicoHistoricoRoute
   '/tecnico/perfil': typeof TecnicoPerfilRoute
+  '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/tecnico/os/$id': typeof TecnicoOsIdRouteWithChildren
   '/tecnico/os/': typeof TecnicoOsIndexRoute
   '/tecnico/os/$id/rat': typeof TecnicoOsIdRatRoute
@@ -240,14 +279,18 @@ export interface FileRouteTypes {
     | '/gestor-dashboard'
     | '/login'
     | '/logs'
+    | '/mcp'
     | '/os'
     | '/planos'
     | '/privacidade'
     | '/termos-de-uso'
     | '/usuarios'
+    | '/.mcp/list-tools'
+    | '/.well-known/oauth-protected-resource'
     | '/tecnico/dashboard'
     | '/tecnico/historico'
     | '/tecnico/perfil'
+    | '/.mcp/invoke-tool/$tool'
     | '/tecnico/os/$id'
     | '/tecnico/os/'
     | '/tecnico/os/$id/rat'
@@ -265,14 +308,18 @@ export interface FileRouteTypes {
     | '/gestor-dashboard'
     | '/login'
     | '/logs'
+    | '/mcp'
     | '/os'
     | '/planos'
     | '/privacidade'
     | '/termos-de-uso'
     | '/usuarios'
+    | '/.mcp/list-tools'
+    | '/.well-known/oauth-protected-resource'
     | '/tecnico/dashboard'
     | '/tecnico/historico'
     | '/tecnico/perfil'
+    | '/.mcp/invoke-tool/$tool'
     | '/tecnico/os/$id'
     | '/tecnico/os'
     | '/tecnico/os/$id/rat'
@@ -290,14 +337,18 @@ export interface FileRouteTypes {
     | '/gestor-dashboard'
     | '/login'
     | '/logs'
+    | '/mcp'
     | '/os'
     | '/planos'
     | '/privacidade'
     | '/termos-de-uso'
     | '/usuarios'
+    | '/.mcp/list-tools'
+    | '/.well-known/oauth-protected-resource'
     | '/tecnico/dashboard'
     | '/tecnico/historico'
     | '/tecnico/perfil'
+    | '/.mcp/invoke-tool/$tool'
     | '/tecnico/os/$id'
     | '/tecnico/os/'
     | '/tecnico/os/$id/rat'
@@ -316,14 +367,18 @@ export interface RootRouteChildren {
   GestorDashboardRoute: typeof GestorDashboardRoute
   LoginRoute: typeof LoginRoute
   LogsRoute: typeof LogsRoute
+  McpRoute: typeof McpRoute
   OsRoute: typeof OsRoute
   PlanosRoute: typeof PlanosRoute
   PrivacidadeRoute: typeof PrivacidadeRoute
   TermosDeUsoRoute: typeof TermosDeUsoRoute
   UsuariosRoute: typeof UsuariosRoute
+  Char91DotmcpChar93ListToolsRoute: typeof Char91DotmcpChar93ListToolsRoute
+  Char91DotwellKnownChar93OauthProtectedResourceRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   TecnicoDashboardRoute: typeof TecnicoDashboardRoute
   TecnicoHistoricoRoute: typeof TecnicoHistoricoRoute
   TecnicoPerfilRoute: typeof TecnicoPerfilRoute
+  Char91DotmcpChar93InvokeToolToolRoute: typeof Char91DotmcpChar93InvokeToolToolRoute
   TecnicoOsIdRoute: typeof TecnicoOsIdRouteWithChildren
   TecnicoOsIndexRoute: typeof TecnicoOsIndexRoute
 }
@@ -363,6 +418,13 @@ declare module '@tanstack/react-router' {
       path: '/os'
       fullPath: '/os'
       preLoaderRoute: typeof OsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/mcp': {
+      id: '/mcp'
+      path: '/mcp'
+      fullPath: '/mcp'
+      preLoaderRoute: typeof McpRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/logs': {
@@ -470,6 +532,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TecnicoDashboardRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/.well-known/oauth-protected-resource': {
+      id: '/.well-known/oauth-protected-resource'
+      path: '/.well-known/oauth-protected-resource'
+      fullPath: '/.well-known/oauth-protected-resource'
+      preLoaderRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/.mcp/list-tools': {
+      id: '/.mcp/list-tools'
+      path: '/.mcp/list-tools'
+      fullPath: '/.mcp/list-tools'
+      preLoaderRoute: typeof Char91DotmcpChar93ListToolsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/tecnico/os/': {
       id: '/tecnico/os/'
       path: '/tecnico/os'
@@ -482,6 +558,13 @@ declare module '@tanstack/react-router' {
       path: '/tecnico/os/$id'
       fullPath: '/tecnico/os/$id'
       preLoaderRoute: typeof TecnicoOsIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/.mcp/invoke-tool/$tool': {
+      id: '/.mcp/invoke-tool/$tool'
+      path: '/.mcp/invoke-tool/$tool'
+      fullPath: '/.mcp/invoke-tool/$tool'
+      preLoaderRoute: typeof Char91DotmcpChar93InvokeToolToolRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/tecnico/os/$id/rat': {
@@ -519,14 +602,19 @@ const rootRouteChildren: RootRouteChildren = {
   GestorDashboardRoute: GestorDashboardRoute,
   LoginRoute: LoginRoute,
   LogsRoute: LogsRoute,
+  McpRoute: McpRoute,
   OsRoute: OsRoute,
   PlanosRoute: PlanosRoute,
   PrivacidadeRoute: PrivacidadeRoute,
   TermosDeUsoRoute: TermosDeUsoRoute,
   UsuariosRoute: UsuariosRoute,
+  Char91DotmcpChar93ListToolsRoute: Char91DotmcpChar93ListToolsRoute,
+  Char91DotwellKnownChar93OauthProtectedResourceRoute:
+    Char91DotwellKnownChar93OauthProtectedResourceRoute,
   TecnicoDashboardRoute: TecnicoDashboardRoute,
   TecnicoHistoricoRoute: TecnicoHistoricoRoute,
   TecnicoPerfilRoute: TecnicoPerfilRoute,
+  Char91DotmcpChar93InvokeToolToolRoute: Char91DotmcpChar93InvokeToolToolRoute,
   TecnicoOsIdRoute: TecnicoOsIdRouteWithChildren,
   TecnicoOsIndexRoute: TecnicoOsIndexRoute,
 }
