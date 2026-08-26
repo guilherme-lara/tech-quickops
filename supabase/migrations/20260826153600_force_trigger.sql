@@ -32,14 +32,14 @@ BEGIN
       -- Gestores e Analistas
       INSERT INTO public.notificacoes (perfil_id, titulo, mensagem, tipo, link_acao)
       SELECT id, 'Status OS: ' || NEW.status, 'OS ' || v_nome_os || ' mudou para ' || NEW.status, 'info', '/os'
-      FROM public.perfis WHERE role IN ('gestor', 'analista') AND ativo = true AND empresa_id = NEW.empresa_id;
+      FROM public.perfis WHERE role IN ('gestor', 'analista') AND COALESCE(ativo, true) = true AND empresa_id = NEW.empresa_id;
     
     -- Se a alteração não foi no status (foi outro campo)
     ELSE
       -- Apenas Gestores e Analistas
       INSERT INTO public.notificacoes (perfil_id, titulo, mensagem, tipo, link_acao)
       SELECT id, 'OS Atualizada', 'A OS ' || v_nome_os || ' sofreu alterações.', 'info', '/os'
-      FROM public.perfis WHERE role IN ('gestor', 'analista') AND ativo = true AND empresa_id = NEW.empresa_id;
+      FROM public.perfis WHERE role IN ('gestor', 'analista') AND COALESCE(ativo, true) = true AND empresa_id = NEW.empresa_id;
     END IF;
   END IF;
 
