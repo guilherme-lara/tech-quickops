@@ -79,14 +79,14 @@ export function GestorLayout({ children }: { children?: ReactNode }) {
       const restrictedForTecnico = ["/gestor-dashboard", "/clientes", "/equipe", "/usuarios", "/logs", "/analista-dashboard"];
       return !restrictedForTecnico.includes(item.to);
     }
-    
+
     if (profile?.role === "analista") {
       const allowedForAnalista = ["/analista-dashboard", "/os", "/clientes", "/equipe", "/estoque", "/configuracoes"];
       return allowedForAnalista.includes(item.to);
     }
     // gestor, admin, superadmin
     if (item.to === "/analista-dashboard") return false; // Default dashboard is /dashboard
-    
+
     return true;
   });
 
@@ -109,11 +109,10 @@ export function GestorLayout({ children }: { children?: ReactNode }) {
             key={item.to}
             to={item.to}
             onClick={() => setIsOpen(false)}
-            className={`relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all duration-300 ${
-              active
+            className={`relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all duration-300 ${active
                 ? "bg-gradient-to-r from-primary to-violet text-primary-foreground font-semibold shadow-[var(--shadow-glow)]"
                 : "text-foreground/70 hover:bg-accent hover:text-accent-foreground"
-            }`}
+              }`}
           >
             <div className="flex flex-col w-full">
               <div className="flex items-center gap-3 w-full">
@@ -179,7 +178,7 @@ export function GestorLayout({ children }: { children?: ReactNode }) {
                 {profile?.empresaNome || "QuickOps"}
               </div>
               <div className="text-[10px] text-muted-foreground tracking-wider uppercase truncate w-full mt-0.5">
-                QuickOps B2B <span className="font-semibold text-primary/80 ml-1">v0.0.1.21</span>
+                QuickOps B2B <span className="font-semibold text-primary/80 ml-1">v0.0.1.22</span>
               </div>
             </div>
           </div>
@@ -267,9 +266,9 @@ export function GestorLayout({ children }: { children?: ReactNode }) {
             <ThemeToggle />
 
             {/* Botão de Sair no Mobile */}
-            <Button 
-              variant="ghost" 
-              size="icon" 
+            <Button
+              variant="ghost"
+              size="icon"
               onClick={handleLogout}
               className="md:hidden rounded-xl h-10 w-10 glass border-0 text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
             >
