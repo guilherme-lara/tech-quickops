@@ -223,6 +223,7 @@ function EquipePage() {
     comissao: "",
     tipo_comissao: "fixo" as TipoComissao,
     chave_pix: "",
+    email_notificacoes: "",
     cidade_atendimento: "",
     raio_atendimento: "",
   };
@@ -252,6 +253,7 @@ function EquipePage() {
       comissao: t.comissao != null ? String(t.comissao) : "",
       tipo_comissao: (t.tipo_comissao || "fixo") as TipoComissao,
       chave_pix: t.chave_pix || "",
+      email_notificacoes: t.email_notificacoes || "",
       cidade_atendimento: dadosAdicionais.cidade_atendimento || "",
       raio_atendimento: dadosAdicionais.raio_atendimento
         ? String(dadosAdicionais.raio_atendimento)
@@ -346,6 +348,7 @@ function EquipePage() {
             tipo_comissao: form.tipo_comissao,
             chave_pix: form.chave_pix,
             username: form.username,
+            email_notificacoes: form.email_notificacoes,
             ativo: true,
             dados_adicionais: Object.keys(dadosAdicionais).length > 0 ? dadosAdicionais : undefined,
           },
@@ -373,6 +376,7 @@ function EquipePage() {
             cidade_atendimento: form.cidade_atendimento || null,
             raio_atendimento: form.raio_atendimento ? Number(form.raio_atendimento) : null,
           },
+          p_email_notificacoes: form.email_notificacoes || null,
         });
         if (error) throw error;
         await registrarLog(
@@ -489,6 +493,15 @@ function EquipePage() {
                     />
                   </div>
                 )}
+                <div>
+                  <Label>E-mail para notificações (opcional)</Label>
+                  <Input
+                    type="email"
+                    value={form.email_notificacoes}
+                    onChange={(e) => setForm({ ...form, email_notificacoes: e.target.value.trim() })}
+                    placeholder="tecnico@email.com — recebe aviso de OS atribuída"
+                  />
+                </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <Label>Telefone</Label>

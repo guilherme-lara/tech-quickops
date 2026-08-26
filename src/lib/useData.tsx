@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { compressImage } from "@/lib/image-compressor";
+import { dispararProcessamentoEmails } from "@/lib/email-trigger";
 
 // ============================================================
 // Types — UI-shape (kept stable so existing components compile)
@@ -1100,6 +1101,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["ordens_servico"] });
       qc.invalidateQueries({ queryKey: ["equipamentos_clientes"] });
+      dispararProcessamentoEmails();
     },
     onError: (e: Error) => toast.error(e.message),
   });
