@@ -36,10 +36,8 @@ BEGIN
            'A OS ' || v_nome_os || ' foi criada por ' || v_autor_nome || '.', 
            'info', '/os?id=' || NEW.id
     FROM public.perfis 
-    WHERE (
-            (role IN ('gestor', 'analista', 'admin') AND empresa_id = NEW.empresa_id)
-            OR (role = 'superadmin')
-          )
+    WHERE role IN ('gestor', 'analista', 'admin', 'superadmin')
+      AND empresa_id = NEW.empresa_id
       AND COALESCE(ativo, true) = true;
 
   ELSIF TG_OP = 'UPDATE' THEN
@@ -77,10 +75,8 @@ BEGIN
              'OS ' || v_nome_os || ' - Alteração de Status de ' || COALESCE(OLD.status::TEXT, 'Sem status') || ' para ' || NEW.status::TEXT || ' por ' || v_autor_nome, 
              'info', '/os?id=' || NEW.id
       FROM public.perfis 
-      WHERE (
-              (role IN ('gestor', 'analista', 'admin') AND empresa_id = NEW.empresa_id)
-              OR (role = 'superadmin')
-            )
+      WHERE role IN ('gestor', 'analista', 'admin', 'superadmin')
+        AND empresa_id = NEW.empresa_id
         AND COALESCE(ativo, true) = true;
     END IF;
   END IF;
