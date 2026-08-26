@@ -56,6 +56,7 @@ import {
   Trash2
 } from "lucide-react";
 import { GerarAcessoDialog } from "@/components/GerarAcessoDialog";
+import { useConfirm } from "@/components/ConfirmDialogProvider";
 
 function UsernameField({ userId, initialUsername, empresaId, nomeCompleto }: { userId: string, initialUsername?: string, empresaId?: string, nomeCompleto?: string }) {
   const qc = useQueryClient();
@@ -176,6 +177,7 @@ function EquipePage() {
   const [tecnicosSortDirection, setTecnicosSortDirection] = useState<"asc" | "desc">("asc");
   const { profile } = useAuth();
   const empresaId = profile?.empresa_id;
+  const confirm = useConfirm();
   
   const { tecnicoFerramentas, itens, deleteTecnicoFerramenta } = useStore();
   
@@ -259,7 +261,7 @@ function EquipePage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (window.confirm("Deseja inativar/excluir este técnico?")) {
+    if (await confirm({ title: "Excluir Técnico", description: "Deseja inativar/excluir este técnico?", destructive: true })) {
       try {
         const tecnico = tecnicos.find((t) => t.id === id);
         await deleteTecnico(id);
@@ -288,7 +290,7 @@ function EquipePage() {
   };
 
   const handleResetPassword = async (t: any) => {
-    if (!window.confirm(`Deseja gerar uma nova senha para ${t.nome}?`)) return;
+    if (!(await confirm({ title: "Nova Senha", description: `Deseja gerar uma nova senha para ${t.nome}?` }))) return;
     
     setSaving(true);
     try {

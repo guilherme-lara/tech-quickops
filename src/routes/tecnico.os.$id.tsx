@@ -13,6 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { PrivateFileLink } from "@/components/PrivateFileLink";
 import { compressImage } from "@/lib/image-compressor";
 import { useAuth } from "@/lib/auth-context";
+import { useConfirm } from "@/components/ConfirmDialogProvider";
 
 export const Route = createFileRoute("/tecnico/os/$id")({
   component: () => (
@@ -27,6 +28,7 @@ function TecnicoOSDetail() {
   const { profile } = useAuth();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const confirm = useConfirm();
 
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
   const [isAddingDespesa, setIsAddingDespesa] = useState(false);
@@ -233,7 +235,7 @@ function TecnicoOSDetail() {
   };
 
   const handleDeleteArquivo = async (arquivoId: string, arquivoUrl: string) => {
-    if (!window.confirm("Deseja realmente excluir este arquivo?")) return;
+    if (!(await confirm({ title: "Excluir Arquivo", description: "Deseja realmente excluir este arquivo?", destructive: true }))) return;
     try {
       const { error: storageError } = await supabase.storage.from('rats').remove([arquivoUrl]);
       if (storageError) console.error("Erro ao remover do storage:", storageError);

@@ -32,6 +32,7 @@ import { Shield, Plus, Search, Key, MoreVertical, KeyRound, Ban, Copy } from "lu
 import { toast } from "sonner";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
+import { useConfirm } from "@/components/ConfirmDialogProvider";
 
 export const Route = createFileRoute("/usuarios")({
   component: () => (
@@ -176,14 +177,14 @@ function UsuariosPage() {
     }
   });
 
-  const handleDelete = (id: string) => {
-    if (window.confirm("Deseja realmente inativar/remover este usuário?")) {
+  const handleDelete = async (id: string) => {
+    if (await confirm({ title: "Inativar Usuário", description: "Deseja realmente inativar/remover este usuário?", destructive: true })) {
       deleteMutation.mutate(id);
     }
   };
 
-  const handleResetPassword = (user: any) => {
-    if (window.confirm(`Deseja gerar uma nova senha para ${user.nome_completo}?`)) {
+  const handleResetPassword = async (user: any) => {
+    if (await confirm({ title: "Nova Senha", description: `Deseja gerar uma nova senha para ${user.nome_completo}?` })) {
       resetPasswordMutation.mutate(user);
     }
   };

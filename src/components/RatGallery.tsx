@@ -8,13 +8,13 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { FileText, ImageIcon, Loader2, Paperclip, Trash2, UploadCloud } from "lucide-react";
-import { useAuth } from "@/lib/auth-context";
 import { PrivateFileLink } from "./PrivateFileLink";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { compressImage } from "@/lib/image-compressor";
 import { useStore } from "@/lib/useData";
+import { useConfirm } from "@/components/ConfirmDialogProvider";
 
 interface RatArquivo {
   id: string;
@@ -29,9 +29,9 @@ interface RatArquivo {
 export function RatGallery({ osId, trigger }: { osId: string; trigger?: React.ReactNode }) {
   const { user } = useStore();
   const qc = useQueryClient();
+  const confirm = useConfirm();
   const [open, setOpen] = useState(false);
   const [uploading, setUploading] = useState(false);
-  const [tipoUpload, setTipoUpload] = useState<'anexo'>('anexo');
 
   const { data: arquivos = [], isLoading } = useQuery({
     queryKey: ["rat_arquivos", osId],
@@ -82,10 +82,8 @@ export function RatGallery({ osId, trigger }: { osId: string; trigger?: React.Re
 
   const deleteM = useMutation({
     mutationFn: async (arq: RatArquivo) => {
-      // Tentar deletar do storage extraindo o path da URL pública
       try {
         const urlObj = new URL(arq.arquivo_url);
-        // Exemplo: https://.../storage/v1/object/public/rats/osId/fileName
         const pathParts = urlObj.pathname.split("/rats/");
         if (pathParts.length > 1) {
           const filePath = decodeURIComponent(pathParts[1]);
@@ -95,7 +93,6 @@ export function RatGallery({ osId, trigger }: { osId: string; trigger?: React.Re
         console.error("Erro ao remover do storage", err);
       }
 
-      // Deletar o registro
       const { error: deleteDbError } = await supabase
         .from("rat_arquivos")
         .delete()
@@ -124,7 +121,6 @@ export function RatGallery({ osId, trigger }: { osId: string; trigger?: React.Re
         </DialogHeader>
 
         <div className="space-y-4 py-2">
-          {/* Dropzone Area */}
           <div className="space-y-3">
             <div className="border-2 border-dashed border-border/60 rounded-2xl p-6 text-center hover:bg-muted/40 transition-colors flex flex-col items-center justify-center relative">
               <input
@@ -157,7 +153,6 @@ export function RatGallery({ osId, trigger }: { osId: string; trigger?: React.Re
             </div>
           </div>
 
-          {/* Gallery List */}
           <div className="space-y-4 max-h-[300px] overflow-y-auto pr-1">
             {isLoading ? (
               <div className="flex justify-center p-4">
@@ -207,8 +202,8 @@ export function RatGallery({ osId, trigger }: { osId: string; trigger?: React.Re
                           variant="ghost"
                           size="icon"
                           className="shrink-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10 opacity-0 group-hover:opacity-100 transition-opacity"
-                          onClick={() => {
-                            if (window.confirm("Excluir este arquivo?")) {
+                          onClick={async () => {
+                            if (await confirm({ title: "Excluir Arquivo", description: "Excluir este arquivo?", destructive: true })) {
                               deleteM.mutate(arq);
                             }
                           }}
@@ -258,8 +253,8 @@ export function RatGallery({ osId, trigger }: { osId: string; trigger?: React.Re
                           variant="ghost"
                           size="icon"
                           className="shrink-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10 opacity-0 group-hover:opacity-100 transition-opacity"
-                          onClick={() => {
-                            if (window.confirm("Excluir este arquivo?")) {
+                          onClick={async () => {
+                            if (await confirm({ title: "Excluir Arquivo", description: "Excluir este arquivo?", destructive: true })) {
                               deleteM.mutate(arq);
                             }
                           }}

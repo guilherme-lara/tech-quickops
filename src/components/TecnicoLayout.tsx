@@ -3,6 +3,8 @@ import { ClipboardList, User, History, LogOut, LayoutDashboard, QrCode } from "l
 import { useAuth } from "@/lib/auth-context";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { ReactNode } from "react";
+import { NotificationBell } from "./NotificationBell";
+import { ChangelogModal } from "./ChangelogModal";
 
 const tabs = [
   { to: "/tecnico/dashboard", label: "Início", icon: LayoutDashboard },
@@ -52,7 +54,9 @@ export function TecnicoLayout({ children }: { children?: ReactNode }) {
                   </div>
                 </div>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5 md:gap-2">
+                <ChangelogModal />
+                <NotificationBell />
                 <ThemeToggle className="h-9 w-9" />
                 <button
                   onClick={handleLogout}

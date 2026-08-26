@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useConfirm } from "@/components/ConfirmDialogProvider";
 import {
   Dialog,
   DialogContent,
@@ -81,6 +82,7 @@ function ClientesPage() {
     setClientesSortDirection,
   } = useStore();
   const { profile } = useAuth();
+  const confirm = useConfirm();
   const empresaId = profile?.empresa_id;
   const nomeUsuario = profile?.nome_completo || "usuário";
   const registrarLog = async (tipo: string, descricao: string) => {
@@ -177,7 +179,7 @@ function ClientesPage() {
   }, [open, form.id]);
 
   const handleDelete = async (id: string) => {
-    if (window.confirm("Deseja realmente excluir este cliente?")) {
+    if (await confirm({ title: "Excluir Cliente", description: "Deseja realmente excluir este cliente?", destructive: true })) {
       try {
         console.log("Tentando excluir cliente:", id);
         const cliente = clientes.find((c) => c.id === id);

@@ -22,6 +22,8 @@ import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { NotificationBell } from "./NotificationBell";
+import { ChangelogModal } from "./ChangelogModal";
 import { Badge } from "@/components/ui/badge";
 
 import {
@@ -30,7 +32,7 @@ import {
   SheetTrigger,
   SheetTitle,
   SheetDescription,
-} from "@/components/ui/sheet"; // <-- MENU MOBILEimport { ReactNode } from "react";
+} from "@/components/ui/sheet";
 import { useAuth } from "@/lib/auth-context";
 import { ReactNode, useState } from "react";
 import { PlanLimits, PlanType } from "@/lib/planLimits";
@@ -260,10 +262,10 @@ export function GestorLayout({ children }: { children?: ReactNode }) {
             >
               <Search className="w-4 h-4" />
             </Button>
+            <ChangelogModal />
+            <NotificationBell />
             <ThemeToggle />
-            <Button variant="ghost" size="icon" className="rounded-xl h-10 w-10 glass border-0">
-              <Bell className="w-4 h-4" />
-            </Button>
+
             {/* Botão de Sair no Mobile */}
             <Button 
               variant="ghost" 

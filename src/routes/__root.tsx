@@ -15,6 +15,7 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { ErrorBoundary, installGlobalErrorHandlers } from "@/components/ErrorBoundary";
+import { ConfirmDialogProvider } from "@/components/ConfirmDialogProvider";
 
 import appCss from "../styles.css?url";
 
@@ -206,12 +207,14 @@ function RootComponent() {
     <QueryClientProvider client={qc}>
       <StoreProvider>
         <AuthProvider>
-          <ErrorBoundary scope="app">
-            <AuthGate />
-            <Outlet />
-            <Toaster />
-            <CookieConsent />
-          </ErrorBoundary>
+          <ConfirmDialogProvider>
+            <ErrorBoundary scope="app">
+              <AuthGate />
+              <Outlet />
+              <Toaster />
+              <CookieConsent />
+            </ErrorBoundary>
+          </ConfirmDialogProvider>
         </AuthProvider>
       </StoreProvider>
     </QueryClientProvider>

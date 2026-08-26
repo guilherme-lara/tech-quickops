@@ -31,6 +31,8 @@ import {
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
+import { formatCurrency } from "@/lib/utils";
+import { useConfirm } from "@/components/ConfirmDialogProvider";
 import { FiltrosBarGlobal } from "@/components/FiltrosBarGlobal";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -110,6 +112,7 @@ function InsumosTab() {
     estoqueSearch, setEstoqueSearch, setEstoqueTipo,
   } = useStore();
   const { profile } = useAuth();
+  const confirm = useConfirm();
   
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Item | null>(null);
@@ -123,7 +126,7 @@ function InsumosTab() {
   const totalPages = Math.max(1, Math.ceil(estoqueTotal / PAGE_SIZE));
 
   const handleDelete = async (i: Item) => {
-    if (!window.confirm(`Excluir "${i.nome}"?`)) return;
+    if (!(await confirm({ title: "Excluir Insumo", description: `Excluir "${i.nome}"?`, destructive: true }))) return;
     try {
       await deleteItem(i.id);
       if (profile?.empresa_id) {
@@ -235,6 +238,7 @@ function FerramentasTab() {
     tecnicos, tecnicoFerramentas
   } = useStore();
   const { profile } = useAuth();
+  const confirm = useConfirm();
   
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Item | null>(null);
@@ -249,7 +253,7 @@ function FerramentasTab() {
   const totalPages = Math.max(1, Math.ceil(estoqueTotal / PAGE_SIZE));
 
   const handleDelete = async (i: Item) => {
-    if (!window.confirm(`Excluir "${i.nome}"?`)) return;
+    if (!(await confirm({ title: "Excluir Ferramenta", description: `Excluir "${i.nome}"?`, destructive: true }))) return;
     try {
       await deleteItem(i.id);
       toast.success("Ferramenta excluída");
@@ -361,11 +365,12 @@ function FerramentasTab() {
 function EquipamentosTab() {
   const { equipamentos, loadingEquipamentos, deleteEquipamento, setOsSearchCliente } = useStore();
   const navigate = useNavigate();
+  const confirm = useConfirm();
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<EquipamentoCliente | null>(null);
 
   const handleDelete = async (e: EquipamentoCliente) => {
-    if (!window.confirm(`Excluir equipamento "${e.nome}"?`)) return;
+    if (!(await confirm({ title: "Excluir Equipamento", description: `Excluir equipamento "${e.nome}"?`, destructive: true }))) return;
     try {
       await deleteEquipamento(e.id);
       toast.success("Equipamento excluído");
