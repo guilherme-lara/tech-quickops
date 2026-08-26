@@ -11,7 +11,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useState, useEffect, useRef } from "react";
 import { toast } from "sonner";
 import { logActivity } from "@/lib/logger";
-import { User, Building2, Save, KeyRound, Upload, Camera, Building, Copy, ShieldCheck, ShieldAlert, CalendarClock, LockKeyhole } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { User, Building2, Save, KeyRound, Upload, Camera, Building, Copy, ShieldCheck, ShieldAlert, CalendarClock, LockKeyhole, BellOff } from "lucide-react";
 import { formatDate } from "@/lib/utils";
 import {
   Dialog,
@@ -101,6 +102,13 @@ function ConfiguracoesPage() {
   const [savingNome, setSavingNome] = useState(false);
   const isGestor = profile?.role === "gestor" || profile?.role === "admin" || profile?.role === "superadmin";
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const [muteToast, setMuteToast] = useState(() => localStorage.getItem("mute_toast_notifications") === "true");
+
+  const toggleMuteToast = (checked: boolean) => {
+    setMuteToast(checked);
+    localStorage.setItem("mute_toast_notifications", String(checked));
+    toast.success(checked ? "Pop-ups de notificação desativados" : "Pop-ups de notificação ativados");
+  };
 
   // Empresa State
   const [empresa, setEmpresa] = useState("");
@@ -475,6 +483,28 @@ function ConfiguracoesPage() {
                     <Save className="w-4 h-4 mr-2" />
                     {savingNome ? "Salvando..." : "Salvar Perfil"}
                   </Button>
+                </div>
+              </div>
+
+              {/* NOTIFICAÇÕES (Adicionado) */}
+              <div className="pt-6 border-t border-border/40 mt-6 w-full">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <h3 className="font-semibold text-sm flex items-center gap-2">
+                      <BellOff className="w-4 h-4 text-muted-foreground" />
+                      Preferências de Notificação
+                    </h3>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Controle como você deseja receber os alertas do sistema na sua tela.
+                    </p>
+                  </div>
+                  <Switch 
+                    checked={muteToast}
+                    onCheckedChange={toggleMuteToast}
+                  />
+                </div>
+                <div className="text-xs text-muted-foreground bg-muted/30 p-3 rounded-lg border border-border/50">
+                  <span className="font-semibold text-foreground">Dica:</span> Se desativar os Pop-ups, os balões flutuantes não irão pular no canto da tela, mas você continuará recebendo todas as notificações normalmente no ícone do sino na barra superior.
                 </div>
               </div>
             </div>

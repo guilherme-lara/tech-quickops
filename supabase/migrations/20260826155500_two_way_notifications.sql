@@ -34,7 +34,7 @@ BEGIN
     SELECT id, 
            'Nova OS Criada: ' || v_nome_os, 
            'A OS ' || v_nome_os || ' foi criada por ' || v_autor_nome || '.', 
-           'info', '/os'
+           'info', '/os?id=' || NEW.id
     FROM public.perfis 
     WHERE (
             (role IN ('gestor', 'analista', 'admin') AND empresa_id = NEW.empresa_id)
@@ -75,7 +75,7 @@ BEGIN
       SELECT id, 
              'Status Atualizado: OS ' || v_nome_os, 
              'OS ' || v_nome_os || ' - Alteração de Status de ' || COALESCE(OLD.status::TEXT, 'Sem status') || ' para ' || NEW.status::TEXT || ' por ' || v_autor_nome, 
-             'info', '/os'
+             'info', '/os?id=' || NEW.id
       FROM public.perfis 
       WHERE (
               (role IN ('gestor', 'analista', 'admin') AND empresa_id = NEW.empresa_id)

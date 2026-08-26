@@ -106,13 +106,16 @@ export function NotificationBell() {
         },
         (payload) => {
           queryClient.invalidateQueries({ queryKey: ["notificacoes", profile.id] });
-          toast("Nova Notificação", {
-            description: payload.new.titulo,
-            action: payload.new.link_acao ? {
-              label: "Ver",
-              onClick: () => navigate({ to: payload.new.link_acao })
-            } : undefined
-          });
+          const muteToast = localStorage.getItem("mute_toast_notifications") === "true";
+          if (!muteToast) {
+            toast("Nova Notificação", {
+              description: payload.new.titulo,
+              action: payload.new.link_acao ? {
+                label: "Ver",
+                onClick: () => navigate({ to: payload.new.link_acao })
+              } : undefined
+            });
+          }
         }
       )
       .subscribe();
