@@ -37,6 +37,7 @@ export interface Tecnico {
   tipo_comissao?: TipoComissao;
   chave_pix?: string;
   username?: string;
+  email_notificacoes?: string;
   user_id?: string | null;
   dados_adicionais?: Record<string, any>;
 }
@@ -666,6 +667,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         tipo_comissao: (r.tipo_comissao as TipoComissao) ?? "fixo",
         chave_pix: r.chave_pix ?? "",
         username: r.username ?? "",
+        email_notificacoes: r.email_notificacoes ?? "",
         user_id: r.user_id ?? null,
         dados_adicionais: r.dados_adicionais ?? {},
       }));
@@ -693,6 +695,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         tipo_comissao: (r.tipo_comissao as TipoComissao) ?? "fixo",
         chave_pix: r.chave_pix ?? "",
         username: r.username ?? "",
+        email_notificacoes: r.email_notificacoes ?? "",
         user_id: r.user_id ?? null,
         dados_adicionais: r.dados_adicionais ?? {},
       }));
@@ -962,6 +965,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
           tipo_comissao: t.tipo_comissao ?? "fixo",
           chave_pix: t.chave_pix,
           username: t.username || null,
+          email_notificacoes: t.email_notificacoes || null,
         })
         .select("id")
         .single();
@@ -982,7 +986,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       if (patch.tipo_comissao !== undefined) dbPatch.tipo_comissao = patch.tipo_comissao;
       if (patch.chave_pix !== undefined) dbPatch.chave_pix = patch.chave_pix;
       if (patch.username !== undefined) dbPatch.username = patch.username || null;
-      if ((patch as any).email !== undefined) dbPatch.email = (patch as any).email || null;
+      if (patch.email_notificacoes !== undefined) dbPatch.email_notificacoes = patch.email_notificacoes || null;
       if (patch.dados_adicionais !== undefined) dbPatch.dados_adicionais = patch.dados_adicionais;
       const { error } = await (supabase.from("tecnicos") as any).update(dbPatch).eq("id", id);
       if (error) throw error;
@@ -1035,6 +1039,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["ordens_servico"] });
       qc.invalidateQueries({ queryKey: ["equipamentos_clientes"] });
+      dispararProcessamentoEmails();
     },
     onError: (e: Error) => toast.error(e.message),
   });
