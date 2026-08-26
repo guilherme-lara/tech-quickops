@@ -233,7 +233,8 @@ export function NotificationBell() {
               }}
               className="bg-primary text-primary-foreground hover:bg-primary/90"
             >
-              Acessar Link
+              {selectedNotification.link_acao === '#changelog' ? "Ver Novidades" : 
+               selectedNotification.link_acao.includes('/os') ? "Verificar Status" : "Acessar Link"}
             </Button>
           )}
         </DialogFooter>
