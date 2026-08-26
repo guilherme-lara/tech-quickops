@@ -9,6 +9,14 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
@@ -32,6 +40,7 @@ export function NotificationBell() {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
+  const [selectedNotification, setSelectedNotification] = useState<Notificacao | null>(null);
 
   const { data: notificacoes = [] } = useQuery({
     queryKey: ["notificacoes", profile?.id],
@@ -118,13 +127,12 @@ export function NotificationBell() {
     if (!n.lida) {
       markAsRead.mutate(n.id);
     }
-    if (n.link_acao) {
-      setOpen(false);
-      navigate({ to: n.link_acao });
-    }
+    setSelectedNotification(n);
+    setOpen(false);
   };
 
   return (
+    <>
     <DropdownMenu open={open} onOpenChange={setOpen}>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" size="icon" className="relative h-9 w-9 rounded-full">
@@ -192,5 +200,40 @@ export function NotificationBell() {
         </ScrollArea>
       </DropdownMenuContent>
     </DropdownMenu>
+
+    <Dialog open={!!selectedNotification} onOpenChange={(open) => !open && setSelectedNotification(null)}>
+      <DialogContent className="sm:max-w-md bg-slate-900 border-slate-800">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2 text-xl">
+            {selectedNotification?.titulo}
+          </DialogTitle>
+          <DialogDescription className="text-slate-400">
+            {selectedNotification && new Date(selectedNotification.created_at).toLocaleString('pt-BR')}
+          </DialogDescription>
+        </DialogHeader>
+        
+        <div className="py-4 text-slate-200">
+          <p className="whitespace-pre-wrap">{selectedNotification?.mensagem}</p>
+        </div>
+
+        <DialogFooter className="sm:justify-between gap-2">
+          <Button variant="ghost" onClick={() => setSelectedNotification(null)}>
+            Fechar
+          </Button>
+          {selectedNotification?.link_acao && (
+            <Button 
+              onClick={() => {
+                navigate({ to: selectedNotification.link_acao as any });
+                setSelectedNotification(null);
+              }}
+              className="bg-primary text-primary-foreground hover:bg-primary/90"
+            >
+              Acessar Link
+            </Button>
+          )}
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+    </>
   );
 }
