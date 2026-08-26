@@ -34,7 +34,7 @@ function Perfil() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("tecnicos")
-        .select("id, nome, telefone, chave_pix")
+        .select("id, nome, telefone, chave_pix, email_notificacoes")
         .eq("id", tecnicoId!)
         .maybeSingle();
       if (error) throw error;
