@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as UsuariosRouteImport } from './routes/usuarios'
 import { Route as TermosDeUsoRouteImport } from './routes/termos-de-uso'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as PrivacidadeRouteImport } from './routes/privacidade'
 import { Route as PlanosRouteImport } from './routes/planos'
 import { Route as OsRouteImport } from './routes/os'
@@ -46,6 +47,11 @@ const UsuariosRoute = UsuariosRouteImport.update({
 const TermosDeUsoRoute = TermosDeUsoRouteImport.update({
   id: '/termos-de-uso',
   path: '/termos-de-uso',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PrivacidadeRoute = PrivacidadeRouteImport.update({
@@ -199,6 +205,7 @@ export interface FileRoutesByFullPath {
   '/os': typeof OsRoute
   '/planos': typeof PlanosRoute
   '/privacidade': typeof PrivacidadeRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/termos-de-uso': typeof TermosDeUsoRoute
   '/usuarios': typeof UsuariosRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
@@ -229,6 +236,7 @@ export interface FileRoutesByTo {
   '/os': typeof OsRoute
   '/planos': typeof PlanosRoute
   '/privacidade': typeof PrivacidadeRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/termos-de-uso': typeof TermosDeUsoRoute
   '/usuarios': typeof UsuariosRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
@@ -260,6 +268,7 @@ export interface FileRoutesById {
   '/os': typeof OsRoute
   '/planos': typeof PlanosRoute
   '/privacidade': typeof PrivacidadeRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/termos-de-uso': typeof TermosDeUsoRoute
   '/usuarios': typeof UsuariosRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
@@ -292,6 +301,7 @@ export interface FileRouteTypes {
     | '/os'
     | '/planos'
     | '/privacidade'
+    | '/sitemap.xml'
     | '/termos-de-uso'
     | '/usuarios'
     | '/.mcp/list-tools'
@@ -322,6 +332,7 @@ export interface FileRouteTypes {
     | '/os'
     | '/planos'
     | '/privacidade'
+    | '/sitemap.xml'
     | '/termos-de-uso'
     | '/usuarios'
     | '/.mcp/list-tools'
@@ -352,6 +363,7 @@ export interface FileRouteTypes {
     | '/os'
     | '/planos'
     | '/privacidade'
+    | '/sitemap.xml'
     | '/termos-de-uso'
     | '/usuarios'
     | '/.mcp/list-tools'
@@ -383,6 +395,7 @@ export interface RootRouteChildren {
   OsRoute: typeof OsRoute
   PlanosRoute: typeof PlanosRoute
   PrivacidadeRoute: typeof PrivacidadeRoute
+  SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   TermosDeUsoRoute: typeof TermosDeUsoRoute
   UsuariosRoute: typeof UsuariosRoute
   Char91DotmcpChar93ListToolsRoute: typeof Char91DotmcpChar93ListToolsRoute
@@ -410,6 +423,13 @@ declare module '@tanstack/react-router' {
       path: '/termos-de-uso'
       fullPath: '/termos-de-uso'
       preLoaderRoute: typeof TermosDeUsoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/privacidade': {
@@ -626,6 +646,7 @@ const rootRouteChildren: RootRouteChildren = {
   OsRoute: OsRoute,
   PlanosRoute: PlanosRoute,
   PrivacidadeRoute: PrivacidadeRoute,
+  SitemapDotxmlRoute: SitemapDotxmlRoute,
   TermosDeUsoRoute: TermosDeUsoRoute,
   UsuariosRoute: UsuariosRoute,
   Char91DotmcpChar93ListToolsRoute: Char91DotmcpChar93ListToolsRoute,
