@@ -1,0 +1,23 @@
+User-agent: *
+Allow: /
+
+# Private / auth-protected surfaces
+Disallow: /login
+Disallow: /dashboard
+Disallow: /gestor-dashboard
+Disallow: /analista-dashboard
+Disallow: /admin-sistema
+Disallow: /clientes
+Disallow: /configuracoes
+Disallow: /equipe
+Disallow: /estoque
+Disallow: /gestao-equipe
+Disallow: /logs
+Disallow: /os
+Disallow: /usuarios
+Disallow: /tecnico/
+Disallow: /.mcp/
+Disallow: /.well-known/
+Disallow: /.lovable/
+
+Sitemap: https://quickops.jotatechinfo.com.br/sitemap.xml
