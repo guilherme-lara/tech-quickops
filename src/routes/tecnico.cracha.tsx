@@ -75,84 +75,107 @@ function TecnicoCrachaPage() {
   const avatarExibicao = dadosAdicionais.foto || profile.avatarUrl;
   const dataCadastro = tecnicoData?.created_at || new Date().toISOString();
 
-  const CrachaContent = () => (
-    <div className="flex flex-col items-center w-full max-w-sm mx-auto bg-[#0a0f1c] rounded-[2.5rem] border border-border/20 shadow-2xl overflow-hidden p-8 relative min-h-[550px]">
-      {/* Background glow */}
-      <div className="absolute top-0 inset-x-0 h-40 bg-gradient-to-b from-primary/10 to-transparent pointer-events-none" />
+  const hasExtraInfo = Boolean(dadosAdicionais.cpf || dadosAdicionais.rg || tecnicoData?.telefone);
 
-      {/* Logo */}
-      <div className="flex justify-center items-center h-16 w-full mb-6 z-10">
+  const CrachaContent = () => (
+    <div className="relative flex flex-col items-center w-full max-w-sm mx-auto bg-gradient-to-b from-slate-900 to-slate-950 rounded-3xl border border-white/10 shadow-2xl overflow-hidden min-h-[620px] select-none">
+      {/* Lanyard Hole */}
+      <div className="absolute top-4 w-16 h-3 bg-background/80 rounded-full border border-white/10 shadow-inner z-20 shadow-black/50" />
+      
+      {/* Top Banner Accent */}
+      <div className="absolute top-0 inset-x-0 h-32 bg-gradient-to-br from-primary/80 to-primary/40 pointer-events-none" />
+
+      {/* Logo Area */}
+      <div className="flex justify-center items-center h-20 w-full mt-10 mb-2 z-10 bg-white/5 backdrop-blur-md border-y border-white/10 shadow-sm">
         {profile.empresaLogo ? (
-          <img src={profile.empresaLogo} alt={profile.empresaNome || "Empresa"} className="max-h-12 object-contain" />
+          <img src={profile.empresaLogo} alt={profile.empresaNome || "Empresa"} className="max-h-12 object-contain filter drop-shadow-md" />
         ) : (
-          <h2 className="text-2xl font-black tracking-tight text-white flex items-center gap-2">
+          <h2 className="text-xl font-black tracking-tight text-white flex items-center gap-2 drop-shadow-md">
             {profile.empresaNome || "Sua Empresa"}
           </h2>
         )}
       </div>
 
-      <p className="text-primary text-xs font-bold tracking-widest uppercase mb-4 z-10 text-center">
-        Técnico Autorizado
-        {dadosAdicionais.segmento && <span className="block text-white/80 mt-1">{dadosAdicionais.segmento}</span>}
-      </p>
+      <div className="flex flex-col items-center flex-1 w-full px-8 pb-8 z-10 pt-4">
+        {/* Avatar / Photo */}
+        <div className="relative mb-5 group">
+          <div className="w-32 h-32 rounded-full border-4 border-slate-900 bg-muted overflow-hidden shadow-2xl flex items-center justify-center text-4xl font-black text-muted-foreground relative z-10">
+            {avatarExibicao ? (
+              <img src={avatarExibicao} alt={nomeExibicao} className="w-full h-full object-cover" />
+            ) : (
+              getInitials(nomeExibicao)
+            )}
+          </div>
+          {/* Subtle glow behind photo */}
+          <div className="absolute inset-0 bg-primary/30 blur-2xl rounded-full scale-110 -z-10" />
+        </div>
 
-      {/* Avatar / Photo */}
-      <div className="relative mb-4 z-10 group">
-        <div className="w-28 h-28 rounded-full border-4 border-background bg-muted overflow-hidden shadow-lg flex items-center justify-center text-3xl font-black text-muted-foreground relative z-10">
-          {avatarExibicao ? (
-            <img src={avatarExibicao} alt={nomeExibicao} className="w-full h-full object-cover" />
-          ) : (
-            getInitials(nomeExibicao)
+        {/* Name and Role */}
+        <div className="text-center w-full mb-6">
+          <h3 className="text-2xl font-black text-white uppercase tracking-wider truncate w-full drop-shadow-sm">
+            {nomeExibicao}
+          </h3>
+          <p className="text-primary font-bold tracking-widest uppercase mt-1.5 text-sm drop-shadow-sm">
+            Técnico Autorizado
+          </p>
+          {dadosAdicionais.segmento && (
+            <p className="text-white/60 text-xs font-medium uppercase tracking-wider mt-0.5">
+              {dadosAdicionais.segmento}
+            </p>
           )}
         </div>
-        <div className="absolute inset-0 bg-primary/40 blur-2xl rounded-full scale-110 -z-10" />
-      </div>
-
-      {/* Name and Info */}
-      <div className="text-center mb-6 z-10 w-full space-y-1">
-        <h3 className="text-lg font-bold text-white uppercase tracking-wider truncate w-full px-2">
-          {nomeExibicao}
-        </h3>
         
-        <div className="flex flex-col items-center gap-1 mt-2 mb-2 bg-white/5 p-3 rounded-xl border border-white/10 w-full">
-          {dadosAdicionais.cpf && (
-            <p className="text-sm text-white/90">
-              <span className="text-muted-foreground mr-1">CPF:</span> {dadosAdicionais.cpf}
-            </p>
-          )}
-          {dadosAdicionais.rg && (
-            <p className="text-sm text-white/90">
-              <span className="text-muted-foreground mr-1">RG:</span> {dadosAdicionais.rg}
-            </p>
-          )}
-          {tecnicoData?.telefone && (
-             <p className="text-sm text-white/90">
-               <span className="text-muted-foreground mr-1">Tel:</span> {tecnicoData.telefone}
-             </p>
-          )}
+        {/* Extra Info Box - Only shown if there is data */}
+        {hasExtraInfo && (
+          <div className="flex flex-col items-start gap-2 mb-6 bg-black/40 p-4 rounded-xl border border-white/5 w-full shadow-inner">
+            {dadosAdicionais.cpf && (
+              <div className="flex items-center justify-between w-full">
+                <span className="text-white/40 font-sans text-[10px] uppercase tracking-wider">CPF</span>
+                <span className="text-sm font-mono text-white/90">{dadosAdicionais.cpf}</span>
+              </div>
+            )}
+            {dadosAdicionais.rg && (
+              <div className="flex items-center justify-between w-full">
+                <span className="text-white/40 font-sans text-[10px] uppercase tracking-wider">RG</span>
+                <span className="text-sm font-mono text-white/90">{dadosAdicionais.rg}</span>
+              </div>
+            )}
+            {tecnicoData?.telefone && (
+              <div className="flex items-center justify-between w-full">
+                <span className="text-white/40 font-sans text-[10px] uppercase tracking-wider">TEL</span>
+                <span className="text-sm font-mono text-white/90">{tecnicoData.telefone}</span>
+              </div>
+            )}
+          </div>
+        )}
+
+        <div className="flex justify-center w-full gap-6 mb-6 opacity-80">
+          <div className="text-center">
+            <p className="text-[10px] uppercase tracking-wider text-white/50 mb-1">ID Registro</p>
+            <p className="text-xs font-mono text-white/90 bg-white/5 px-2 py-1 rounded">{profile.id.substring(0, 8).toUpperCase()}</p>
+          </div>
+          <div className="w-px bg-white/10" />
+          <div className="text-center">
+            <p className="text-[10px] uppercase tracking-wider text-white/50 mb-1">Emissão</p>
+            <p className="text-xs font-mono text-white/90 bg-white/5 px-2 py-1 rounded">{new Date(dataCadastro).toLocaleDateString('pt-BR')}</p>
+          </div>
         </div>
 
-        <p className="text-xs text-muted-foreground">
-          ID: {profile.id.substring(0, 8).toUpperCase()}
-        </p>
-        <p className="text-xs text-muted-foreground/70">
-          Cadastrado em {new Date(dataCadastro).toLocaleDateString('pt-BR')}
-        </p>
+        {/* QR Code Validation */}
+        <div className="mt-auto flex flex-col items-center">
+          <div className="bg-white p-2.5 rounded-xl shadow-xl ring-4 ring-white/5">
+            <img 
+              src={qrUrl} 
+              alt="QR Code Validação" 
+              className="w-24 h-24 rounded-md"
+              crossOrigin="anonymous"
+            />
+          </div>
+          <p className="text-[9px] text-white/40 mt-4 text-center uppercase tracking-widest max-w-[200px]">
+            Escaneie para validar autenticidade
+          </p>
+        </div>
       </div>
-
-      {/* QR Code */}
-      <div className="mt-auto bg-white p-3 rounded-2xl shadow-xl z-10">
-        <img 
-          src={qrUrl} 
-          alt="QR Code Validação" 
-          className="w-24 h-24 rounded-lg"
-          crossOrigin="anonymous"
-        />
-      </div>
-      
-      <p className="text-[10px] text-muted-foreground/50 mt-4 z-10 text-center w-full">
-        Escaneie para validar a identidade deste prestador.
-      </p>
     </div>
   );
 
