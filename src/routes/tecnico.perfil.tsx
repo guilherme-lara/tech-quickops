@@ -34,7 +34,7 @@ function Perfil() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("tecnicos")
-        .select("id, nome, telefone, chave_pix")
+        .select("id, nome, telefone, chave_pix, email_notificacoes")
         .eq("id", tecnicoId!)
         .maybeSingle();
       if (error) throw error;
@@ -57,6 +57,8 @@ function Perfil() {
   });
 
   const [pix, setPix] = useState<string | null>(null);
+  const [emailNotif, setEmailNotif] = useState<string | null>(null);
+  const [savingEmail, setSavingEmail] = useState(false);
   const [senha, setSenha] = useState("");
   const [senha2, setSenha2] = useState("");
   const [uploading, setUploading] = useState(false);
@@ -64,6 +66,7 @@ function Perfil() {
   const [savingSenha, setSavingSenha] = useState(false);
 
   const pixValue = pix ?? tecnico?.chave_pix ?? "";
+  const emailValue = emailNotif ?? tecnico?.email_notificacoes ?? "";
   const avatarUrl = perfilRow?.avatar_url || undefined;
 
   const savePix = async () => {
@@ -82,6 +85,25 @@ function Perfil() {
       toast.error(e.message || "Erro ao salvar PIX");
     } finally {
       setSavingPix(false);
+    }
+  };
+
+  const saveEmail = async () => {
+    if (!tecnicoId) return;
+    setSavingEmail(true);
+    try {
+      const { error } = await supabase
+        .from("tecnicos")
+        .update({ email_notificacoes: emailValue.trim() || null })
+        .eq("id", tecnicoId);
+      if (error) throw error;
+      toast.success("E-mail de notificações atualizado!");
+      qc.invalidateQueries({ queryKey: ["tecnico_self", tecnicoId] });
+      setEmailNotif(null);
+    } catch (e: any) {
+      toast.error(e.message || "Erro ao salvar e-mail");
+    } finally {
+      setSavingEmail(false);
     }
   };
 
@@ -195,6 +217,34 @@ function Perfil() {
                 {savingPix ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
               </Button>
             </div>
+          )}
+        </Card>
+
+        <Card className="p-4 space-y-2">
+          <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+            E-mail para notificações
+          </Label>
+          {isLoading ? (
+            <div className="h-10 flex items-center">
+              <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
+            </div>
+          ) : (
+            <>
+              <div className="flex gap-2">
+                <Input
+                  type="email"
+                  value={emailValue}
+                  onChange={(e) => setEmailNotif(e.target.value)}
+                  placeholder="seu@email.com"
+                />
+                <Button onClick={saveEmail} disabled={savingEmail || emailNotif === null}>
+                  {savingEmail ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Receba um e-mail sempre que uma OS for atribuída a você. Deixe em branco para não receber.
+              </p>
+            </>
           )}
         </Card>
 

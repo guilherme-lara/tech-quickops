@@ -153,31 +153,43 @@ export type Database = {
           assunto: string
           corpo: string
           created_at: string | null
+          dados: Json | null
           destinatario: string
           empresa_id: string | null
+          enviado_at: string | null
+          erro_mensagem: string | null
           id: string
           os_id: string | null
           status: string | null
+          tipo: string | null
         }
         Insert: {
           assunto: string
           corpo: string
           created_at?: string | null
+          dados?: Json | null
           destinatario: string
           empresa_id?: string | null
+          enviado_at?: string | null
+          erro_mensagem?: string | null
           id?: string
           os_id?: string | null
           status?: string | null
+          tipo?: string | null
         }
         Update: {
           assunto?: string
           corpo?: string
           created_at?: string | null
+          dados?: Json | null
           destinatario?: string
           empresa_id?: string | null
+          enviado_at?: string | null
+          erro_mensagem?: string | null
           id?: string
           os_id?: string | null
           status?: string | null
+          tipo?: string | null
         }
         Relationships: [
           {
@@ -821,6 +833,7 @@ export type Database = {
           comissao: number | null
           created_at: string
           dados_adicionais: Json | null
+          email_notificacoes: string | null
           empresa_id: string
           id: string
           nome: string
@@ -836,6 +849,7 @@ export type Database = {
           comissao?: number | null
           created_at?: string
           dados_adicionais?: Json | null
+          email_notificacoes?: string | null
           empresa_id: string
           id?: string
           nome: string
@@ -851,6 +865,7 @@ export type Database = {
           comissao?: number | null
           created_at?: string
           dados_adicionais?: Json | null
+          email_notificacoes?: string | null
           empresa_id?: string
           id?: string
           nome?: string
@@ -984,6 +999,7 @@ export type Database = {
           p_chave_pix?: string
           p_comissao: number
           p_dados_adicionais?: Json
+          p_email_notificacoes?: string
           p_nome: string
           p_senha: string
           p_telefone?: string
