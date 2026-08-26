@@ -147,6 +147,22 @@ function OSPage() {
   const totalPages = Math.max(1, Math.ceil(osTotal / osPageSize));
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<OS | null>(null);
+  const [dialogMode, setDialogMode] = useState<"view" | "edit">("view");
+
+  useEffect(() => {
+    const searchParams = new URLSearchParams(window.location.search);
+    const id = searchParams.get('id');
+    if (id) {
+      supabase.from("ordens_servico").select("*").eq("id", id).single().then(({ data }) => {
+        if (data) {
+          setEditing(data as any);
+          setDialogMode("view");
+          // Remove the id from URL so it doesn't reopen on refresh
+          window.history.replaceState(null, "", "/os");
+        }
+      });
+    }
+  }, []);
   const [form, setForm] = useState({
     titulo: "",
     clienteId: "",
