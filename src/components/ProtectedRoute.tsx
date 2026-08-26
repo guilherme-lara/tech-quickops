@@ -1,9 +1,9 @@
 import { ReactNode, useEffect } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { Loader2 } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/integrations/supabase/client";
-import { useState } from "react";
 import { Paywall } from "./Paywall";
 
 interface Props {
@@ -14,7 +14,40 @@ interface Props {
 export function ProtectedRoute({ children, allowedRoles }: Props) {
   const { user, profile, isLoading } = useAuth();
   const navigate = useNavigate();
-  const [isBlocked, setIsBlocked] = useState<boolean | null>(null);
+
+  const precisaChecarLicenca = Boolean(
+    profile && profile.role !== "superadmin" && profile.empresa_id
+  );
+
+  // Cacheado por empresa: não refaz a consulta a cada navegação entre telas
+  const { data: licenca, isPending: licencaPending } = useQuery({
+    queryKey: ["licenca_empresa", profile?.empresa_id],
+    enabled: precisaChecarLicenca,
+    staleTime: 1000 * 60 * 5,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("empresas")
+        .select("status_licenca, data_vencimento")
+        .eq("id", profile!.empresa_id)
+        .single();
+      if (error) {
+        console.error(error);
+        return null;
+      }
+      return data;
+    },
+  });
+
+  const isBlocked = (() => {
+    if (!precisaChecarLicenca) return false;
+    if (licencaPending) return null;
+    if (!licenca) return false;
+    const isExpired = licenca.data_vencimento
+      ? new Date(licenca.data_vencimento).getTime() < Date.now()
+      : false;
+    return licenca.status_licenca === "bloqueado" || isExpired;
+  })();
+
 
   useEffect(() => {
     if (isLoading) return;
