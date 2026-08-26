@@ -79,35 +79,8 @@ export function ProtectedRoute({ children, allowedRoles }: Props) {
         }
       }
 
-      // Verifica o status da licença
-      if (profile.role !== 'superadmin' && profile.empresa_id) {
-        supabase
-          .from('empresas')
-          .select('status_licenca, data_vencimento')
-          .eq('id', profile.empresa_id)
-          .single()
-          .then(({ data, error }) => {
-            if (error) {
-              console.error(error);
-              setIsBlocked(false);
-            } else {
-              // Verifica status e vencimento
-              let isExpired = false;
-              if (data?.data_vencimento) {
-                isExpired = new Date(data.data_vencimento).getTime() < new Date().getTime();
-              }
-              
-              if (data?.status_licenca === 'bloqueado' || isExpired) {
-                setIsBlocked(true);
-              } else {
-                setIsBlocked(false);
-              }
-            }
-          });
-      } else {
-        setIsBlocked(false);
-      }
     }
+
   }, [user, profile, isLoading, allowedRoles, navigate]);
 
   if (isLoading || !user) {
