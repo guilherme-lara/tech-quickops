@@ -992,63 +992,27 @@ export type Database = {
         }
         Returns: string
       }
-      criar_usuario_backoffice:
-        | {
-            Args: {
-              p_dominio?: string
-              p_nome: string
-              p_role: Database["public"]["Enums"]["app_role"]
-              p_senha: string
-              p_username: string
-            }
-            Returns: string
-          }
-        | {
-            Args: {
-              p_dominio?: string
-              p_nome: string
-              p_role: Database["public"]["Enums"]["app_role"]
-              p_senha: string
-              p_telefone?: string
-              p_username: string
-            }
-            Returns: string
-          }
-        | {
-            Args: {
-              p_dominio: string
-              p_empresa_id: string
-              p_nome: string
-              p_role: Database["public"]["Enums"]["app_role"]
-              p_senha: string
-              p_telefone: string
-              p_username: string
-            }
-            Returns: string
-          }
-        | {
-            Args: {
-              p_dominio?: string
-              p_empresa_id?: string
-              p_nome: string
-              p_role: string
-              p_senha: string
-              p_telefone?: string
-              p_username: string
-            }
-            Returns: string
-          }
+      criar_usuario_backoffice: {
+        Args: {
+          p_dominio: string
+          p_empresa_id: string
+          p_nome: string
+          p_role: Database["public"]["Enums"]["app_role"]
+          p_senha: string
+          p_telefone: string
+          p_username: string
+        }
+        Returns: string
+      }
       gerar_chave_licenca_segura: {
         Args: { p_empresa_id: string }
         Returns: string
       }
       get_current_empresa_id: { Args: never; Returns: string }
-      get_email_by_username:
-        | { Args: { p_username: string }; Returns: string }
-        | {
-            Args: { p_codigo_empresa: string; p_username: string }
-            Returns: string
-          }
+      get_email_by_username: {
+        Args: { p_codigo_empresa: string; p_username: string }
+        Returns: string
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -1065,20 +1029,15 @@ export type Database = {
         Returns: boolean
       }
       validar_chave_licenca: { Args: { p_chave: string }; Returns: boolean }
-      vincular_acesso_tecnico:
-        | {
-            Args: { p_senha: string; p_tecnico_id: string; p_username: string }
-            Returns: string
-          }
-        | {
-            Args: {
-              p_empresa_id?: string
-              p_senha: string
-              p_tecnico_id: string
-              p_username: string
-            }
-            Returns: string
-          }
+      vincular_acesso_tecnico: {
+        Args: {
+          p_empresa_id?: string
+          p_senha: string
+          p_tecnico_id: string
+          p_username: string
+        }
+        Returns: string
+      }
     }
     Enums: {
       app_role: "superadmin" | "admin" | "gestor" | "analista" | "tecnico"
