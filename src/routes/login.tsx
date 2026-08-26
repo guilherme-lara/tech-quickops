@@ -8,7 +8,24 @@ import { Wrench, Sparkles, ArrowRight, Loader2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
-export const Route = createFileRoute("/login")({ component: LoginPage });
+export const Route = createFileRoute("/login")({
+  head: () => ({
+    meta: [
+      { title: "Entrar — QuickOps" },
+      {
+        name: "description",
+        content:
+          "Acesse sua conta QuickOps para gerenciar ordens de serviço, equipe técnica e RATs digitais.",
+      },
+      { name: "robots", content: "noindex" },
+      { property: "og:type", content: "website" },
+      { property: "og:title", content: "Entrar — QuickOps" },
+      { property: "og:description", content: "Acesse sua conta QuickOps." },
+      { name: "twitter:card", content: "summary" },
+    ],
+  }),
+  component: LoginPage,
+});
 
 function safeNext(next?: string | null) {
   return next && next.startsWith("/") && !next.startsWith("//") ? next : null;

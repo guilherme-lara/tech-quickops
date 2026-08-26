@@ -24,8 +24,28 @@ import {
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/")({
+  head: () => ({
+    meta: [
+      { title: "QuickOps — Gestão de Ordens de Serviço e RAT Digital" },
+      {
+        name: "description",
+        content:
+          "Plataforma para equipes de campo: abertura e acompanhamento de OS, RAT digital com fotos e assinatura, controle de inventário e faturamento.",
+      },
+      { property: "og:type", content: "website" },
+      { property: "og:title", content: "QuickOps — Gestão de Ordens de Serviço e RAT Digital" },
+      {
+        property: "og:description",
+        content:
+          "Abra e acompanhe ordens de serviço, gere RAT digital com fotos e assinatura e controle o faturamento da sua operação de campo.",
+      },
+      { name: "twitter:card", content: "summary_large_image" },
+    ],
+    links: [{ rel: "canonical", href: "/" }],
+  }),
   component: LandingPage,
 });
+
 
 function LandingPage() {
   return (
