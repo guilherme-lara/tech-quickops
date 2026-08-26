@@ -1,12 +1,13 @@
 import { Link, useRouterState, useNavigate, Outlet } from "@tanstack/react-router";
-import { ClipboardList, User, History, Wrench, LogOut, LayoutDashboard } from "lucide-react";
+import { ClipboardList, User, History, LogOut, LayoutDashboard, QrCode } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { ReactNode } from "react";
 
 const tabs = [
-  { to: "/tecnico/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { to: "/tecnico/os", label: "Atendimentos", icon: ClipboardList },
+  { to: "/tecnico/dashboard", label: "Início", icon: LayoutDashboard },
+  { to: "/tecnico/os", label: "Tarefas", icon: ClipboardList },
+  { to: "/tecnico/cracha", label: "Crachá", icon: QrCode },
   { to: "/tecnico/historico", label: "Histórico", icon: History },
   { to: "/tecnico/perfil", label: "Perfil", icon: User },
 ];

@@ -131,6 +131,7 @@ function UsuariosPage() {
         .update({
           nome_completo: editFormData.nome,
           telefone: editFormData.telefone || null,
+          role: editFormData.role,
         })
         .eq("id", editFormData.id);
       if (error) throw error;
@@ -145,7 +146,7 @@ function UsuariosPage() {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from("perfis").delete().eq("id", id);
+      const { error } = await (supabase.rpc as any)("remover_acesso_backoffice", { p_user_id: id });
       if (error) throw error;
     },
     onSuccess: () => {
@@ -203,7 +204,7 @@ function UsuariosPage() {
     
     return (
       u.nome_completo?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (u as any).username?.toLowerCase().includes(searchTerm.toLowerCase())
+      (u.username || "").toLowerCase().includes(searchTerm.toLowerCase())
     );
   });
 
@@ -289,23 +290,28 @@ function UsuariosPage() {
                     </td>
                   </tr>
                 ) : (
-                  filteredUsers?.map((user) => (
-                    <tr key={user.id} className="hover:bg-muted/10 transition-colors">
-                      <td className="px-6 py-4 font-medium flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xs">
-                          {user.nome_completo?.substring(0, 2).toUpperCase()}
+                  filteredUsers?.map((u) => (
+                    <tr key={u.id} className="hover:bg-muted/10 transition-colors">
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xs">
+                            {u.nome_completo?.substring(0, 2).toUpperCase()}
+                          </div>
+                          <span className={u.ativo === false ? "line-through text-muted-foreground" : "font-medium"}>
+                            {u.nome_completo}
+                          </span>
+                          {u.ativo === false && <Badge variant="secondary" className="text-[10px] px-1 py-0 h-4">Inativo</Badge>}
                         </div>
-                        {user.nome_completo}
                       </td>
                       <td className="px-6 py-4 text-muted-foreground">
-                        {(user as any).username || "—"}
+                        {u.username || "—"}
                       </td>
                       <td className="px-6 py-4 text-muted-foreground">
-                        {(user as any).telefone || "—"}
+                        {u.telefone || "—"}
                       </td>
-                      <td className="px-6 py-4">{getRoleBadge(user.role)}</td>
+                      <td className="px-6 py-4">{getRoleBadge(u.role)}</td>
                       <td className="px-6 py-4 text-right text-muted-foreground text-xs">
-                        {new Date(user.created_at).toLocaleDateString("pt-BR")}
+                        {new Date(u.created_at).toLocaleDateString("pt-BR")}
                       </td>
                       <td className="px-6 py-4 text-right">
                         <DropdownMenu>
@@ -434,18 +440,29 @@ function UsuariosPage() {
             <div className="grid gap-2">
               <Label>Usuário de Login (Apenas Leitura)</Label>
               <Input
-                value={editFormData.username}
+                value={editFormData.username || "—"}
                 disabled
                 className="bg-muted"
               />
             </div>
             <div className="grid gap-2">
-              <Label>Nível de Acesso (Apenas Leitura)</Label>
-              <Input
-                value={editFormData.role === "gestor" ? "Gestor" : editFormData.role === "analista" ? "Analista" : editFormData.role === "tecnico" ? "Técnico" : editFormData.role === "admin" ? "Admin" : editFormData.role}
-                disabled
-                className="bg-muted"
-              />
+              <Label>Nível de Acesso</Label>
+              <Select
+                value={editFormData.role}
+                onValueChange={(val) => setEditFormData({ ...editFormData, role: val })}
+                disabled={editFormData.role === "tecnico" || editFormData.role === "superadmin"}
+              >
+                <SelectTrigger className={editFormData.role === "tecnico" || editFormData.role === "superadmin" ? "bg-muted" : ""}>
+                  <SelectValue placeholder="Selecione o perfil" />
+                </SelectTrigger>
+                <SelectContent>
+                  {editFormData.role === "tecnico" && <SelectItem value="tecnico">Técnico</SelectItem>}
+                  {editFormData.role === "superadmin" && <SelectItem value="superadmin">Super Admin</SelectItem>}
+                  <SelectItem value="analista">Analista</SelectItem>
+                  <SelectItem value="gestor">Gestor</SelectItem>
+                  <SelectItem value="admin">Admin</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
           <DialogFooter>
