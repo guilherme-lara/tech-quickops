@@ -70,7 +70,7 @@ function TecnicoCrachaPage() {
   const qrData = encodeURIComponent(`https://quickops.jotatech.com.br/v/${profile.id}`);
   const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${qrData}&color=000000&bgcolor=ffffff`;
 
-  const dadosAdicionais = tecnicoData?.dados_adicionais || {};
+  const dadosAdicionais = (tecnicoData?.dados_adicionais ?? {}) as Record<string, any>;
   const nomeExibicao = tecnicoData?.nome || profile.nome_completo;
   const avatarExibicao = dadosAdicionais.foto || profile.avatarUrl;
   const dataCadastro = tecnicoData?.created_at || new Date().toISOString();
@@ -186,7 +186,7 @@ function TecnicoCrachaPage() {
         <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
           <div>
             <div className="flex items-center gap-2 mb-1">
-              <Link to="/tecnico">
+              <Link to="/tecnico/dashboard">
                 <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full">
                   <ChevronLeft className="w-4 h-4" />
                 </Button>
