@@ -2,6 +2,24 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowLeft } from "lucide-react";
 
 export const Route = createFileRoute("/termos-de-uso")({
+  head: () => ({
+    meta: [
+      { title: "Termos de Uso — QuickOps" },
+      {
+        name: "description",
+        content:
+          "Condições de uso da plataforma QuickOps: responsabilidades, planos, licenças e regras de utilização do sistema de ordens de serviço.",
+      },
+      { property: "og:type", content: "article" },
+      { property: "og:title", content: "Termos de Uso — QuickOps" },
+      {
+        property: "og:description",
+        content: "Condições de uso da plataforma QuickOps de gestão de ordens de serviço.",
+      },
+      { name: "twitter:card", content: "summary" },
+    ],
+    links: [{ rel: "canonical", href: "/termos-de-uso" }],
+  }),
   component: Termos,
 });
 

@@ -2,6 +2,24 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowLeft } from "lucide-react";
 
 export const Route = createFileRoute("/privacidade")({
+  head: () => ({
+    meta: [
+      { title: "Política de Privacidade (LGPD) — QuickOps" },
+      {
+        name: "description",
+        content:
+          "Como o QuickOps coleta, usa, armazena e protege os dados pessoais dos usuários e clientes, em conformidade com a LGPD.",
+      },
+      { property: "og:type", content: "article" },
+      { property: "og:title", content: "Política de Privacidade (LGPD) — QuickOps" },
+      {
+        property: "og:description",
+        content: "Tratamento e proteção de dados pessoais no QuickOps, em conformidade com a LGPD.",
+      },
+      { name: "twitter:card", content: "summary" },
+    ],
+    links: [{ rel: "canonical", href: "/privacidade" }],
+  }),
   component: Privacidade,
 });
 

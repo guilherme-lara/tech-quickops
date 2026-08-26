@@ -16,6 +16,8 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { ErrorBoundary, installGlobalErrorHandlers } from "@/components/ErrorBoundary";
 import { ConfirmDialogProvider } from "@/components/ConfirmDialogProvider";
+import { queryKeysForTable } from "@/lib/realtime-invalidation";
+
 
 import appCss from "../styles.css?url";
 
@@ -185,23 +187,41 @@ function RootComponent() {
   }));
 
   useEffect(() => {
+    // Coalesce eventos: várias mudanças em sequência viram uma única invalidação
+    const pending = new Set<string>();
+    let timer: ReturnType<typeof setTimeout> | null = null;
+
+    const flush = () => {
+      timer = null;
+      const keys = new Set<string>();
+      for (const table of pending) {
+        for (const key of queryKeysForTable(table)) keys.add(key);
+      }
+      pending.clear();
+      for (const key of keys) {
+        qc.invalidateQueries({ queryKey: [key] });
+      }
+    };
+
     const channel = supabase
       .channel("global-db-changes")
       .on(
         "postgres_changes",
         { event: "*", schema: "public" },
         (payload) => {
-          console.log("Realtime Update Recebido:", payload);
-          // Invalida todas as queries do React Query, forçando um recarregamento em background suave (sem loaders) nas telas que estiverem abertas
-          qc.invalidateQueries();
+          pending.add((payload as { table?: string }).table ?? "");
+          if (timer) clearTimeout(timer);
+          timer = setTimeout(flush, 400);
         }
       )
       .subscribe();
 
     return () => {
+      if (timer) clearTimeout(timer);
       supabase.removeChannel(channel);
     };
   }, [qc]);
+
 
   return (
     <QueryClientProvider client={qc}>
