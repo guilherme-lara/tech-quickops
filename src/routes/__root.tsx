@@ -17,6 +17,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { ErrorBoundary, installGlobalErrorHandlers } from "@/components/ErrorBoundary";
 import { ConfirmDialogProvider } from "@/components/ConfirmDialogProvider";
 import { queryKeysForTable } from "@/lib/realtime-invalidation";
+import { dispararProcessamentoEmails } from "@/lib/email-trigger";
 
 
 import appCss from "../styles.css?url";
@@ -126,6 +127,12 @@ function AuthGate() {
       navigate({ to: "/login" });
     }
   }, [user, loadingAuth, path, navigate]);
+
+  // Drena a fila de e-mails pendentes uma vez por sessão autenticada
+  useEffect(() => {
+    if (user) dispararProcessamentoEmails();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]);
 
   return null;
 }
