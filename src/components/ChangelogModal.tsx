@@ -61,6 +61,12 @@ export function ChangelogModal() {
     }
   };
 
+  useEffect(() => {
+    const onOpenChangelog = () => handleOpen(true);
+    window.addEventListener("open-changelog", onOpenChangelog);
+    return () => window.removeEventListener("open-changelog", onOpenChangelog);
+  }, [changelogs.length]);
+
   return (
     <Dialog open={open} onOpenChange={handleOpen}>
       <DialogTrigger asChild>

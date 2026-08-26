@@ -46,20 +46,28 @@ BEGIN
     FROM public.perfis WHERE role IN ('gestor', 'analista') AND ativo = true AND empresa_id = NEW.empresa_id;
   END IF;
 
-  -- Case 2: Mudança de status (Qualquer)
-  IF OLD.status IS DISTINCT FROM NEW.status THEN
-    -- Notifica Técnico
-    IF NEW.tecnico_id IS NOT NULL THEN
+  -- Case 2: Qualquer outra alteração (Notifica Analista e Gestor)
+  -- Para o Técnico, apenas quando mudar o status
+  IF to_jsonb(OLD) - 'updated_at' IS DISTINCT FROM to_jsonb(NEW) - 'updated_at' THEN
+    
+    -- Notifica Técnico (Só de mudança de status)
+    IF NEW.tecnico_id IS NOT NULL AND OLD.status IS DISTINCT FROM NEW.status THEN
       INSERT INTO public.notificacoes (perfil_id, titulo, mensagem, tipo, link_acao)
       SELECT t.user_id, 'Status Atualizado', 'A OS ' || v_nome_os || ' mudou para: ' || NEW.status, 'info', '/tecnico/os/' || NEW.id
       FROM public.tecnicos t
       WHERE t.id = NEW.tecnico_id AND t.user_id IS NOT NULL;
     END IF;
 
-    -- Notifica Gestores e Analistas
-    INSERT INTO public.notificacoes (perfil_id, titulo, mensagem, tipo, link_acao)
-    SELECT id, 'Status OS: ' || NEW.status, 'OS ' || v_nome_os || ' mudou para ' || NEW.status, 'info', '/os'
-    FROM public.perfis WHERE role IN ('gestor', 'analista') AND ativo = true AND empresa_id = NEW.empresa_id;
+    -- Notifica Gestores e Analistas (Qualquer alteração)
+    IF OLD.status IS DISTINCT FROM NEW.status THEN
+      INSERT INTO public.notificacoes (perfil_id, titulo, mensagem, tipo, link_acao)
+      SELECT id, 'Status OS: ' || NEW.status, 'OS ' || v_nome_os || ' mudou para ' || NEW.status, 'info', '/os'
+      FROM public.perfis WHERE role IN ('gestor', 'analista') AND ativo = true AND empresa_id = NEW.empresa_id;
+    ELSE
+      INSERT INTO public.notificacoes (perfil_id, titulo, mensagem, tipo, link_acao)
+      SELECT id, 'OS Atualizada', 'A OS ' || v_nome_os || ' sofreu alterações.', 'info', '/os'
+      FROM public.perfis WHERE role IN ('gestor', 'analista') AND ativo = true AND empresa_id = NEW.empresa_id;
+    END IF;
 
     -- ==========================================
     -- Envio de E-mail (Fila) se for 'concluido'

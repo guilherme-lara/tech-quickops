@@ -223,7 +223,11 @@ export function NotificationBell() {
           {selectedNotification?.link_acao && (
             <Button 
               onClick={() => {
-                navigate({ to: selectedNotification.link_acao as any });
+                if (selectedNotification.link_acao === '#changelog') {
+                  window.dispatchEvent(new CustomEvent('open-changelog'));
+                } else {
+                  navigate({ to: selectedNotification.link_acao as any });
+                }
                 setSelectedNotification(null);
               }}
               className="bg-primary text-primary-foreground hover:bg-primary/90"
