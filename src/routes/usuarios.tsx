@@ -54,6 +54,7 @@ function UsuariosPage() {
   const codigoEmpresa = profile?.empresaCodigo || "";
   const empresaNome = profile?.empresaNome || "QuickOps";
   const qc = useQueryClient();
+  const confirm = useConfirm();
 
   const [searchTerm, setSearchTerm] = useState("");
   const [showTecnicos, setMostrarTecnicos] = useState(false);
@@ -132,7 +133,7 @@ function UsuariosPage() {
         .update({
           nome_completo: editFormData.nome,
           telefone: editFormData.telefone || null,
-          role: editFormData.role,
+          role: editFormData.role as "admin" | "analista" | "gestor" | "superadmin" | "tecnico",
         })
         .eq("id", editFormData.id);
       if (error) throw error;
@@ -298,10 +299,10 @@ function UsuariosPage() {
                           <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xs">
                             {u.nome_completo?.substring(0, 2).toUpperCase()}
                           </div>
-                          <span className={u.ativo === false ? "line-through text-muted-foreground" : "font-medium"}>
+                          <span className={(u as any).ativo === false ? "line-through text-muted-foreground" : "font-medium"}>
                             {u.nome_completo}
                           </span>
-                          {u.ativo === false && <Badge variant="secondary" className="text-[10px] px-1 py-0 h-4">Inativo</Badge>}
+                          {(u as any).ativo === false && <Badge variant="secondary" className="text-[10px] px-1 py-0 h-4">Inativo</Badge>}
                         </div>
                       </td>
                       <td className="px-6 py-4 text-muted-foreground">
@@ -322,16 +323,16 @@ function UsuariosPage() {
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => handleEdit(user)}>
+                            <DropdownMenuItem onClick={() => handleEdit(u)}>
                               <Shield className="mr-2 h-4 w-4" /> 
                               Visualizar / Editar Perfil
                             </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handleResetPassword(user)}>
+                            <DropdownMenuItem onClick={() => handleResetPassword(u)}>
                               <KeyRound className="mr-2 h-4 w-4" /> 
                               Gerar Nova Senha
                             </DropdownMenuItem>
                             <DropdownMenuItem
-                              onClick={() => handleDelete(user.id)}
+                              onClick={() => handleDelete(u.id)}
                               className="text-destructive focus:text-destructive"
                             >
                               <Ban className="mr-2 h-4 w-4" /> Inativar/Excluir

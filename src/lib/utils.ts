@@ -169,3 +169,10 @@ export function formatComissao(
   }
   return `${n.toLocaleString("pt-BR", { maximumFractionDigits: 2 })}%`;
 }
+
+/**
+ * Formata um número como moeda BRL.
+ */
+export function formatCurrency(value: number | null | undefined): string {
+  return Number(value ?? 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+}

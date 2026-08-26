@@ -77,10 +77,11 @@ export function NotificationBell() {
 
   const markAllAsRead = useMutation({
     mutationFn: async () => {
+      if (!profile?.id) return;
       const { error } = await supabase
         .from("notificacoes")
         .update({ lida: true })
-        .eq("perfil_id", profile?.id)
+        .eq("perfil_id", profile.id)
         .eq("lida", false);
       if (error) throw error;
     },
