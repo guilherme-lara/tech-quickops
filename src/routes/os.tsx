@@ -147,7 +147,6 @@ function OSPage() {
   const totalPages = Math.max(1, Math.ceil(osTotal / osPageSize));
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<OS | null>(null);
-  const [dialogMode, setDialogMode] = useState<"view" | "edit">("view");
 
   useEffect(() => {
     const searchParams = new URLSearchParams(window.location.search);
