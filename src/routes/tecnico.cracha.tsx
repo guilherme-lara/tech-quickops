@@ -67,7 +67,7 @@ function TecnicoCrachaPage() {
     return name.substring(0, 2).toUpperCase();
   };
 
-  const qrData = encodeURIComponent(`https://quickops.app/v/${profile.id}`);
+  const qrData = encodeURIComponent(`https://quickops.jotatech.com.br/v/${profile.id}`);
   const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${qrData}&color=000000&bgcolor=ffffff`;
 
   const dadosAdicionais = tecnicoData?.dados_adicionais || {};

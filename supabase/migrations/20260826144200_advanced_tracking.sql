@@ -13,6 +13,7 @@ CREATE TABLE IF NOT EXISTS public.email_queue (
 );
 
 ALTER TABLE public.email_queue ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Admins podem ver fila de emails" ON public.email_queue;
 CREATE POLICY "Admins podem ver fila de emails" ON public.email_queue FOR SELECT USING (true);
 
 
@@ -61,9 +62,9 @@ BEGIN
     FROM public.perfis WHERE role IN ('gestor', 'analista') AND ativo = true AND empresa_id = NEW.empresa_id;
 
     -- ==========================================
-    -- Envio de E-mail (Fila) se for 'Concluída'
+    -- Envio de E-mail (Fila) se for 'concluido'
     -- ==========================================
-    IF NEW.status = 'Concluída' THEN
+    IF NEW.status = 'concluido' THEN
       IF NEW.cliente_id IS NOT NULL THEN
         SELECT email, nome INTO v_cliente_email, v_cliente_nome FROM public.clientes WHERE id = NEW.cliente_id;
         
@@ -252,8 +253,8 @@ CREATE TRIGGER trg_audit_clientes AFTER INSERT OR UPDATE OR DELETE ON public.cli
 DROP TRIGGER IF EXISTS trg_audit_tecnicos ON public.tecnicos;
 CREATE TRIGGER trg_audit_tecnicos AFTER INSERT OR UPDATE OR DELETE ON public.tecnicos FOR EACH ROW EXECUTE FUNCTION public.fn_audit_log_changes();
 
-DROP TRIGGER IF EXISTS trg_audit_itens ON public.itens;
-CREATE TRIGGER trg_audit_itens AFTER INSERT OR UPDATE OR DELETE ON public.itens FOR EACH ROW EXECUTE FUNCTION public.fn_audit_log_changes();
+DROP TRIGGER IF EXISTS trg_audit_itens ON public.itens_inventario;
+CREATE TRIGGER trg_audit_itens AFTER INSERT OR UPDATE OR DELETE ON public.itens_inventario FOR EACH ROW EXECUTE FUNCTION public.fn_audit_log_changes();
 
-DROP TRIGGER IF EXISTS trg_audit_equip_cli ON public.equipamentos_cliente;
-CREATE TRIGGER trg_audit_equip_cli AFTER INSERT OR UPDATE OR DELETE ON public.equipamentos_cliente FOR EACH ROW EXECUTE FUNCTION public.fn_audit_log_changes();
+DROP TRIGGER IF EXISTS trg_audit_equip_cli ON public.equipamentos_clientes;
+CREATE TRIGGER trg_audit_equip_cli AFTER INSERT OR UPDATE OR DELETE ON public.equipamentos_clientes FOR EACH ROW EXECUTE FUNCTION public.fn_audit_log_changes();
