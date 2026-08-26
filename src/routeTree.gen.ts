@@ -31,6 +31,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as TecnicoPerfilRouteImport } from './routes/tecnico.perfil'
 import { Route as TecnicoHistoricoRouteImport } from './routes/tecnico.historico'
 import { Route as TecnicoDashboardRouteImport } from './routes/tecnico.dashboard'
+import { Route as TecnicoCrachaRouteImport } from './routes/tecnico.cracha'
 import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
 import { Route as Char91DotmcpChar93ListToolsRouteImport } from './routes/[.mcp]/list-tools'
 import { Route as TecnicoOsIndexRouteImport } from './routes/tecnico.os.index'
@@ -149,6 +150,11 @@ const TecnicoDashboardRoute = TecnicoDashboardRouteImport.update({
   path: '/tecnico/dashboard',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TecnicoCrachaRoute = TecnicoCrachaRouteImport.update({
+  id: '/tecnico/cracha',
+  path: '/tecnico/cracha',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const Char91DotwellKnownChar93OauthProtectedResourceRoute =
   Char91DotwellKnownChar93OauthProtectedResourceRouteImport.update({
     id: '/.well-known/oauth-protected-resource',
@@ -210,6 +216,7 @@ export interface FileRoutesByFullPath {
   '/usuarios': typeof UsuariosRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
+  '/tecnico/cracha': typeof TecnicoCrachaRoute
   '/tecnico/dashboard': typeof TecnicoDashboardRoute
   '/tecnico/historico': typeof TecnicoHistoricoRoute
   '/tecnico/perfil': typeof TecnicoPerfilRoute
@@ -241,6 +248,7 @@ export interface FileRoutesByTo {
   '/usuarios': typeof UsuariosRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
+  '/tecnico/cracha': typeof TecnicoCrachaRoute
   '/tecnico/dashboard': typeof TecnicoDashboardRoute
   '/tecnico/historico': typeof TecnicoHistoricoRoute
   '/tecnico/perfil': typeof TecnicoPerfilRoute
@@ -273,6 +281,7 @@ export interface FileRoutesById {
   '/usuarios': typeof UsuariosRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
+  '/tecnico/cracha': typeof TecnicoCrachaRoute
   '/tecnico/dashboard': typeof TecnicoDashboardRoute
   '/tecnico/historico': typeof TecnicoHistoricoRoute
   '/tecnico/perfil': typeof TecnicoPerfilRoute
@@ -306,6 +315,7 @@ export interface FileRouteTypes {
     | '/usuarios'
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
+    | '/tecnico/cracha'
     | '/tecnico/dashboard'
     | '/tecnico/historico'
     | '/tecnico/perfil'
@@ -337,6 +347,7 @@ export interface FileRouteTypes {
     | '/usuarios'
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
+    | '/tecnico/cracha'
     | '/tecnico/dashboard'
     | '/tecnico/historico'
     | '/tecnico/perfil'
@@ -368,6 +379,7 @@ export interface FileRouteTypes {
     | '/usuarios'
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
+    | '/tecnico/cracha'
     | '/tecnico/dashboard'
     | '/tecnico/historico'
     | '/tecnico/perfil'
@@ -400,6 +412,7 @@ export interface RootRouteChildren {
   UsuariosRoute: typeof UsuariosRoute
   Char91DotmcpChar93ListToolsRoute: typeof Char91DotmcpChar93ListToolsRoute
   Char91DotwellKnownChar93OauthProtectedResourceRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
+  TecnicoCrachaRoute: typeof TecnicoCrachaRoute
   TecnicoDashboardRoute: typeof TecnicoDashboardRoute
   TecnicoHistoricoRoute: typeof TecnicoHistoricoRoute
   TecnicoPerfilRoute: typeof TecnicoPerfilRoute
@@ -565,6 +578,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TecnicoDashboardRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/tecnico/cracha': {
+      id: '/tecnico/cracha'
+      path: '/tecnico/cracha'
+      fullPath: '/tecnico/cracha'
+      preLoaderRoute: typeof TecnicoCrachaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/.well-known/oauth-protected-resource': {
       id: '/.well-known/oauth-protected-resource'
       path: '/.well-known/oauth-protected-resource'
@@ -652,6 +672,7 @@ const rootRouteChildren: RootRouteChildren = {
   Char91DotmcpChar93ListToolsRoute: Char91DotmcpChar93ListToolsRoute,
   Char91DotwellKnownChar93OauthProtectedResourceRoute:
     Char91DotwellKnownChar93OauthProtectedResourceRoute,
+  TecnicoCrachaRoute: TecnicoCrachaRoute,
   TecnicoDashboardRoute: TecnicoDashboardRoute,
   TecnicoHistoricoRoute: TecnicoHistoricoRoute,
   TecnicoPerfilRoute: TecnicoPerfilRoute,

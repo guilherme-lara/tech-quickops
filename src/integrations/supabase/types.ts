@@ -10,7 +10,7 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "14.5"
+    PostgrestVersion: "14.17"
   }
   public: {
     Tables: {
@@ -55,6 +55,33 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      changelog: {
+        Row: {
+          created_at: string
+          descricao: string
+          features: Json | null
+          id: string
+          titulo: string
+          versao: string | null
+        }
+        Insert: {
+          created_at?: string
+          descricao: string
+          features?: Json | null
+          id?: string
+          titulo: string
+          versao?: string | null
+        }
+        Update: {
+          created_at?: string
+          descricao?: string
+          features?: Json | null
+          id?: string
+          titulo?: string
+          versao?: string | null
+        }
+        Relationships: []
       }
       clientes: {
         Row: {
@@ -117,6 +144,47 @@ export type Database = {
             columns: ["empresa_id"]
             isOneToOne: false
             referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      email_queue: {
+        Row: {
+          assunto: string
+          corpo: string
+          created_at: string | null
+          destinatario: string
+          empresa_id: string | null
+          id: string
+          os_id: string | null
+          status: string | null
+        }
+        Insert: {
+          assunto: string
+          corpo: string
+          created_at?: string | null
+          destinatario: string
+          empresa_id?: string | null
+          id?: string
+          os_id?: string | null
+          status?: string | null
+        }
+        Update: {
+          assunto?: string
+          corpo?: string
+          created_at?: string | null
+          destinatario?: string
+          empresa_id?: string | null
+          id?: string
+          os_id?: string | null
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_queue_os_id_fkey"
+            columns: ["os_id"]
+            isOneToOne: false
+            referencedRelation: "ordens_servico"
             referencedColumns: ["id"]
           },
         ]
@@ -312,6 +380,47 @@ export type Database = {
           usuario_nome?: string | null
         }
         Relationships: []
+      }
+      notificacoes: {
+        Row: {
+          created_at: string
+          id: string
+          lida: boolean
+          link_acao: string | null
+          mensagem: string
+          perfil_id: string
+          tipo: string | null
+          titulo: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          lida?: boolean
+          link_acao?: string | null
+          mensagem: string
+          perfil_id: string
+          tipo?: string | null
+          titulo: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          lida?: boolean
+          link_acao?: string | null
+          mensagem?: string
+          perfil_id?: string
+          tipo?: string | null
+          titulo?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notificacoes_perfil_id_fkey"
+            columns: ["perfil_id"]
+            isOneToOne: false
+            referencedRelation: "perfis"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       ordens_servico: {
         Row: {
@@ -556,6 +665,7 @@ export type Database = {
       }
       perfis: {
         Row: {
+          ativo: boolean | null
           avatar_url: string | null
           created_at: string
           current_session_id: string | null
@@ -567,6 +677,7 @@ export type Database = {
           username: string | null
         }
         Insert: {
+          ativo?: boolean | null
           avatar_url?: string | null
           created_at?: string
           current_session_id?: string | null
@@ -578,6 +689,7 @@ export type Database = {
           username?: string | null
         }
         Update: {
+          ativo?: boolean | null
           avatar_url?: string | null
           created_at?: string
           current_session_id?: string | null
@@ -914,6 +1026,18 @@ export type Database = {
             }
             Returns: string
           }
+        | {
+            Args: {
+              p_dominio?: string
+              p_empresa_id?: string
+              p_nome: string
+              p_role: string
+              p_senha: string
+              p_telefone?: string
+              p_username: string
+            }
+            Returns: string
+          }
       gerar_chave_licenca_segura: {
         Args: { p_empresa_id: string }
         Returns: string
@@ -931,6 +1055,10 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      remover_acesso_backoffice: {
+        Args: { p_user_id: string }
+        Returns: undefined
       }
       resetar_senha_tecnico: {
         Args: { p_nova_senha: string; p_tecnico_id: string }
