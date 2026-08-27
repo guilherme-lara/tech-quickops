@@ -17,7 +17,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { ErrorBoundary, installGlobalErrorHandlers } from "@/components/ErrorBoundary";
 import { ConfirmDialogProvider } from "@/components/ConfirmDialogProvider";
 import { queryKeysForTable } from "@/lib/realtime-invalidation";
-import { dispararProcessamentoEmails } from "@/lib/email-trigger";
+import { iniciarPollingEmails } from "@/lib/email-trigger";
 
 
 import appCss from "../styles.css?url";
