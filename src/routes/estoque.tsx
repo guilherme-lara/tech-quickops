@@ -1,4 +1,4 @@
-import { ProtectedRoute } from "@/components/ProtectedRoute";
+git import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { GestorLayout } from "@/components/GestorLayout";
 import { Input } from "@/components/ui/input";
@@ -113,7 +113,7 @@ function InsumosTab() {
   } = useStore();
   const { profile } = useAuth();
   const confirm = useConfirm();
-  
+
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Item | null>(null);
 
@@ -217,7 +217,7 @@ function InsumosTab() {
         </div>
       )}
 
-      <ItemDialog 
+      <ItemDialog
         open={open} onOpenChange={setOpen} item={editing} defaultTipo="insumo"
         onSubmit={async (data) => {
           if (editing) await updateItem(editing.id, { ...data, tipo: "insumo" });
@@ -239,7 +239,7 @@ function FerramentasTab() {
   } = useStore();
   const { profile } = useAuth();
   const confirm = useConfirm();
-  
+
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Item | null>(null);
   const [vincular, setVincular] = useState<Item | null>(null);
@@ -304,9 +304,9 @@ function FerramentasTab() {
                       <td className="px-5 py-3">{i.quantidade} un.</td>
                       <td className="px-5 py-3 text-muted-foreground text-xs">
                         {nomesTecnicos.length > 0 ? (
-                           <div className="flex flex-col gap-1">
-                             {nomesTecnicos.map((n, idx) => <span key={idx} className="bg-muted px-2 py-0.5 rounded-full w-fit">{n}</span>)}
-                           </div>
+                          <div className="flex flex-col gap-1">
+                            {nomesTecnicos.map((n, idx) => <span key={idx} className="bg-muted px-2 py-0.5 rounded-full w-fit">{n}</span>)}
+                          </div>
                         ) : "Nenhum"}
                       </td>
                       <td className="px-5 py-3">R$ {i.valor_unitario.toFixed(2)}</td>
@@ -347,7 +347,7 @@ function FerramentasTab() {
         </div>
       )}
 
-      <ItemDialog 
+      <ItemDialog
         open={open} onOpenChange={setOpen} item={editing} defaultTipo="ferramenta"
         onSubmit={async (data) => {
           if (editing) await updateItem(editing.id, { ...data, tipo: "ferramenta" });
@@ -380,7 +380,7 @@ function EquipamentosTab() {
   };
 
   const [statusFilter, setStatusFilter] = useState("todos");
-  
+
   const filtrados = equipamentos.filter(e => {
     if (statusFilter === "todos") return true;
     return e.status === statusFilter;
@@ -390,7 +390,7 @@ function EquipamentosTab() {
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 justify-between">
         <div className="flex items-center gap-3">
-          <FiltrosBarGlobal showSearch searchValue="" onSearchChange={() => {}} searchLabel="Equipamento" searchPlaceholder="Buscar..." />
+          <FiltrosBarGlobal showSearch searchValue="" onSearchChange={() => { }} searchLabel="Equipamento" searchPlaceholder="Buscar..." />
           <Select value={statusFilter} onValueChange={setStatusFilter}>
             <SelectTrigger className="w-[160px] h-10 bg-background">
               <SelectValue placeholder="Status" />
@@ -430,58 +430,57 @@ function EquipamentosTab() {
               </thead>
               <tbody className="divide-y divide-border">
                 {filtrados.map((e) => {
-                  const linkedOs = os.find(o => o.equipamentosClienteIds?.includes(e.id));
+                  const linkedOs = os.find(o => o.equipamentos_cliente_ids?.includes(e.id));
                   return (
-                  <tr key={e.id} className="hover:bg-muted/30">
-                    <td className="px-5 py-3 font-medium text-muted-foreground">{e.cliente?.nome || "—"}</td>
-                    <td className="px-5 py-3 font-medium">{e.nome}</td>
-                    <td className="px-5 py-3 text-muted-foreground">{e.modelo || "—"}</td>
-                    <td className="px-5 py-3 text-muted-foreground">
-                      <div className="flex flex-col gap-0.5">
-                        <span>{e.numero_serie || "Sem SN"}</span>
-                        {e.patrimonio && <span className="text-xs bg-muted/50 px-1.5 py-0.5 rounded w-fit">{e.patrimonio}</span>}
-                      </div>
-                    </td>
-                    <td className="px-5 py-3">
-                      <span className={`text-xs px-2 py-1 rounded-full ${
-                        e.status === 'em_estoque' || e.status === 'retirado_em_estoque' ? 'bg-emerald-500/10 text-emerald-600' :
-                        e.status === 'em_transito' ? 'bg-amber-500/10 text-amber-600' :
-                        'bg-blue-500/10 text-blue-600'
-                      }`}>
-                        {e.status === 'em_estoque' ? 'Em Estoque' :
-                         e.status === 'em_transito' ? 'Em Trânsito' :
-                         e.status === 'retirado_em_estoque' ? 'Retirado' :
-                         'Instalado'}
-                      </span>
-                    </td>
-                    <td className="px-5 py-3">
-                      {linkedOs ? (
-                        <button 
-                          onClick={() => {
-                            setOsSearchCliente(linkedOs.numero);
-                            navigate({ to: "/os" });
-                          }}
-                          className="flex flex-col gap-0.5 hover:bg-muted p-1 -ml-1 rounded transition-colors text-left cursor-pointer" 
-                          title={`Ver OS: ${linkedOs.titulo}`}
-                        >
-                          <span className="text-sm font-medium text-primary">#{linkedOs.numero || "?"}</span>
-                          <span className="text-xs text-muted-foreground line-clamp-1 max-w-[120px]">{linkedOs.titulo || "—"}</span>
-                        </button>
-                      ) : (
-                        <span className="text-muted-foreground text-xs">—</span>
-                      )}
-                    </td>
-                    <td className="px-5 py-3">
-                      <div className="flex gap-1 justify-end">
-                        <Button variant="ghost" size="icon" onClick={() => { setEditing(e); setOpen(true); }}>
-                          <Pencil className="w-4 h-4" />
-                        </Button>
-                        <Button variant="ghost" size="icon" className="text-destructive" onClick={() => handleDelete(e)}>
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </td>
-                  </tr>
+                    <tr key={e.id} className="hover:bg-muted/30">
+                      <td className="px-5 py-3 font-medium text-muted-foreground">{e.cliente?.nome || "—"}</td>
+                      <td className="px-5 py-3 font-medium">{e.nome}</td>
+                      <td className="px-5 py-3 text-muted-foreground">{e.modelo || "—"}</td>
+                      <td className="px-5 py-3 text-muted-foreground">
+                        <div className="flex flex-col gap-0.5">
+                          <span>{e.numero_serie || "Sem SN"}</span>
+                          {e.patrimonio && <span className="text-xs bg-muted/50 px-1.5 py-0.5 rounded w-fit">{e.patrimonio}</span>}
+                        </div>
+                      </td>
+                      <td className="px-5 py-3">
+                        <span className={`text-xs px-2 py-1 rounded-full ${e.status === 'em_estoque' || e.status === 'retirado_em_estoque' ? 'bg-emerald-500/10 text-emerald-600' :
+                          e.status === 'em_transito' ? 'bg-amber-500/10 text-amber-600' :
+                            'bg-blue-500/10 text-blue-600'
+                          }`}>
+                          {e.status === 'em_estoque' ? 'Em Estoque' :
+                            e.status === 'em_transito' ? 'Em Trânsito' :
+                              e.status === 'retirado_em_estoque' ? 'Retirado' :
+                                'Instalado'}
+                        </span>
+                      </td>
+                      <td className="px-5 py-3">
+                        {linkedOs ? (
+                          <button
+                            onClick={() => {
+                              setOsSearchCliente(linkedOs.numero);
+                              navigate({ to: "/os" });
+                            }}
+                            className="flex flex-col gap-0.5 hover:bg-muted p-1 -ml-1 rounded transition-colors text-left cursor-pointer"
+                            title={`Ver OS: ${linkedOs.titulo}`}
+                          >
+                            <span className="text-sm font-medium text-primary">#{linkedOs.numero || "?"}</span>
+                            <span className="text-xs text-muted-foreground line-clamp-1 max-w-[120px]">{linkedOs.titulo || "—"}</span>
+                          </button>
+                        ) : (
+                          <span className="text-muted-foreground text-xs">—</span>
+                        )}
+                      </td>
+                      <td className="px-5 py-3">
+                        <div className="flex gap-1 justify-end">
+                          <Button variant="ghost" size="icon" onClick={() => { setEditing(e); setOpen(true); }}>
+                            <Pencil className="w-4 h-4" />
+                          </Button>
+                          <Button variant="ghost" size="icon" className="text-destructive" onClick={() => handleDelete(e)}>
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
                   );
                 })}
               </tbody>

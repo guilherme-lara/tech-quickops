@@ -117,11 +117,7 @@ function UsuariosPage() {
     },
     onError: (e: any) => {
       const msg = e?.message || "Erro ao criar usuário";
-      if (/já está em uso|já está registrado|duplicate/i.test(msg)) {
-        toast.error("Este usuário ou e-mail já está cadastrado");
-      } else {
-        toast.error(msg);
-      }
+      toast.error(msg);
     },
   });
 
