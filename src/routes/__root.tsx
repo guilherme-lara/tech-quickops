@@ -128,11 +128,13 @@ function AuthGate() {
     }
   }, [user, loadingAuth, path, navigate]);
 
-  // Drena a fila de e-mails pendentes uma vez por sessão autenticada
+  // Drena a fila de e-mails pendentes enquanto houver sessão autenticada
   useEffect(() => {
-    if (user) dispararProcessamentoEmails();
+    if (!user) return;
+    return iniciarPollingEmails();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id]);
+
 
   return null;
 }
