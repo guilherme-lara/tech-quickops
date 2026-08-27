@@ -38,14 +38,11 @@ export const reenviarEmailsComErroDeDominio = createServerFn({ method: "POST" })
     const ids = (rows ?? []).map((r: any) => r.id);
     if (ids.length === 0) return { reabertos: 0 };
 
-    const { error: updateError } = await (supabaseAdmin as any)
-      .from("email_queue" as any)
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error: updateError } = await (supabaseAdmin.from("email_queue" as any) as any)
       .update({ status: "pendente", erro_mensagem: null })
       .in("id", ids);
     if (updateError) throw updateError;
 
     return { reabertos: ids.length };
   });
-
-// Helper importado dinamicamente para evitar que supabaseAdmin entre no bundle cliente.
-let supabaseAdmin: any;
