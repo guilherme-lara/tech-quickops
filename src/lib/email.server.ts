@@ -2,7 +2,7 @@
 // Somente servidor: nunca importar em código de cliente diretamente.
 
 const GATEWAY_URL = "https://connector-gateway.lovable.dev/resend";
-export const EMAIL_FROM = "QuickOps <notifyquickops@jotatechinfo.com.br>";
+export const EMAIL_FROM = "QuickOps <notifyquickops@quickops.jotatechinfo.com.br>";
 
 export async function sendResendEmail(opts: { to: string; subject: string; html: string }) {
   const LOVABLE_API_KEY = process.env["LOVABLE_API_KEY"];
