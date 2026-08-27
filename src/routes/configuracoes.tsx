@@ -116,6 +116,8 @@ function ConfiguracoesPage() {
   const [endereco, setEndereco] = useState("");
   const [telefone, setTelefone] = useState("");
   const [logoUrl, setLogoUrl] = useState("");
+  const [emailNotificacoes, setEmailNotificacoes] = useState("");
+
   const [savingEmpresa, setSavingEmpresa] = useState(false);
   const [uploadingLogo, setUploadingLogo] = useState(false);
 
