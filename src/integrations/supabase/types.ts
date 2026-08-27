@@ -209,6 +209,7 @@ export type Database = {
           created_at: string
           data_vencimento: string | null
           dominio: string | null
+          email_notificacoes: string | null
           endereco_comercial: string | null
           id: string
           logo_url: string | null
@@ -224,6 +225,7 @@ export type Database = {
           created_at?: string
           data_vencimento?: string | null
           dominio?: string | null
+          email_notificacoes?: string | null
           endereco_comercial?: string | null
           id?: string
           logo_url?: string | null
@@ -239,6 +241,7 @@ export type Database = {
           created_at?: string
           data_vencimento?: string | null
           dominio?: string | null
+          email_notificacoes?: string | null
           endereco_comercial?: string | null
           id?: string
           logo_url?: string | null
