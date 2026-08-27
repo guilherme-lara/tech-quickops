@@ -590,6 +590,20 @@ function ConfiguracoesPage() {
                       onChange={(e) => setEndereco(e.target.value)}
                     />
                   </div>
+                  <div className="space-y-2 md:col-span-2">
+                    <Label>E-mail para notificações de OS</Label>
+                    <Input
+                      type="email"
+                      placeholder="gestor@suaempresa.com.br"
+                      value={emailNotificacoes}
+                      onChange={(e) => setEmailNotificacoes(e.target.value)}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Toda nova OS criada será enviada para este e-mail. Se ficar em branco, o aviso
+                      vai para os e-mails dos gestores/administradores ativos.
+                    </p>
+                  </div>
+
                 </div>
 
                 <div className="pt-4 flex justify-end border-t border-border/50">
