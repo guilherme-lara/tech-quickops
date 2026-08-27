@@ -1011,18 +1011,31 @@ export type Database = {
         }
         Returns: string
       }
-      criar_usuario_backoffice: {
-        Args: {
-          p_dominio: string
-          p_empresa_id: string
-          p_nome: string
-          p_role: Database["public"]["Enums"]["app_role"]
-          p_senha: string
-          p_telefone: string
-          p_username: string
-        }
-        Returns: string
-      }
+      criar_usuario_backoffice:
+        | {
+            Args: {
+              p_dominio: string
+              p_empresa_id: string
+              p_nome: string
+              p_role: Database["public"]["Enums"]["app_role"]
+              p_senha: string
+              p_telefone: string
+              p_username: string
+            }
+            Returns: string
+          }
+        | {
+            Args: {
+              p_dominio?: string
+              p_empresa_id?: string
+              p_nome: string
+              p_role: string
+              p_senha: string
+              p_telefone?: string
+              p_username: string
+            }
+            Returns: string
+          }
       gerar_chave_licenca_segura: {
         Args: { p_empresa_id: string }
         Returns: string
