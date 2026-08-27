@@ -1,0 +1,1 @@
+REVOKE ALL ON FUNCTION public.fn_notify_os_criada_gestao() FROM PUBLIC, anon, authenticated;

@@ -116,6 +116,8 @@ function ConfiguracoesPage() {
   const [endereco, setEndereco] = useState("");
   const [telefone, setTelefone] = useState("");
   const [logoUrl, setLogoUrl] = useState("");
+  const [emailNotificacoes, setEmailNotificacoes] = useState("");
+
   const [savingEmpresa, setSavingEmpresa] = useState(false);
   const [uploadingLogo, setUploadingLogo] = useState(false);
 
@@ -147,13 +149,15 @@ function ConfiguracoesPage() {
         if (!user.empresaId) return;
         const { data } = await supabase
           .from("empresas")
-          .select("status_licenca, data_vencimento")
+          .select("status_licenca, data_vencimento, email_notificacoes")
           .eq("id", user.empresaId)
           .single();
           
         if (data) {
           setStatusLicenca(data.status_licenca || "ativo");
           setDataVencimento(data.data_vencimento);
+          setEmailNotificacoes((data as { email_notificacoes?: string | null }).email_notificacoes || "");
+
           
           if (data.data_vencimento) {
             const venc = new Date(data.data_vencimento);
@@ -232,7 +236,15 @@ function ConfiguracoesPage() {
     setSavingEmpresa(true);
     try {
       await updateEmpresa(empresa.trim(), cnpj.trim(), endereco.trim(), telefone.trim(), logoUrl);
+      if (user?.empresaId) {
+        const { error: errEmail } = await supabase
+          .from("empresas")
+          .update({ email_notificacoes: emailNotificacoes.trim() || null } as never)
+          .eq("id", user.empresaId);
+        if (errEmail) throw errEmail;
+      }
       toast.success("Dados da empresa salvos com sucesso!");
+
     } catch (e: any) {
       toast.error(e.message ?? "Erro ao atualizar empresa");
     } finally {
@@ -590,6 +602,20 @@ function ConfiguracoesPage() {
                       onChange={(e) => setEndereco(e.target.value)}
                     />
                   </div>
+                  <div className="space-y-2 md:col-span-2">
+                    <Label>E-mail para notificações de OS</Label>
+                    <Input
+                      type="email"
+                      placeholder="gestor@suaempresa.com.br"
+                      value={emailNotificacoes}
+                      onChange={(e) => setEmailNotificacoes(e.target.value)}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Toda nova OS criada será enviada para este e-mail. Se ficar em branco, o aviso
+                      vai para os e-mails dos gestores/administradores ativos.
+                    </p>
+                  </div>
+
                 </div>
 
                 <div className="pt-4 flex justify-end border-t border-border/50">

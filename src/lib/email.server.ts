@@ -174,7 +174,25 @@ export function renderEmailTemplate(
       };
     }
 
+    case "os_criada_gestao":
+      return {
+        subject: `Nova OS ${numero} criada — QuickOps`,
+        html: layout(
+          "Nova ordem de serviço criada",
+          `<p style="margin:0 0 8px;font-size:14px;color:#374151;">Uma nova ordem de serviço foi registrada no sistema.</p>
+          ${detalhes([
+            ["Número da OS", numero],
+            ["Serviço", dados?.titulo],
+            ["Cliente", dados?.cliente_nome],
+            ["Técnico", dados?.tecnico_nome],
+            ["Status", statusLabel(dados?.status)],
+            ["Endereço", dados?.endereco],
+          ])}`,
+        ),
+      };
+
     default:
+
       return {
         subject: `Atualização da OS ${numero} — QuickOps`,
         html: layout(
