@@ -149,13 +149,15 @@ function ConfiguracoesPage() {
         if (!user.empresaId) return;
         const { data } = await supabase
           .from("empresas")
-          .select("status_licenca, data_vencimento")
+          .select("status_licenca, data_vencimento, email_notificacoes")
           .eq("id", user.empresaId)
           .single();
           
         if (data) {
           setStatusLicenca(data.status_licenca || "ativo");
           setDataVencimento(data.data_vencimento);
+          setEmailNotificacoes((data as { email_notificacoes?: string | null }).email_notificacoes || "");
+
           
           if (data.data_vencimento) {
             const venc = new Date(data.data_vencimento);
