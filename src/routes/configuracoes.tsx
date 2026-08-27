@@ -236,7 +236,15 @@ function ConfiguracoesPage() {
     setSavingEmpresa(true);
     try {
       await updateEmpresa(empresa.trim(), cnpj.trim(), endereco.trim(), telefone.trim(), logoUrl);
+      if (user?.empresaId) {
+        const { error: errEmail } = await supabase
+          .from("empresas")
+          .update({ email_notificacoes: emailNotificacoes.trim() || null } as never)
+          .eq("id", user.empresaId);
+        if (errEmail) throw errEmail;
+      }
       toast.success("Dados da empresa salvos com sucesso!");
+
     } catch (e: any) {
       toast.error(e.message ?? "Erro ao atualizar empresa");
     } finally {
