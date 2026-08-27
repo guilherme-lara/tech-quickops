@@ -1,4 +1,5 @@
 import { ProtectedRoute } from "@/components/ProtectedRoute";
+import { dispararProcessamentoEmails } from "@/lib/email-trigger";
 import { createFileRoute } from "@tanstack/react-router";
 import { GestorLayout } from "@/components/GestorLayout";
 import { Button } from "@/components/ui/button";
@@ -326,6 +327,7 @@ function OSPage() {
       );
       toast.success("OS excluída com sucesso");
       queryClient.invalidateQueries({ queryKey: ["ordens_servico"] });
+      dispararProcessamentoEmails();
     } catch (e: any) {
       toast.error(e?.message ?? "Erro ao excluir OS");
     }

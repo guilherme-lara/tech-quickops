@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Upload, FileSpreadsheet, Download, Loader2, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
+import { dispararProcessamentoEmails } from "@/lib/email-trigger";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { useQueryClient } from "@tanstack/react-query";
