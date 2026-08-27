@@ -363,7 +363,7 @@ function FerramentasTab() {
 }
 
 function EquipamentosTab() {
-  const { equipamentos, loadingEquipamentos, deleteEquipamento, setOsSearchCliente } = useStore();
+  const { equipamentos, os, loadingEquipamentos, deleteEquipamento, setOsSearchCliente } = useStore();
   const navigate = useNavigate();
   const confirm = useConfirm();
   const [open, setOpen] = useState(false);
@@ -429,7 +429,9 @@ function EquipamentosTab() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
-                {filtrados.map((e) => (
+                {filtrados.map((e) => {
+                  const linkedOs = os.find(o => o.equipamentos_cliente_ids?.includes(e.id));
+                  return (
                   <tr key={e.id} className="hover:bg-muted/30">
                     <td className="px-5 py-3 font-medium text-muted-foreground">{e.cliente?.nome || "—"}</td>
                     <td className="px-5 py-3 font-medium">{e.nome}</td>
@@ -453,17 +455,17 @@ function EquipamentosTab() {
                       </span>
                     </td>
                     <td className="px-5 py-3">
-                      {e.os ? (
+                      {linkedOs ? (
                         <button 
                           onClick={() => {
-                            setOsSearchCliente(e.os!.numero);
+                            setOsSearchCliente(linkedOs.numero);
                             navigate({ to: "/os" });
                           }}
                           className="flex flex-col gap-0.5 hover:bg-muted p-1 -ml-1 rounded transition-colors text-left cursor-pointer" 
-                          title={`Ver OS: ${e.os.titulo}`}
+                          title={`Ver OS: ${linkedOs.titulo}`}
                         >
-                          <span className="text-sm font-medium text-primary">#{e.os.numero || "?"}</span>
-                          <span className="text-xs text-muted-foreground line-clamp-1 max-w-[120px]">{e.os.titulo || "—"}</span>
+                          <span className="text-sm font-medium text-primary">#{linkedOs.numero || "?"}</span>
+                          <span className="text-xs text-muted-foreground line-clamp-1 max-w-[120px]">{linkedOs.titulo || "—"}</span>
                         </button>
                       ) : (
                         <span className="text-muted-foreground text-xs">—</span>
@@ -480,7 +482,8 @@ function EquipamentosTab() {
                       </div>
                     </td>
                   </tr>
-                ))}
+                  );
+                })}
               </tbody>
             </table>
           </div>
