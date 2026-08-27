@@ -362,6 +362,8 @@ export function ImportarOSDialog({ trigger }: Props) {
       qc.invalidateQueries({ queryKey: ["ordens_servico", profile.empresa_id] });
       qc.invalidateQueries({ queryKey: ["clientes", profile.empresa_id] });
       qc.invalidateQueries({ queryKey: ["tecnicos", profile.empresa_id] });
+      dispararProcessamentoEmails();
+
     } catch (e: any) {
       toast.error(e.message ?? "Falha ao importar planilha");
       setStep("upload");
