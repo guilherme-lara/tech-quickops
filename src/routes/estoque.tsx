@@ -1,4 +1,4 @@
-git import { ProtectedRoute } from "@/components/ProtectedRoute";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { GestorLayout } from "@/components/GestorLayout";
 import { Input } from "@/components/ui/input";
