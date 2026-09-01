@@ -1304,14 +1304,15 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
     // Falhas de rede/instabilidade não podem virar "Perfil não encontrado":
     // tentamos algumas vezes antes de considerar que o perfil realmente não existe.
-    let perfil: {
+    type PerfilLogin = {
       id: string;
       nome_completo: string | null;
       role: string;
       empresa_id: string;
       current_session_id: string | null;
       avatar_url: string | null;
-    } | null = null;
+    };
+    let perfil: PerfilLogin | null = null;
     let profileError: { message: string } | null = null;
 
     for (let tentativa = 1; tentativa <= 3; tentativa++) {
@@ -1320,7 +1321,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         .select("id, nome_completo, role, empresa_id, current_session_id, avatar_url")
         .eq("id", sessionUser.id)
         .maybeSingle();
-      perfil = (res.data as typeof perfil) ?? null;
+      perfil = (res.data as PerfilLogin | null) ?? null;
       profileError = res.error ? { message: res.error.message } : null;
       if (perfil || !profileError) break;
       console.error(`[auth] falha ao carregar perfil (tentativa ${tentativa}):`, res.error);
