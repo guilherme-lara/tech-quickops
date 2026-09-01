@@ -533,6 +533,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
           }
         } catch (err: any) {
           console.error("[auth] onAuthStateChange falhou:", err);
+          if (err?.message === "PROFILE_FETCH_FAILED") {
+            toast.error("Falha temporária ao carregar seu perfil. Recarregue a página em instantes.");
+            return;
+          }
           if (err?.message === "INVALID_SESSION") {
             await supabase.auth.signOut();
             toast.error("Você foi desconectado porque sua conta foi acessada em outro local.");
