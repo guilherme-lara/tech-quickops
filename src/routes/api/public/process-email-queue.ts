@@ -6,9 +6,13 @@ export const Route = createFileRoute("/api/public/process-email-queue")({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        const secret = process.env["EMAIL_CRON_SECRET"];
+        // Aceita o segredo antigo (chamadas manuais existentes) e o token usado
+        // pelo agendador do banco de dados.
+        const aceitos = [process.env["EMAIL_CRON_SECRET"], process.env["EMAIL_CRON_TOKEN"]].filter(
+          (s): s is string => Boolean(s),
+        );
         const auth = request.headers.get("authorization");
-        if (!secret || auth !== `Bearer ${secret}`) {
+        if (aceitos.length === 0 || !aceitos.some((s) => auth === `Bearer ${s}`)) {
           return new Response("Unauthorized", { status: 401 });
         }
         try {
