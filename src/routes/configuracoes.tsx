@@ -102,7 +102,12 @@ function ConfiguracoesPage() {
   const [savingNome, setSavingNome] = useState(false);
   const isGestor = profile?.role === "gestor" || profile?.role === "admin" || profile?.role === "superadmin";
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
-  const [muteToast, setMuteToast] = useState(() => localStorage.getItem("mute_toast_notifications") === "true");
+  const [muteToast, setMuteToast] = useState(false);
+
+  // localStorage só existe no navegador: ler após a hidratação evita quebrar o SSR
+  useEffect(() => {
+    setMuteToast(localStorage.getItem("mute_toast_notifications") === "true");
+  }, []);
 
   const toggleMuteToast = (checked: boolean) => {
     setMuteToast(checked);

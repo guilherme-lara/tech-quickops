@@ -1,4 +1,4 @@
-git import { ProtectedRoute } from "@/components/ProtectedRoute";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { GestorLayout } from "@/components/GestorLayout";
 import { Input } from "@/components/ui/input";
@@ -430,7 +430,7 @@ function EquipamentosTab() {
               </thead>
               <tbody className="divide-y divide-border">
                 {filtrados.map((e) => {
-                  const linkedOs = os.find(o => o.equipamentos_cliente_ids?.includes(e.id));
+                  const linkedOs = os.find(o => o.equipamentosClienteIds?.includes(e.id));
                   return (
                     <tr key={e.id} className="hover:bg-muted/30">
                       <td className="px-5 py-3 font-medium text-muted-foreground">{e.cliente?.nome || "—"}</td>
