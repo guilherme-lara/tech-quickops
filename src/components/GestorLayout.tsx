@@ -26,13 +26,7 @@ import { NotificationBell } from "./NotificationBell";
 import { ChangelogModal } from "./ChangelogModal";
 import { Badge } from "@/components/ui/badge";
 
-import {
-  Sheet,
-  SheetContent,
-  SheetTrigger,
-  SheetTitle,
-  SheetDescription,
-} from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetTrigger, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { useAuth } from "@/lib/auth-context";
 import { ReactNode, useState } from "react";
 import { PlanLimits, PlanType } from "@/lib/planLimits";
@@ -76,7 +70,14 @@ export function GestorLayout({ children }: { children?: ReactNode }) {
   // RBAC: filtrar itens de menu baseado na role
   navItems = navItems.filter((item) => {
     if (profile?.role === "tecnico") {
-      const restrictedForTecnico = ["/gestor-dashboard", "/clientes", "/equipe", "/usuarios", "/logs", "/analista-dashboard"];
+      const restrictedForTecnico = [
+        "/gestor-dashboard",
+        "/clientes",
+        "/equipe",
+        "/usuarios",
+        "/logs",
+        "/analista-dashboard",
+      ];
       return !restrictedForTecnico.includes(item.to);
     }
 
@@ -109,10 +110,11 @@ export function GestorLayout({ children }: { children?: ReactNode }) {
             key={item.to}
             to={item.to}
             onClick={() => setIsOpen(false)}
-            className={`relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all duration-300 ${active
+            className={`relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all duration-300 ${
+              active
                 ? "bg-gradient-to-r from-primary to-violet text-primary-foreground font-semibold shadow-[var(--shadow-glow)]"
                 : "text-foreground/70 hover:bg-accent hover:text-accent-foreground"
-              }`}
+            }`}
           >
             <div className="flex flex-col w-full">
               <div className="flex items-center gap-3 w-full">
@@ -129,20 +131,14 @@ export function GestorLayout({ children }: { children?: ReactNode }) {
     <div className="mt-3 pt-3 border-t border-border/60 shrink-0 pb-safe">
       <div className="flex items-center gap-2 px-2 py-2">
         <Avatar className="w-9 h-9">
-          <AvatarImage
-            src={profile?.avatarUrl}
-            alt={profile?.nome_completo}
-            className="object-cover"
-          />
+          <AvatarImage src={profile?.avatarUrl} alt={profile?.nome_completo} className="object-cover" />
           <AvatarFallback className="bg-gradient-to-br from-primary to-violet text-primary-foreground text-xs font-semibold">
             {profile?.nome_completo?.[0] || "G"}
           </AvatarFallback>
         </Avatar>
         <div className="text-xs leading-tight flex-1 min-w-0">
           <div className="font-semibold truncate">{profile?.nome_completo || "Gestor"}</div>
-          <div className="text-muted-foreground truncate">
-            {user?.email || "gestor@empresa.com"}
-          </div>
+          <div className="text-muted-foreground truncate">{user?.email || "gestor@empresa.com"}</div>
         </div>
         <button
           onClick={handleLogout}
@@ -174,11 +170,14 @@ export function GestorLayout({ children }: { children?: ReactNode }) {
               />
             )}
             <div className="w-full mt-2">
-              <div className="font-bold text-sm leading-tight truncate w-full text-black dark:text-white" title={profile?.empresaNome || "QuickOps"}>
+              <div
+                className="font-bold text-sm leading-tight truncate w-full text-black dark:text-white"
+                title={profile?.empresaNome || "QuickOps"}
+              >
                 {profile?.empresaNome || "QuickOps"}
               </div>
               <div className="text-[10px] text-muted-foreground tracking-wider uppercase truncate w-full mt-0.5">
-                QuickOps B2B <span className="font-semibold text-primary/80 ml-1">v0.0.1.22</span>
+                QuickOps B2B <span className="font-semibold text-primary/80 ml-1">v0.0.1.40</span>
               </div>
             </div>
           </div>
@@ -201,9 +200,7 @@ export function GestorLayout({ children }: { children?: ReactNode }) {
               </SheetTrigger>
               <SheetContent side="left" className="w-72 p-4 flex flex-col glass border-r-0">
                 <SheetTitle className="sr-only">Menu de Navegação</SheetTitle>
-                <SheetDescription className="sr-only">
-                  Navegue pelas páginas do sistema QuickOps
-                </SheetDescription>
+                <SheetDescription className="sr-only">Navegue pelas páginas do sistema QuickOps</SheetDescription>
 
                 <div className="px-2 py-6 flex flex-col items-center text-center gap-3 border-b border-border/50 mb-4">
                   {profile?.empresaLogo ? (
@@ -220,7 +217,10 @@ export function GestorLayout({ children }: { children?: ReactNode }) {
                     />
                   )}
                   <div className="w-full mt-2">
-                    <div className="font-bold text-sm leading-tight truncate w-full text-black dark:text-white" title={profile?.empresaNome || "QuickOps"}>
+                    <div
+                      className="font-bold text-sm leading-tight truncate w-full text-black dark:text-white"
+                      title={profile?.empresaNome || "QuickOps"}
+                    >
                       {profile?.empresaNome || "QuickOps"}
                     </div>
                     <div className="text-[10px] text-muted-foreground tracking-wider uppercase truncate w-full mt-0.5">
@@ -254,11 +254,7 @@ export function GestorLayout({ children }: { children?: ReactNode }) {
               />
             </div>
             {/* Ícone de busca substitui a barra grande no telemóvel */}
-            <Button
-              variant="ghost"
-              size="icon"
-              className="md:hidden rounded-xl h-10 w-10 glass border-0"
-            >
+            <Button variant="ghost" size="icon" className="md:hidden rounded-xl h-10 w-10 glass border-0">
               <Search className="w-4 h-4" />
             </Button>
             <ChangelogModal />
