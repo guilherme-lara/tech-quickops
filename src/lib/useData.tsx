@@ -1329,7 +1329,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       // para que o acesso não seja bloqueado por ausência de linha em `perfis`.
       const { data: tec } = await supabase
         .from("tecnicos")
-        .select("id, nome, empresa_id, avatar_url:dados_adicionais")
+        .select("id, nome, empresa_id")
         .or(`user_id.eq.${sessionUser.id},id.eq.${sessionUser.id}`)
         .limit(1)
         .maybeSingle();
