@@ -40,10 +40,14 @@ function LoginPage() {
   const [showSessionWarning, setShowSessionWarning] = useState(false);
 
   const [loginEmail, setLoginEmail] = useState("");
-  const [loginCodigo, setLoginCodigo] = useState(
-    () => localStorage.getItem("tqo_last_company_code") || ""
-  );
+  const [loginCodigo, setLoginCodigo] = useState("");
   const [loginSenha, setLoginSenha] = useState("");
+
+  // localStorage só existe no navegador: ler após a hidratação evita quebrar o SSR
+  useEffect(() => {
+    const saved = localStorage.getItem("tqo_last_company_code");
+    if (saved) setLoginCodigo((atual) => atual || saved);
+  }, []);
 
   const [suEmail, setSuEmail] = useState("");
   const [suSenha, setSuSenha] = useState("");
