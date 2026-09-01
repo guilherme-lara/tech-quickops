@@ -361,7 +361,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
         if (error) {
           console.error(`[auth] erro ao buscar perfil (tentativa ${attempt}):`, error);
-          if (attempt === retries) return null;
+          // Falha de comunicação/permissão não é "perfil inexistente":
+          // sinalizamos separadamente para NUNCA deslogar um usuário válido.
+          if (attempt === retries) throw new Error("PROFILE_FETCH_FAILED");
         } else if (data) {
           // Verifica sessão (Single Session)
           const localSessionId = localStorage.getItem("tqo_session_id");
