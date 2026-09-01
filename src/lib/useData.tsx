@@ -361,7 +361,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
         if (error) {
           console.error(`[auth] erro ao buscar perfil (tentativa ${attempt}):`, error);
-          if (attempt === retries) return null;
+          // Falha de comunicação/permissão não é "perfil inexistente":
+          // sinalizamos separadamente para NUNCA deslogar um usuário válido.
+          if (attempt === retries) throw new Error("PROFILE_FETCH_FAILED");
         } else if (data) {
           // Verifica sessão (Single Session)
           const localSessionId = localStorage.getItem("tqo_session_id");
@@ -488,6 +490,11 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         }
       } catch (err: any) {
         console.error("[auth] getSession falhou:", err);
+        if (err?.message === "PROFILE_FETCH_FAILED") {
+          // Instabilidade momentânea: mantém a sessão e avisa, sem deslogar.
+          toast.error("Falha temporária ao carregar seu perfil. Recarregue a página em instantes.");
+          return;
+        }
         if (err?.message === "INVALID_SESSION") {
           await supabase.auth.signOut();
           toast.error("Você foi desconectado porque sua conta foi acessada em outro local.");
@@ -526,6 +533,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
           }
         } catch (err: any) {
           console.error("[auth] onAuthStateChange falhou:", err);
+          if (err?.message === "PROFILE_FETCH_FAILED") {
+            toast.error("Falha temporária ao carregar seu perfil. Recarregue a página em instantes.");
+            return;
+          }
           if (err?.message === "INVALID_SESSION") {
             await supabase.auth.signOut();
             toast.error("Você foi desconectado porque sua conta foi acessada em outro local.");
@@ -1291,14 +1302,75 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     const sessionUser = authData.user;
     if (!sessionUser) return { error: "Sessão não encontrada após o login." };
 
-    const { data: perfil, error: profileError } = await supabase
-      .from("perfis")
-      .select("id, nome_completo, role, empresa_id, current_session_id, avatar_url")
-      .eq("id", sessionUser.id)
-      .maybeSingle();
+    // Falhas de rede/instabilidade não podem virar "Perfil não encontrado":
+    // tentamos algumas vezes antes de considerar que o perfil realmente não existe.
+    type PerfilLogin = {
+      id: string;
+      nome_completo: string | null;
+      role: string;
+      empresa_id: string;
+      current_session_id: string | null;
+      avatar_url: string | null;
+    };
+    let perfil: PerfilLogin | null = null;
+    let profileError: { message: string } | null = null;
 
-    if (profileError || !perfil) {
-      return { error: profileError?.message ?? "Perfil não encontrado." };
+    for (let tentativa = 1; tentativa <= 3; tentativa++) {
+      const res = await supabase
+        .from("perfis")
+        .select("id, nome_completo, role, empresa_id, current_session_id, avatar_url")
+        .eq("id", sessionUser.id)
+        .maybeSingle();
+      perfil = (res.data as PerfilLogin | null) ?? null;
+      profileError = res.error ? { message: res.error.message } : null;
+      if (perfil || !profileError) break;
+      console.error(`[auth] falha ao carregar perfil (tentativa ${tentativa}):`, res.error);
+      await new Promise((r) => setTimeout(r, 400 * tentativa));
+    }
+
+    if (profileError) {
+      // Erro real de comunicação/permissão: nunca deslogar silenciosamente.
+      return {
+        error:
+          "Não foi possível carregar seu perfil (falha de comunicação com o servidor). Tente novamente em instantes.",
+      };
+    }
+
+    if (!perfil) {
+      // Técnicos podem existir apenas na tabela de técnicos: usamos como fallback
+      // para que o acesso não seja bloqueado por ausência de linha em `perfis`.
+      const { data: tec } = await supabase
+        .from("tecnicos")
+        .select("id, nome, empresa_id")
+        .or(`user_id.eq.${sessionUser.id},id.eq.${sessionUser.id}`)
+        .limit(1)
+        .maybeSingle();
+
+      if (tec) {
+        const { data: empTec } = await supabase
+          .from("empresas")
+          .select("nome_fantasia, codigo_empresa, plano, logo_url")
+          .eq("id", tec.empresa_id)
+          .maybeSingle();
+        const sessionIdTec = crypto.randomUUID();
+        localStorage.setItem("tqo_session_id", sessionIdTec);
+        setUser({
+          id: sessionUser.id,
+          email: sessionUser.email ?? email,
+          nome: tec.nome || sessionUser.email || email,
+          role: "tecnico" as Role,
+          empresaId: tec.empresa_id,
+          empresaNome: empTec?.nome_fantasia ?? "",
+          empresaCodigo: empTec?.codigo_empresa ?? "",
+          empresaPlano: empTec?.plano ?? "free",
+          empresaLogo: empTec?.logo_url ?? undefined,
+        });
+        return {};
+      }
+
+      return {
+        error: "Perfil não encontrado. Fale com o administrador da sua empresa para revisar seu acesso.",
+      };
     }
 
     if (perfil.current_session_id && !forceOverwrite) {
