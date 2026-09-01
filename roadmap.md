@@ -1,5 +1,6 @@
 # Roadmap
 
-- [ ] Agendador (pg_cron) chamando /api/public/process-email-queue a cada hora
-- [ ] Garantir envio de e-mail para qualquer provedor (Gmail, Outlook, Yahoo, corporativos)
-- [ ] Registrar as novidades do sistema na tabela `changelog` (via SQL) sempre que houver alterações
+- [x] Agendador (pg_cron) chamando /api/public/process-email-queue a cada hora
+- [x] Envio validado para provedores externos (domínio verificado: DKIM + SPF)
+- [x] Registrar novidades do sistema na tabela `changelog`
+- [ ] Adicionar registro DMARC no DNS (ação do usuário) para máxima entregabilidade
