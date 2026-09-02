@@ -363,7 +363,14 @@ function ClientesPage() {
               <DialogHeader>
                 <DialogTitle>{form.id ? "Editar Cliente" : "Novo Cliente"}</DialogTitle>
               </DialogHeader>
-              <div className="space-y-3">
+              <Tabs defaultValue="dados" className="w-full">
+                <TabsList className="grid w-full grid-cols-4">
+                  <TabsTrigger value="dados">Dados</TabsTrigger>
+                  <TabsTrigger value="financeiro">Financeiro</TabsTrigger>
+                  <TabsTrigger value="rat">RAT</TabsTrigger>
+                  <TabsTrigger value="contatos">Contatos</TabsTrigger>
+                </TabsList>
+                <TabsContent value="dados" className="space-y-3 mt-4">
                 <div>
                   <Label>Nome Fantasia</Label>
                   <Input
