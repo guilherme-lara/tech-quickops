@@ -111,7 +111,7 @@ function TecnicoOSModalContent({ tecnicoId, tecnicoNome, defaultMes }: { tecnico
     queryFn: async () => {
       let query = supabase
         .from("ordens_servico")
-        .select("id, numero, titulo, status, valor, custo_viagem, km_viagem, despesas, tecnico_id, data_agendamento, horario_atendimento, created_at, clientes(nome), tecnicos(comissao, tipo_comissao)")
+        .select("id, numero, titulo, status, valor, custo_viagem, km_viagem, despesas, tecnico_id, data_agendamento, horario_atendimento, created_at, data_hora_inicio, data_hora_fim, clientes(nome), tecnicos(comissao, tipo_comissao, horas_limite, valor_hora_extra)")
         .eq('tecnico_id', tecnicoId)
         .order("data_agendamento", { ascending: false });
 
@@ -144,13 +144,23 @@ function TecnicoOSModalContent({ tecnicoId, tecnicoNome, defaultMes }: { tecnico
       const comissao = Number(os.tecnicos?.comissao) || 0;
       const tipoComissao = os.tecnicos?.tipo_comissao || 'porcentagem';
       const valorTecnico = tipoComissao === 'fixo' ? comissao : (valorServico * comissao) / 100;
+      // Hora extra: tempo além do limite configurado para a OS
+      const horasLimite = Number(os.tecnicos?.horas_limite) || 0;
+      const valorHoraExtra = Number(os.tecnicos?.valor_hora_extra) || 0;
+      const duracaoH = os.data_hora_inicio && os.data_hora_fim
+        ? (new Date(os.data_hora_fim).getTime() - new Date(os.data_hora_inicio).getTime()) / 3600000
+        : 0;
+      const horaExtraValor = horasLimite > 0 && valorHoraExtra > 0 && duracaoH > horasLimite
+        ? (duracaoH - horasLimite) * valorHoraExtra
+        : 0;
+      const valorTecnicoTotal = valorTecnico + horaExtraValor;
 
       return [
         os.numero || os.id,
         `"${clienteNome}"`,
         dataOs,
         faturamento.toFixed(2).replace('.', ','),
-        valorTecnico.toFixed(2).replace('.', ','),
+        valorTecnicoTotal.toFixed(2).replace('.', ','),
         os.status
       ].join(";");
     });
@@ -274,7 +284,7 @@ function GestorDashboard() {
             .in("status", ["pendente", "em_andamento", "agendamento", "reagendado"]),
           supabase
             .from("ordens_servico")
-            .select("id, numero, titulo, status, valor, custo_viagem, km_viagem, despesas, tecnico_id, tecnicos(nome, comissao, tipo_comissao), data_agendamento, horario_atendimento, created_at, cliente_id, clientes(nome, ultimo_mes_pago), os_historico(created_at, status_novo), dados_adicionais")
+            .select("id, numero, titulo, status, valor, custo_viagem, km_viagem, despesas, tecnico_id, tecnicos(nome, comissao, tipo_comissao, valor_fixo, meta_chamados, bonus_excedente, horas_limite, valor_hora_extra), data_agendamento, horario_atendimento, created_at, data_hora_inicio, data_hora_fim, cliente_id, clientes(nome, ultimo_mes_pago), os_historico(created_at, status_novo), dados_adicionais")
             .gte("data_agendamento", startOfMonth)
             .lte("data_agendamento", endOfMonth),
           supabase
@@ -406,7 +416,7 @@ function GestorDashboard() {
             const tId = os.tecnico_id;
             const tNome = os.tecnicos?.nome || "Desconhecido";
             if (!tecnicosMap.has(tId)) {
-              tecnicosMap.set(tId, { tecnico_nome: tNome, tecnico_id: tId, os_finalizadas: 0, faturamento_gerado: 0, valor_a_pagar: 0, os_list: [] });
+              tecnicosMap.set(tId, { tecnico_nome: tNome, tecnico_id: tId, os_finalizadas: 0, faturamento_gerado: 0, valor_a_pagar: 0, comissao_total: 0, hora_extra_total: 0, valor_fixo: 0, bonus_total: 0, os_list: [] });
             }
             const stat = tecnicosMap.get(tId);
             stat.os_finalizadas += 1;
@@ -424,7 +434,33 @@ function GestorDashboard() {
             const comissao = Number(os.tecnicos?.comissao) || 0;
             const tipoComissao = os.tecnicos?.tipo_comissao || 'porcentagem';
             const comissaoValor = tipoComissao === 'fixo' ? comissao : (valorServico * comissao) / 100;
+            stat.comissao_total += comissaoValor;
             stat.valor_a_pagar += comissaoValor;
+
+            // Guarda parâmetros contratuais do técnico (iguais em todas as OS)
+            stat.valor_fixo = Number(os.tecnicos?.valor_fixo) || 0;
+            stat.meta_chamados = Number(os.tecnicos?.meta_chamados) || 0;
+            stat.bonus_excedente = Number(os.tecnicos?.bonus_excedente) || 0;
+
+            // Hora extra por OS: tempo além do limite contratual
+            const horasLimite = Number(os.tecnicos?.horas_limite) || 0;
+            const valorHoraExtra = Number(os.tecnicos?.valor_hora_extra) || 0;
+            if (horasLimite > 0 && valorHoraExtra > 0 && os.data_hora_inicio && os.data_hora_fim) {
+              const duracaoH = (new Date(os.data_hora_fim).getTime() - new Date(os.data_hora_inicio).getTime()) / 3600000;
+              if (duracaoH > horasLimite) {
+                const extraValor = (duracaoH - horasLimite) * valorHoraExtra;
+                stat.hora_extra_total += extraValor;
+                stat.valor_a_pagar += extraValor;
+              }
+            }
+          }
+        });
+        // Pós-processamento: valor fixo mensal + bônus por chamados excedentes
+        tecnicosMap.forEach((stat) => {
+          if (stat.valor_fixo > 0) stat.valor_a_pagar += stat.valor_fixo;
+          if (stat.meta_chamados > 0 && stat.bonus_excedente > 0 && stat.os_finalizadas > stat.meta_chamados) {
+            stat.bonus_total = (stat.os_finalizadas - stat.meta_chamados) * stat.bonus_excedente;
+            stat.valor_a_pagar += stat.bonus_total;
           }
         });
         const rankingArr = Array.from(tecnicosMap.values()).sort((a, b) => b.faturamento_gerado - a.faturamento_gerado);
@@ -530,6 +566,10 @@ function GestorDashboard() {
       "Técnico": t.tecnico_nome || t.nome || "—",
       "OS Finalizadas": t.os_finalizadas ?? 0,
       "Faturamento Gerado (R$)": Number(t.faturamento_gerado ?? 0).toFixed(2),
+      "Comissão (R$)": Number(t.comissao_total ?? 0).toFixed(2),
+      "Valor Fixo (R$)": Number(t.valor_fixo ?? 0).toFixed(2),
+      "Hora Extra (R$)": Number(t.hora_extra_total ?? 0).toFixed(2),
+      "Bônus Meta (R$)": Number(t.bonus_total ?? 0).toFixed(2),
       "Valor a Pagar (R$)": Number(t.valor_a_pagar ?? 0).toFixed(2),
     }));
     const wsRanking = XLSX.utils.json_to_sheet(rankingData);
@@ -781,7 +821,16 @@ function GestorDashboard() {
                         className="hover:bg-muted/20 transition-colors cursor-pointer"
                         onClick={() => setTecnicoSelecionado(t)}
                       >
-                        <td className="px-4 py-3 font-medium">{t.tecnico_nome || t.nome || "—"}</td>
+                        <td className="px-4 py-3 font-medium">
+                          <div>{t.tecnico_nome || t.nome || "—"}</div>
+                          {(Number(t.valor_fixo) > 0 || Number(t.hora_extra_total) > 0 || Number(t.bonus_total) > 0) && (
+                            <div className="text-[10px] text-muted-foreground font-normal mt-0.5 space-x-1.5">
+                              {Number(t.valor_fixo) > 0 && <span>Fixo: R$ {Number(t.valor_fixo).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</span>}
+                              {Number(t.hora_extra_total) > 0 && <span>· HE: R$ {Number(t.hora_extra_total).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</span>}
+                              {Number(t.bonus_total) > 0 && <span>· Bônus: R$ {Number(t.bonus_total).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</span>}
+                            </div>
+                          )}
+                        </td>
                         <td className="px-4 py-3 text-center">
                           <span className="inline-flex items-center justify-center bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 px-2.5 py-0.5 rounded-full font-semibold">
                             {t.os_finalizadas ?? 0}

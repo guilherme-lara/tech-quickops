@@ -81,9 +81,15 @@ function TecnicoOSDetail() {
     }
     try {
       setIsUpdatingStatus(true);
+      const patch: Record<string, any> = { status: newStatus };
+      // Marca o fim do atendimento na conclusão técnica (para cálculo de hora extra)
+      if (newStatus === "concluido_tecnico" && !os?.data_hora_fim) {
+        patch.data_hora_fim = new Date().toISOString();
+        if (!os?.data_hora_inicio) patch.data_hora_inicio = patch.data_hora_fim;
+      }
       const { error } = await supabase
         .from("ordens_servico")
-        .update({ status: newStatus as any })
+        .update(patch as any)
         .eq("id", id);
 
       if (error) throw error;
@@ -122,9 +128,12 @@ function TecnicoOSDetail() {
   const handleConfirmarChegada = async () => {
     try {
       setIsUpdatingStatus(true);
+      const patch: Record<string, any> = { status: "em_andamento" };
+      // Marca o início do atendimento no check-in (para cálculo de hora extra)
+      if (!os?.data_hora_inicio) patch.data_hora_inicio = new Date().toISOString();
       const { error } = await supabase
         .from("ordens_servico")
-        .update({ status: "em_andamento" as any })
+        .update(patch as any)
         .eq("id", id);
 
       if (error) throw error;
@@ -416,6 +425,31 @@ function TecnicoOSDetail() {
               <h4 className="text-xs font-semibold text-muted-foreground mb-1 uppercase tracking-wider">Problema Relatado</h4>
               <p className="text-sm">{os.descricao_problema}</p>
             </div>
+
+            {(os.data_hora_inicio || os.data_hora_fim) && (
+              <div className="mt-4 pt-3 border-t border-border/50 grid grid-cols-3 gap-2 text-center">
+                <div>
+                  <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Início</div>
+                  <div className="text-xs font-bold">
+                    {os.data_hora_inicio ? new Date(os.data_hora_inicio).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" }) : "—"}
+                  </div>
+                </div>
+                <div>
+                  <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Fim</div>
+                  <div className="text-xs font-bold">
+                    {os.data_hora_fim ? new Date(os.data_hora_fim).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" }) : "—"}
+                  </div>
+                </div>
+                <div>
+                  <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Duração</div>
+                  <div className="text-xs font-bold text-primary">
+                    {os.data_hora_inicio && os.data_hora_fim
+                      ? `${((new Date(os.data_hora_fim).getTime() - new Date(os.data_hora_inicio).getTime()) / 3600000).toFixed(1).replace(".", ",")}h`
+                      : "Em andamento"}
+                  </div>
+                </div>
+              </div>
+            )}
           </Card>
         </section>
 

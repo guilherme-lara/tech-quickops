@@ -222,6 +222,11 @@ function EquipePage() {
     username: "",
     comissao: "",
     tipo_comissao: "fixo" as TipoComissao,
+    valor_fixo: "",
+    meta_chamados: "",
+    bonus_excedente: "",
+    horas_limite: "",
+    valor_hora_extra: "",
     chave_pix: "",
     email_notificacoes: "",
     cidade_atendimento: "",
@@ -252,6 +257,11 @@ function EquipePage() {
       username: t.username || "",
       comissao: t.comissao != null ? String(t.comissao) : "",
       tipo_comissao: (t.tipo_comissao || "fixo") as TipoComissao,
+      valor_fixo: t.valor_fixo ? String(t.valor_fixo) : "",
+      meta_chamados: t.meta_chamados ? String(t.meta_chamados) : "",
+      bonus_excedente: t.bonus_excedente ? String(t.bonus_excedente) : "",
+      horas_limite: t.horas_limite ? String(t.horas_limite) : "",
+      valor_hora_extra: t.valor_hora_extra ? String(t.valor_hora_extra) : "",
       chave_pix: t.chave_pix || "",
       email_notificacoes: t.email_notificacoes || "",
       cidade_atendimento: dadosAdicionais.cidade_atendimento || "",
@@ -346,6 +356,11 @@ function EquipePage() {
             telefone: form.telefone,
             comissao: Number(form.comissao) || 0,
             tipo_comissao: form.tipo_comissao,
+            valor_fixo: Number(form.valor_fixo) || 0,
+            meta_chamados: Number(form.meta_chamados) || 0,
+            bonus_excedente: Number(form.bonus_excedente) || 0,
+            horas_limite: Number(form.horas_limite) || 0,
+            valor_hora_extra: Number(form.valor_hora_extra) || 0,
             chave_pix: form.chave_pix,
             username: form.username,
             email_notificacoes: form.email_notificacoes,
@@ -363,7 +378,7 @@ function EquipePage() {
 
         const novaSenha = generateRandomPassword();
 
-        const { error } = await (supabase.rpc as any)("criar_tecnico", {
+        const { data: novoTecnicoId, error } = await (supabase.rpc as any)("criar_tecnico", {
           p_nome: form.nome,
           p_username: form.username.toLowerCase(),
           p_senha: novaSenha,
@@ -379,6 +394,19 @@ function EquipePage() {
           p_email_notificacoes: form.email_notificacoes || null,
         });
         if (error) throw error;
+        // Campos de contrato/produtividade não fazem parte da RPC — atualiza em seguida
+        if (novoTecnicoId) {
+          await updateTecnico({
+            id: novoTecnicoId,
+            patch: {
+              valor_fixo: Number(form.valor_fixo) || 0,
+              meta_chamados: Number(form.meta_chamados) || 0,
+              bonus_excedente: Number(form.bonus_excedente) || 0,
+              horas_limite: Number(form.horas_limite) || 0,
+              valor_hora_extra: Number(form.valor_hora_extra) || 0,
+            },
+          });
+        }
         await registrarLog(
           "tecnico_criado",
           `Técnico "${form.nome}" cadastrado por ${nomeUsuario}`,
@@ -548,6 +576,67 @@ function EquipePage() {
                       onChange={(e) => setForm({ ...form, chave_pix: e.target.value })}
                       placeholder="Email, CPF, Celular ou Aleatória"
                     />
+                  </div>
+                </div>
+
+                <div className="rounded-xl border border-border/60 bg-muted/20 p-3 space-y-3">
+                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                    Contrato & Produtividade (opcional)
+                  </p>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <Label>Valor fixo mensal (R$)</Label>
+                      <Input
+                        type="number"
+                        step="0.01"
+                        value={form.valor_fixo}
+                        onChange={(e) => setForm({ ...form, valor_fixo: e.target.value })}
+                        placeholder="Ex: 1500,00"
+                      />
+                    </div>
+                    <div>
+                      <Label>Meta de chamados/mês</Label>
+                      <Input
+                        type="number"
+                        value={form.meta_chamados}
+                        onChange={(e) => setForm({ ...form, meta_chamados: e.target.value })}
+                        placeholder="Ex: 40"
+                      />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <Label>Bônus por chamado excedente (R$)</Label>
+                      <Input
+                        type="number"
+                        step="0.01"
+                        value={form.bonus_excedente}
+                        onChange={(e) => setForm({ ...form, bonus_excedente: e.target.value })}
+                        placeholder="Ex: 25,00"
+                      />
+                    </div>
+                    <div>
+                      <Label>Limite de horas por OS</Label>
+                      <Input
+                        type="number"
+                        step="0.5"
+                        value={form.horas_limite}
+                        onChange={(e) => setForm({ ...form, horas_limite: e.target.value })}
+                        placeholder="Ex: 4"
+                      />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <Label>Valor da hora extra (R$)</Label>
+                      <Input
+                        type="number"
+                        step="0.01"
+                        value={form.valor_hora_extra}
+                        onChange={(e) => setForm({ ...form, valor_hora_extra: e.target.value })}
+                        placeholder="Ex: 50,00"
+                      />
+                    </div>
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-3">
