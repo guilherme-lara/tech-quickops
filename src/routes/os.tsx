@@ -474,7 +474,14 @@ function OSPage() {
               <DialogHeader>
                 <DialogTitle>Nova Ordem de Serviço</DialogTitle>
               </DialogHeader>
-              <div className="space-y-4">
+              <Tabs defaultValue="nova_dados" className="w-full">
+                <TabsList className="grid w-full grid-cols-4">
+                  <TabsTrigger value="nova_dados">Dados</TabsTrigger>
+                  <TabsTrigger value="nova_financeiro">Financeiro</TabsTrigger>
+                  <TabsTrigger value="nova_detalhes">Detalhes</TabsTrigger>
+                  <TabsTrigger value="nova_extras">Extras</TabsTrigger>
+                </TabsList>
+                <TabsContent value="nova_dados" className="space-y-4 mt-4">
                 <div>
                   <Label>Título *</Label>
                   <Input
