@@ -348,6 +348,10 @@ function EquipePage() {
         const dadosAdicionais: any = {};
         if (form.cidade_atendimento) dadosAdicionais.cidade_atendimento = form.cidade_atendimento;
         if (form.raio_atendimento) dadosAdicionais.raio_atendimento = Number(form.raio_atendimento);
+        if (form.contrato_arquivo) {
+          dadosAdicionais.contrato_arquivo = form.contrato_arquivo;
+          dadosAdicionais.contrato_nome = form.contrato_nome;
+        }
 
         await updateTecnico({
           id: form.id,
