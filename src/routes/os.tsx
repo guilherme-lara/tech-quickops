@@ -635,6 +635,9 @@ function OSPage() {
                     />
                   </div>
                 </div>
+                </TabsContent>
+
+                <TabsContent value="nova_financeiro" className="space-y-4 mt-4">
                 <div className="grid grid-cols-3 gap-4">
                   <div>
                     <Label>Valor estimado (R$)</Label>
