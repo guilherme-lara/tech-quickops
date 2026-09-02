@@ -472,11 +472,17 @@ function EquipePage() {
                 <Plus className="w-4 h-4" /> Novo Técnico
               </Button>
             </DialogTrigger>
-            <DialogContent>
+            <DialogContent className="w-[95vw] sm:max-w-2xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>{form.id ? "Editar Técnico" : "Novo Técnico"}</DialogTitle>
               </DialogHeader>
-              <div className="space-y-3">
+              <Tabs defaultValue="dados" className="w-full">
+                <TabsList className="grid w-full grid-cols-3">
+                  <TabsTrigger value="dados">Dados</TabsTrigger>
+                  <TabsTrigger value="financeiro">Financeiro</TabsTrigger>
+                  <TabsTrigger value="contrato">Contrato</TabsTrigger>
+                </TabsList>
+                <TabsContent value="dados" className="space-y-3 mt-4">
                 <div>
                   <Label>Nome</Label>
                   <Input
