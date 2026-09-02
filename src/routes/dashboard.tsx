@@ -713,6 +713,9 @@ function Dashboard() {
           receitaBruta: 0, custoTotal: 0, resultadoLiquido: 0, comissaoTotal: 0, resultadoEmpresa: 0,
         };
 
+      // "Todos os meses" = osMonth 0 (ou ano vazio): não aplicar recorte de período
+      const semFiltroPeriodo = !(osMonth > 0 && osYear > 0);
+
       let serviceMonth = osMonth - 1;
       let serviceYear = osYear;
       if (serviceMonth < 1) {
@@ -724,27 +727,45 @@ function Dashboard() {
       const serviceFim = `${serviceYear}-${String(serviceMonth).padStart(2, "0")}-${String(lastDayOfServiceMonth).padStart(2, "0")}`;
       const dashboardMonthStr = `${osYear}-${String(osMonth).padStart(2, "0")}`;
 
-      // Query 1: OSs do mês de serviço
+      const colunas =
+        "id, status, valor, km_viagem, custo_viagem, despesas, data_agendamento, tecnico_id, dados_adicionais, recebido_cliente, valor_adiantado, tecnico:tecnicos(comissao, tipo_comissao), cliente:clientes(id, dias_pagamento, ultimo_mes_pago)";
+
+      // Query 1: OSs do mês de serviço (ou todas, quando "Todos os meses")
       let queryServico = supabase
         .from("ordens_servico")
-        .select("id, status, valor, km_viagem, custo_viagem, despesas, data_agendamento, tecnico_id, dados_adicionais, tecnico:tecnicos(comissao, tipo_comissao), cliente:clientes(id, dias_pagamento, ultimo_mes_pago)")
-        .eq("empresa_id", eid)
-        .gte("data_agendamento", serviceInicio)
-        .lte("data_agendamento", serviceFim);
+        .select(colunas)
+        .eq("empresa_id", eid);
+
+      if (!semFiltroPeriodo) {
+        queryServico = queryServico
+          .gte("data_agendamento", serviceInicio)
+          .lte("data_agendamento", serviceFim);
+      }
 
       const { data: dataServico, error: errorServico } = await queryServico;
       if (errorServico) throw errorServico;
 
       // Query 2: OSs recebidas no mês do dashboard (fluxo de caixa)
-      let queryRecebida = supabase
-        .from("ordens_servico")
-        .select("id, status, valor, km_viagem, custo_viagem, despesas, data_agendamento, tecnico_id, dados_adicionais, tecnico:tecnicos(comissao, tipo_comissao), cliente:clientes(id, dias_pagamento, ultimo_mes_pago)")
-        .eq("empresa_id", eid)
-        .eq("status", "concluido")
-        .eq("dados_adicionais->>mes_recebimento", dashboardMonthStr);
-
-      const { data: dataRecebida, error: errorRecebida } = await queryRecebida;
-      if (errorRecebida) throw errorRecebida;
+      let dataRecebida: any[] = [];
+      if (!semFiltroPeriodo) {
+        const { data, error: errorRecebida } = await supabase
+          .from("ordens_servico")
+          .select(colunas)
+          .eq("empresa_id", eid)
+          .eq("status", "concluido")
+          .eq("dados_adicionais->>mes_recebimento", dashboardMonthStr);
+        if (errorRecebida) throw errorRecebida;
+        dataRecebida = (data ?? []) as any[];
+      } else {
+        // Sem recorte: toda OS concluída já recebida entra no caixa
+        dataRecebida = ((dataServico ?? []) as any[]).filter(
+          (r: any) =>
+            r.status === "concluido" &&
+            (r.recebido_cliente ||
+              r.dados_adicionais?.pago_imediatamente ||
+              r.dados_adicionais?.mes_recebimento),
+        );
+      }
 
       const rowsServico = (dataServico ?? []) as any[];
       const rowsRecebida = (dataRecebida ?? []) as any[];
@@ -767,7 +788,12 @@ function Dashboard() {
       // Adicionamos tbm as OSs de rowsServico que foram pagas imediatamente (pago_imediatamente)
       const allReceitas = [...rowsRecebida];
       rowsServico.forEach(rs => {
-         if (rs.status === "concluido" && rs.dados_adicionais?.pago_imediatamente && !allReceitas.find(x => x.id === rs.id)) {
+         const adiantamentoTotal =
+           Number(rs.valor_adiantado ?? 0) > 0 &&
+           Number(rs.valor_adiantado ?? 0) >= totalFinanceiro(rs);
+         const jaPago =
+           rs.dados_adicionais?.pago_imediatamente || rs.recebido_cliente || adiantamentoTotal;
+         if (rs.status === "concluido" && jaPago && !allReceitas.find(x => x.id === rs.id)) {
              allReceitas.push(rs);
          }
       });
@@ -975,6 +1001,7 @@ function Dashboard() {
         .select("*, clientes(nome, endereco_completo), tecnico:tecnicos(id, nome, perfil, telefone, ativo)")
         .eq("empresa_id", profile?.empresa_id || "")
         .or("and(pendencias_detalhes.not.is.null,pendencias_detalhes.neq.)")
+        .not("status", "in", "(concluido,concluido_tecnico,cancelado)")
         .order("data_agendamento", { ascending: true });
 
       if (error) throw error;

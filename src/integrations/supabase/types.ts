@@ -446,6 +446,8 @@ export type Database = {
           dados_adicionais: Json
           data_agendamento: string | null
           data_atendimento: string | null
+          data_hora_fim: string | null
+          data_hora_inicio: string | null
           descricao_adiantamento: string | null
           descricao_problema: string
           despesas: Json
@@ -456,8 +458,11 @@ export type Database = {
           horario_atendimento: string | null
           id: string
           km_viagem: number
+          lancamentos_adicionais: Json
           numero: string | null
           pendencias_detalhes: string | null
+          recebido_cliente: boolean
+          recebido_em: string | null
           solucao: string | null
           status: Database["public"]["Enums"]["os_status"]
           tecnico_id: string | null
@@ -473,6 +478,8 @@ export type Database = {
           dados_adicionais?: Json
           data_agendamento?: string | null
           data_atendimento?: string | null
+          data_hora_fim?: string | null
+          data_hora_inicio?: string | null
           descricao_adiantamento?: string | null
           descricao_problema?: string
           despesas?: Json
@@ -483,8 +490,11 @@ export type Database = {
           horario_atendimento?: string | null
           id?: string
           km_viagem?: number
+          lancamentos_adicionais?: Json
           numero?: string | null
           pendencias_detalhes?: string | null
+          recebido_cliente?: boolean
+          recebido_em?: string | null
           solucao?: string | null
           status?: Database["public"]["Enums"]["os_status"]
           tecnico_id?: string | null
@@ -500,6 +510,8 @@ export type Database = {
           dados_adicionais?: Json
           data_agendamento?: string | null
           data_atendimento?: string | null
+          data_hora_fim?: string | null
+          data_hora_inicio?: string | null
           descricao_adiantamento?: string | null
           descricao_problema?: string
           despesas?: Json
@@ -510,8 +522,11 @@ export type Database = {
           horario_atendimento?: string | null
           id?: string
           km_viagem?: number
+          lancamentos_adicionais?: Json
           numero?: string | null
           pendencias_detalhes?: string | null
+          recebido_cliente?: boolean
+          recebido_em?: string | null
           solucao?: string | null
           status?: Database["public"]["Enums"]["os_status"]
           tecnico_id?: string | null
@@ -832,51 +847,66 @@ export type Database = {
       tecnicos: {
         Row: {
           ativo: boolean
+          bonus_excedente: number
           chave_pix: string | null
           comissao: number | null
           created_at: string
           dados_adicionais: Json | null
           email_notificacoes: string | null
           empresa_id: string
+          horas_limite: number
           id: string
+          meta_chamados: number
           nome: string
           perfil: string | null
           telefone: string | null
           tipo_comissao: Database["public"]["Enums"]["tipo_comissao_enum"]
           user_id: string | null
           username: string | null
+          valor_fixo: number
+          valor_hora_extra: number
         }
         Insert: {
           ativo?: boolean
+          bonus_excedente?: number
           chave_pix?: string | null
           comissao?: number | null
           created_at?: string
           dados_adicionais?: Json | null
           email_notificacoes?: string | null
           empresa_id: string
+          horas_limite?: number
           id?: string
+          meta_chamados?: number
           nome: string
           perfil?: string | null
           telefone?: string | null
           tipo_comissao?: Database["public"]["Enums"]["tipo_comissao_enum"]
           user_id?: string | null
           username?: string | null
+          valor_fixo?: number
+          valor_hora_extra?: number
         }
         Update: {
           ativo?: boolean
+          bonus_excedente?: number
           chave_pix?: string | null
           comissao?: number | null
           created_at?: string
           dados_adicionais?: Json | null
           email_notificacoes?: string | null
           empresa_id?: string
+          horas_limite?: number
           id?: string
+          meta_chamados?: number
           nome?: string
           perfil?: string | null
           telefone?: string | null
           tipo_comissao?: Database["public"]["Enums"]["tipo_comissao_enum"]
           user_id?: string | null
           username?: string | null
+          valor_fixo?: number
+          valor_hora_extra?: number
         }
         Relationships: [
           {
@@ -1087,12 +1117,12 @@ export type Tables<
   DefaultSchemaTableNameOrOptions extends
     | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
         DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -1116,11 +1146,11 @@ export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -1141,11 +1171,11 @@ export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -1166,11 +1196,11 @@ export type Enums<
   DefaultSchemaEnumNameOrOptions extends
     | keyof DefaultSchema["Enums"]
     | { schema: keyof DatabaseWithoutInternals },
-  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+  EnumName extends (DefaultSchemaEnumNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaEnumNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -1183,11 +1213,11 @@ export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
     | keyof DefaultSchema["CompositeTypes"]
     | { schema: keyof DatabaseWithoutInternals },
-  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+  CompositeTypeName extends (PublicCompositeTypeNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
-    : never = never,
+    : never) = never,
 > = PublicCompositeTypeNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
