@@ -437,6 +437,16 @@ function GestorDashboard() {
             stat.comissao_total += comissaoValor;
             stat.valor_a_pagar += comissaoValor;
 
+            // Lançamentos adicionais da OS (valores extras devidos ao técnico)
+            if (Array.isArray((os as any).lancamentos_adicionais)) {
+              const extras = ((os as any).lancamentos_adicionais as any[]).reduce(
+                (s: number, l: any) => s + (Number(l?.valor) || 0),
+                0,
+              );
+              stat.lancamentos_total = (stat.lancamentos_total || 0) + extras;
+              stat.valor_a_pagar += extras;
+            }
+
             // Guarda parâmetros contratuais do técnico (iguais em todas as OS)
             stat.valor_fixo = Number(os.tecnicos?.valor_fixo) || 0;
             stat.meta_chamados = Number(os.tecnicos?.meta_chamados) || 0;
