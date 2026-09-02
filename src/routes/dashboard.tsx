@@ -975,6 +975,7 @@ function Dashboard() {
         .select("*, clientes(nome, endereco_completo), tecnico:tecnicos(id, nome, perfil, telefone, ativo)")
         .eq("empresa_id", profile?.empresa_id || "")
         .or("and(pendencias_detalhes.not.is.null,pendencias_detalhes.neq.)")
+        .not("status", "in", "(concluido,concluido_tecnico,cancelado)")
         .order("data_agendamento", { ascending: true });
 
       if (error) throw error;

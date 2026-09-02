@@ -114,6 +114,11 @@ export interface OS {
   equipamentosClienteIds?: string[];
   valor_adiantado?: number;
   descricao_adiantamento?: string;
+  lancamentos_adicionais?: Array<{ tipo: string; valor: number; descricao?: string }>;
+  recebido_cliente?: boolean;
+  recebido_em?: string | null;
+  data_hora_inicio?: string | null;
+  data_hora_fim?: string | null;
   tecnico?: {
     id: string;
     nome: string;
@@ -833,6 +838,13 @@ export function StoreProvider({ children }: { children: ReactNode }) {
           pendencias_detalhes: r.pendencias_detalhes ?? "",
           endereco_servico: r.endereco_servico ?? "",
           equipamentosClienteIds: r.equipamentos_cliente_ids || [],
+          valor_adiantado: Number(r.valor_adiantado ?? 0),
+          descricao_adiantamento: r.descricao_adiantamento ?? "",
+          lancamentos_adicionais: Array.isArray(r.lancamentos_adicionais) ? r.lancamentos_adicionais : [],
+          recebido_cliente: !!r.recebido_cliente,
+          recebido_em: r.recebido_em ?? null,
+          data_hora_inicio: r.data_hora_inicio ?? null,
+          data_hora_fim: r.data_hora_fim ?? null,
           tecnico: r.tecnico
             ? {
                 id: r.tecnico.id,
@@ -1083,6 +1095,16 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         dbPatch.valor_adiantado = patch.valor_adiantado;
       if (patch.descricao_adiantamento !== undefined)
         dbPatch.descricao_adiantamento = patch.descricao_adiantamento;
+      if (patch.lancamentos_adicionais !== undefined)
+        dbPatch.lancamentos_adicionais = patch.lancamentos_adicionais;
+      if (patch.recebido_cliente !== undefined) {
+        dbPatch.recebido_cliente = patch.recebido_cliente;
+        dbPatch.recebido_em = patch.recebido_cliente
+          ? (patch.recebido_em ?? new Date().toISOString())
+          : null;
+      }
+      if (patch.data_hora_inicio !== undefined) dbPatch.data_hora_inicio = patch.data_hora_inicio;
+      if (patch.data_hora_fim !== undefined) dbPatch.data_hora_fim = patch.data_hora_fim;
       const { error } = await (supabase.from("ordens_servico") as any).update(dbPatch).eq("id", id);
       if (error) throw error;
 

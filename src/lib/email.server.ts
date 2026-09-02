@@ -191,6 +191,50 @@ export function renderEmailTemplate(
         ),
       };
 
+    case "status_alterado_gestao":
+    case "os_concluida_gestao": {
+      const concluida = tipo === "os_concluida_gestao";
+      const saudacaoGestao = `<p style="margin:0 0 8px;font-size:14px;color:#374151;">Olá, <strong>${escapeHtml(dados?.empresa_nome || "QuickOps")}</strong>!</p>`;
+      return {
+        subject: concluida
+          ? `OS ${numero} concluída (${dados?.cliente_nome ?? "cliente"}) — QuickOps`
+          : `Atualização da OS ${numero} (${dados?.cliente_nome ?? "cliente"}) — QuickOps`,
+        html: layout(
+          concluida ? "Ordem de serviço concluída" : "Atualização de ordem de serviço",
+          `${saudacaoGestao}
+          <p style="margin:0 0 8px;font-size:14px;color:#374151;">A ordem de serviço do cliente <strong>${escapeHtml(dados?.cliente_nome ?? "não informado")}</strong> ${concluida ? "foi <strong style=\"color:#16a34a;\">concluída</strong>" : "teve o status alterado"}.</p>
+          <div style="margin:12px 0;padding:12px 16px;background-color:#f3f4f6;border-radius:8px;font-size:14px;color:#1f2937;">
+            <span style="color:#6b7280;">${escapeHtml(statusLabel(dados?.status_anterior))}</span>
+            &nbsp;→&nbsp;
+            <strong>${escapeHtml(statusLabel(dados?.status_novo))}</strong>
+          </div>
+          ${detalhes([
+            ["Número da OS", numero],
+            ["Cliente", dados?.cliente_nome],
+            ["Serviço", dados?.titulo],
+            ["Endereço", dados?.endereco],
+            ["Alterado por", dados?.autor_nome],
+          ])}`,
+        ),
+      };
+    }
+
+    case "os_concluida_tecnico":
+      return {
+        subject: `OS ${numero} concluída — QuickOps`,
+        html: layout(
+          "Ordem de serviço concluída",
+          `${dados?.tecnico_nome ? `<p style="margin:0 0 8px;font-size:14px;color:#374151;">Olá, <strong>${escapeHtml(dados.tecnico_nome)}</strong>!</p>` : ""}
+          <p style="margin:0 0 8px;font-size:14px;color:#374151;">A ordem de serviço sob sua responsabilidade foi <strong style="color:#16a34a;">concluída</strong>.</p>
+          ${detalhes([
+            ["Número da OS", numero],
+            ["Serviço", dados?.titulo],
+            ["Cliente", dados?.cliente_nome],
+            ["Endereço", dados?.endereco],
+          ])}`,
+        ),
+      };
+
     default:
 
       return {

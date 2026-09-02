@@ -1522,6 +1522,13 @@ export function EditOSDialog({
   const [despesasEdit, setDespesasEdit] = useState<Array<{ tipo: string; valor: number }>>([]);
   const [despesaTipoEdit, setDespesaTipoEdit] = useState("Pedágio");
   const [despesaValorEdit, setDespesaValorEdit] = useState("");
+  const [lancamentosEdit, setLancamentosEdit] = useState<
+    Array<{ tipo: string; valor: number; descricao?: string }>
+  >([]);
+  const [lancTipo, setLancTipo] = useState("Hora extra");
+  const [lancValor, setLancValor] = useState("");
+  const [lancDescricao, setLancDescricao] = useState("");
+  const [recebidoCliente, setRecebidoCliente] = useState(false);
   const [saving, setSaving] = useState(false);
   const [quickCliOpen, setQuickCliOpen] = useState(false);
   const [quickCliForm, setQuickCliForm] = useState({ nome: "", telefone: "", email: "" });
@@ -1564,6 +1571,8 @@ export function EditOSDialog({
       setHorarioAtendimento(ordem?.horario_atendimento || "");
       setDadosExtras((ordem?.dados_adicionais as Record<string, any>) || {});
       setDespesasEdit(ordem?.despesas ?? []);
+      setLancamentosEdit(ordem?.lancamentos_adicionais ?? []);
+      setRecebidoCliente(!!ordem?.recebido_cliente);
     }
   }, [ordem]);
 
@@ -1590,11 +1599,17 @@ export function EditOSDialog({
       descricao_problema: descricaoProblema,
       status: (typeof overrideStatus === "string" ? overrideStatus : form.status) as OSStatus,
       dados_adicionais: dadosExtras,
-      pendencias_detalhes: form.pendencias_detalhes || (null as any),
+      pendencias_detalhes: osFinalizada(
+        (typeof overrideStatus === "string" ? overrideStatus : form.status) as OSStatus,
+      )
+        ? (null as any)
+        : form.pendencias_detalhes || (null as any),
       endereco_servico: form.endereco_servico || undefined,
       valor_adiantado: form.valor_adiantado ? parseFloat(form.valor_adiantado) : 0,
       descricao_adiantamento: form.descricao_adiantamento || undefined,
       equipamentosClienteIds: form.equipamentosIds,
+      lancamentos_adicionais: lancamentosEdit,
+      recebido_cliente: recebidoCliente,
     };
 
     setSaving(true);
@@ -2133,15 +2148,135 @@ export function EditOSDialog({
                 className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
               />
             </div>
-            <div>
-              <Label>Pendências (Motivo de Travamento)</Label>
-              <Input
-                disabled={isView}
-                value={form.pendencias_detalhes}
-                onChange={(e) => setForm({ ...form, pendencias_detalhes: e.target.value })}
-                placeholder="Ex: Aguardando peça X, falta assinatura. Deixe vazio se não houver pendência."
-              />
+            {!osFinalizada(form.status) && (
+              <div>
+                <Label>Pendências (Motivo de Travamento)</Label>
+                <Input
+                  disabled={isView}
+                  value={form.pendencias_detalhes}
+                  onChange={(e) => setForm({ ...form, pendencias_detalhes: e.target.value })}
+                  placeholder="Ex: Aguardando peça X, falta assinatura. Deixe vazio se não houver pendência."
+                />
+              </div>
+            )}
+          </div>
+
+          {/* Lançamentos adicionais do técnico */}
+          <div className="rounded-xl border border-border/60 bg-muted/30 p-3 space-y-3">
+            <div className="text-[10px] uppercase tracking-wider font-bold text-muted-foreground">
+              Valores adicionais do técnico
             </div>
+            {!isView && (
+              <div className="flex flex-col sm:flex-row gap-2">
+                <Select value={lancTipo} onValueChange={setLancTipo}>
+                  <SelectTrigger className="h-10 sm:w-44">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {["Hora extra", "Reembolso", "Ajuda de custo", "Bônus", "Outro"].map((t) => (
+                      <SelectItem key={t} value={t}>
+                        {t}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Input
+                  value={lancDescricao}
+                  onChange={(e) => setLancDescricao(e.target.value)}
+                  placeholder="Descrição (ex: jantar)"
+                  className="h-10 flex-1"
+                />
+                <Input
+                  type="number"
+                  step="0.01"
+                  value={lancValor}
+                  onChange={(e) => setLancValor(e.target.value)}
+                  placeholder="R$"
+                  className="h-10 w-28"
+                />
+                <Button
+                  type="button"
+                  size="icon"
+                  className="h-10 w-10 shrink-0"
+                  onClick={() => {
+                    const valor = Number(lancValor) || 0;
+                    if (valor <= 0) return toast.error("Informe um valor maior que zero");
+                    setLancamentosEdit((prev) => [
+                      ...prev,
+                      { tipo: lancTipo, valor, descricao: lancDescricao || undefined },
+                    ]);
+                    setLancValor("");
+                    setLancDescricao("");
+                  }}
+                >
+                  <Plus className="w-4 h-4" />
+                </Button>
+              </div>
+            )}
+            {lancamentosEdit.length === 0 ? (
+              <p className="text-xs text-muted-foreground">Nenhum valor adicional lançado.</p>
+            ) : (
+              <div className="space-y-2">
+                {lancamentosEdit.map((l, index) => (
+                  <div
+                    key={`${l.tipo}-${index}`}
+                    className="flex items-center justify-between rounded-lg bg-background/70 px-3 py-2 text-sm"
+                  >
+                    <span>
+                      {l.tipo}
+                      {l.descricao ? ` — ${l.descricao}` : ""}
+                    </span>
+                    <div className="flex items-center gap-2">
+                      <span>R$ {Number(l.valor).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</span>
+                      {!isView && (
+                        <Button
+                          type="button"
+                          size="icon"
+                          variant="ghost"
+                          className="h-7 w-7"
+                          onClick={() =>
+                            setLancamentosEdit((prev) => prev.filter((_, i) => i !== index))
+                          }
+                        >
+                          <Trash2 className="w-3.5 h-3.5 text-destructive" />
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                ))}
+                <div className="flex justify-between text-sm font-semibold pt-1 border-t border-border/60">
+                  <span>Total adicional do técnico</span>
+                  <span>
+                    R${" "}
+                    {lancamentosEdit
+                      .reduce((s, l) => s + Number(l.valor || 0), 0)
+                      .toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                  </span>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Baixa de recebimento individual */}
+          <div className="rounded-xl border border-border/60 bg-emerald-500/5 p-3 flex items-center justify-between gap-3">
+            <div>
+              <div className="text-sm font-semibold">Valor recebido do cliente</div>
+              <p className="text-xs text-muted-foreground">
+                {recebidoCliente
+                  ? "Esta OS está marcada como paga pelo cliente."
+                  : "Marque quando o pagamento desta OS for confirmado."}
+              </p>
+            </div>
+            <Button
+              type="button"
+              variant={recebidoCliente ? "default" : "outline"}
+              size="sm"
+              disabled={isView}
+              onClick={() => setRecebidoCliente((v) => !v)}
+              className={recebidoCliente ? "bg-emerald-600 hover:bg-emerald-700" : ""}
+            >
+              {recebidoCliente ? "Recebido" : "Dar baixa"}
+            </Button>
           </div>
           {despesasEdit.length > 0 && (
             <div className="rounded-xl border border-border/60 bg-muted/30 p-3 space-y-2">
