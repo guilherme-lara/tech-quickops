@@ -284,7 +284,7 @@ function GestorDashboard() {
             .in("status", ["pendente", "em_andamento", "agendamento", "reagendado"]),
           supabase
             .from("ordens_servico")
-            .select("id, numero, titulo, status, valor, custo_viagem, km_viagem, despesas, tecnico_id, tecnicos(nome, comissao, tipo_comissao), data_agendamento, horario_atendimento, created_at, cliente_id, clientes(nome, ultimo_mes_pago), os_historico(created_at, status_novo), dados_adicionais")
+            .select("id, numero, titulo, status, valor, custo_viagem, km_viagem, despesas, tecnico_id, tecnicos(nome, comissao, tipo_comissao, valor_fixo, meta_chamados, bonus_excedente, horas_limite, valor_hora_extra), data_agendamento, horario_atendimento, created_at, data_hora_inicio, data_hora_fim, cliente_id, clientes(nome, ultimo_mes_pago), os_historico(created_at, status_novo), dados_adicionais")
             .gte("data_agendamento", startOfMonth)
             .lte("data_agendamento", endOfMonth),
           supabase
