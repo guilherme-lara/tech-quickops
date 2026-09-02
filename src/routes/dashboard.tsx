@@ -788,7 +788,12 @@ function Dashboard() {
       // Adicionamos tbm as OSs de rowsServico que foram pagas imediatamente (pago_imediatamente)
       const allReceitas = [...rowsRecebida];
       rowsServico.forEach(rs => {
-         if (rs.status === "concluido" && rs.dados_adicionais?.pago_imediatamente && !allReceitas.find(x => x.id === rs.id)) {
+         const adiantamentoTotal =
+           Number(rs.valor_adiantado ?? 0) > 0 &&
+           Number(rs.valor_adiantado ?? 0) >= totalFinanceiro(rs);
+         const jaPago =
+           rs.dados_adicionais?.pago_imediatamente || rs.recebido_cliente || adiantamentoTotal;
+         if (rs.status === "concluido" && jaPago && !allReceitas.find(x => x.id === rs.id)) {
              allReceitas.push(rs);
          }
       });
