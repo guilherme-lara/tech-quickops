@@ -15,6 +15,7 @@ import {
   DialogTrigger,
   DialogFooter,
 } from "@/components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -363,7 +364,14 @@ function ClientesPage() {
               <DialogHeader>
                 <DialogTitle>{form.id ? "Editar Cliente" : "Novo Cliente"}</DialogTitle>
               </DialogHeader>
-              <div className="space-y-3">
+              <Tabs defaultValue="dados" className="w-full">
+                <TabsList className="grid w-full grid-cols-4">
+                  <TabsTrigger value="dados">Dados</TabsTrigger>
+                  <TabsTrigger value="financeiro">Financeiro</TabsTrigger>
+                  <TabsTrigger value="rat">RAT</TabsTrigger>
+                  <TabsTrigger value="contatos">Contatos</TabsTrigger>
+                </TabsList>
+                <TabsContent value="dados" className="space-y-3 mt-4">
                 <div>
                   <Label>Nome Fantasia</Label>
                   <Input
@@ -403,15 +411,18 @@ function ClientesPage() {
                     placeholder="Ex: Av Paulista, 1000 - Bela Vista"
                   />
                 </div>
+                <div>
+                  <Label>Cidade/Estado</Label>
+                  <Input
+                    value={form.cidade}
+                    onChange={(e) => setForm({ ...form, cidade: e.target.value })}
+                    placeholder="São Paulo - SP"
+                  />
+                </div>
+                </TabsContent>
+
+                <TabsContent value="financeiro" className="space-y-3 mt-4">
                 <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <Label>Cidade/Estado</Label>
-                    <Input
-                      value={form.cidade}
-                      onChange={(e) => setForm({ ...form, cidade: e.target.value })}
-                      placeholder="São Paulo - SP"
-                    />
-                  </div>
                   <div>
                     <Label>Quilometragem Base (km)</Label>
                     <Input
@@ -496,7 +507,9 @@ function ClientesPage() {
                     />
                   </div>
                 </div>
+                </TabsContent>
 
+                <TabsContent value="rat" className="space-y-3 mt-4">
                 {/* Modelo RAT */}
                 <div className="rounded-xl border border-border/60 bg-muted/30 p-3 mt-4">
                   <div className="text-sm font-semibold mb-1">Modelo RAT do Cliente (Opcional)</div>
@@ -535,7 +548,9 @@ function ClientesPage() {
                     className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                   />
                 </div>
+                </TabsContent>
 
+                <TabsContent value="contatos" className="space-y-3 mt-4">
                 {/* Contatos de Suporte / Analistas */}
                 <div className="rounded-xl border border-border/60 bg-muted/30 p-3 mt-4">
                   <div className="flex items-center justify-between mb-2">
@@ -603,7 +618,8 @@ function ClientesPage() {
                     </div>
                   )}
                 </div>
-              </div>
+                </TabsContent>
+              </Tabs>
               <DialogFooter>
                 <Button variant="outline" onClick={() => setOpen(false)}>
                   Cancelar

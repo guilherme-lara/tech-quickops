@@ -22,6 +22,7 @@ import {
   DialogTrigger,
   DialogFooter,
 } from "@/components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -472,11 +473,17 @@ function EquipePage() {
                 <Plus className="w-4 h-4" /> Novo Técnico
               </Button>
             </DialogTrigger>
-            <DialogContent>
+            <DialogContent className="w-[95vw] sm:max-w-2xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>{form.id ? "Editar Técnico" : "Novo Técnico"}</DialogTitle>
               </DialogHeader>
-              <div className="space-y-3">
+              <Tabs defaultValue="dados" className="w-full">
+                <TabsList className="grid w-full grid-cols-3">
+                  <TabsTrigger value="dados">Dados</TabsTrigger>
+                  <TabsTrigger value="financeiro">Financeiro</TabsTrigger>
+                  <TabsTrigger value="contrato">Contrato</TabsTrigger>
+                </TabsList>
+                <TabsContent value="dados" className="space-y-3 mt-4">
                 <div>
                   <Label>Nome</Label>
                   <Input
@@ -530,31 +537,32 @@ function EquipePage() {
                     placeholder="tecnico@email.com — recebe aviso de OS atribuída"
                   />
                 </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <Label>Telefone</Label>
-                    <Input
-                      value={form.telefone}
-                      onChange={(e) => setForm({ ...form, telefone: maskPhoneBR(e.target.value) })}
-                      placeholder="(11) 99999-0000"
-                      inputMode="numeric"
-                    />
-                  </div>
-                  <div>
-                    <Label>Tipo de comissão</Label>
-                    <Select
-                      value={form.tipo_comissao}
-                      onValueChange={(v) => setForm({ ...form, tipo_comissao: v as TipoComissao })}
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="porcentagem">% sobre OS</SelectItem>
-                        <SelectItem value="fixo">Valor fixo (R$)</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
+                <div>
+                  <Label>Telefone</Label>
+                  <Input
+                    value={form.telefone}
+                    onChange={(e) => setForm({ ...form, telefone: maskPhoneBR(e.target.value) })}
+                    placeholder="(11) 99999-0000"
+                    inputMode="numeric"
+                  />
+                </div>
+                </TabsContent>
+
+                <TabsContent value="financeiro" className="space-y-3 mt-4">
+                <div>
+                  <Label>Tipo de comissão</Label>
+                  <Select
+                    value={form.tipo_comissao}
+                    onValueChange={(v) => setForm({ ...form, tipo_comissao: v as TipoComissao })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="porcentagem">% sobre OS</SelectItem>
+                      <SelectItem value="fixo">Valor fixo (R$)</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
@@ -578,7 +586,9 @@ function EquipePage() {
                     />
                   </div>
                 </div>
+                </TabsContent>
 
+                <TabsContent value="contrato" className="space-y-3 mt-4">
                 <div className="rounded-xl border border-border/60 bg-muted/20 p-3 space-y-3">
                   <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                     Contrato & Produtividade (opcional)
@@ -659,7 +669,8 @@ function EquipePage() {
                     />
                   </div>
                 </div>
-              </div>
+                </TabsContent>
+              </Tabs>
               <DialogFooter>
                 <Button variant="outline" onClick={() => setOpen(false)} disabled={saving}>
                   Cancelar
