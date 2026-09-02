@@ -168,7 +168,7 @@ export function ChangelogModal() {
                     </div>
                   </div>
                 </div>
-              ))
+              ))}
               </>
             )}
           </div>
