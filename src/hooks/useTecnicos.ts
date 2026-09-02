@@ -93,8 +93,15 @@ export function useUpdateTecnico() {
       if (patch.ativo !== undefined) dbPatch.ativo = patch.ativo;
       if (patch.comissao !== undefined) dbPatch.comissao = patch.comissao;
       if (patch.tipo_comissao !== undefined) dbPatch.tipo_comissao = patch.tipo_comissao;
+      if (patch.valor_fixo !== undefined) dbPatch.valor_fixo = patch.valor_fixo;
+      if (patch.meta_chamados !== undefined) dbPatch.meta_chamados = patch.meta_chamados;
+      if (patch.bonus_excedente !== undefined) dbPatch.bonus_excedente = patch.bonus_excedente;
+      if (patch.horas_limite !== undefined) dbPatch.horas_limite = patch.horas_limite;
+      if (patch.valor_hora_extra !== undefined) dbPatch.valor_hora_extra = patch.valor_hora_extra;
       if (patch.chave_pix !== undefined) dbPatch.chave_pix = patch.chave_pix;
       if (patch.username !== undefined) dbPatch.username = patch.username || null;
+      if (patch.email_notificacoes !== undefined)
+        dbPatch.email_notificacoes = patch.email_notificacoes?.trim() || null;
       if (patch.dados_adicionais !== undefined) dbPatch.dados_adicionais = patch.dados_adicionais;
 
       const { error } = await supabase
