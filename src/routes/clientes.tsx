@@ -403,15 +403,18 @@ function ClientesPage() {
                     placeholder="Ex: Av Paulista, 1000 - Bela Vista"
                   />
                 </div>
+                <div>
+                  <Label>Cidade/Estado</Label>
+                  <Input
+                    value={form.cidade}
+                    onChange={(e) => setForm({ ...form, cidade: e.target.value })}
+                    placeholder="São Paulo - SP"
+                  />
+                </div>
+                </TabsContent>
+
+                <TabsContent value="financeiro" className="space-y-3 mt-4">
                 <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <Label>Cidade/Estado</Label>
-                    <Input
-                      value={form.cidade}
-                      onChange={(e) => setForm({ ...form, cidade: e.target.value })}
-                      placeholder="São Paulo - SP"
-                    />
-                  </div>
                   <div>
                     <Label>Quilometragem Base (km)</Label>
                     <Input
