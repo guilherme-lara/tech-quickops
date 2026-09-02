@@ -918,7 +918,8 @@ function OSPage() {
                     </div>
                   )}
                 </div>
-              </div>
+                </TabsContent>
+              </Tabs>
               <DialogFooter>
                 <Button variant="outline" onClick={() => setOpen(false)}>
                   Cancelar
