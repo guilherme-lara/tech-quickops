@@ -98,6 +98,33 @@ export function ChangelogModal() {
             ) : changelogs.length === 0 ? (
               <div className="text-center text-slate-500 py-10">Nenhuma novidade registrada ainda.</div>
             ) : (
+              <>
+              {/* Índice por versão e data */}
+              <nav className="rounded-xl border border-slate-800 bg-slate-800/40 p-4">
+                <p className="text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-3">Índice</p>
+                <ul className="space-y-1.5">
+                  {changelogs.map((cl) => (
+                    <li key={`idx-${cl.id}`}>
+                      <button
+                        type="button"
+                        onClick={() => document.getElementById(`changelog-${cl.id}`)?.scrollIntoView({ behavior: "smooth", block: "start" })}
+                        className="w-full flex items-center justify-between gap-3 text-left rounded-lg px-2 py-1.5 hover:bg-slate-800 transition-colors group"
+                      >
+                        <span className="flex items-center gap-2 min-w-0">
+                          {cl.versao && (
+                            <span className="text-xs font-mono font-bold text-blue-400 shrink-0">v{cl.versao}</span>
+                          )}
+                          <span className="text-sm text-slate-300 truncate group-hover:text-white">{cl.titulo}</span>
+                        </span>
+                        <span className="text-[11px] font-mono text-slate-500 shrink-0">
+                          {new Date(cl.created_at).toLocaleDateString('pt-BR')}
+                        </span>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </nav>
+
               changelogs.map((cl, i) => (
                 <div key={cl.id} className="relative">
                   {/* Timeline line */}
