@@ -269,6 +269,8 @@ function EquipePage() {
       raio_atendimento: dadosAdicionais.raio_atendimento
         ? String(dadosAdicionais.raio_atendimento)
         : "",
+      contrato_arquivo: dadosAdicionais.contrato_arquivo || "",
+      contrato_nome: dadosAdicionais.contrato_nome || "",
     });
     setOpen(true);
   };
