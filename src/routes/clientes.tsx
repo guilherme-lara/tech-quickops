@@ -496,7 +496,9 @@ function ClientesPage() {
                     />
                   </div>
                 </div>
+                </TabsContent>
 
+                <TabsContent value="rat" className="space-y-3 mt-4">
                 {/* Modelo RAT */}
                 <div className="rounded-xl border border-border/60 bg-muted/30 p-3 mt-4">
                   <div className="text-sm font-semibold mb-1">Modelo RAT do Cliente (Opcional)</div>
