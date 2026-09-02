@@ -536,31 +536,32 @@ function EquipePage() {
                     placeholder="tecnico@email.com — recebe aviso de OS atribuída"
                   />
                 </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <Label>Telefone</Label>
-                    <Input
-                      value={form.telefone}
-                      onChange={(e) => setForm({ ...form, telefone: maskPhoneBR(e.target.value) })}
-                      placeholder="(11) 99999-0000"
-                      inputMode="numeric"
-                    />
-                  </div>
-                  <div>
-                    <Label>Tipo de comissão</Label>
-                    <Select
-                      value={form.tipo_comissao}
-                      onValueChange={(v) => setForm({ ...form, tipo_comissao: v as TipoComissao })}
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="porcentagem">% sobre OS</SelectItem>
-                        <SelectItem value="fixo">Valor fixo (R$)</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
+                <div>
+                  <Label>Telefone</Label>
+                  <Input
+                    value={form.telefone}
+                    onChange={(e) => setForm({ ...form, telefone: maskPhoneBR(e.target.value) })}
+                    placeholder="(11) 99999-0000"
+                    inputMode="numeric"
+                  />
+                </div>
+                </TabsContent>
+
+                <TabsContent value="financeiro" className="space-y-3 mt-4">
+                <div>
+                  <Label>Tipo de comissão</Label>
+                  <Select
+                    value={form.tipo_comissao}
+                    onValueChange={(v) => setForm({ ...form, tipo_comissao: v as TipoComissao })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="porcentagem">% sobre OS</SelectItem>
+                      <SelectItem value="fixo">Valor fixo (R$)</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
