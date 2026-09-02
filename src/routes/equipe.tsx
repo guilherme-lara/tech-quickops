@@ -648,7 +648,31 @@ function EquipePage() {
                       />
                     </div>
                   </div>
+                  <div className="space-y-2 pt-1 border-t border-border/60">
+                    <Label>Contrato assinado (PDF ou imagem)</Label>
+                    <div className="flex items-center gap-2">
+                      <Input
+                        type="file"
+                        accept=".pdf,.png,.jpg,.jpeg,.doc,.docx"
+                        disabled={uploadingContrato}
+                        onChange={handleUploadContrato}
+                      />
+                      {form.contrato_arquivo && (
+                        <Button type="button" variant="outline" size="sm" onClick={abrirContrato}>
+                          Ver
+                        </Button>
+                      )}
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      {uploadingContrato
+                        ? "Enviando contrato..."
+                        : form.contrato_nome
+                          ? `Anexado: ${form.contrato_nome}`
+                          : "Nenhum contrato anexado."}
+                    </p>
+                  </div>
                 </div>
+
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <Label>Cidade de Atendimento</Label>
