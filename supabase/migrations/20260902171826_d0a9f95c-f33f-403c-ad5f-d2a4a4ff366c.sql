@@ -1,0 +1,32 @@
+REVOKE ALL ON FUNCTION public.fn_audit_log_changes() FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.fn_disparar_email_resend() FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.fn_notify_changelog() FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.fn_notify_os_changes() FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.fn_notify_os_criada_gestao() FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.fn_os_inventario_movimenta() FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.fn_registrar_os_historico() FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.gen_os_numero() FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.set_codigo_empresa() FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.handle_new_user() FROM PUBLIC;
+
+REVOKE ALL ON FUNCTION public.criar_tecnico(text, text, text, tipo_comissao_enum, numeric, text, text, jsonb, text) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.criar_usuario_backoffice(text, text, text, app_role, text, text, uuid) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.remover_acesso_backoffice(uuid) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.resetar_senha_tecnico(uuid, text) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.vincular_acesso_tecnico(uuid, text, text, uuid) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.gerar_chave_licenca_segura(uuid) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.validar_chave_licenca(text) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.get_current_empresa_id() FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.has_role(uuid, app_role) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.get_email_by_username(text, text) FROM PUBLIC;
+
+GRANT EXECUTE ON FUNCTION public.criar_tecnico(text, text, text, tipo_comissao_enum, numeric, text, text, jsonb, text) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.criar_usuario_backoffice(text, text, text, app_role, text, text, uuid) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.remover_acesso_backoffice(uuid) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.resetar_senha_tecnico(uuid, text) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.vincular_acesso_tecnico(uuid, text, text, uuid) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.gerar_chave_licenca_segura(uuid) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.validar_chave_licenca(text) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.get_current_empresa_id() TO authenticated;
+GRANT EXECUTE ON FUNCTION public.has_role(uuid, app_role) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.get_email_by_username(text, text) TO anon, authenticated;
