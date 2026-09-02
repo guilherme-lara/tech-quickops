@@ -865,7 +865,9 @@ function OSPage() {
                     className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                   />
                 </div>
+                </TabsContent>
 
+                <TabsContent value="nova_extras" className="space-y-4 mt-4">
                 <div className="rounded-xl border border-border/60 bg-muted/30 p-4">
                   <div className="text-[10px] uppercase tracking-wider font-bold text-muted-foreground mb-3">
                     Campos Personalizados (Opcional)
