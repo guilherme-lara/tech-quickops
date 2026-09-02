@@ -113,6 +113,7 @@ export function useUpdateTecnico() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["tecnicos"] });
       qc.invalidateQueries({ queryKey: ["equipe_tecnicos"] });
+      qc.invalidateQueries({ queryKey: ["all_tecnicos"] });
     },
   });
 }
