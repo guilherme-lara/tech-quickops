@@ -284,7 +284,7 @@ function GestorDashboard() {
             .in("status", ["pendente", "em_andamento", "agendamento", "reagendado"]),
           supabase
             .from("ordens_servico")
-            .select("id, numero, titulo, status, valor, custo_viagem, km_viagem, despesas, tecnico_id, tecnicos(nome, comissao, tipo_comissao, valor_fixo, meta_chamados, bonus_excedente, horas_limite, valor_hora_extra), data_agendamento, horario_atendimento, created_at, data_hora_inicio, data_hora_fim, cliente_id, clientes(nome, ultimo_mes_pago), os_historico(created_at, status_novo), dados_adicionais")
+            .select("id, numero, titulo, status, valor, custo_viagem, km_viagem, despesas, tecnico_id, tecnicos(nome, comissao, tipo_comissao, valor_fixo, meta_chamados, bonus_excedente, horas_limite, valor_hora_extra), data_agendamento, horario_atendimento, created_at, data_hora_inicio, data_hora_fim, cliente_id, clientes(nome, ultimo_mes_pago), os_historico(created_at, status_novo), dados_adicionais, lancamentos_adicionais")
             .gte("data_agendamento", startOfMonth)
             .lte("data_agendamento", endOfMonth),
           supabase
@@ -416,7 +416,7 @@ function GestorDashboard() {
             const tId = os.tecnico_id;
             const tNome = os.tecnicos?.nome || "Desconhecido";
             if (!tecnicosMap.has(tId)) {
-              tecnicosMap.set(tId, { tecnico_nome: tNome, tecnico_id: tId, os_finalizadas: 0, faturamento_gerado: 0, valor_a_pagar: 0, comissao_total: 0, hora_extra_total: 0, valor_fixo: 0, bonus_total: 0, os_list: [] });
+              tecnicosMap.set(tId, { tecnico_nome: tNome, tecnico_id: tId, os_finalizadas: 0, faturamento_gerado: 0, valor_a_pagar: 0, comissao_total: 0, hora_extra_total: 0, valor_fixo: 0, bonus_total: 0, lancamentos_total: 0, os_list: [] });
             }
             const stat = tecnicosMap.get(tId);
             stat.os_finalizadas += 1;
