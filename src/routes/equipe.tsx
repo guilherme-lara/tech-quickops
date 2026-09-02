@@ -232,8 +232,42 @@ function EquipePage() {
     email_notificacoes: "",
     cidade_atendimento: "",
     raio_atendimento: "",
+    contrato_arquivo: "",
+    contrato_nome: "",
   };
   const [form, setForm] = useState(emptyForm);
+  const [uploadingContrato, setUploadingContrato] = useState(false);
+
+  const handleUploadContrato = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      setUploadingContrato(true);
+      const ext = file.name.split(".").pop();
+      const path = `${empresaId || "sem-empresa"}/contrato_${Date.now()}.${ext}`;
+      const { error } = await supabase.storage.from("contratos").upload(path, file, {
+        upsert: true,
+        contentType: file.type || undefined,
+      });
+      if (error) throw error;
+      setForm((prev) => ({ ...prev, contrato_arquivo: path, contrato_nome: file.name }));
+      toast.success("Contrato anexado! Salve para confirmar.");
+    } catch (err: any) {
+      toast.error("Erro ao enviar contrato: " + (err?.message ?? ""));
+    } finally {
+      setUploadingContrato(false);
+    }
+  };
+
+  const abrirContrato = async () => {
+    if (!form.contrato_arquivo) return;
+    const { data, error } = await supabase.storage
+      .from("contratos")
+      .createSignedUrl(form.contrato_arquivo, 60 * 10);
+    if (error || !data?.signedUrl) return toast.error("Não foi possível abrir o contrato");
+    window.open(data.signedUrl, "_blank");
+  };
+
   const [gerarAcessoFor, setGerarAcessoFor] = useState<any>(null);
   const [viewFerramentasFor, setViewFerramentasFor] = useState<any>(null);
   const [resetSenhaResult, setResetSenhaResult] = useState<{ texto: string; nome: string } | null>(null);
