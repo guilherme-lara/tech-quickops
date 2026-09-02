@@ -391,6 +391,8 @@ function EquipePage() {
             perfil: form.perfil || null,
             cidade_atendimento: form.cidade_atendimento || null,
             raio_atendimento: form.raio_atendimento ? Number(form.raio_atendimento) : null,
+            contrato_arquivo: form.contrato_arquivo || null,
+            contrato_nome: form.contrato_nome || null,
           },
           p_email_notificacoes: form.email_notificacoes || null,
         });
