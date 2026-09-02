@@ -566,6 +566,10 @@ function GestorDashboard() {
       "Técnico": t.tecnico_nome || t.nome || "—",
       "OS Finalizadas": t.os_finalizadas ?? 0,
       "Faturamento Gerado (R$)": Number(t.faturamento_gerado ?? 0).toFixed(2),
+      "Comissão (R$)": Number(t.comissao_total ?? 0).toFixed(2),
+      "Valor Fixo (R$)": Number(t.valor_fixo ?? 0).toFixed(2),
+      "Hora Extra (R$)": Number(t.hora_extra_total ?? 0).toFixed(2),
+      "Bônus Meta (R$)": Number(t.bonus_total ?? 0).toFixed(2),
       "Valor a Pagar (R$)": Number(t.valor_a_pagar ?? 0).toFixed(2),
     }));
     const wsRanking = XLSX.utils.json_to_sheet(rankingData);
@@ -817,7 +821,16 @@ function GestorDashboard() {
                         className="hover:bg-muted/20 transition-colors cursor-pointer"
                         onClick={() => setTecnicoSelecionado(t)}
                       >
-                        <td className="px-4 py-3 font-medium">{t.tecnico_nome || t.nome || "—"}</td>
+                        <td className="px-4 py-3 font-medium">
+                          <div>{t.tecnico_nome || t.nome || "—"}</div>
+                          {(Number(t.valor_fixo) > 0 || Number(t.hora_extra_total) > 0 || Number(t.bonus_total) > 0) && (
+                            <div className="text-[10px] text-muted-foreground font-normal mt-0.5 space-x-1.5">
+                              {Number(t.valor_fixo) > 0 && <span>Fixo: R$ {Number(t.valor_fixo).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</span>}
+                              {Number(t.hora_extra_total) > 0 && <span>· HE: R$ {Number(t.hora_extra_total).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</span>}
+                              {Number(t.bonus_total) > 0 && <span>· Bônus: R$ {Number(t.bonus_total).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</span>}
+                            </div>
+                          )}
+                        </td>
                         <td className="px-4 py-3 text-center">
                           <span className="inline-flex items-center justify-center bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 px-2.5 py-0.5 rounded-full font-semibold">
                             {t.os_finalizadas ?? 0}
