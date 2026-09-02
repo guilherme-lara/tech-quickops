@@ -36,6 +36,11 @@ export interface Tecnico {
   ativo: boolean;
   comissao?: number;
   tipo_comissao?: TipoComissao;
+  valor_fixo?: number;
+  meta_chamados?: number;
+  bonus_excedente?: number;
+  horas_limite?: number;
+  valor_hora_extra?: number;
   chave_pix?: string;
   username?: string;
   email_notificacoes?: string;
@@ -682,6 +687,11 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         ativo: r.ativo,
         comissao: Number(r.comissao || 0),
         tipo_comissao: (r.tipo_comissao as TipoComissao) ?? "fixo",
+        valor_fixo: Number(r.valor_fixo || 0),
+        meta_chamados: Number(r.meta_chamados || 0),
+        bonus_excedente: Number(r.bonus_excedente || 0),
+        horas_limite: Number(r.horas_limite || 0),
+        valor_hora_extra: Number(r.valor_hora_extra || 0),
         chave_pix: r.chave_pix ?? "",
         username: r.username ?? "",
         email_notificacoes: r.email_notificacoes ?? "",
@@ -710,6 +720,11 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         ativo: r.ativo,
         comissao: Number(r.comissao || 0),
         tipo_comissao: (r.tipo_comissao as TipoComissao) ?? "fixo",
+        valor_fixo: Number(r.valor_fixo || 0),
+        meta_chamados: Number(r.meta_chamados || 0),
+        bonus_excedente: Number(r.bonus_excedente || 0),
+        horas_limite: Number(r.horas_limite || 0),
+        valor_hora_extra: Number(r.valor_hora_extra || 0),
         chave_pix: r.chave_pix ?? "",
         username: r.username ?? "",
         email_notificacoes: r.email_notificacoes ?? "",
@@ -987,6 +1002,11 @@ export function StoreProvider({ children }: { children: ReactNode }) {
           ativo: t.ativo,
           comissao: t.comissao,
           tipo_comissao: t.tipo_comissao ?? "fixo",
+          valor_fixo: t.valor_fixo ?? 0,
+          meta_chamados: t.meta_chamados ?? 0,
+          bonus_excedente: t.bonus_excedente ?? 0,
+          horas_limite: t.horas_limite ?? 0,
+          valor_hora_extra: t.valor_hora_extra ?? 0,
           chave_pix: t.chave_pix,
           username: t.username || null,
           email_notificacoes: t.email_notificacoes || null,
@@ -1008,6 +1028,11 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       if (patch.ativo !== undefined) dbPatch.ativo = patch.ativo;
       if (patch.comissao !== undefined) dbPatch.comissao = patch.comissao;
       if (patch.tipo_comissao !== undefined) dbPatch.tipo_comissao = patch.tipo_comissao;
+      if (patch.valor_fixo !== undefined) dbPatch.valor_fixo = patch.valor_fixo;
+      if (patch.meta_chamados !== undefined) dbPatch.meta_chamados = patch.meta_chamados;
+      if (patch.bonus_excedente !== undefined) dbPatch.bonus_excedente = patch.bonus_excedente;
+      if (patch.horas_limite !== undefined) dbPatch.horas_limite = patch.horas_limite;
+      if (patch.valor_hora_extra !== undefined) dbPatch.valor_hora_extra = patch.valor_hora_extra;
       if (patch.chave_pix !== undefined) dbPatch.chave_pix = patch.chave_pix;
       if (patch.username !== undefined) dbPatch.username = patch.username || null;
       if (patch.email_notificacoes !== undefined) dbPatch.email_notificacoes = patch.email_notificacoes || null;

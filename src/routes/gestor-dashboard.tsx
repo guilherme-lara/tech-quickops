@@ -111,7 +111,7 @@ function TecnicoOSModalContent({ tecnicoId, tecnicoNome, defaultMes }: { tecnico
     queryFn: async () => {
       let query = supabase
         .from("ordens_servico")
-        .select("id, numero, titulo, status, valor, custo_viagem, km_viagem, despesas, tecnico_id, data_agendamento, horario_atendimento, created_at, clientes(nome), tecnicos(comissao, tipo_comissao)")
+        .select("id, numero, titulo, status, valor, custo_viagem, km_viagem, despesas, tecnico_id, data_agendamento, horario_atendimento, created_at, data_hora_inicio, data_hora_fim, clientes(nome), tecnicos(comissao, tipo_comissao, horas_limite, valor_hora_extra)")
         .eq('tecnico_id', tecnicoId)
         .order("data_agendamento", { ascending: false });
 
@@ -144,13 +144,23 @@ function TecnicoOSModalContent({ tecnicoId, tecnicoNome, defaultMes }: { tecnico
       const comissao = Number(os.tecnicos?.comissao) || 0;
       const tipoComissao = os.tecnicos?.tipo_comissao || 'porcentagem';
       const valorTecnico = tipoComissao === 'fixo' ? comissao : (valorServico * comissao) / 100;
+      // Hora extra: tempo além do limite configurado para a OS
+      const horasLimite = Number(os.tecnicos?.horas_limite) || 0;
+      const valorHoraExtra = Number(os.tecnicos?.valor_hora_extra) || 0;
+      const duracaoH = os.data_hora_inicio && os.data_hora_fim
+        ? (new Date(os.data_hora_fim).getTime() - new Date(os.data_hora_inicio).getTime()) / 3600000
+        : 0;
+      const horaExtraValor = horasLimite > 0 && valorHoraExtra > 0 && duracaoH > horasLimite
+        ? (duracaoH - horasLimite) * valorHoraExtra
+        : 0;
+      const valorTecnicoTotal = valorTecnico + horaExtraValor;
 
       return [
         os.numero || os.id,
         `"${clienteNome}"`,
         dataOs,
         faturamento.toFixed(2).replace('.', ','),
-        valorTecnico.toFixed(2).replace('.', ','),
+        valorTecnicoTotal.toFixed(2).replace('.', ','),
         os.status
       ].join(";");
     });
