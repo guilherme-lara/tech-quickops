@@ -101,6 +101,9 @@ export const Route = createFileRoute("/os")({
   ),
 });
 
+const osFinalizada = (status?: string) =>
+  status === "Concluído" || status === "Concluído Técnico" || status === "concluido" || status === "concluido_tecnico";
+
 const colunas: OSStatus[] = ["Agendamento", "Em Deslocamento", "Em Andamento", "Concluído Técnico", "Pendência", "Concluído", "Cancelado"];
 
 function OSPage() {
@@ -2238,7 +2241,7 @@ export function EditOSDialog({
                             setLancamentosEdit((prev) => prev.filter((_, i) => i !== index))
                           }
                         >
-                          <Trash2 className="w-3.5 h-3.5 text-destructive" />
+                          <Trash className="w-3.5 h-3.5 text-destructive" />
                         </Button>
                       )}
                     </div>
