@@ -837,7 +837,9 @@ function OSPage() {
               </>
             );
           })()}
+          </TabsContent>
 
+          <TabsContent value="nova_detalhes" className="space-y-4 mt-4">
           <div>
             <Label>Status</Label>
                   <Select
