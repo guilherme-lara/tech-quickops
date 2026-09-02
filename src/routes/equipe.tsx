@@ -585,7 +585,9 @@ function EquipePage() {
                     />
                   </div>
                 </div>
+                </TabsContent>
 
+                <TabsContent value="contrato" className="space-y-3 mt-4">
                 <div className="rounded-xl border border-border/60 bg-muted/20 p-3 space-y-3">
                   <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                     Contrato & Produtividade (opcional)
