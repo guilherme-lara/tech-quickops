@@ -177,7 +177,7 @@ export function GestorLayout({ children }: { children?: ReactNode }) {
                 {profile?.empresaNome || "QuickOps"}
               </div>
               <div className="text-[10px] text-muted-foreground tracking-wider uppercase truncate w-full mt-0.5">
-                QuickOps B2B <span className="font-semibold text-primary/80 ml-1">v0.0.1.40</span>
+                QuickOps B2B <span className="font-semibold text-primary/80 ml-1">v0.0.1.50</span>
               </div>
             </div>
           </div>
@@ -224,7 +224,7 @@ export function GestorLayout({ children }: { children?: ReactNode }) {
                       {profile?.empresaNome || "QuickOps"}
                     </div>
                     <div className="text-[10px] text-muted-foreground tracking-wider uppercase truncate w-full mt-0.5">
-                      QuickOps B2B <span className="font-semibold text-primary/80 ml-1">v0.0.1.21</span>
+                      QuickOps B2B <span className="font-semibold text-primary/80 ml-1">v0.0.1.50</span>
                     </div>
                   </div>
                 </div>
