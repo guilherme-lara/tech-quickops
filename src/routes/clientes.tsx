@@ -535,7 +535,9 @@ function ClientesPage() {
                     className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                   />
                 </div>
+                </TabsContent>
 
+                <TabsContent value="contatos" className="space-y-3 mt-4">
                 {/* Contatos de Suporte / Analistas */}
                 <div className="rounded-xl border border-border/60 bg-muted/30 p-3 mt-4">
                   <div className="flex items-center justify-between mb-2">
