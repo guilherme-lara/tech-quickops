@@ -125,7 +125,7 @@ export function ChangelogModal() {
                 </ul>
               </nav>
 
-              changelogs.map((cl, i) => (
+              {changelogs.map((cl, i) => (
                 <div key={cl.id} id={`changelog-${cl.id}`} className="relative scroll-mt-6">
                   {/* Timeline line */}
                   {i !== changelogs.length - 1 && (
