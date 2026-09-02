@@ -232,8 +232,42 @@ function EquipePage() {
     email_notificacoes: "",
     cidade_atendimento: "",
     raio_atendimento: "",
+    contrato_arquivo: "",
+    contrato_nome: "",
   };
   const [form, setForm] = useState(emptyForm);
+  const [uploadingContrato, setUploadingContrato] = useState(false);
+
+  const handleUploadContrato = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      setUploadingContrato(true);
+      const ext = file.name.split(".").pop();
+      const path = `${empresaId || "sem-empresa"}/contrato_${Date.now()}.${ext}`;
+      const { error } = await supabase.storage.from("contratos").upload(path, file, {
+        upsert: true,
+        contentType: file.type || undefined,
+      });
+      if (error) throw error;
+      setForm((prev) => ({ ...prev, contrato_arquivo: path, contrato_nome: file.name }));
+      toast.success("Contrato anexado! Salve para confirmar.");
+    } catch (err: any) {
+      toast.error("Erro ao enviar contrato: " + (err?.message ?? ""));
+    } finally {
+      setUploadingContrato(false);
+    }
+  };
+
+  const abrirContrato = async () => {
+    if (!form.contrato_arquivo) return;
+    const { data, error } = await supabase.storage
+      .from("contratos")
+      .createSignedUrl(form.contrato_arquivo, 60 * 10);
+    if (error || !data?.signedUrl) return toast.error("Não foi possível abrir o contrato");
+    window.open(data.signedUrl, "_blank");
+  };
+
   const [gerarAcessoFor, setGerarAcessoFor] = useState<any>(null);
   const [viewFerramentasFor, setViewFerramentasFor] = useState<any>(null);
   const [resetSenhaResult, setResetSenhaResult] = useState<{ texto: string; nome: string } | null>(null);
@@ -269,6 +303,8 @@ function EquipePage() {
       raio_atendimento: dadosAdicionais.raio_atendimento
         ? String(dadosAdicionais.raio_atendimento)
         : "",
+      contrato_arquivo: dadosAdicionais.contrato_arquivo || "",
+      contrato_nome: dadosAdicionais.contrato_nome || "",
     });
     setOpen(true);
   };
@@ -348,6 +384,10 @@ function EquipePage() {
         const dadosAdicionais: any = {};
         if (form.cidade_atendimento) dadosAdicionais.cidade_atendimento = form.cidade_atendimento;
         if (form.raio_atendimento) dadosAdicionais.raio_atendimento = Number(form.raio_atendimento);
+        if (form.contrato_arquivo) {
+          dadosAdicionais.contrato_arquivo = form.contrato_arquivo;
+          dadosAdicionais.contrato_nome = form.contrato_nome;
+        }
 
         await updateTecnico({
           id: form.id,
@@ -391,6 +431,8 @@ function EquipePage() {
             perfil: form.perfil || null,
             cidade_atendimento: form.cidade_atendimento || null,
             raio_atendimento: form.raio_atendimento ? Number(form.raio_atendimento) : null,
+            contrato_arquivo: form.contrato_arquivo || null,
+            contrato_nome: form.contrato_nome || null,
           },
           p_email_notificacoes: form.email_notificacoes || null,
         });
@@ -648,7 +690,31 @@ function EquipePage() {
                       />
                     </div>
                   </div>
+                  <div className="space-y-2 pt-1 border-t border-border/60">
+                    <Label>Contrato assinado (PDF ou imagem)</Label>
+                    <div className="flex items-center gap-2">
+                      <Input
+                        type="file"
+                        accept=".pdf,.png,.jpg,.jpeg,.doc,.docx"
+                        disabled={uploadingContrato}
+                        onChange={handleUploadContrato}
+                      />
+                      {form.contrato_arquivo && (
+                        <Button type="button" variant="outline" size="sm" onClick={abrirContrato}>
+                          Ver
+                        </Button>
+                      )}
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      {uploadingContrato
+                        ? "Enviando contrato..."
+                        : form.contrato_nome
+                          ? `Anexado: ${form.contrato_nome}`
+                          : "Nenhum contrato anexado."}
+                    </p>
+                  </div>
                 </div>
+
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <Label>Cidade de Atendimento</Label>
