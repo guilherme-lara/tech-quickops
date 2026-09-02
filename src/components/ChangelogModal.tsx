@@ -169,6 +169,7 @@ export function ChangelogModal() {
                   </div>
                 </div>
               ))
+              </>
             )}
           </div>
         </ScrollArea>
