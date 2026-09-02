@@ -416,7 +416,7 @@ function GestorDashboard() {
             const tId = os.tecnico_id;
             const tNome = os.tecnicos?.nome || "Desconhecido";
             if (!tecnicosMap.has(tId)) {
-              tecnicosMap.set(tId, { tecnico_nome: tNome, tecnico_id: tId, os_finalizadas: 0, faturamento_gerado: 0, valor_a_pagar: 0, os_list: [] });
+              tecnicosMap.set(tId, { tecnico_nome: tNome, tecnico_id: tId, os_finalizadas: 0, faturamento_gerado: 0, valor_a_pagar: 0, comissao_total: 0, hora_extra_total: 0, valor_fixo: 0, bonus_total: 0, os_list: [] });
             }
             const stat = tecnicosMap.get(tId);
             stat.os_finalizadas += 1;
@@ -434,7 +434,33 @@ function GestorDashboard() {
             const comissao = Number(os.tecnicos?.comissao) || 0;
             const tipoComissao = os.tecnicos?.tipo_comissao || 'porcentagem';
             const comissaoValor = tipoComissao === 'fixo' ? comissao : (valorServico * comissao) / 100;
+            stat.comissao_total += comissaoValor;
             stat.valor_a_pagar += comissaoValor;
+
+            // Guarda parâmetros contratuais do técnico (iguais em todas as OS)
+            stat.valor_fixo = Number(os.tecnicos?.valor_fixo) || 0;
+            stat.meta_chamados = Number(os.tecnicos?.meta_chamados) || 0;
+            stat.bonus_excedente = Number(os.tecnicos?.bonus_excedente) || 0;
+
+            // Hora extra por OS: tempo além do limite contratual
+            const horasLimite = Number(os.tecnicos?.horas_limite) || 0;
+            const valorHoraExtra = Number(os.tecnicos?.valor_hora_extra) || 0;
+            if (horasLimite > 0 && valorHoraExtra > 0 && os.data_hora_inicio && os.data_hora_fim) {
+              const duracaoH = (new Date(os.data_hora_fim).getTime() - new Date(os.data_hora_inicio).getTime()) / 3600000;
+              if (duracaoH > horasLimite) {
+                const extraValor = (duracaoH - horasLimite) * valorHoraExtra;
+                stat.hora_extra_total += extraValor;
+                stat.valor_a_pagar += extraValor;
+              }
+            }
+          }
+        });
+        // Pós-processamento: valor fixo mensal + bônus por chamados excedentes
+        tecnicosMap.forEach((stat) => {
+          if (stat.valor_fixo > 0) stat.valor_a_pagar += stat.valor_fixo;
+          if (stat.meta_chamados > 0 && stat.bonus_excedente > 0 && stat.os_finalizadas > stat.meta_chamados) {
+            stat.bonus_total = (stat.os_finalizadas - stat.meta_chamados) * stat.bonus_excedente;
+            stat.valor_a_pagar += stat.bonus_total;
           }
         });
         const rankingArr = Array.from(tecnicosMap.values()).sort((a, b) => b.faturamento_gerado - a.faturamento_gerado);
