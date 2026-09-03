@@ -3,6 +3,7 @@ import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { TecnicoLayout } from "@/components/TecnicoLayout";
 import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/integrations/supabase/client";
+import { liveQueryOptions } from "@/lib/refresh";
 import { useQuery } from "@tanstack/react-query";
 import { Card } from "@/components/ui/card";
 import { useState } from "react";
@@ -35,6 +36,7 @@ function DashboardTecnico() {
 
   const { data: allStats, isLoading } = useQuery({
     queryKey: ["dashboard_tecnico_all", tecnicoId],
+    ...liveQueryOptions,
     enabled: !!tecnicoId,
     queryFn: async () => {
       const { data: tecData } = await supabase
@@ -68,6 +70,7 @@ function DashboardTecnico() {
 
   const { data: ultimasOs, isLoading: isLoadingOs } = useQuery({
     queryKey: ["ultimas_os_tecnico", tecnicoId],
+    ...liveQueryOptions,
     enabled: !!tecnicoId,
     queryFn: async () => {
       const { data: tecData } = await supabase

@@ -14,6 +14,7 @@ import { PrivateFileLink } from "@/components/PrivateFileLink";
 import { compressImage } from "@/lib/image-compressor";
 import { useAuth } from "@/lib/auth-context";
 import { useConfirm } from "@/components/ConfirmDialogProvider";
+import { invalidateOS } from "@/lib/refresh";
 
 export const Route = createFileRoute("/tecnico/os/$id")({
   component: () => (
@@ -95,6 +96,7 @@ function TecnicoOSDetail() {
       if (error) throw error;
       toast.success("Status atualizado com sucesso!");
       queryClient.invalidateQueries({ queryKey: ["os_detalhe", id] });
+      invalidateOS(queryClient);
     } catch (e: any) {
       toast.error(e.message);
     } finally {
@@ -113,6 +115,7 @@ function TecnicoOSDetail() {
       if (error) throw error;
       toast.success("Deslocamento iniciado!");
       queryClient.invalidateQueries({ queryKey: ["os_detalhe", id] });
+      invalidateOS(queryClient);
       
       if (os?.endereco_servico) {
         const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(os.endereco_servico)}`;
@@ -139,6 +142,7 @@ function TecnicoOSDetail() {
       if (error) throw error;
       toast.success("Check-in realizado! Serviço em andamento.");
       queryClient.invalidateQueries({ queryKey: ["os_detalhe", id] });
+      invalidateOS(queryClient);
     } catch (e: any) {
       toast.error(e.message);
     } finally {
@@ -173,6 +177,7 @@ function TecnicoOSDetail() {
       setDescDespesa("");
       setValorDespesa("");
       queryClient.invalidateQueries({ queryKey: ["os_detalhe", id] });
+      invalidateOS(queryClient);
     } catch (e: any) {
       toast.error(e.message);
     } finally {
@@ -194,6 +199,7 @@ function TecnicoOSDetail() {
       if (error) throw error;
       toast.success("Endereço solicitado! A OS foi marcada com pendência.");
       queryClient.invalidateQueries({ queryKey: ["os_detalhe", id] });
+      invalidateOS(queryClient);
     } catch (e: any) {
       toast.error(e.message);
     } finally {
