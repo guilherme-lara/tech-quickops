@@ -520,10 +520,11 @@ function EquipePage() {
                 <DialogTitle>{form.id ? "Editar Técnico" : "Novo Técnico"}</DialogTitle>
               </DialogHeader>
               <Tabs defaultValue="dados" className="w-full">
-                <TabsList className="grid w-full grid-cols-3">
+                <TabsList className="grid w-full grid-cols-4">
                   <TabsTrigger value="dados">Dados</TabsTrigger>
                   <TabsTrigger value="financeiro">Financeiro</TabsTrigger>
                   <TabsTrigger value="contrato">Contrato</TabsTrigger>
+                  <TabsTrigger value="emails">E-mails</TabsTrigger>
                 </TabsList>
                 <TabsContent value="dados" className="space-y-3 mt-4">
                 <div>
