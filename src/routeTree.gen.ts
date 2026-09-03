@@ -23,6 +23,7 @@ import { Route as GestaoEquipeRouteImport } from './routes/gestao-equipe'
 import { Route as EstoqueRouteImport } from './routes/estoque'
 import { Route as EquipeRouteImport } from './routes/equipe'
 import { Route as DashboardRouteImport } from './routes/dashboard'
+import { Route as ContratosRouteImport } from './routes/contratos'
 import { Route as ConfiguracoesRouteImport } from './routes/configuracoes'
 import { Route as ClientesRouteImport } from './routes/clientes'
 import { Route as AnalistaDashboardRouteImport } from './routes/analista-dashboard'
@@ -109,6 +110,11 @@ const EquipeRoute = EquipeRouteImport.update({
 const DashboardRoute = DashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ContratosRoute = ContratosRouteImport.update({
+  id: '/contratos',
+  path: '/contratos',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ConfiguracoesRoute = ConfiguracoesRouteImport.update({
@@ -207,6 +213,7 @@ export interface FileRoutesByFullPath {
   '/analista-dashboard': typeof AnalistaDashboardRoute
   '/clientes': typeof ClientesRoute
   '/configuracoes': typeof ConfiguracoesRoute
+  '/contratos': typeof ContratosRoute
   '/dashboard': typeof DashboardRoute
   '/equipe': typeof EquipeRoute
   '/estoque': typeof EstoqueRoute
@@ -240,6 +247,7 @@ export interface FileRoutesByTo {
   '/analista-dashboard': typeof AnalistaDashboardRoute
   '/clientes': typeof ClientesRoute
   '/configuracoes': typeof ConfiguracoesRoute
+  '/contratos': typeof ContratosRoute
   '/dashboard': typeof DashboardRoute
   '/equipe': typeof EquipeRoute
   '/estoque': typeof EstoqueRoute
@@ -274,6 +282,7 @@ export interface FileRoutesById {
   '/analista-dashboard': typeof AnalistaDashboardRoute
   '/clientes': typeof ClientesRoute
   '/configuracoes': typeof ConfiguracoesRoute
+  '/contratos': typeof ContratosRoute
   '/dashboard': typeof DashboardRoute
   '/equipe': typeof EquipeRoute
   '/estoque': typeof EstoqueRoute
@@ -309,6 +318,7 @@ export interface FileRouteTypes {
     | '/analista-dashboard'
     | '/clientes'
     | '/configuracoes'
+    | '/contratos'
     | '/dashboard'
     | '/equipe'
     | '/estoque'
@@ -342,6 +352,7 @@ export interface FileRouteTypes {
     | '/analista-dashboard'
     | '/clientes'
     | '/configuracoes'
+    | '/contratos'
     | '/dashboard'
     | '/equipe'
     | '/estoque'
@@ -375,6 +386,7 @@ export interface FileRouteTypes {
     | '/analista-dashboard'
     | '/clientes'
     | '/configuracoes'
+    | '/contratos'
     | '/dashboard'
     | '/equipe'
     | '/estoque'
@@ -409,6 +421,7 @@ export interface RootRouteChildren {
   AnalistaDashboardRoute: typeof AnalistaDashboardRoute
   ClientesRoute: typeof ClientesRoute
   ConfiguracoesRoute: typeof ConfiguracoesRoute
+  ContratosRoute: typeof ContratosRoute
   DashboardRoute: typeof DashboardRoute
   EquipeRoute: typeof EquipeRoute
   EstoqueRoute: typeof EstoqueRoute
@@ -534,6 +547,13 @@ declare module '@tanstack/react-router' {
       path: '/dashboard'
       fullPath: '/dashboard'
       preLoaderRoute: typeof DashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/contratos': {
+      id: '/contratos'
+      path: '/contratos'
+      fullPath: '/contratos'
+      preLoaderRoute: typeof ContratosRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/configuracoes': {
@@ -676,6 +696,7 @@ const rootRouteChildren: RootRouteChildren = {
   AnalistaDashboardRoute: AnalistaDashboardRoute,
   ClientesRoute: ClientesRoute,
   ConfiguracoesRoute: ConfiguracoesRoute,
+  ContratosRoute: ContratosRoute,
   DashboardRoute: DashboardRoute,
   EquipeRoute: EquipeRoute,
   EstoqueRoute: EstoqueRoute,
