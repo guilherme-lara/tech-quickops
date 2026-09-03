@@ -13,7 +13,7 @@ export default defineConfig({
     plugins: [
       mcpPlugin(),
       VitePWA({
-        registerType: 'autoUpdate',
+        registerType: 'prompt',
         includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg'],
         manifest: {
           name: 'QuickOps Field App',
@@ -22,6 +22,7 @@ export default defineConfig({
           theme_color: '#0f172a',
           background_color: '#0f172a',
           display: 'standalone',
+          start_url: '/',
           icons: [
             {
               src: 'android-chrome-192x192.png',
@@ -39,6 +40,10 @@ export default defineConfig({
           globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
           navigateFallback: '/',
           cleanupOutdatedCaches: true
+        },
+        devOptions: {
+          enabled: true,
+          type: 'module',
         }
       })
     ],

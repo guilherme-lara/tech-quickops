@@ -49,6 +49,9 @@ import {
   ArrowUp,
   ArrowDown,
   CheckCircle,
+  MapPin,
+  User,
+  Calendar,
 } from "lucide-react";
 import { useEffect, useState, useRef } from "react";
 import { toast } from "sonner";
