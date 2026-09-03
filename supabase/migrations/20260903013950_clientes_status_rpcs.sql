@@ -15,8 +15,6 @@ DECLARE
   v_actor_empresa uuid;
   v_alvo_empresa uuid;
   v_os int := 0;
-  v_equipamentos int := 0;
-  v_analistas int := 0;
 BEGIN
   IF v_actor IS NULL THEN
     RAISE EXCEPTION 'Acesso negado.' USING ERRCODE = '42501';
@@ -37,14 +35,10 @@ BEGIN
   END IF;
 
   SELECT count(*) INTO v_os FROM public.ordens_servico WHERE cliente_id = p_cliente_id;
-  SELECT count(*) INTO v_equipamentos FROM public.equipamentos_cliente WHERE cliente_id = p_cliente_id;
-  SELECT count(*) INTO v_analistas FROM public.analistas_cliente WHERE cliente_id = p_cliente_id;
 
   RETURN jsonb_build_object(
     'ordens_servico', v_os,
-    'equipamentos', v_equipamentos,
-    'analistas', v_analistas,
-    'pode_remover', (v_os = 0 AND v_equipamentos = 0 AND v_analistas = 0)
+    'pode_remover', (v_os = 0)
   );
 END;
 $function$;
@@ -125,8 +119,8 @@ BEGIN
   v_deps := public.contar_dependencias_cliente(p_cliente_id);
 
   IF NOT (v_deps->>'pode_remover')::boolean THEN
-    RAISE EXCEPTION 'Não é possível remover: % OS, % equipamento(s) e % analista(s) vinculados. Inative o cliente.',
-      v_deps->>'ordens_servico', v_deps->>'equipamentos', v_deps->>'analistas'
+    RAISE EXCEPTION 'Não é possível remover: % OS vinculadas. Inative o cliente.',
+      v_deps->>'ordens_servico'
       USING ERRCODE = '23503';
   END IF;
 

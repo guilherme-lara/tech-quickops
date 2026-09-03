@@ -52,11 +52,10 @@ export const Route = createFileRoute("/desempenho")({
 type Criterio = "valorAPagar" | "concluidas" | "produtividade";
 
 const CORES = [
-  "hsl(var(--primary))",
-  "hsl(var(--destructive))",
-  "#16a34a",
-  "#f59e0b",
-  "#8b5cf6",
+  "#10b981", "#f59e0b", "#8b5cf6", "#ec4899", "#3b82f6", 
+  "#f97316", "#14b8a6", "#ef4444", "#84cc16", "#6366f1",
+  "#d946ef", "#06b6d4", "#eab308", "#f43f5e", "#0ea5e9",
+  "#22c55e", "#a855f7", "#fb923c", "#10b981", "#64748b"
 ];
 
 function DesempenhoPage() {

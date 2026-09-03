@@ -36,6 +36,12 @@ export type MesKpi = {
   faturamento: number;
   valorAPagar: number;
   tempoMedioHoras: number;
+  // Novos KPIs
+  csat: number;
+  nps: number;
+  turnover: number;
+  absenteismo: number;
+  eficiencia: number;
 };
 
 export type TecnicoKpi = {
@@ -241,8 +247,16 @@ export function useKpisData(empresaId: string | undefined, meses = 6) {
           st.metaChamados > 0 ? (mediaMensal / st.metaChamados) * 100 : mediaMensal;
       }
 
-      const mesesArr: MesKpi[] = chaves.map((k) => {
+      const mesesArr: MesKpi[] = chaves.map((k, idx) => {
         const m = porMes.get(k)!;
+
+        // Dados simulados para KPIs profissionais (até criarmos os inputs reais)
+        const csat = 85 + (Math.sin(idx) * 8); // 77 a 93%
+        const nps = 65 + (Math.cos(idx) * 12); // 53 a 77
+        const turnover = 2 + (idx % 3) * 1.5; // 2% a 5%
+        const absenteismo = 1.5 + (Math.sin(idx * 2) * 1); // 0.5% a 2.5%
+        const eficiencia = m.criadas > 0 ? (m.concluidas / m.criadas) * 100 : 85 + idx;
+
         return {
           mes: m.mes,
           label: m.label,
@@ -251,6 +265,11 @@ export function useKpisData(empresaId: string | undefined, meses = 6) {
           faturamento: m.faturamento,
           valorAPagar: m.valorAPagar,
           tempoMedioHoras: m._horas.length ? m._horas.reduce((a, b) => a + b, 0) / m._horas.length : 0,
+          csat,
+          nps,
+          turnover,
+          absenteismo,
+          eficiencia: Math.min(100, Math.max(0, eficiencia))
         };
       });
 

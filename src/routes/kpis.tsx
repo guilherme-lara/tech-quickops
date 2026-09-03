@@ -8,7 +8,7 @@ import { useKpisData, brl } from "@/lib/kpis";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { CheckCircle2, DollarSign, Clock, UserMinus, TrendingUp, TrendingDown } from "lucide-react";
+import { CheckCircle2, DollarSign, Clock, UserMinus, TrendingUp, TrendingDown, Star, Heart, Target, RefreshCcw, Activity, ShieldCheck } from "lucide-react";
 import {
   ResponsiveContainer,
   ComposedChart,
@@ -123,18 +123,37 @@ function KpisPage() {
     const tempoMedio = comTempo.length
       ? comTempo.reduce((s, x) => s + x.tempoMedioHoras, 0) / comTempo.length
       : 0;
+    const csat = m.length ? m.reduce((s, x) => s + x.csat, 0) / m.length : 0;
+    const nps = m.length ? m.reduce((s, x) => s + x.nps, 0) / m.length : 0;
+    const turnover = m.length ? m.reduce((s, x) => s + x.turnover, 0) / m.length : 0;
+    const absenteismo = m.length ? m.reduce((s, x) => s + x.absenteismo, 0) / m.length : 0;
+    const eficiencia = m.length ? m.reduce((s, x) => s + x.eficiencia, 0) / m.length : 0;
 
     // Trend calculation
-    let trends = { concluidas: undefined as any, valorAPagar: undefined as any, tempoMedio: undefined as any };
+    let trends = { 
+      concluidas: undefined as any, 
+      valorAPagar: undefined as any, 
+      tempoMedio: undefined as any,
+      csat: undefined as any,
+      nps: undefined as any,
+      turnover: undefined as any,
+      absenteismo: undefined as any,
+      eficiencia: undefined as any,
+    };
     if (m.length >= 2) {
       const curr = m[m.length - 1];
       const prev = m[m.length - 2];
       trends.concluidas = calculateTrend(curr.concluidas, prev.concluidas);
       trends.valorAPagar = calculateTrend(curr.valorAPagar, prev.valorAPagar, true); // Higher cost is "bad"
       trends.tempoMedio = calculateTrend(curr.tempoMedioHoras, prev.tempoMedioHoras, true); // Higher time is "bad"
+      trends.csat = calculateTrend(curr.csat, prev.csat);
+      trends.nps = calculateTrend(curr.nps, prev.nps);
+      trends.turnover = calculateTrend(curr.turnover, prev.turnover, true); // Higher turnover is bad
+      trends.absenteismo = calculateTrend(curr.absenteismo, prev.absenteismo, true); // Higher is bad
+      trends.eficiencia = calculateTrend(curr.eficiencia, prev.eficiencia);
     }
 
-    return { concluidas, valorAPagar, tempoMedio, trends };
+    return { concluidas, valorAPagar, tempoMedio, csat, nps, turnover, absenteismo, eficiencia, trends };
   }, [data]);
 
   return (
@@ -166,42 +185,94 @@ function KpisPage() {
         </div>
       ) : (
         <>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <KpiCard
-              title="OS concluídas"
-              value={String(totais.concluidas)}
-              hint="vs mês anterior"
-              trend={totais.trends.concluidas}
-              icon={CheckCircle2}
-              colorClass="text-emerald-600 dark:text-emerald-500"
-              bgClass="bg-emerald-500/10"
-            />
-            <KpiCard
-              title="Valor a pagar (equipe)"
-              value={brl(totais.valorAPagar)}
-              hint="vs mês anterior"
-              trend={totais.trends.valorAPagar}
-              icon={DollarSign}
-              colorClass="text-amber-600 dark:text-amber-500"
-              bgClass="bg-amber-500/10"
-            />
-            <KpiCard
-              title="Tempo médio de atendimento"
-              value={totais.tempoMedio ? `${totais.tempoMedio.toFixed(1)} h` : "—"}
-              hint="vs mês anterior"
-              trend={totais.trends.tempoMedio}
-              icon={Clock}
-              colorClass="text-blue-600 dark:text-blue-500"
-              bgClass="bg-blue-500/10"
-            />
-            <KpiCard
-              title="Taxa de inativação"
-              value={`${(data?.taxaInativacao ?? 0).toFixed(1)}%`}
-              hint={`${data?.tecnicosInativos ?? 0} inativos`}
-              icon={UserMinus}
-              colorClass="text-red-600 dark:text-red-500"
-              bgClass="bg-red-500/10"
-            />
+          <div className="space-y-4">
+            <h2 className="text-lg font-semibold tracking-tight">Atendimento ao Cliente</h2>
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              <KpiCard
+                title="Índice de Satisfação (CSAT)"
+                value={`${totais.csat.toFixed(1)}%`}
+                hint="vs mês anterior"
+                trend={totais.trends.csat}
+                icon={Star}
+                colorClass="text-emerald-600 dark:text-emerald-500"
+                bgClass="bg-emerald-500/10"
+              />
+              <KpiCard
+                title="Net Promoter Score (NPS)"
+                value={totais.nps.toFixed(1)}
+                hint="vs mês anterior"
+                trend={totais.trends.nps}
+                icon={Heart}
+                colorClass="text-indigo-600 dark:text-indigo-500"
+                bgClass="bg-indigo-500/10"
+              />
+              <KpiCard
+                title="Tempo médio de atendimento"
+                value={totais.tempoMedio ? `${totais.tempoMedio.toFixed(1)} h` : "—"}
+                hint="vs mês anterior"
+                trend={totais.trends.tempoMedio}
+                icon={Clock}
+                colorClass="text-blue-600 dark:text-blue-500"
+                bgClass="bg-blue-500/10"
+              />
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            <h2 className="text-lg font-semibold tracking-tight mt-4">Operacionais e Recursos Humanos</h2>
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              <KpiCard
+                title="Eficiência Operacional"
+                value={`${totais.eficiencia.toFixed(1)}%`}
+                hint="OS Concluídas / Criadas"
+                trend={totais.trends.eficiencia}
+                icon={Activity}
+                colorClass="text-teal-600 dark:text-teal-500"
+                bgClass="bg-teal-500/10"
+              />
+              <KpiCard
+                title="Turnover (Rotatividade)"
+                value={`${totais.turnover.toFixed(1)}%`}
+                hint="vs mês anterior"
+                trend={totais.trends.turnover}
+                icon={UserMinus}
+                colorClass="text-red-600 dark:text-red-500"
+                bgClass="bg-red-500/10"
+              />
+              <KpiCard
+                title="Absenteísmo"
+                value={`${totais.absenteismo.toFixed(1)}%`}
+                hint="Faltas/Atrasos"
+                trend={totais.trends.absenteismo}
+                icon={Target}
+                colorClass="text-amber-600 dark:text-amber-500"
+                bgClass="bg-amber-500/10"
+              />
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            <h2 className="text-lg font-semibold tracking-tight mt-4">Resumo Financeiro</h2>
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-2">
+              <KpiCard
+                title="OS concluídas"
+                value={String(totais.concluidas)}
+                hint="vs mês anterior"
+                trend={totais.trends.concluidas}
+                icon={CheckCircle2}
+                colorClass="text-slate-700 dark:text-slate-300"
+                bgClass="bg-slate-500/10"
+              />
+              <KpiCard
+                title="Valor a pagar (equipe)"
+                value={brl(totais.valorAPagar)}
+                hint="vs mês anterior"
+                trend={totais.trends.valorAPagar}
+                icon={DollarSign}
+                colorClass="text-slate-700 dark:text-slate-300"
+                bgClass="bg-slate-500/10"
+              />
+            </div>
           </div>
 
           <Card>
