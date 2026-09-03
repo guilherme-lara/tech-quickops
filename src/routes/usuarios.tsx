@@ -28,7 +28,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Shield, Plus, Search, Key, MoreVertical, KeyRound, Ban, Copy } from "lucide-react";
+import { Shield, Plus, Search, Key, MoreVertical, KeyRound, Ban, Copy, Trash2, UserCheck, Loader2, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
@@ -70,6 +70,8 @@ function UsuariosPage() {
     texto: string;
     nome: string;
   } | null>(null);
+  const [statusUser, setStatusUser] = useState<any | null>(null);
+  const [acaoStatus, setAcaoStatus] = useState<"inativar" | "remover">("inativar");
 
   const { data: usuarios, isLoading } = useQuery({
     queryKey: ["usuarios_sistema", empresaId],
@@ -142,16 +144,55 @@ function UsuariosPage() {
     onError: (e: any) => toast.error(e.message || "Erro ao atualizar usuário"),
   });
 
+  const dependenciasQ = useQuery({
+    queryKey: ["dependencias_usuario", statusUser?.id],
+    enabled: !!statusUser?.id,
+    queryFn: async () => {
+      const { data, error } = await (supabase.rpc as any)("contar_dependencias_usuario", {
+        p_user_id: statusUser.id,
+      });
+      if (error) throw error;
+      return data as {
+        is_tecnico: boolean;
+        ordens_servico: number;
+        ferramentas: number;
+        historico: number;
+        notificacoes: number;
+        pode_remover: boolean;
+      };
+    },
+  });
+
+  const statusMutation = useMutation({
+    mutationFn: async ({ id, ativo }: { id: string; ativo: boolean }) => {
+      const { error } = await (supabase.rpc as any)("definir_status_usuario", {
+        p_user_id: id,
+        p_ativo: ativo,
+      });
+      if (error) throw error;
+      return ativo;
+    },
+    onSuccess: (ativo) => {
+      toast.success(ativo ? "Usuário reativado com sucesso" : "Usuário inativado com sucesso");
+      setStatusUser(null);
+      qc.invalidateQueries({ queryKey: ["usuarios_sistema"] });
+      qc.invalidateQueries({ queryKey: ["all_tecnicos"] });
+    },
+    onError: (error: any) => toast.error(error.message || "Erro ao alterar status"),
+  });
+
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
       const { error } = await (supabase.rpc as any)("remover_acesso_backoffice", { p_user_id: id });
       if (error) throw error;
     },
     onSuccess: () => {
-      toast.success("Usuário inativado/removido com sucesso");
+      toast.success("Usuário removido definitivamente");
+      setStatusUser(null);
       qc.invalidateQueries({ queryKey: ["usuarios_sistema"] });
+      qc.invalidateQueries({ queryKey: ["all_tecnicos"] });
     },
-    onError: (error: any) => toast.error(error.message),
+    onError: (error: any) => toast.error(error.message || "Erro ao remover usuário"),
   });
 
   const resetPasswordMutation = useMutation({
@@ -174,10 +215,9 @@ function UsuariosPage() {
     }
   });
 
-  const handleDelete = async (id: string) => {
-    if (await confirm({ title: "Inativar Usuário", description: "Deseja realmente inativar/remover este usuário?", destructive: true })) {
-      deleteMutation.mutate(id);
-    }
+  const abrirGerenciarStatus = (user: any) => {
+    setAcaoStatus("inativar");
+    setStatusUser(user);
   };
 
   const handleResetPassword = async (user: any) => {
@@ -289,7 +329,14 @@ function UsuariosPage() {
                   </tr>
                 ) : (
                   filteredUsers?.map((u) => (
-                    <tr key={u.id} className="hover:bg-muted/10 transition-colors">
+                    <tr
+                      key={u.id}
+                      className={`transition-colors ${
+                        (u as any).ativo === false
+                          ? "bg-muted/20 text-muted-foreground opacity-70"
+                          : "hover:bg-muted/10"
+                      }`}
+                    >
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
                           <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xs">
@@ -327,11 +374,18 @@ function UsuariosPage() {
                               <KeyRound className="mr-2 h-4 w-4" /> 
                               Gerar Nova Senha
                             </DropdownMenuItem>
+                            {(u as any).ativo === false ? (
+                              <DropdownMenuItem
+                                onClick={() => statusMutation.mutate({ id: u.id, ativo: true })}
+                              >
+                                <UserCheck className="mr-2 h-4 w-4" /> Reativar Usuário
+                              </DropdownMenuItem>
+                            ) : null}
                             <DropdownMenuItem
-                              onClick={() => handleDelete(u.id)}
+                              onClick={() => abrirGerenciarStatus(u)}
                               className="text-destructive focus:text-destructive"
                             >
-                              <Ban className="mr-2 h-4 w-4" /> Inativar/Excluir
+                              <Ban className="mr-2 h-4 w-4" /> Inativar ou Remover
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
@@ -344,6 +398,112 @@ function UsuariosPage() {
           </div>
         </div>
       </div>
+
+      {/* Modal Inativar / Remover */}
+      <Dialog open={!!statusUser} onOpenChange={(o) => !o && setStatusUser(null)}>
+        <DialogContent className="sm:max-w-[480px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Ban className="w-5 h-5 text-destructive" /> Inativar ou Remover
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-4 py-2">
+            <p className="text-sm text-muted-foreground">
+              Escolha o que fazer com <strong className="text-foreground">{statusUser?.nome_completo}</strong>.
+            </p>
+
+            <button
+              type="button"
+              onClick={() => setAcaoStatus("inativar")}
+              className={`w-full text-left rounded-2xl border p-4 transition-all ${
+                acaoStatus === "inativar" ? "border-primary bg-primary/5" : "border-border hover:bg-muted/30"
+              }`}
+            >
+              <div className="flex items-center gap-2 font-semibold text-sm">
+                <Ban className="w-4 h-4 text-amber-600" /> Inativar acesso
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                O usuário perde o acesso, mas continua listado (em cinza e riscado) e todo o histórico é preservado.
+              </p>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setAcaoStatus("remover")}
+              className={`w-full text-left rounded-2xl border p-4 transition-all ${
+                acaoStatus === "remover" ? "border-destructive bg-destructive/5" : "border-border hover:bg-muted/30"
+              }`}
+            >
+              <div className="flex items-center gap-2 font-semibold text-sm">
+                <Trash2 className="w-4 h-4 text-destructive" /> Remover definitivamente
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                Apaga o cadastro e o login. Só é permitido quando não houver nada vinculado.
+              </p>
+            </button>
+
+            {acaoStatus === "remover" && (
+              <div className="rounded-2xl border border-border/60 bg-muted/20 p-4 text-xs space-y-2">
+                {dependenciasQ.isLoading ? (
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" /> Verificando vínculos...
+                  </div>
+                ) : dependenciasQ.error ? (
+                  <span className="text-destructive">Não foi possível verificar os vínculos.</span>
+                ) : (
+                  <>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Ordens de serviço vinculadas</span>
+                      <span className="font-semibold">{dependenciasQ.data?.ordens_servico ?? 0}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Ferramentas em posse</span>
+                      <span className="font-semibold">{dependenciasQ.data?.ferramentas ?? 0}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Registros de histórico</span>
+                      <span className="font-semibold">{dependenciasQ.data?.historico ?? 0}</span>
+                    </div>
+                    {!dependenciasQ.data?.pode_remover && (
+                      <div className="flex items-start gap-2 pt-2 text-amber-700 dark:text-amber-500">
+                        <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
+                        <span>
+                          Existem registros vinculados a este usuário. A remoção está bloqueada — utilize a opção
+                          <strong> Inativar acesso</strong> para preservar o histórico.
+                        </span>
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
+            )}
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setStatusUser(null)}>
+              Cancelar
+            </Button>
+            {acaoStatus === "inativar" ? (
+              <Button
+                variant="destructive"
+                disabled={statusMutation.isPending}
+                onClick={() => statusMutation.mutate({ id: statusUser.id, ativo: false })}
+              >
+                {statusMutation.isPending ? "Inativando..." : "Inativar acesso"}
+              </Button>
+            ) : (
+              <Button
+                variant="destructive"
+                disabled={deleteMutation.isPending || dependenciasQ.isLoading || !dependenciasQ.data?.pode_remover}
+                onClick={() => deleteMutation.mutate(statusUser.id)}
+              >
+                {deleteMutation.isPending ? "Removendo..." : "Remover definitivamente"}
+              </Button>
+            )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Modal de criação */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
