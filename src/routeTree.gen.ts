@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as UsuariosRouteImport } from './routes/usuarios'
 import { Route as TermosDeUsoRouteImport } from './routes/termos-de-uso'
+import { Route as TempoRealRouteImport } from './routes/tempo-real'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as PrivacidadeRouteImport } from './routes/privacidade'
 import { Route as PlanosRouteImport } from './routes/planos'
@@ -22,7 +23,9 @@ import { Route as GestorDashboardRouteImport } from './routes/gestor-dashboard'
 import { Route as GestaoEquipeRouteImport } from './routes/gestao-equipe'
 import { Route as EstoqueRouteImport } from './routes/estoque'
 import { Route as EquipeRouteImport } from './routes/equipe'
+import { Route as EmailsRouteImport } from './routes/emails'
 import { Route as DashboardRouteImport } from './routes/dashboard'
+import { Route as ContratosRouteImport } from './routes/contratos'
 import { Route as ConfiguracoesRouteImport } from './routes/configuracoes'
 import { Route as ClientesRouteImport } from './routes/clientes'
 import { Route as AnalistaDashboardRouteImport } from './routes/analista-dashboard'
@@ -49,6 +52,11 @@ const UsuariosRoute = UsuariosRouteImport.update({
 const TermosDeUsoRoute = TermosDeUsoRouteImport.update({
   id: '/termos-de-uso',
   path: '/termos-de-uso',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TempoRealRoute = TempoRealRouteImport.update({
+  id: '/tempo-real',
+  path: '/tempo-real',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
@@ -106,9 +114,19 @@ const EquipeRoute = EquipeRouteImport.update({
   path: '/equipe',
   getParentRoute: () => rootRouteImport,
 } as any)
+const EmailsRoute = EmailsRouteImport.update({
+  id: '/emails',
+  path: '/emails',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DashboardRoute = DashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ContratosRoute = ContratosRouteImport.update({
+  id: '/contratos',
+  path: '/contratos',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ConfiguracoesRoute = ConfiguracoesRouteImport.update({
@@ -207,7 +225,9 @@ export interface FileRoutesByFullPath {
   '/analista-dashboard': typeof AnalistaDashboardRoute
   '/clientes': typeof ClientesRoute
   '/configuracoes': typeof ConfiguracoesRoute
+  '/contratos': typeof ContratosRoute
   '/dashboard': typeof DashboardRoute
+  '/emails': typeof EmailsRoute
   '/equipe': typeof EquipeRoute
   '/estoque': typeof EstoqueRoute
   '/gestao-equipe': typeof GestaoEquipeRoute
@@ -219,6 +239,7 @@ export interface FileRoutesByFullPath {
   '/planos': typeof PlanosRoute
   '/privacidade': typeof PrivacidadeRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/tempo-real': typeof TempoRealRoute
   '/termos-de-uso': typeof TermosDeUsoRoute
   '/usuarios': typeof UsuariosRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
@@ -240,7 +261,9 @@ export interface FileRoutesByTo {
   '/analista-dashboard': typeof AnalistaDashboardRoute
   '/clientes': typeof ClientesRoute
   '/configuracoes': typeof ConfiguracoesRoute
+  '/contratos': typeof ContratosRoute
   '/dashboard': typeof DashboardRoute
+  '/emails': typeof EmailsRoute
   '/equipe': typeof EquipeRoute
   '/estoque': typeof EstoqueRoute
   '/gestao-equipe': typeof GestaoEquipeRoute
@@ -252,6 +275,7 @@ export interface FileRoutesByTo {
   '/planos': typeof PlanosRoute
   '/privacidade': typeof PrivacidadeRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/tempo-real': typeof TempoRealRoute
   '/termos-de-uso': typeof TermosDeUsoRoute
   '/usuarios': typeof UsuariosRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
@@ -274,7 +298,9 @@ export interface FileRoutesById {
   '/analista-dashboard': typeof AnalistaDashboardRoute
   '/clientes': typeof ClientesRoute
   '/configuracoes': typeof ConfiguracoesRoute
+  '/contratos': typeof ContratosRoute
   '/dashboard': typeof DashboardRoute
+  '/emails': typeof EmailsRoute
   '/equipe': typeof EquipeRoute
   '/estoque': typeof EstoqueRoute
   '/gestao-equipe': typeof GestaoEquipeRoute
@@ -286,6 +312,7 @@ export interface FileRoutesById {
   '/planos': typeof PlanosRoute
   '/privacidade': typeof PrivacidadeRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/tempo-real': typeof TempoRealRoute
   '/termos-de-uso': typeof TermosDeUsoRoute
   '/usuarios': typeof UsuariosRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
@@ -309,7 +336,9 @@ export interface FileRouteTypes {
     | '/analista-dashboard'
     | '/clientes'
     | '/configuracoes'
+    | '/contratos'
     | '/dashboard'
+    | '/emails'
     | '/equipe'
     | '/estoque'
     | '/gestao-equipe'
@@ -321,6 +350,7 @@ export interface FileRouteTypes {
     | '/planos'
     | '/privacidade'
     | '/sitemap.xml'
+    | '/tempo-real'
     | '/termos-de-uso'
     | '/usuarios'
     | '/.mcp/list-tools'
@@ -342,7 +372,9 @@ export interface FileRouteTypes {
     | '/analista-dashboard'
     | '/clientes'
     | '/configuracoes'
+    | '/contratos'
     | '/dashboard'
+    | '/emails'
     | '/equipe'
     | '/estoque'
     | '/gestao-equipe'
@@ -354,6 +386,7 @@ export interface FileRouteTypes {
     | '/planos'
     | '/privacidade'
     | '/sitemap.xml'
+    | '/tempo-real'
     | '/termos-de-uso'
     | '/usuarios'
     | '/.mcp/list-tools'
@@ -375,7 +408,9 @@ export interface FileRouteTypes {
     | '/analista-dashboard'
     | '/clientes'
     | '/configuracoes'
+    | '/contratos'
     | '/dashboard'
+    | '/emails'
     | '/equipe'
     | '/estoque'
     | '/gestao-equipe'
@@ -387,6 +422,7 @@ export interface FileRouteTypes {
     | '/planos'
     | '/privacidade'
     | '/sitemap.xml'
+    | '/tempo-real'
     | '/termos-de-uso'
     | '/usuarios'
     | '/.mcp/list-tools'
@@ -409,7 +445,9 @@ export interface RootRouteChildren {
   AnalistaDashboardRoute: typeof AnalistaDashboardRoute
   ClientesRoute: typeof ClientesRoute
   ConfiguracoesRoute: typeof ConfiguracoesRoute
+  ContratosRoute: typeof ContratosRoute
   DashboardRoute: typeof DashboardRoute
+  EmailsRoute: typeof EmailsRoute
   EquipeRoute: typeof EquipeRoute
   EstoqueRoute: typeof EstoqueRoute
   GestaoEquipeRoute: typeof GestaoEquipeRoute
@@ -421,6 +459,7 @@ export interface RootRouteChildren {
   PlanosRoute: typeof PlanosRoute
   PrivacidadeRoute: typeof PrivacidadeRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
+  TempoRealRoute: typeof TempoRealRoute
   TermosDeUsoRoute: typeof TermosDeUsoRoute
   UsuariosRoute: typeof UsuariosRoute
   Char91DotmcpChar93ListToolsRoute: typeof Char91DotmcpChar93ListToolsRoute
@@ -450,6 +489,13 @@ declare module '@tanstack/react-router' {
       path: '/termos-de-uso'
       fullPath: '/termos-de-uso'
       preLoaderRoute: typeof TermosDeUsoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tempo-real': {
+      id: '/tempo-real'
+      path: '/tempo-real'
+      fullPath: '/tempo-real'
+      preLoaderRoute: typeof TempoRealRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/sitemap.xml': {
@@ -529,11 +575,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EquipeRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/emails': {
+      id: '/emails'
+      path: '/emails'
+      fullPath: '/emails'
+      preLoaderRoute: typeof EmailsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/dashboard': {
       id: '/dashboard'
       path: '/dashboard'
       fullPath: '/dashboard'
       preLoaderRoute: typeof DashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/contratos': {
+      id: '/contratos'
+      path: '/contratos'
+      fullPath: '/contratos'
+      preLoaderRoute: typeof ContratosRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/configuracoes': {
@@ -676,7 +736,9 @@ const rootRouteChildren: RootRouteChildren = {
   AnalistaDashboardRoute: AnalistaDashboardRoute,
   ClientesRoute: ClientesRoute,
   ConfiguracoesRoute: ConfiguracoesRoute,
+  ContratosRoute: ContratosRoute,
   DashboardRoute: DashboardRoute,
+  EmailsRoute: EmailsRoute,
   EquipeRoute: EquipeRoute,
   EstoqueRoute: EstoqueRoute,
   GestaoEquipeRoute: GestaoEquipeRoute,
@@ -688,6 +750,7 @@ const rootRouteChildren: RootRouteChildren = {
   PlanosRoute: PlanosRoute,
   PrivacidadeRoute: PrivacidadeRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
+  TempoRealRoute: TempoRealRoute,
   TermosDeUsoRoute: TermosDeUsoRoute,
   UsuariosRoute: UsuariosRoute,
   Char91DotmcpChar93ListToolsRoute: Char91DotmcpChar93ListToolsRoute,

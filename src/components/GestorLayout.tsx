@@ -17,6 +17,9 @@ import {
   Shield,
   ShieldAlert,
   Crown,
+  Activity,
+  FileSignature,
+  Mail,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -35,15 +38,19 @@ const allNavItems = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { to: "/analista-dashboard", label: "Torre de Controle", icon: LayoutDashboard },
   { to: "/gestor-dashboard", label: "Visão Estratégica", icon: PieChart },
+  { to: "/tempo-real", label: "Tempo Real", icon: Activity },
   { to: "/os", label: "Ordens de Serviço", icon: ClipboardList },
   { to: "/clientes", label: "Clientes", icon: Users },
   { to: "/equipe", label: "Equipe", icon: UsersRound },
+  { to: "/contratos", label: "Contratos", icon: FileSignature },
   { to: "/usuarios", label: "Acessos do Sistema", icon: Shield },
   { to: "/estoque", label: "Inventário", icon: Package },
+  { to: "/emails", label: "E-mails Enviados", icon: Mail },
   { to: "/logs", label: "Logs e Auditoria", icon: FileText },
   { to: "/planos", label: "Meu Plano", icon: Crown },
   { to: "/configuracoes", label: "Configurações", icon: Settings },
 ] as const;
+
 
 export function GestorLayout({ children }: { children?: ReactNode }) {
   const path = useRouterState({ select: (s) => s.location.pathname });
@@ -77,12 +84,15 @@ export function GestorLayout({ children }: { children?: ReactNode }) {
         "/usuarios",
         "/logs",
         "/analista-dashboard",
+        "/contratos",
+        "/emails",
+        "/tempo-real",
       ];
       return !restrictedForTecnico.includes(item.to);
     }
 
     if (profile?.role === "analista") {
-      const allowedForAnalista = ["/analista-dashboard", "/os", "/clientes", "/equipe", "/estoque", "/configuracoes"];
+      const allowedForAnalista = ["/analista-dashboard", "/os", "/clientes", "/equipe", "/estoque", "/tempo-real", "/configuracoes"];
       return allowedForAnalista.includes(item.to);
     }
     // gestor, admin, superadmin
