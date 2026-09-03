@@ -1,5 +1,5 @@
 import { ProtectedRoute } from "@/components/ProtectedRoute";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { GestorLayout } from "@/components/GestorLayout";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -36,6 +36,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Search,
+  History,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -751,7 +752,17 @@ function ClientesPage() {
                                 </Button>
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end">
-                                <DropdownMenuItem onClick={() => openEdit(c)}>
+                                <DropdownMenuItem asChild>
+                                  <Link to="/clientes/$id" params={{ id: c.id }}>
+                                    <History className="mr-2 h-4 w-4" /> Ver histórico
+                                  </Link>
+                                </DropdownMenuItem>
+                                <DropdownMenuItem asChild>
+                            <Link to="/clientes/$id" params={{ id: c.id }}>
+                              <History className="mr-2 h-4 w-4" /> Ver histórico
+                            </Link>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => openEdit(c)}>
                                   <Edit2 className="mr-2 h-4 w-4" /> Editar
                                 </DropdownMenuItem>
                                 <DropdownMenuItem
