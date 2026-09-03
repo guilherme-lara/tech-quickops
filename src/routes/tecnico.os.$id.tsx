@@ -5,7 +5,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { ArrowLeft, Loader2, MapPin, Receipt, Upload, Plus, FileText, Download, CheckCircle2, Trash2 } from "lucide-react";
+import { ArrowLeft, Loader2, MapPin, Receipt, Upload, Plus, FileText, Download, CheckCircle2, Trash2, PenLine } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
@@ -15,6 +15,7 @@ import { compressImage } from "@/lib/image-compressor";
 import { useAuth } from "@/lib/auth-context";
 import { useConfirm } from "@/components/ConfirmDialogProvider";
 import { invalidateOS } from "@/lib/refresh";
+import { AssinaturaDialog } from "@/components/AssinaturaDialog";
 
 export const Route = createFileRoute("/tecnico/os/$id")({
   component: () => (
@@ -36,6 +37,7 @@ function TecnicoOSDetail() {
   const [descDespesa, setDescDespesa] = useState("");
   const [valorDespesa, setValorDespesa] = useState("");
   const [isUploading, setIsUploading] = useState(false);
+  const [assinaturaOpen, setAssinaturaOpen] = useState(false);
 
   // 1. Fetch OS Details
   const { data: os, isLoading } = useQuery({
@@ -509,6 +511,55 @@ function TecnicoOSDetail() {
           </Card>
         </section>
 
+        {/* Assinatura do Responsável */}
+        <section>
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-sm font-semibold text-muted-foreground flex items-center gap-2">
+              <PenLine className="w-4 h-4" /> Assinatura do Responsável
+            </h2>
+          </div>
+          <Card className="p-4 rounded-2xl border-border/60 shadow-[var(--shadow-card)] space-y-3">
+            <Button className="w-full" onClick={() => setAssinaturaOpen(true)}>
+              <PenLine className="w-4 h-4 mr-2" /> Coletar assinatura
+            </Button>
+            {(ratArquivos ?? []).filter((a) => a.tipo_arquivo === "assinatura").length === 0 ? (
+              <p className="text-xs text-muted-foreground text-center">
+                Nenhuma assinatura coletada. Colete a assinatura e baixe a imagem para anexar na RAT.
+              </p>
+            ) : (
+              <div className="space-y-2">
+                {(ratArquivos ?? [])
+                  .filter((a) => a.tipo_arquivo === "assinatura")
+                  .map((arq) => (
+                    <div key={arq.id} className="flex items-center justify-between gap-2 bg-background p-2 rounded-lg border border-border/50">
+                      <div className="min-w-0">
+                        <p className="text-xs font-medium truncate">{arq.nome_arquivo}</p>
+                        <p className="text-[10px] text-muted-foreground">
+                          {new Date(arq.created_at).toLocaleString("pt-BR")}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-1 shrink-0">
+                        <PrivateFileLink urlOrPath={arq.arquivo_url} bucket="rats">
+                          <Button variant="outline" size="sm" className="h-8">
+                            <Download className="w-3.5 h-3.5 mr-1" /> Baixar
+                          </Button>
+                        </PrivateFileLink>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-destructive"
+                          onClick={() => handleDeleteArquivo(arq.id, arq.arquivo_url)}
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+              </div>
+            )}
+          </Card>
+        </section>
+
         {/* Documentos (RAT / PDFs) */}
         <section>
           <div className="flex items-center justify-between mb-3">
@@ -665,6 +716,12 @@ function TecnicoOSDetail() {
           </section>
         )}
       </div>
+      <AssinaturaDialog
+        open={assinaturaOpen}
+        onOpenChange={setAssinaturaOpen}
+        osId={id}
+        onSaved={() => queryClient.invalidateQueries({ queryKey: ["os_rat_arquivos", id] })}
+      />
     </TecnicoLayout>
   );
 }
