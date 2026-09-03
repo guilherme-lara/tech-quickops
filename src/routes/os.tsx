@@ -14,13 +14,7 @@ import {
   DialogFooter,
   DialogDescription,
 } from "@/components/ui/dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useStore, statusColor, OSStatus, OS, PAGE_SIZE } from "@/lib/useData";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { OSHistorico } from "@/components/OSHistorico";
@@ -97,7 +91,7 @@ function useAnalistasByCliente(clienteId: string | undefined) {
 
 export const Route = createFileRoute("/os")({
   component: () => (
-    <ProtectedRoute allowedRoles={['gestor', 'analista', 'admin', 'superadmin']}>
+    <ProtectedRoute allowedRoles={["gestor", "analista", "admin", "superadmin"]}>
       <OSPage />
     </ProtectedRoute>
   ),
@@ -106,7 +100,15 @@ export const Route = createFileRoute("/os")({
 const osFinalizada = (status?: string) =>
   status === "Concluído" || status === "Concluído Técnico" || status === "concluido" || status === "concluido_tecnico";
 
-const colunas: OSStatus[] = ["Agendamento", "Em Deslocamento", "Em Andamento", "Concluído Técnico", "Pendência", "Concluído", "Cancelado"];
+const colunas: OSStatus[] = [
+  "Agendamento",
+  "Em Deslocamento",
+  "Em Andamento",
+  "Concluído Técnico",
+  "Pendência",
+  "Concluído",
+  "Cancelado",
+];
 
 function OSPage() {
   const {
@@ -149,23 +151,38 @@ function OSPage() {
   // Dispara a busca quando os filtros ou página mudam
   useEffect(() => {
     queryClient.invalidateQueries({ queryKey: ["ordens_servico"] });
-  }, [osPage, osSearchCliente, osSearchTecnico, osFilterStatus, osMonth, osYear, osSortField, osSortDirection, queryClient]);
+  }, [
+    osPage,
+    osSearchCliente,
+    osSearchTecnico,
+    osFilterStatus,
+    osMonth,
+    osYear,
+    osSortField,
+    osSortDirection,
+    queryClient,
+  ]);
   const totalPages = Math.max(1, Math.ceil(osTotal / osPageSize));
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<OS | null>(null);
 
   useEffect(() => {
     const searchParams = new URLSearchParams(window.location.search);
-    const id = searchParams.get('id');
+    const id = searchParams.get("id");
     if (id) {
-      supabase.from("ordens_servico").select("*").eq("id", id).single().then(({ data }) => {
-        if (data) {
-          setEditing(data as any);
-          setDialogMode("view");
-          // Remove the id from URL so it doesn't reopen on refresh
-          window.history.replaceState(null, "", "/os");
-        }
-      });
+      supabase
+        .from("ordens_servico")
+        .select("*")
+        .eq("id", id)
+        .single()
+        .then(({ data }) => {
+          if (data) {
+            setEditing(data as any);
+            setDialogMode("view");
+            // Remove the id from URL so it doesn't reopen on refresh
+            window.history.replaceState(null, "", "/os");
+          }
+        });
     }
   }, []);
   const [form, setForm] = useState({
@@ -190,9 +207,7 @@ function OSPage() {
   const [novosDadosExtras, setNovosDadosExtras] = useState<Record<string, any>>({});
   const [novoCampoNome, setNovoCampoNome] = useState("");
   const [novoCampoValor, setNovoCampoValor] = useState("");
-  const [despesasSelecionadas, setDespesasSelecionadas] = useState<
-    Array<{ tipo: string; valor: number }>
-  >([]);
+  const [despesasSelecionadas, setDespesasSelecionadas] = useState<Array<{ tipo: string; valor: number }>>([]);
   const [despesaTipo, setDespesaTipo] = useState("Pedágio");
   const [despesaValor, setDespesaValor] = useState("");
 
@@ -220,12 +235,14 @@ function OSPage() {
     setQuickAnaSaving(true);
     try {
       const { data, error } = await (supabase.from("analistas_cliente" as any) as any)
-        .insert([{
-          empresa_id: empresaId,
-          nome: quickAnaForm.nome,
-          whatsapp: quickAnaForm.whatsapp,
-          cliente_id: form.clienteId,
-        }])
+        .insert([
+          {
+            empresa_id: empresaId,
+            nome: quickAnaForm.nome,
+            whatsapp: quickAnaForm.whatsapp,
+            cliente_id: form.clienteId,
+          },
+        ])
         .select()
         .single();
       if (error) throw error;
@@ -326,10 +343,7 @@ function OSPage() {
     try {
       const { error } = await supabase.from("ordens_servico").delete().eq("id", id);
       if (error) throw error;
-      await registrarLog(
-        "os_excluida",
-        `OS "${osItem?.titulo || osItem?.numero || id}" excluída por ${nomeUsuario}`,
-      );
+      await registrarLog("os_excluida", `OS "${osItem?.titulo || osItem?.numero || id}" excluída por ${nomeUsuario}`);
       toast.success("OS excluída com sucesso");
       queryClient.invalidateQueries({ queryKey: ["ordens_servico"] });
       dispararProcessamentoEmails();
@@ -380,7 +394,10 @@ function OSPage() {
 
     let logMsg = `OS "${form.titulo}" criada por ${nomeUsuario}`;
     if (form.equipamentosIds && form.equipamentosIds.length > 0) {
-      const equipNames = equipamentos.filter(e => form.equipamentosIds.includes(e.id)).map(e => e.nome).join(", ");
+      const equipNames = equipamentos
+        .filter((e) => form.equipamentosIds.includes(e.id))
+        .map((e) => e.nome)
+        .join(", ");
       logMsg += ` e vinculada aos equipamentos: ${equipNames}`;
     }
     await registrarLog("os_criada", logMsg);
@@ -430,23 +447,11 @@ function OSPage() {
     setDespesaValor("");
   };
 
-
-  const fixedKeys = new Set([
-    "Data",
-    "status",
-    "valor",
-    "cliente",
-    "tecnico",
-    "título",
-    "titulo",
-    "numero",
-  ]);
+  const fixedKeys = new Set(["Data", "status", "valor", "cliente", "tecnico", "título", "titulo", "numero"]);
   const dynamicHeaders = Array.from(
     new Set(
       os.flatMap((o) =>
-        Object.keys((o.dados_adicionais as Record<string, any>) || {}).filter(
-          (k) => !fixedKeys.has(k.toLowerCase()),
-        ),
+        Object.keys((o.dados_adicionais as Record<string, any>) || {}).filter((k) => !fixedKeys.has(k.toLowerCase())),
       ),
     ),
   );
@@ -676,9 +681,13 @@ function OSPage() {
                           setForm({
                             ...form,
                             km_viagem: e.target.value,
+<<<<<<< HEAD
                             custo_viagem: vKm
                               ? String(Number(e.target.value) * vKm)
                               : form.custo_viagem,
+=======
+                            custo_viagem: vKm ? String(Number(e.target.value) * vKm) : form.custo_viagem,
+>>>>>>> d94e1f51615b19a251fa50ccff0c2b2ce6cbe189
                           });
                         }}
                         placeholder="0"
@@ -698,9 +707,13 @@ function OSPage() {
                           const vKm = Number(e.target.value);
                           setForm({
                             ...form,
+<<<<<<< HEAD
                             custo_viagem: vKm
                               ? String(Number(form.km_viagem) * vKm)
                               : form.custo_viagem,
+=======
+                            custo_viagem: vKm ? String(Number(form.km_viagem) * vKm) : form.custo_viagem,
+>>>>>>> d94e1f51615b19a251fa50ccff0c2b2ce6cbe189
                           });
                         }}
                         placeholder="0,00"
@@ -747,12 +760,16 @@ function OSPage() {
                           placeholder="R$"
                           className="h-10 w-24"
                         />
+<<<<<<< HEAD
                         <Button
                           type="button"
                           size="icon"
                           className="h-10 w-10"
                           onClick={adicionarDespesa}
                         >
+=======
+                        <Button type="button" size="icon" className="h-10 w-10" onClick={adicionarDespesa}>
+>>>>>>> d94e1f51615b19a251fa50ccff0c2b2ce6cbe189
                           <Plus className="w-4 h-4" />
                         </Button>
                       </div>
@@ -763,6 +780,7 @@ function OSPage() {
                       <div className="text-[10px] uppercase tracking-wider font-bold text-muted-foreground">
                         Despesas adicionadas
                       </div>
+<<<<<<< HEAD
                       {(Array.isArray(despesasSelecionadas) ? despesasSelecionadas : []).map(
                         (despesa, index) => (
                           <div
@@ -887,6 +905,123 @@ function OSPage() {
                     <div className="text-[10px] uppercase tracking-wider font-bold text-muted-foreground mb-3">
                       Campos Personalizados (Opcional)
                     </div>
+=======
+                      {(Array.isArray(despesasSelecionadas) ? despesasSelecionadas : []).map((despesa, index) => (
+                        <div
+                          key={`${despesa.tipo}-${index}`}
+                          className="flex items-center justify-between rounded-lg bg-background/70 px-3 py-2 text-sm"
+                        >
+                          <span>{despesa.tipo}</span>
+                          <span>R$ {despesa.valor.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  {(() => {
+                    const subtotal = Number(form.valor || 0);
+                    const custoViagem = Number(form.custo_viagem || 0);
+                    const somaDespesas = despesasSelecionadas.reduce((s, it) => s + Number(it.valor || 0), 0);
+                    const custosExtras = custoViagem + somaDespesas;
+                    const total = subtotal + custosExtras;
+                    const fmt = (n: number) => n.toLocaleString("pt-BR", { minimumFractionDigits: 2 });
+                    return (
+                      <>
+                        <div className="rounded-xl border border-border/60 bg-primary/5 p-3 text-sm space-y-1 mb-4">
+                          <div className="flex justify-between">
+                            <span className="text-muted-foreground">Subtotal (Serviço)</span>
+                            <span>R$ {fmt(subtotal)}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-muted-foreground">+ Custos Extras (Viagem + Despesas)</span>
+                            <span>R$ {fmt(custosExtras)}</span>
+                          </div>
+                          <div className="flex justify-between font-semibold pt-1 border-t border-border/60">
+                            <span>= Valor Total Faturado</span>
+                            <span>R$ {fmt(total)}</span>
+                          </div>
+                        </div>
+
+                        <div className="col-span-full border-t border-border/50 pt-4 mt-2">
+                          <div className="flex items-center justify-between mb-3">
+                            <h4 className="text-sm font-semibold flex items-center gap-2">
+                              Valores Recebidos Antecipadamente
+                            </h4>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="h-8 text-xs bg-emerald-500/10 text-emerald-600 border-emerald-500/20 hover:bg-emerald-500/20 hover:text-emerald-700"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                setForm({
+                                  ...form,
+                                  valor_adiantado: String(total),
+                                  descricao_adiantamento: "Pagamento Total",
+                                });
+                              }}
+                            >
+                              Pagamento Total
+                            </Button>
+                          </div>
+                          <div className="grid grid-cols-2 gap-4">
+                            <div>
+                              <Label>Valor Adiantado (R$)</Label>
+                              <Input
+                                type="number"
+                                min="0"
+                                step="0.01"
+                                placeholder="0.00"
+                                value={form.valor_adiantado}
+                                onChange={(e) => setForm({ ...form, valor_adiantado: e.target.value })}
+                              />
+                            </div>
+                            <div>
+                              <Label>Descrição do Adiantamento</Label>
+                              <Input
+                                placeholder="ex: Sinal de viagem, Pagamento Total..."
+                                value={form.descricao_adiantamento}
+                                onChange={(e) => setForm({ ...form, descricao_adiantamento: e.target.value })}
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      </>
+                    );
+                  })()}
+                </TabsContent>
+
+                <TabsContent value="nova_detalhes" className="space-y-4 mt-4">
+                  <div>
+                    <Label>Status</Label>
+                    <Select value={form.status} onValueChange={(v) => setForm({ ...form, status: v as OSStatus })}>
+                      <SelectTrigger className="h-10">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {colunas.map((c) => (
+                          <SelectItem key={c} value={c}>
+                            {c}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label>Descrição do Problema</Label>
+                    <textarea
+                      value={form.descricao_problema}
+                      onChange={(e) => setForm({ ...form, descricao_problema: e.target.value })}
+                      placeholder="Descreva o problema ou serviço a ser executado..."
+                      className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                    />
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="nova_extras" className="space-y-4 mt-4">
+                  <div className="rounded-xl border border-border/60 bg-muted/30 p-4">
+                    <div className="text-[10px] uppercase tracking-wider font-bold text-muted-foreground mb-3">
+                      Campos Personalizados (Opcional)
+                    </div>
+>>>>>>> d94e1f51615b19a251fa50ccff0c2b2ce6cbe189
                     <div className="flex gap-2 mb-3">
                       <Input
                         placeholder="Nome do campo"
@@ -966,9 +1101,7 @@ function OSPage() {
                     <Label>Telefone</Label>
                     <Input
                       value={quickCliForm.telefone}
-                      onChange={(e) =>
-                        setQuickCliForm({ ...quickCliForm, telefone: maskPhoneBR(e.target.value) })
-                      }
+                      onChange={(e) => setQuickCliForm({ ...quickCliForm, telefone: maskPhoneBR(e.target.value) })}
                       onPaste={(e) => {
                         e.preventDefault();
                         const pasted = e.clipboardData.getData("text");
@@ -990,11 +1123,7 @@ function OSPage() {
                 </div>
               </div>
               <DialogFooter>
-                <Button
-                  variant="outline"
-                  onClick={() => setQuickCliOpen(false)}
-                  disabled={quickCliSaving}
-                >
+                <Button variant="outline" onClick={() => setQuickCliOpen(false)} disabled={quickCliSaving}>
                   Cancelar
                 </Button>
                 <Button onClick={saveQuickCliente} disabled={quickCliSaving}>
@@ -1075,16 +1204,12 @@ function OSPage() {
                     </Select>
                   </div>
                   <div>
-                    <Label>
-                      {quickTecForm.tipo_comissao === "fixo" ? "Valor (R$)" : "Comissão (%)"}
-                    </Label>
+                    <Label>{quickTecForm.tipo_comissao === "fixo" ? "Valor (R$)" : "Comissão (%)"}</Label>
                     <Input
                       type="number"
                       step="0.01"
                       value={quickTecForm.comissao}
-                      onChange={(e) =>
-                        setQuickTecForm({ ...quickTecForm, comissao: e.target.value })
-                      }
+                      onChange={(e) => setQuickTecForm({ ...quickTecForm, comissao: e.target.value })}
                     />
                   </div>
                 </div>
@@ -1093,11 +1218,7 @@ function OSPage() {
                 </p>
               </div>
               <DialogFooter>
-                <Button
-                  variant="outline"
-                  onClick={() => setQuickTecOpen(false)}
-                  disabled={quickTecSaving}
-                >
+                <Button variant="outline" onClick={() => setQuickTecOpen(false)} disabled={quickTecSaving}>
                   Cancelar
                 </Button>
                 <Button onClick={saveQuickTecnico} disabled={quickTecSaving}>
@@ -1112,9 +1233,7 @@ function OSPage() {
             <DialogContent className="rounded-2xl w-[95vw] sm:max-w-md">
               <DialogHeader>
                 <DialogTitle>Cadastro Rápido - Analista</DialogTitle>
-                <DialogDescription>
-                  Adicione um analista de suporte para o cliente selecionado.
-                </DialogDescription>
+                <DialogDescription>Adicione um analista de suporte para o cliente selecionado.</DialogDescription>
               </DialogHeader>
               <div className="space-y-4 py-2">
                 <div>
@@ -1135,11 +1254,7 @@ function OSPage() {
                 </div>
               </div>
               <DialogFooter>
-                <Button
-                  variant="outline"
-                  onClick={() => setQuickAnaOpen(false)}
-                  disabled={quickAnaSaving}
-                >
+                <Button variant="outline" onClick={() => setQuickAnaOpen(false)} disabled={quickAnaSaving}>
                   Cancelar
                 </Button>
                 <Button onClick={saveQuickAnalista} disabled={quickAnaSaving}>
@@ -1206,7 +1321,11 @@ function OSPage() {
                         <div className="flex items-center gap-1.5">
                           Data
                           {osSortField === "data" ? (
-                            osSortDirection === "asc" ? <ArrowUp className="w-3.5 h-3.5" /> : <ArrowDown className="w-3.5 h-3.5" />
+                            osSortDirection === "asc" ? (
+                              <ArrowUp className="w-3.5 h-3.5" />
+                            ) : (
+                              <ArrowDown className="w-3.5 h-3.5" />
+                            )
                           ) : (
                             <ArrowUpDown className="w-3.5 h-3.5 text-muted-foreground/40" />
                           )}
@@ -1227,7 +1346,11 @@ function OSPage() {
                         <div className="flex items-center gap-1.5">
                           Cliente
                           {osSortField === "cliente" ? (
-                            osSortDirection === "asc" ? <ArrowUp className="w-3.5 h-3.5" /> : <ArrowDown className="w-3.5 h-3.5" />
+                            osSortDirection === "asc" ? (
+                              <ArrowUp className="w-3.5 h-3.5" />
+                            ) : (
+                              <ArrowDown className="w-3.5 h-3.5" />
+                            )
                           ) : (
                             <ArrowUpDown className="w-3.5 h-3.5 text-muted-foreground/40" />
                           )}
@@ -1248,7 +1371,11 @@ function OSPage() {
                         <div className="flex items-center gap-1.5">
                           Valor
                           {osSortField === "valor" ? (
-                            osSortDirection === "asc" ? <ArrowUp className="w-3.5 h-3.5" /> : <ArrowDown className="w-3.5 h-3.5" />
+                            osSortDirection === "asc" ? (
+                              <ArrowUp className="w-3.5 h-3.5" />
+                            ) : (
+                              <ArrowDown className="w-3.5 h-3.5" />
+                            )
                           ) : (
                             <ArrowUpDown className="w-3.5 h-3.5 text-muted-foreground/40" />
                           )}
@@ -1324,9 +1451,7 @@ function OSPage() {
                             )}
                           </td>
                           <td className="px-5 py-3 whitespace-nowrap">
-                            {formatDate(
-                              o.data_agendamento ?? o.data_atendimento ?? o.dados_adicionais?.Data,
-                            )}
+                            {formatDate(o.data_agendamento ?? o.data_atendimento ?? o.dados_adicionais?.Data)}
                           </td>
                           <td className="px-5 py-3 whitespace-nowrap text-muted-foreground">
                             {o.horario_atendimento ?? o.dados_adicionais?.Horario ?? "—"}
@@ -1353,10 +1478,7 @@ function OSPage() {
                                   Viagem/Despesas: R${" "}
                                   {(
                                     Number(o.custo_viagem ?? 0) +
-                                    (o.despesas ?? []).reduce(
-                                      (sum, item) => sum + Number(item?.valor ?? 0),
-                                      0,
-                                    )
+                                    (o.despesas ?? []).reduce((sum, item) => sum + Number(item?.valor ?? 0), 0)
                                   ).toLocaleString("pt-BR")}
                                 </span>
                               </div>
@@ -1407,8 +1529,16 @@ function OSPage() {
                           setEditing(o);
                           setDialogMode("view");
                         }}
+<<<<<<< HEAD
                         className={`rounded-2xl border shadow-sm p-4 cursor-pointer transition-all active:scale-[0.98] ${isConcluida ? 'bg-muted/20 border-muted opacity-80' : 'bg-card border-border hover:border-primary/50'
                           }`}
+=======
+                        className={`rounded-2xl border shadow-sm p-4 cursor-pointer transition-all active:scale-[0.98] ${
+                          isConcluida
+                            ? "bg-muted/20 border-muted opacity-80"
+                            : "bg-card border-border hover:border-primary/50"
+                        }`}
+>>>>>>> d94e1f51615b19a251fa50ccff0c2b2ce6cbe189
                       >
                         <div className="flex items-start justify-between mb-3 gap-3">
                           <div className="flex flex-col">
@@ -1470,10 +1600,7 @@ function OSPage() {
             </p>
             <div className="flex items-center gap-2">
               <span className="text-xs text-muted-foreground">Exibir:</span>
-              <Select
-                value={String(osPageSize)}
-                onValueChange={(val) => setOsPageSize(Number(val))}
-              >
+              <Select value={String(osPageSize)} onValueChange={(val) => setOsPageSize(Number(val))}>
                 <SelectTrigger className="h-8 text-xs w-[70px]">
                   <SelectValue />
                 </SelectTrigger>
@@ -1526,8 +1653,7 @@ function OSPage() {
           try {
             await updateOS(editing.id, patch);
             const mudouStatus = patch.status !== undefined && patch.status !== editing.status;
-            const mudouTecnico =
-              patch.tecnicoId !== undefined && patch.tecnicoId !== editing.tecnicoId;
+            const mudouTecnico = patch.tecnicoId !== undefined && patch.tecnicoId !== editing.tecnicoId;
             if (mudouStatus) {
               await registrarLog(
                 "os_status_alterado",
@@ -1545,7 +1671,7 @@ function OSPage() {
             if (mudouEquipamento) {
               await registrarLog(
                 "os_equipamentos_alterados",
-                `Equipamentos vinculados à OS "${editing.titulo}" atualizados por ${nomeUsuario}`
+                `Equipamentos vinculados à OS "${editing.titulo}" atualizados por ${nomeUsuario}`,
               );
             }
             toast.success("OS atualizada");
@@ -1604,9 +1730,9 @@ export function EditOSDialog({
   const [despesasEdit, setDespesasEdit] = useState<Array<{ tipo: string; valor: number }>>([]);
   const [despesaTipoEdit, setDespesaTipoEdit] = useState("Pedágio");
   const [despesaValorEdit, setDespesaValorEdit] = useState("");
-  const [lancamentosEdit, setLancamentosEdit] = useState<
-    Array<{ tipo: string; valor: number; descricao?: string }>
-  >([]);
+  const [lancamentosEdit, setLancamentosEdit] = useState<Array<{ tipo: string; valor: number; descricao?: string }>>(
+    [],
+  );
   const [lancTipo, setLancTipo] = useState("Hora extra");
   const [lancValor, setLancValor] = useState("");
   const [lancDescricao, setLancDescricao] = useState("");
@@ -1681,9 +1807,7 @@ export function EditOSDialog({
       descricao_problema: descricaoProblema,
       status: (typeof overrideStatus === "string" ? overrideStatus : form.status) as OSStatus,
       dados_adicionais: dadosExtras,
-      pendencias_detalhes: osFinalizada(
-        (typeof overrideStatus === "string" ? overrideStatus : form.status) as OSStatus,
-      )
+      pendencias_detalhes: osFinalizada((typeof overrideStatus === "string" ? overrideStatus : form.status) as OSStatus)
         ? (null as any)
         : form.pendencias_detalhes || (null as any),
       endereco_servico: form.endereco_servico || undefined,
@@ -1714,8 +1838,8 @@ export function EditOSDialog({
             fontWeight: "bold",
             fontSize: "1.1rem",
             border: "none",
-            textAlign: "center"
-          }
+            textAlign: "center",
+          },
         });
       }
       await onSave(patch);
@@ -1792,12 +1916,14 @@ export function EditOSDialog({
     setQuickAnaSaving(true);
     try {
       const { data, error } = await (supabase.from("analistas_cliente" as any) as any)
-        .insert([{
-          empresa_id: empresaId,
-          nome: quickAnaForm.nome,
-          whatsapp: quickAnaForm.whatsapp,
-          cliente_id: form.clienteId,
-        }])
+        .insert([
+          {
+            empresa_id: empresaId,
+            nome: quickAnaForm.nome,
+            whatsapp: quickAnaForm.whatsapp,
+            cliente_id: form.clienteId,
+          },
+        ])
         .select()
         .single();
       if (error) throw error;
@@ -1856,12 +1982,16 @@ export function EditOSDialog({
                 <div className="flex items-center justify-between gap-2 mb-1">
                   <Label>Cliente</Label>
                   {!isView && (
+<<<<<<< HEAD
                     <Button
                       variant="outline"
                       size="sm"
                       className="h-8"
                       onClick={() => setQuickCliOpen(true)}
                     >
+=======
+                    <Button variant="outline" size="sm" className="h-8" onClick={() => setQuickCliOpen(true)}>
+>>>>>>> d94e1f51615b19a251fa50ccff0c2b2ce6cbe189
                       <Plus className="w-3.5 h-3.5 mr-1" /> Cadastrar novo
                     </Button>
                   )}
@@ -1874,8 +2004,13 @@ export function EditOSDialog({
                   <SearchCombobox
                     options={(Array.isArray(clientes) ? clientes : []).map((c) => ({
                       value: c.id,
+<<<<<<< HEAD
                       label: (c as any).ativo === false ? `${c.nome} (Inativo)` : c.nome,
                       disabled: (c as any).ativo === false,
+=======
+                      label: c.ativo === false ? `${c.nome} (Inativo)` : c.nome,
+                      disabled: c.ativo === false,
+>>>>>>> d94e1f51615b19a251fa50ccff0c2b2ce6cbe189
                     }))}
                     value={form.clienteId}
                     onChange={(v) => {
@@ -1901,10 +2036,21 @@ export function EditOSDialog({
                   {isView ? (
                     <div className="min-h-[40px] px-3 py-2 flex flex-wrap gap-2 items-center rounded-md border border-input bg-muted/40 text-sm">
                       {form.equipamentosIds.length > 0
+<<<<<<< HEAD
                         ? form.equipamentosIds.map(id => {
                           const eq = equipamentos.find(e => e.id === id);
                           return <Badge key={id} variant="secondary">{eq?.nome}</Badge>;
                         })
+=======
+                        ? form.equipamentosIds.map((id) => {
+                            const eq = equipamentos.find((e) => e.id === id);
+                            return (
+                              <Badge key={id} variant="secondary">
+                                {eq?.nome}
+                              </Badge>
+                            );
+                          })
+>>>>>>> d94e1f51615b19a251fa50ccff0c2b2ce6cbe189
                         : "—"}
                     </div>
                   ) : (
@@ -1912,16 +2058,26 @@ export function EditOSDialog({
                       {form.equipamentosIds.map((eqId, idx) => (
                         <div key={idx} className="flex gap-2">
                           <div className="h-10 px-3 flex-1 flex items-center rounded-md border border-input bg-muted/20 text-sm">
+<<<<<<< HEAD
                             {equipamentos.find(e => e.id === eqId)?.nome || "Desconhecido"}
+=======
+                            {equipamentos.find((e) => e.id === eqId)?.nome || "Desconhecido"}
+>>>>>>> d94e1f51615b19a251fa50ccff0c2b2ce6cbe189
                           </div>
                           <Button
                             type="button"
                             variant="outline"
                             size="icon"
                             onClick={() => {
+<<<<<<< HEAD
                               setForm(f => ({
                                 ...f,
                                 equipamentosIds: f.equipamentosIds.filter((_, i) => i !== idx)
+=======
+                              setForm((f) => ({
+                                ...f,
+                                equipamentosIds: f.equipamentosIds.filter((_, i) => i !== idx),
+>>>>>>> d94e1f51615b19a251fa50ccff0c2b2ce6cbe189
                               }));
                             }}
                           >
@@ -1934,7 +2090,11 @@ export function EditOSDialog({
                           value="none"
                           onValueChange={(v) => {
                             if (v !== "none" && !form.equipamentosIds.includes(v)) {
+<<<<<<< HEAD
                               setForm(f => ({ ...f, equipamentosIds: [...f.equipamentosIds, v] }));
+=======
+                              setForm((f) => ({ ...f, equipamentosIds: [...f.equipamentosIds, v] }));
+>>>>>>> d94e1f51615b19a251fa50ccff0c2b2ce6cbe189
                             }
                           }}
                         >
@@ -1944,15 +2104,36 @@ export function EditOSDialog({
                           <SelectContent>
                             <SelectItem value="none">Selecione para adicionar...</SelectItem>
                             {equipamentos
+<<<<<<< HEAD
                               .filter(e => e.cliente_id === form.clienteId && e.status === 'em_estoque' && !form.equipamentosIds.includes(e.id))
                               .map(e => (
                                 <SelectItem key={e.id} value={e.id}>
                                   {e.nome} {e.numero_serie ? `(SN: ${e.numero_serie})` : ''}
+=======
+                              .filter(
+                                (e) =>
+                                  e.cliente_id === form.clienteId &&
+                                  e.status === "em_estoque" &&
+                                  !form.equipamentosIds.includes(e.id),
+                              )
+                              .map((e) => (
+                                <SelectItem key={e.id} value={e.id}>
+                                  {e.nome} {e.numero_serie ? `(SN: ${e.numero_serie})` : ""}
+>>>>>>> d94e1f51615b19a251fa50ccff0c2b2ce6cbe189
                                 </SelectItem>
                               ))}
                           </SelectContent>
                         </Select>
+<<<<<<< HEAD
                         <Button type="button" size="icon" variant="secondary" className="h-10 w-10 shrink-0 pointer-events-none">
+=======
+                        <Button
+                          type="button"
+                          size="icon"
+                          variant="secondary"
+                          className="h-10 w-10 shrink-0 pointer-events-none"
+                        >
+>>>>>>> d94e1f51615b19a251fa50ccff0c2b2ce6cbe189
                           <Plus className="w-4 h-4" />
                         </Button>
                       </div>
@@ -1964,12 +2145,16 @@ export function EditOSDialog({
                 <div className="flex items-center justify-between gap-2 mb-1">
                   <Label>Técnico</Label>
                   {!isView && (
+<<<<<<< HEAD
                     <Button
                       variant="outline"
                       size="sm"
                       className="h-8"
                       onClick={() => setQuickTecOpen(true)}
                     >
+=======
+                    <Button variant="outline" size="sm" className="h-8" onClick={() => setQuickTecOpen(true)}>
+>>>>>>> d94e1f51615b19a251fa50ccff0c2b2ce6cbe189
                       <Plus className="w-3.5 h-3.5 mr-1" /> Cadastrar novo
                     </Button>
                   )}
@@ -1991,6 +2176,7 @@ export function EditOSDialog({
                     emptyText="Nenhum técnico encontrado."
                   />
                 )}
+<<<<<<< HEAD
               </div>
               <div>
                 <div className="flex items-center justify-between">
@@ -2097,6 +2283,112 @@ export function EditOSDialog({
                 />
               </div>
               <div>
+=======
+              </div>
+              <div>
+                <div className="flex items-center justify-between">
+                  <Label>Analista / Suporte Responsável</Label>
+                  {!isView && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="h-8"
+                      onClick={() => {
+                        if (!form.clienteId) return toast.error("Selecione um cliente primeiro");
+                        setQuickAnaOpen(true);
+                      }}
+                      disabled={!form.clienteId}
+                    >
+                      <Plus className="w-3.5 h-3.5 mr-1" /> Cadastrar novo
+                    </Button>
+                  )}
+                </div>
+                <Select
+                  disabled={isView || !form.clienteId}
+                  value={form.analistaId || undefined}
+                  onValueChange={(v) => setForm({ ...form, analistaId: v })}
+                >
+                  <SelectTrigger>
+                    <SelectValue
+                      placeholder={
+                        !form.clienteId
+                          ? "Selecione um cliente primeiro"
+                          : analistasEdit.length === 0
+                            ? "Nenhum analista cadastrado para este cliente"
+                            : "Selecione um analista..."
+                      }
+                    />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {(Array.isArray(analistasEdit) ? analistasEdit : []).map((a) => (
+                      <SelectItem key={a.id} value={a.id}>
+                        {a.nome}
+                        {a.whatsapp ? ` — ${a.whatsapp}` : ""}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="grid grid-cols-4 gap-3">
+              <div>
+                <Label>Valor do Serviço</Label>
+                <Input
+                  disabled={isView}
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={form.valor}
+                  onChange={(e) => {
+                    if (Number(e.target.value) < 0) return;
+                    setForm({ ...form, valor: e.target.value });
+                  }}
+                />
+              </div>
+              <div>
+                <Label>Custo de Viagem</Label>
+                <Input
+                  disabled={isView}
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={form.custo_viagem}
+                  onChange={(e) => {
+                    if (Number(e.target.value) < 0) return;
+                    setForm({ ...form, custo_viagem: e.target.value });
+                  }}
+                />
+              </div>
+              <div>
+                <Label>Km Viagem</Label>
+                <Input
+                  disabled={isView}
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={form.km_viagem}
+                  onChange={(e) => {
+                    if (Number(e.target.value) < 0) return;
+                    const cliente = clientes.find((c) => c.id === form.clienteId);
+                    const valorPorKm = cliente?.valor_por_km || 0;
+                    setForm({
+                      ...form,
+                      km_viagem: e.target.value,
+                      custo_viagem: valorPorKm ? String(Number(e.target.value) * valorPorKm) : form.custo_viagem,
+                    });
+                  }}
+                />
+              </div>
+              <div>
+                <Label>Valor Total Faturado</Label>
+                <Input
+                  disabled
+                  value={`R$ ${(Number(form.valor || 0) + Number(form.custo_viagem || 0) + despesasEdit.reduce((sum, item) => sum + Number(item.valor || 0), 0)).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`}
+                />
+              </div>
+              <div>
+>>>>>>> d94e1f51615b19a251fa50ccff0c2b2ce6cbe189
                 <Label>Status</Label>
                 <Select
                   disabled={isView}
@@ -2115,6 +2407,7 @@ export function EditOSDialog({
                   </SelectContent>
                 </Select>
               </div>
+<<<<<<< HEAD
               {!isView && (() => {
                 const total = Number(form.valor || 0) + Number(form.custo_viagem || 0) + despesasEdit.reduce((sum, item) => sum + Number(item.valor || 0), 0);
                 return (
@@ -2159,6 +2452,60 @@ export function EditOSDialog({
                   </div>
                 );
               })()}
+=======
+              {!isView &&
+                (() => {
+                  const total =
+                    Number(form.valor || 0) +
+                    Number(form.custo_viagem || 0) +
+                    despesasEdit.reduce((sum, item) => sum + Number(item.valor || 0), 0);
+                  return (
+                    <div className="col-span-full border-t border-border/50 pt-4 mt-2">
+                      <div className="flex items-center justify-between mb-3">
+                        <h4 className="text-sm font-semibold flex items-center gap-2">
+                          Valores Recebidos Antecipadamente
+                        </h4>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="h-8 text-xs bg-emerald-500/10 text-emerald-600 border-emerald-500/20 hover:bg-emerald-500/20 hover:text-emerald-700"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            setForm({
+                              ...form,
+                              valor_adiantado: String(total),
+                              descricao_adiantamento: "Pagamento Total",
+                            });
+                          }}
+                        >
+                          Pagamento Total
+                        </Button>
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <Label>Valor Adiantado (R$)</Label>
+                          <Input
+                            type="number"
+                            min="0"
+                            step="0.01"
+                            placeholder="0.00"
+                            value={form.valor_adiantado}
+                            onChange={(e) => setForm({ ...form, valor_adiantado: e.target.value })}
+                          />
+                        </div>
+                        <div>
+                          <Label>Descrição do Adiantamento</Label>
+                          <Input
+                            placeholder="ex: Sinal de viagem, Pagamento Total..."
+                            value={form.descricao_adiantamento}
+                            onChange={(e) => setForm({ ...form, descricao_adiantamento: e.target.value })}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })()}
+>>>>>>> d94e1f51615b19a251fa50ccff0c2b2ce6cbe189
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
@@ -2185,11 +2532,15 @@ export function EditOSDialog({
               <div>
                 <Label>Adicionar despesa</Label>
                 <div className="flex gap-2">
+<<<<<<< HEAD
                   <Select
                     disabled={isView}
                     value={despesaTipoEdit}
                     onValueChange={setDespesaTipoEdit}
                   >
+=======
+                  <Select disabled={isView} value={despesaTipoEdit} onValueChange={setDespesaTipoEdit}>
+>>>>>>> d94e1f51615b19a251fa50ccff0c2b2ce6cbe189
                     <SelectTrigger className="h-10 flex-1">
                       <SelectValue />
                     </SelectTrigger>
@@ -2317,9 +2668,13 @@ export function EditOSDialog({
                             size="icon"
                             variant="ghost"
                             className="h-7 w-7"
+<<<<<<< HEAD
                             onClick={() =>
                               setLancamentosEdit((prev) => prev.filter((_, i) => i !== index))
                             }
+=======
+                            onClick={() => setLancamentosEdit((prev) => prev.filter((_, i) => i !== index))}
+>>>>>>> d94e1f51615b19a251fa50ccff0c2b2ce6cbe189
                           >
                             <Trash className="w-3.5 h-3.5 text-destructive" />
                           </Button>
@@ -2372,9 +2727,13 @@ export function EditOSDialog({
                     className="flex items-center justify-between rounded-lg bg-background/70 px-3 py-2 text-sm"
                   >
                     <span>{despesa.tipo}</span>
+<<<<<<< HEAD
                     <span>
                       R$ {despesa.valor.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
                     </span>
+=======
+                    <span>R$ {despesa.valor.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</span>
+>>>>>>> d94e1f51615b19a251fa50ccff0c2b2ce6cbe189
                   </div>
                 ))}
               </div>
@@ -2437,6 +2796,7 @@ export function EditOSDialog({
 
         <DialogFooter className="sm:justify-between items-center w-full">
           <div className="flex gap-2">
+<<<<<<< HEAD
             {(ordem?.status === "Concluído Técnico" || form.status === "Concluído Técnico" || ordem?.status === "concluido_tecnico" || form.status === "concluido_tecnico" as any) && ordem && (
               <>
                 <RatGallery
@@ -2446,9 +2806,42 @@ export function EditOSDialog({
                       type="button"
                       variant="outline"
                       className="border-blue-500 text-blue-600 bg-blue-50/50 hover:bg-blue-100 dark:border-blue-800/50 dark:text-blue-400 dark:bg-blue-900/20 dark:hover:bg-blue-900/40"
+=======
+            {(ordem?.status === "Concluído Técnico" ||
+              form.status === "Concluído Técnico" ||
+              ordem?.status === "concluido_tecnico" ||
+              form.status === ("concluido_tecnico" as any)) &&
+              ordem && (
+                <>
+                  <RatGallery
+                    osId={ordem.id}
+                    trigger={
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="border-blue-500 text-blue-600 bg-blue-50/50 hover:bg-blue-100 dark:border-blue-800/50 dark:text-blue-400 dark:bg-blue-900/20 dark:hover:bg-blue-900/40"
+                      >
+                        Ver Fotos/RAT
+                      </Button>
+                    }
+                  />
+
+                  {!isView && (
+                    <Button
+                      type="button"
+                      variant="default"
+                      className="bg-emerald-600 hover:bg-emerald-700 text-white"
+                      onClick={() => {
+                        setForm({ ...form, status: "Concluído" });
+                        handleSave("Concluído");
+                      }}
+                      disabled={saving}
+>>>>>>> d94e1f51615b19a251fa50ccff0c2b2ce6cbe189
                     >
-                      Ver Fotos/RAT
+                      <CheckCircle className="w-4 h-4 mr-2" />
+                      Aprovar e Finalizar
                     </Button>
+<<<<<<< HEAD
                   }
                 />
 
@@ -2469,6 +2862,11 @@ export function EditOSDialog({
                 )}
               </>
             )}
+=======
+                  )}
+                </>
+              )}
+>>>>>>> d94e1f51615b19a251fa50ccff0c2b2ce6cbe189
           </div>
           <div className="flex gap-2 justify-end">
             <Button variant="outline" onClick={onClose} disabled={saving}>
@@ -2517,11 +2915,7 @@ export function EditOSDialog({
             </div>
           </div>
           <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setQuickCliOpen(false)}
-              disabled={quickCliSaving}
-            >
+            <Button variant="outline" onClick={() => setQuickCliOpen(false)} disabled={quickCliSaving}>
               Cancelar
             </Button>
             <Button onClick={saveQuickCliente} disabled={quickCliSaving}>
@@ -2570,11 +2964,7 @@ export function EditOSDialog({
             </div>
           </div>
           <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setQuickTecOpen(false)}
-              disabled={quickTecSaving}
-            >
+            <Button variant="outline" onClick={() => setQuickTecOpen(false)} disabled={quickTecSaving}>
               Cancelar
             </Button>
             <Button onClick={saveQuickTecnico} disabled={quickTecSaving}>
@@ -2589,9 +2979,7 @@ export function EditOSDialog({
         <DialogContent className="rounded-2xl w-[95vw] sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Cadastro Rápido - Analista</DialogTitle>
-            <DialogDescription>
-              Adicione um analista de suporte para o cliente selecionado.
-            </DialogDescription>
+            <DialogDescription>Adicione um analista de suporte para o cliente selecionado.</DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-2">
             <div>
@@ -2612,11 +3000,7 @@ export function EditOSDialog({
             </div>
           </div>
           <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setQuickAnaOpen(false)}
-              disabled={quickAnaSaving}
-            >
+            <Button variant="outline" onClick={() => setQuickAnaOpen(false)} disabled={quickAnaSaving}>
               Cancelar
             </Button>
             <Button onClick={saveQuickAnalista} disabled={quickAnaSaving}>
