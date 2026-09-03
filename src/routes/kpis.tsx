@@ -213,8 +213,8 @@ function KpisPage() {
                 <ComposedChart data={data?.meses ?? []}>
                   <defs>
                     <linearGradient id="colorConcluidas" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.8}/>
-                      <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0.2}/>
+                      <stop offset="5%" stopColor="#10b981" stopOpacity={0.8}/>
+                      <stop offset="95%" stopColor="#10b981" stopOpacity={0.2}/>
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" className="stroke-border" vertical={false} />
@@ -222,14 +222,14 @@ function KpisPage() {
                   <YAxis yAxisId="left" fontSize={12} tickLine={false} axisLine={false} />
                   <YAxis yAxisId="right" orientation="right" fontSize={12} tickLine={false} axisLine={false} />
                   <Tooltip
-                    contentStyle={{ borderRadius: '8px', border: '1px solid hsl(var(--border))' }}
+                    contentStyle={{ backgroundColor: 'hsl(var(--card))', color: 'hsl(var(--card-foreground))', borderRadius: '8px', border: '1px solid hsl(var(--border))' }}
                     formatter={(v: number, n: string) =>
                       n === "Valor a pagar" ? brl(Number(v)) : v
                     }
                   />
-                  <Legend />
+                  <Legend iconType="circle" />
                   <Bar yAxisId="left" dataKey="concluidas" name="OS concluídas" fill="url(#colorConcluidas)" radius={[6, 6, 0, 0]} />
-                  <Line yAxisId="right" type="monotone" dataKey="valorAPagar" name="Valor a pagar" stroke="hsl(var(--destructive))" strokeWidth={3} dot={{ r: 4 }} activeDot={{ r: 6 }} />
+                  <Line yAxisId="right" type="monotone" dataKey="valorAPagar" name="Valor a pagar" stroke="#f59e0b" strokeWidth={3} dot={{ r: 4 }} activeDot={{ r: 6 }} />
                 </ComposedChart>
               </ResponsiveContainer>
             </CardContent>
@@ -252,7 +252,7 @@ function KpisPage() {
                     <CartesianGrid strokeDasharray="3 3" className="stroke-border" vertical={false} />
                     <XAxis dataKey="label" fontSize={12} tickLine={false} axisLine={false} />
                     <YAxis fontSize={12} tickLine={false} axisLine={false} />
-                    <Tooltip contentStyle={{ borderRadius: '8px', border: '1px solid hsl(var(--border))' }} formatter={(v: number) => `${Number(v).toFixed(1)} h`} />
+                    <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--card))', color: 'hsl(var(--card-foreground))', borderRadius: '8px', border: '1px solid hsl(var(--border))' }} formatter={(v: number) => `${Number(v).toFixed(1)} h`} />
                     <Area type="monotone" dataKey="tempoMedioHoras" name="Tempo médio" stroke="#3b82f6" strokeWidth={3} fillOpacity={1} fill="url(#colorTempo)" />
                   </AreaChart>
                 </ResponsiveContainer>
@@ -268,21 +268,21 @@ function KpisPage() {
                   <ComposedChart data={data?.meses ?? []}>
                     <defs>
                       <linearGradient id="colorCriadas" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="hsl(var(--muted-foreground))" stopOpacity={0.5}/>
-                        <stop offset="95%" stopColor="hsl(var(--muted-foreground))" stopOpacity={0.1}/>
+                        <stop offset="5%" stopColor="#94a3b8" stopOpacity={0.5}/>
+                        <stop offset="95%" stopColor="#94a3b8" stopOpacity={0.1}/>
                       </linearGradient>
-                      <linearGradient id="colorConcluidas" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.8}/>
-                        <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0.2}/>
+                      <linearGradient id="colorConcluidas2" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#10b981" stopOpacity={0.8}/>
+                        <stop offset="95%" stopColor="#10b981" stopOpacity={0.2}/>
                       </linearGradient>
                     </defs>
                     <CartesianGrid strokeDasharray="3 3" className="stroke-border" vertical={false} />
                     <XAxis dataKey="label" fontSize={12} tickLine={false} axisLine={false} />
                     <YAxis fontSize={12} tickLine={false} axisLine={false} />
-                    <Tooltip contentStyle={{ borderRadius: '8px', border: '1px solid hsl(var(--border))' }} />
-                    <Legend />
+                    <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--card))', color: 'hsl(var(--card-foreground))', borderRadius: '8px', border: '1px solid hsl(var(--border))' }} />
+                    <Legend iconType="circle" />
                     <Bar dataKey="criadas" name="Criadas" fill="url(#colorCriadas)" radius={[6, 6, 0, 0]} />
-                    <Bar dataKey="concluidas" name="Concluídas" fill="url(#colorConcluidas)" radius={[6, 6, 0, 0]} />
+                    <Bar dataKey="concluidas" name="Concluídas" fill="url(#colorConcluidas2)" radius={[6, 6, 0, 0]} />
                   </ComposedChart>
                 </ResponsiveContainer>
               </CardContent>

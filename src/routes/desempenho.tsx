@@ -158,10 +158,11 @@ function DesempenhoPage() {
                   <CartesianGrid strokeDasharray="3 3" className="stroke-border" vertical={false} />
                   <XAxis dataKey="label" fontSize={12} tickLine={false} axisLine={false} />
                   <YAxis fontSize={12} tickLine={false} axisLine={false} />
-                  <Tooltip contentStyle={{ borderRadius: '8px', border: '1px solid hsl(var(--border))' }} formatter={(v: number) => (metrica === "valorAPagar" ? brl(Number(v)) : v)} />
+                  <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--card))', color: 'hsl(var(--card-foreground))', borderRadius: '8px', border: '1px solid hsl(var(--border))' }} formatter={(v: number) => (metrica === "valorAPagar" ? brl(Number(v)) : v)} />
                   <Legend 
                     onClick={toggleLine} 
                     wrapperStyle={{ cursor: 'pointer', paddingTop: '10px' }} 
+                    iconType="circle"
                   />
                   {ranking.map((t, i) => (
                     <Line
