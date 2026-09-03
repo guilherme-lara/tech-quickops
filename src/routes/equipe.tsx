@@ -57,6 +57,7 @@ import {
   Trash2
 } from "lucide-react";
 import { GerarAcessoDialog } from "@/components/GerarAcessoDialog";
+import { TecnicoEmailStatus } from "@/components/TecnicoEmailStatus";
 import { useConfirm } from "@/components/ConfirmDialogProvider";
 
 function UsernameField({ userId, initialUsername, empresaId, nomeCompleto }: { userId: string, initialUsername?: string, empresaId?: string, nomeCompleto?: string }) {
@@ -744,7 +745,7 @@ function EquipePage() {
                   </p>
                   <TecnicoEmailStatus
                     empresaId={profile?.empresa_id}
-                    emails={[form.email_notificacoes, form.email].filter(Boolean) as string[]}
+                    emails={[form.email_notificacoes].filter(Boolean) as string[]}
                   />
                 </TabsContent>
               </Tabs>
