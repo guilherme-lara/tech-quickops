@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { GestorLayout } from "@/components/GestorLayout";
+import { SectionTabs } from "@/components/SectionTabs";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
@@ -51,6 +52,7 @@ export const Route = createFileRoute("/gestor-dashboard")({
   component: () => (
     <ProtectedRoute allowedRoles={['gestor', 'admin', 'superadmin']}>
       <GestorLayout>
+      <SectionTabs group="estrategica" />
         <GestorDashboard />
       </GestorLayout>
     </ProtectedRoute>

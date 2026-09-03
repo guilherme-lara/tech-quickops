@@ -1,6 +1,7 @@
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { createFileRoute } from "@tanstack/react-router";
 import { GestorLayout } from "@/components/GestorLayout";
+import { SectionTabs } from "@/components/SectionTabs";
 import { Card } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -521,6 +522,7 @@ function EquipePage() {
 
   return (
     <GestorLayout>
+      <SectionTabs group="equipe" />
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-5">
         <div>
           <h2 className="text-xl font-bold">Equipe técnica</h2>

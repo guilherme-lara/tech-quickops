@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { GestorLayout } from "@/components/GestorLayout";
+import { SectionTabs } from "@/components/SectionTabs";
 import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
@@ -114,6 +115,7 @@ function EmailsPage() {
 
   return (
     <GestorLayout>
+      <SectionTabs group="auditoria" />
       <div className="space-y-6">
         <div className="rounded-3xl bg-card p-5 md:p-6 border border-border/60 shadow-[var(--shadow-card)]">
           <h1 className="text-xl font-bold flex items-center gap-2">

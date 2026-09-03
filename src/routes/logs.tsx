@@ -1,6 +1,7 @@
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { GestorLayout } from "@/components/GestorLayout";
+import { SectionTabs } from "@/components/SectionTabs";
 import { useStore } from "@/lib/useData";
 import { useAuth } from "@/lib/auth-context";
 import { MesAnoFilter } from "@/components/MesAnoFilter";
@@ -102,6 +103,7 @@ function LogsPage() {
 
   return (
     <GestorLayout>
+      <SectionTabs group="auditoria" />
       <div className="flex items-center justify-between mb-5 gap-3 flex-wrap">
         <div className="flex items-center gap-3">
           <Link to="/dashboard">

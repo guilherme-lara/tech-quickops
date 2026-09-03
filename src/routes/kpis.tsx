@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { GestorLayout } from "@/components/GestorLayout";
+import { SectionTabs } from "@/components/SectionTabs";
 import { useAuth } from "@/lib/auth-context";
 import { useKpisData, brl } from "@/lib/kpis";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -36,6 +37,7 @@ export const Route = createFileRoute("/kpis")({
   component: () => (
     <ProtectedRoute allowedRoles={["gestor", "admin", "superadmin"]}>
       <GestorLayout>
+      <SectionTabs group="estrategica" />
         <KpisPage />
       </GestorLayout>
     </ProtectedRoute>
