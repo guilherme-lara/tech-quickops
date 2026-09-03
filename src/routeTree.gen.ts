@@ -37,6 +37,7 @@ import { Route as TecnicoPerfilRouteImport } from './routes/tecnico.perfil'
 import { Route as TecnicoHistoricoRouteImport } from './routes/tecnico.historico'
 import { Route as TecnicoDashboardRouteImport } from './routes/tecnico.dashboard'
 import { Route as TecnicoCrachaRouteImport } from './routes/tecnico.cracha'
+import { Route as ClientesIdRouteImport } from './routes/clientes.$id'
 import { Route as ApiProcessEmailQueueRouteImport } from './routes/api/process-email-queue'
 import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
 import { Route as Char91DotmcpChar93ListToolsRouteImport } from './routes/[.mcp]/list-tools'
@@ -187,6 +188,11 @@ const TecnicoCrachaRoute = TecnicoCrachaRouteImport.update({
   path: '/tecnico/cracha',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ClientesIdRoute = ClientesIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => ClientesRoute,
+} as any)
 const ApiProcessEmailQueueRoute = ApiProcessEmailQueueRouteImport.update({
   id: '/api/process-email-queue',
   path: '/api/process-email-queue',
@@ -241,7 +247,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin-sistema': typeof AdminSistemaRoute
   '/analista-dashboard': typeof AnalistaDashboardRoute
-  '/clientes': typeof ClientesRoute
+  '/clientes': typeof ClientesRouteWithChildren
   '/configuracoes': typeof ConfiguracoesRoute
   '/contratos': typeof ContratosRoute
   '/dashboard': typeof DashboardRoute
@@ -265,6 +271,7 @@ export interface FileRoutesByFullPath {
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/api/process-email-queue': typeof ApiProcessEmailQueueRoute
+  '/clientes/$id': typeof ClientesIdRoute
   '/tecnico/cracha': typeof TecnicoCrachaRoute
   '/tecnico/dashboard': typeof TecnicoDashboardRoute
   '/tecnico/historico': typeof TecnicoHistoricoRoute
@@ -280,7 +287,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin-sistema': typeof AdminSistemaRoute
   '/analista-dashboard': typeof AnalistaDashboardRoute
-  '/clientes': typeof ClientesRoute
+  '/clientes': typeof ClientesRouteWithChildren
   '/configuracoes': typeof ConfiguracoesRoute
   '/contratos': typeof ContratosRoute
   '/dashboard': typeof DashboardRoute
@@ -304,6 +311,7 @@ export interface FileRoutesByTo {
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/api/process-email-queue': typeof ApiProcessEmailQueueRoute
+  '/clientes/$id': typeof ClientesIdRoute
   '/tecnico/cracha': typeof TecnicoCrachaRoute
   '/tecnico/dashboard': typeof TecnicoDashboardRoute
   '/tecnico/historico': typeof TecnicoHistoricoRoute
@@ -320,7 +328,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/admin-sistema': typeof AdminSistemaRoute
   '/analista-dashboard': typeof AnalistaDashboardRoute
-  '/clientes': typeof ClientesRoute
+  '/clientes': typeof ClientesRouteWithChildren
   '/configuracoes': typeof ConfiguracoesRoute
   '/contratos': typeof ContratosRoute
   '/dashboard': typeof DashboardRoute
@@ -344,6 +352,7 @@ export interface FileRoutesById {
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/api/process-email-queue': typeof ApiProcessEmailQueueRoute
+  '/clientes/$id': typeof ClientesIdRoute
   '/tecnico/cracha': typeof TecnicoCrachaRoute
   '/tecnico/dashboard': typeof TecnicoDashboardRoute
   '/tecnico/historico': typeof TecnicoHistoricoRoute
@@ -385,6 +394,7 @@ export interface FileRouteTypes {
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
     | '/api/process-email-queue'
+    | '/clientes/$id'
     | '/tecnico/cracha'
     | '/tecnico/dashboard'
     | '/tecnico/historico'
@@ -424,6 +434,7 @@ export interface FileRouteTypes {
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
     | '/api/process-email-queue'
+    | '/clientes/$id'
     | '/tecnico/cracha'
     | '/tecnico/dashboard'
     | '/tecnico/historico'
@@ -463,6 +474,7 @@ export interface FileRouteTypes {
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
     | '/api/process-email-queue'
+    | '/clientes/$id'
     | '/tecnico/cracha'
     | '/tecnico/dashboard'
     | '/tecnico/historico'
@@ -479,7 +491,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminSistemaRoute: typeof AdminSistemaRoute
   AnalistaDashboardRoute: typeof AnalistaDashboardRoute
-  ClientesRoute: typeof ClientesRoute
+  ClientesRoute: typeof ClientesRouteWithChildren
   ConfiguracoesRoute: typeof ConfiguracoesRoute
   ContratosRoute: typeof ContratosRoute
   DashboardRoute: typeof DashboardRoute
@@ -712,6 +724,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TecnicoCrachaRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/clientes/$id': {
+      id: '/clientes/$id'
+      path: '/$id'
+      fullPath: '/clientes/$id'
+      preLoaderRoute: typeof ClientesIdRouteImport
+      parentRoute: typeof ClientesRoute
+    }
     '/api/process-email-queue': {
       id: '/api/process-email-queue'
       path: '/api/process-email-queue'
@@ -778,6 +797,18 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface ClientesRouteChildren {
+  ClientesIdRoute: typeof ClientesIdRoute
+}
+
+const ClientesRouteChildren: ClientesRouteChildren = {
+  ClientesIdRoute: ClientesIdRoute,
+}
+
+const ClientesRouteWithChildren = ClientesRoute._addFileChildren(
+  ClientesRouteChildren,
+)
+
 interface TecnicoOsIdRouteChildren {
   TecnicoOsIdRatRoute: typeof TecnicoOsIdRatRoute
 }
@@ -794,7 +825,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminSistemaRoute: AdminSistemaRoute,
   AnalistaDashboardRoute: AnalistaDashboardRoute,
-  ClientesRoute: ClientesRoute,
+  ClientesRoute: ClientesRouteWithChildren,
   ConfiguracoesRoute: ConfiguracoesRoute,
   ContratosRoute: ContratosRoute,
   DashboardRoute: DashboardRoute,
