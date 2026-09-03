@@ -1,4 +1,3 @@
-import { processarFilaEmails } from "./email.functions";
 import { supabase } from "@/integrations/supabase/client";
 
 const MIN_INTERVAL_MS = 3_000;
@@ -7,12 +6,12 @@ let lastRun = 0;
 let running = false;
 let trailingScheduled = false;
 
-async function temSessao() {
+async function obterTokenSessao() {
   try {
     const { data } = await supabase.auth.getSession();
-    return !!data.session?.access_token;
+    return data.session?.access_token ?? null;
   } catch {
-    return false;
+    return null;
   }
 }
 
@@ -24,10 +23,16 @@ async function run() {
   running = true;
   lastRun = Date.now();
   try {
-    // Sem sessão o endpoint é protegido (401): nem tenta chamar.
-    if (await temSessao()) {
-      await processarFilaEmails();
-    }
+    const token = await obterTokenSessao();
+    if (!token) return;
+
+    // Rota HTTP própria para trabalho em background: o token é anexado de
+    // forma explícita e qualquer falha fica isolada da renderização do app.
+    await fetch("/api/process-email-queue", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}` },
+      keepalive: true,
+    });
   } catch {
     // Falhas de envio não podem quebrar o fluxo do usuário
   } finally {

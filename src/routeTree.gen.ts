@@ -37,6 +37,7 @@ import { Route as TecnicoPerfilRouteImport } from './routes/tecnico.perfil'
 import { Route as TecnicoHistoricoRouteImport } from './routes/tecnico.historico'
 import { Route as TecnicoDashboardRouteImport } from './routes/tecnico.dashboard'
 import { Route as TecnicoCrachaRouteImport } from './routes/tecnico.cracha'
+import { Route as ApiProcessEmailQueueRouteImport } from './routes/api/process-email-queue'
 import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
 import { Route as Char91DotmcpChar93ListToolsRouteImport } from './routes/[.mcp]/list-tools'
 import { Route as TecnicoOsIndexRouteImport } from './routes/tecnico.os.index'
@@ -186,6 +187,11 @@ const TecnicoCrachaRoute = TecnicoCrachaRouteImport.update({
   path: '/tecnico/cracha',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiProcessEmailQueueRoute = ApiProcessEmailQueueRouteImport.update({
+  id: '/api/process-email-queue',
+  path: '/api/process-email-queue',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const Char91DotwellKnownChar93OauthProtectedResourceRoute =
   Char91DotwellKnownChar93OauthProtectedResourceRouteImport.update({
     id: '/.well-known/oauth-protected-resource',
@@ -258,6 +264,7 @@ export interface FileRoutesByFullPath {
   '/usuarios': typeof UsuariosRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
+  '/api/process-email-queue': typeof ApiProcessEmailQueueRoute
   '/tecnico/cracha': typeof TecnicoCrachaRoute
   '/tecnico/dashboard': typeof TecnicoDashboardRoute
   '/tecnico/historico': typeof TecnicoHistoricoRoute
@@ -296,6 +303,7 @@ export interface FileRoutesByTo {
   '/usuarios': typeof UsuariosRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
+  '/api/process-email-queue': typeof ApiProcessEmailQueueRoute
   '/tecnico/cracha': typeof TecnicoCrachaRoute
   '/tecnico/dashboard': typeof TecnicoDashboardRoute
   '/tecnico/historico': typeof TecnicoHistoricoRoute
@@ -335,6 +343,7 @@ export interface FileRoutesById {
   '/usuarios': typeof UsuariosRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
+  '/api/process-email-queue': typeof ApiProcessEmailQueueRoute
   '/tecnico/cracha': typeof TecnicoCrachaRoute
   '/tecnico/dashboard': typeof TecnicoDashboardRoute
   '/tecnico/historico': typeof TecnicoHistoricoRoute
@@ -375,6 +384,7 @@ export interface FileRouteTypes {
     | '/usuarios'
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
+    | '/api/process-email-queue'
     | '/tecnico/cracha'
     | '/tecnico/dashboard'
     | '/tecnico/historico'
@@ -413,6 +423,7 @@ export interface FileRouteTypes {
     | '/usuarios'
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
+    | '/api/process-email-queue'
     | '/tecnico/cracha'
     | '/tecnico/dashboard'
     | '/tecnico/historico'
@@ -451,6 +462,7 @@ export interface FileRouteTypes {
     | '/usuarios'
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
+    | '/api/process-email-queue'
     | '/tecnico/cracha'
     | '/tecnico/dashboard'
     | '/tecnico/historico'
@@ -490,6 +502,7 @@ export interface RootRouteChildren {
   UsuariosRoute: typeof UsuariosRoute
   Char91DotmcpChar93ListToolsRoute: typeof Char91DotmcpChar93ListToolsRoute
   Char91DotwellKnownChar93OauthProtectedResourceRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
+  ApiProcessEmailQueueRoute: typeof ApiProcessEmailQueueRoute
   TecnicoCrachaRoute: typeof TecnicoCrachaRoute
   TecnicoDashboardRoute: typeof TecnicoDashboardRoute
   TecnicoHistoricoRoute: typeof TecnicoHistoricoRoute
@@ -699,6 +712,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TecnicoCrachaRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/process-email-queue': {
+      id: '/api/process-email-queue'
+      path: '/api/process-email-queue'
+      fullPath: '/api/process-email-queue'
+      preLoaderRoute: typeof ApiProcessEmailQueueRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/.well-known/oauth-protected-resource': {
       id: '/.well-known/oauth-protected-resource'
       path: '/.well-known/oauth-protected-resource'
@@ -798,6 +818,7 @@ const rootRouteChildren: RootRouteChildren = {
   Char91DotmcpChar93ListToolsRoute: Char91DotmcpChar93ListToolsRoute,
   Char91DotwellKnownChar93OauthProtectedResourceRoute:
     Char91DotwellKnownChar93OauthProtectedResourceRoute,
+  ApiProcessEmailQueueRoute: ApiProcessEmailQueueRoute,
   TecnicoCrachaRoute: TecnicoCrachaRoute,
   TecnicoDashboardRoute: TecnicoDashboardRoute,
   TecnicoHistoricoRoute: TecnicoHistoricoRoute,
