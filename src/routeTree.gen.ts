@@ -23,6 +23,7 @@ import { Route as GestorDashboardRouteImport } from './routes/gestor-dashboard'
 import { Route as GestaoEquipeRouteImport } from './routes/gestao-equipe'
 import { Route as EstoqueRouteImport } from './routes/estoque'
 import { Route as EquipeRouteImport } from './routes/equipe'
+import { Route as EmailsRouteImport } from './routes/emails'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as ContratosRouteImport } from './routes/contratos'
 import { Route as ConfiguracoesRouteImport } from './routes/configuracoes'
@@ -111,6 +112,11 @@ const EstoqueRoute = EstoqueRouteImport.update({
 const EquipeRoute = EquipeRouteImport.update({
   id: '/equipe',
   path: '/equipe',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EmailsRoute = EmailsRouteImport.update({
+  id: '/emails',
+  path: '/emails',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DashboardRoute = DashboardRouteImport.update({
@@ -221,6 +227,7 @@ export interface FileRoutesByFullPath {
   '/configuracoes': typeof ConfiguracoesRoute
   '/contratos': typeof ContratosRoute
   '/dashboard': typeof DashboardRoute
+  '/emails': typeof EmailsRoute
   '/equipe': typeof EquipeRoute
   '/estoque': typeof EstoqueRoute
   '/gestao-equipe': typeof GestaoEquipeRoute
@@ -256,6 +263,7 @@ export interface FileRoutesByTo {
   '/configuracoes': typeof ConfiguracoesRoute
   '/contratos': typeof ContratosRoute
   '/dashboard': typeof DashboardRoute
+  '/emails': typeof EmailsRoute
   '/equipe': typeof EquipeRoute
   '/estoque': typeof EstoqueRoute
   '/gestao-equipe': typeof GestaoEquipeRoute
@@ -292,6 +300,7 @@ export interface FileRoutesById {
   '/configuracoes': typeof ConfiguracoesRoute
   '/contratos': typeof ContratosRoute
   '/dashboard': typeof DashboardRoute
+  '/emails': typeof EmailsRoute
   '/equipe': typeof EquipeRoute
   '/estoque': typeof EstoqueRoute
   '/gestao-equipe': typeof GestaoEquipeRoute
@@ -329,6 +338,7 @@ export interface FileRouteTypes {
     | '/configuracoes'
     | '/contratos'
     | '/dashboard'
+    | '/emails'
     | '/equipe'
     | '/estoque'
     | '/gestao-equipe'
@@ -364,6 +374,7 @@ export interface FileRouteTypes {
     | '/configuracoes'
     | '/contratos'
     | '/dashboard'
+    | '/emails'
     | '/equipe'
     | '/estoque'
     | '/gestao-equipe'
@@ -399,6 +410,7 @@ export interface FileRouteTypes {
     | '/configuracoes'
     | '/contratos'
     | '/dashboard'
+    | '/emails'
     | '/equipe'
     | '/estoque'
     | '/gestao-equipe'
@@ -435,6 +447,7 @@ export interface RootRouteChildren {
   ConfiguracoesRoute: typeof ConfiguracoesRoute
   ContratosRoute: typeof ContratosRoute
   DashboardRoute: typeof DashboardRoute
+  EmailsRoute: typeof EmailsRoute
   EquipeRoute: typeof EquipeRoute
   EstoqueRoute: typeof EstoqueRoute
   GestaoEquipeRoute: typeof GestaoEquipeRoute
@@ -560,6 +573,13 @@ declare module '@tanstack/react-router' {
       path: '/equipe'
       fullPath: '/equipe'
       preLoaderRoute: typeof EquipeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/emails': {
+      id: '/emails'
+      path: '/emails'
+      fullPath: '/emails'
+      preLoaderRoute: typeof EmailsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/dashboard': {
@@ -718,6 +738,7 @@ const rootRouteChildren: RootRouteChildren = {
   ConfiguracoesRoute: ConfiguracoesRoute,
   ContratosRoute: ContratosRoute,
   DashboardRoute: DashboardRoute,
+  EmailsRoute: EmailsRoute,
   EquipeRoute: EquipeRoute,
   EstoqueRoute: EstoqueRoute,
   GestaoEquipeRoute: GestaoEquipeRoute,
