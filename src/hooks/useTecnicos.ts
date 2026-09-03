@@ -48,10 +48,17 @@ export function useTecnicos(
         ativo: r.ativo,
         comissao: Number(r.comissao || 0),
         tipo_comissao: (r.tipo_comissao as TipoComissao) ?? "fixo",
+        valor_fixo: Number(r.valor_fixo || 0),
+        meta_chamados: Number(r.meta_chamados || 0),
+        bonus_excedente: Number(r.bonus_excedente || 0),
+        horas_limite: Number(r.horas_limite || 0),
+        valor_hora_extra: Number(r.valor_hora_extra || 0),
+        email_notificacoes: r.email_notificacoes ?? "",
         chave_pix: r.chave_pix ?? "",
         username: r.username ?? "",
         user_id: r.user_id ?? null,
         dados_adicionais: r.dados_adicionais ?? {},
+
       }));
 
       return { data: formattedData, count: count ?? 0 };
