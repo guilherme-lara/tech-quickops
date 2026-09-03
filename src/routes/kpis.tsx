@@ -37,7 +37,7 @@ export const Route = createFileRoute("/kpis")({
   component: () => (
     <ProtectedRoute allowedRoles={["gestor", "admin", "superadmin"]}>
       <GestorLayout>
-      <SectionTabs group="estrategica" />
+      <div className="px-4 md:px-8 pt-6"><SectionTabs group="estrategica" /></div>
         <KpisPage />
       </GestorLayout>
     </ProtectedRoute>
