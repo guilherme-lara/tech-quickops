@@ -59,6 +59,7 @@ import {
 import { GerarAcessoDialog } from "@/components/GerarAcessoDialog";
 import { TecnicoEmailStatus } from "@/components/TecnicoEmailStatus";
 import { useConfirm } from "@/components/ConfirmDialogProvider";
+import { ContratoViewerDialog } from "@/components/ContratoViewerDialog";
 
 function UsernameField({ userId, initialUsername, empresaId, nomeCompleto }: { userId: string, initialUsername?: string, empresaId?: string, nomeCompleto?: string }) {
   const qc = useQueryClient();
@@ -238,6 +239,7 @@ function EquipePage() {
   };
   const [form, setForm] = useState(emptyForm);
   const [uploadingContrato, setUploadingContrato] = useState(false);
+  const [verContrato, setVerContrato] = useState<{ path: string; nome: string } | null>(null);
 
   const handleUploadContrato = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -291,13 +293,9 @@ function EquipePage() {
     }
   };
 
-  const abrirContrato = async () => {
+  const abrirContrato = () => {
     if (!form.contrato_arquivo) return;
-    const { data, error } = await supabase.storage
-      .from("contratos")
-      .createSignedUrl(form.contrato_arquivo, 60 * 10);
-    if (error || !data?.signedUrl) return toast.error("Não foi possível abrir o contrato");
-    window.open(data.signedUrl, "_blank");
+    setVerContrato({ path: form.contrato_arquivo, nome: form.contrato_nome || "Contrato" });
   };
 
 
