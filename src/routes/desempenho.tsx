@@ -10,7 +10,12 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { EmptyState } from "@/components/EmptyState";
-import { Trophy, UsersRound } from "lucide-react";
+import { Trophy, UsersRound, Target, Check, Pencil, Loader2 } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 import {
   ResponsiveContainer,
   LineChart,
@@ -208,6 +213,13 @@ function DesempenhoPage() {
                     className="mt-3 h-2"
                     value={Math.min(100, (t[criterio] / maxCriterio) * 100)}
                   />
+                  <MetaTecnico
+                    tecnicoId={t.id}
+                    nome={t.nome}
+                    meta={t.metaChamados}
+                    concluidas={t.concluidas}
+                    meses={Number(meses)}
+                  />
                   <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
                     <span>Comissão: {brl(t.comissaoTotal)}</span>
                     <span>Hora extra: {brl(t.horaExtraTotal)}</span>
@@ -218,6 +230,108 @@ function DesempenhoPage() {
               </Card>
             ))}
           </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+function MetaTecnico({
+  tecnicoId,
+  nome,
+  meta,
+  concluidas,
+  meses,
+}: {
+  tecnicoId: string;
+  nome: string;
+  meta: number;
+  concluidas: number;
+  meses: number;
+}) {
+  const qc = useQueryClient();
+  const [editando, setEditando] = useState(false);
+  const [valor, setValor] = useState(String(meta || ""));
+  const [salvando, setSalvando] = useState(false);
+
+  const metaPeriodo = meta * meses;
+  const restante = Math.max(0, metaPeriodo - concluidas);
+  const excedente = Math.max(0, concluidas - metaPeriodo);
+  const pct = metaPeriodo > 0 ? (concluidas / metaPeriodo) * 100 : 0;
+
+  const salvar = async () => {
+    const novo = Number(valor) || 0;
+    try {
+      setSalvando(true);
+      const { error } = await supabase.from("tecnicos").update({ meta_chamados: novo }).eq("id", tecnicoId);
+      if (error) throw error;
+      toast.success(`Meta de ${nome} atualizada para ${novo} OS/mês.`);
+      setEditando(false);
+      qc.invalidateQueries({ queryKey: ["kpis_data"] });
+      qc.invalidateQueries({ queryKey: ["all_tecnicos"] });
+    } catch (e: any) {
+      toast.error("Erro ao salvar meta: " + e.message);
+    } finally {
+      setSalvando(false);
+    }
+  };
+
+  return (
+    <div className="mt-3 rounded-xl border border-border/60 bg-muted/20 p-3">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="flex items-center gap-2 text-sm">
+          <Target className="h-4 w-4 text-muted-foreground" />
+          {editando ? (
+            <div className="flex items-center gap-2">
+              <Input
+                type="number"
+                min={0}
+                value={valor}
+                onChange={(e) => setValor(e.target.value)}
+                className="h-8 w-24"
+              />
+              <span className="text-xs text-muted-foreground">OS/mês</span>
+              <Button size="sm" className="h-8" onClick={salvar} disabled={salvando}>
+                {salvando ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Check className="h-3.5 w-3.5" />}
+              </Button>
+              <Button size="sm" variant="ghost" className="h-8" onClick={() => setEditando(false)}>
+                Cancelar
+              </Button>
+            </div>
+          ) : (
+            <>
+              <span className="font-medium">
+                {meta > 0 ? `Meta: ${meta} OS/mês (${metaPeriodo} no período)` : "Sem meta definida"}
+              </span>
+              <Button
+                size="sm"
+                variant="ghost"
+                className="h-7 px-2"
+                onClick={() => {
+                  setValor(String(meta || ""));
+                  setEditando(true);
+                }}
+              >
+                <Pencil className="h-3.5 w-3.5" />
+              </Button>
+            </>
+          )}
+        </div>
+        {meta > 0 &&
+          (excedente > 0 ? (
+            <Badge className="bg-emerald-600 text-white hover:bg-emerald-600">
+              Meta superada em {excedente} OS
+            </Badge>
+          ) : (
+            <Badge variant="outline">Faltam {restante} OS para a meta</Badge>
+          ))}
+      </div>
+      {meta > 0 && (
+        <>
+          <Progress className="mt-2 h-2" value={Math.min(100, pct)} />
+          <p className="mt-1 text-xs text-muted-foreground">
+            {concluidas} de {metaPeriodo} OS concluídas ({pct.toFixed(0)}% da meta do período)
+          </p>
         </>
       )}
     </div>
