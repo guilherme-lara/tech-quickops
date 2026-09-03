@@ -739,10 +739,16 @@ function EquipePage() {
                         onChange={handleUploadContrato}
                       />
                       {form.contrato_arquivo && (
-                        <Button type="button" variant="outline" size="sm" onClick={abrirContrato}>
-                          Ver
-                        </Button>
+                        <>
+                          <Button type="button" variant="outline" size="sm" onClick={abrirContrato}>
+                            Ver
+                          </Button>
+                          <Button type="button" variant="ghost" size="sm" onClick={removerContrato}>
+                            Remover
+                          </Button>
+                        </>
                       )}
+
                     </div>
                     <p className="text-xs text-muted-foreground">
                       {uploadingContrato
