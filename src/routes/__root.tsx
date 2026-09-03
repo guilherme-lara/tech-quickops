@@ -189,8 +189,15 @@ function RootComponent() {
   const [qc] = useState(() => new QueryClient({
     defaultOptions: {
       queries: {
-        refetchOnWindowFocus: true,
+        // Realtime já invalida o que muda: evitamos refetch agressivo ao focar a aba
+        refetchOnWindowFocus: false,
+        refetchOnMount: false,
+        refetchOnReconnect: true,
+        retry: 1,
         staleTime: 1000 * 60 * 5, // 5 minutos, mas será invalidado via realtime
+        gcTime: 1000 * 60 * 30, // mantém o cache das telas visitadas por 30 min
+        // Mantém os dados anteriores visíveis ao paginar/filtrar (sem tela em branco)
+        placeholderData: (prev: unknown) => prev,
       },
     },
   }));
