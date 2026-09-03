@@ -57,7 +57,7 @@ function DesempenhoPage() {
   const [meses, setMeses] = useState("6");
   const [criterio, setCriterio] = useState<Criterio>("valorAPagar");
   const [metrica, setMetrica] = useState<"concluidas" | "valorAPagar">("concluidas");
-  const { data, isLoading } = useKpisData(profile?.empresaId, Number(meses));
+  const { data, isLoading } = useKpisData(profile?.empresa_id, Number(meses));
 
   const ranking = useMemo(() => {
     const arr = [...(data?.tecnicos ?? [])];

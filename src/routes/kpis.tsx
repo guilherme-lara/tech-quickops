@@ -70,7 +70,7 @@ function KpiCard({
 function KpisPage() {
   const { profile } = useAuth();
   const [meses, setMeses] = useState("6");
-  const { data, isLoading } = useKpisData(profile?.empresaId, Number(meses));
+  const { data, isLoading } = useKpisData(profile?.empresa_id, Number(meses));
 
   const totais = useMemo(() => {
     const m = data?.meses ?? [];
