@@ -22,6 +22,7 @@ import { useState } from "react";
 import { MesAnoFilter } from "@/components/MesAnoFilter";
 import { useStore } from "@/lib/useData";
 import { OSDetalhesModal } from "@/components/OSDetalhesModal";
+import { liveQueryOptions } from "@/lib/refresh";
 
 export const Route = createFileRoute("/analista-dashboard")({
   component: () => (
@@ -52,6 +53,7 @@ function AnalistaDashboard() {
   const operacionaisQ = useQuery({
     queryKey: ["kpis_operacionais", empresaId, dataInicio, dataFim],
     enabled: !!empresaId,
+    ...liveQueryOptions,
     queryFn: async () => {
       let query = supabase
         .from("ordens_servico")
@@ -80,6 +82,7 @@ function AnalistaDashboard() {
   const filaRevisaoQ = useQuery({
     queryKey: ["fila_revisao", empresaId],
     enabled: !!empresaId,
+    ...liveQueryOptions,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("ordens_servico")
@@ -101,6 +104,7 @@ function AnalistaDashboard() {
   const radarEquipeQ = useQuery({
     queryKey: ["radar_equipe", empresaId],
     enabled: !!empresaId,
+    ...liveQueryOptions,
     queryFn: async () => {
       // Pega todos os técnicos da empresa
       const { data: tecnicosData, error: tecError } = await supabase

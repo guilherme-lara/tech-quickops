@@ -11,6 +11,7 @@ import { toast } from "sonner";
 
 
 import { supabase } from "@/integrations/supabase/client";
+import { liveQueryOptions } from "@/lib/refresh";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { formatDate } from "@/lib/utils";
 
@@ -48,6 +49,7 @@ function TecnicoOSPage() {
   // 1. Busca REAL no Supabase: Trazendo as OS do técnico + os dados do cliente vinculado
   const { data: minhasOS, isLoading } = useQuery({
     queryKey: ["minhas-os", profile?.id],
+    ...liveQueryOptions,
     queryFn: async () => {
       // 1. Resolve o ID real do técnico (técnicos antigos têm id próprio e auth ID em user_id)
       const { data: tecData } = await supabase
