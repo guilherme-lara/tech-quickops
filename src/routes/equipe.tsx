@@ -1087,7 +1087,7 @@ function EquipePage() {
                         {(!t.user_id && !t.username) ? "Gerar Acesso" : "Gerar Nova Senha"}
                       </DropdownMenuItem>
                       <DropdownMenuItem
-                        onClick={() => handleStatusClick(t)}
+                        onClick={() => abrirGerenciarStatus(t)}
                         className="text-destructive focus:text-destructive"
                       >
                         <Ban className="mr-2 h-4 w-4" /> Inativar/Excluir
