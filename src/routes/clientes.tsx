@@ -1,5 +1,6 @@
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { GestorLayout } from "@/components/GestorLayout";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -49,12 +50,17 @@ import {
   Plus as PlusIcon,
   ArrowUpDown,
   ArrowUp,
-  ArrowDown
+  ArrowDown,
+  Ban,
+  Loader2,
+  AlertTriangle,
+  BadgeCheck
 } from "lucide-react";
 import { PrivateFileLink } from "@/components/PrivateFileLink";
 import { FiltrosBarGlobal } from "@/components/FiltrosBarGlobal";
 import { useAuth } from "@/lib/auth-context";
 import { logActivity } from "@/lib/logger";
+import { Badge } from "@/components/ui/badge";
 
 export const Route = createFileRoute("/clientes")({
   component: () => (
@@ -180,27 +186,62 @@ function ClientesPage() {
     };
   }, [open, form.id]);
 
-  const handleDelete = async (id: string) => {
-    if (await confirm({ title: "Excluir Cliente", description: "Deseja realmente excluir este cliente?", destructive: true })) {
-      try {
-        console.log("Tentando excluir cliente:", id);
-        const cliente = clientes.find((c) => c.id === id);
-        await deleteCliente(id);
-        if (cliente) {
-          console.log("Logando exclusão...");
-          await logActivity(
-            "cliente_excluido",
-            `Cliente ${cliente.nome} excluído pelo usuário ${(profile as any)?.nome || profile?.nome_completo || "Sistema"}`,
-            profile?.empresa_id || "",
-            (profile as any)?.nome || profile?.nome_completo || "Sistema",
-          );
-        }
-        toast.success("Cliente excluído!");
-      } catch (err: any) {
-        console.error("Erro no fluxo de exclusão de cliente:", err);
-        toast.error("Erro ao excluir cliente: " + err.message);
-      }
-    }
+  const qc = useQueryClient();
+  const [statusCliente, setStatusCliente] = useState<any | null>(null);
+  const [acaoStatus, setAcaoStatus] = useState<"inativar" | "remover">("inativar");
+
+  const dependenciasQ = useQuery({
+    queryKey: ["dependencias_cliente", statusCliente?.id],
+    enabled: !!statusCliente?.id,
+    queryFn: async () => {
+      const { data, error } = await (supabase.rpc as any)("contar_dependencias_cliente", {
+        p_cliente_id: statusCliente.id,
+      });
+      if (error) throw error;
+      return data as {
+        ordens_servico: number;
+        equipamentos: number;
+        analistas: number;
+        pode_remover: boolean;
+      };
+    },
+  });
+
+  const statusMutation = useMutation({
+    mutationFn: async ({ id, ativo }: { id: string; ativo: boolean }) => {
+      const { error } = await (supabase.rpc as any)("definir_status_cliente", {
+        p_cliente_id: id,
+        p_ativo: ativo,
+      });
+      if (error) throw error;
+      return ativo;
+    },
+    onSuccess: (ativo) => {
+      toast.success(ativo ? "Cliente reativado com sucesso" : "Cliente inativado com sucesso");
+      setStatusCliente(null);
+      qc.invalidateQueries({ queryKey: ["clientes"] });
+      qc.invalidateQueries({ queryKey: ["all_clientes"] });
+    },
+    onError: (error: any) => toast.error(error.message || "Erro ao alterar status"),
+  });
+
+  const removeMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await (supabase.rpc as any)("remover_cliente", { p_cliente_id: id });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Cliente removido definitivamente");
+      setStatusCliente(null);
+      qc.invalidateQueries({ queryKey: ["clientes"] });
+      qc.invalidateQueries({ queryKey: ["all_clientes"] });
+    },
+    onError: (error: any) => toast.error(error.message || "Erro ao remover cliente"),
+  });
+
+  const abrirGerenciarStatus = (cliente: any) => {
+    setAcaoStatus("inativar");
+    setStatusCliente(cliente);
   };
 
   const addAnalista = () =>
@@ -727,7 +768,10 @@ function ClientesPage() {
                     <tbody className="divide-y divide-border">
                       {(Array.isArray(clientes) ? clientes : []).map((c) => (
                         <tr key={c.id} className="hover:bg-muted/30 transition-colors">
-                          <td className="px-5 py-4 font-medium whitespace-nowrap">{c.nome}</td>
+                          <td className="px-5 py-4 font-medium whitespace-nowrap">
+                            <span className={!c.ativo ? "line-through text-muted-foreground" : ""}>{c.nome}</span>
+                            {!c.ativo && <Badge variant="secondary" className="ml-2 text-[10px] px-1 py-0 h-4">Inativo</Badge>}
+                          </td>
                           <td className="px-5 py-4 text-muted-foreground whitespace-nowrap">
                             {c.documento}
                           </td>
@@ -757,19 +801,14 @@ function ClientesPage() {
                                     <History className="mr-2 h-4 w-4" /> Ver histórico
                                   </Link>
                                 </DropdownMenuItem>
-                                <DropdownMenuItem asChild>
-                            <Link to="/clientes/$id" params={{ id: c.id }}>
-                              <History className="mr-2 h-4 w-4" /> Ver histórico
-                            </Link>
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => openEdit(c)}>
+                                <DropdownMenuItem onClick={() => openEdit(c)}>
                                   <Edit2 className="mr-2 h-4 w-4" /> Editar
                                 </DropdownMenuItem>
                                 <DropdownMenuItem
-                                  onClick={() => handleDelete(c.id)}
+                                  onClick={() => abrirGerenciarStatus(c)}
                                   className="text-destructive focus:text-destructive"
                                 >
-                                  <Trash2 className="mr-2 h-4 w-4" /> Excluir
+                                  <Ban className="mr-2 h-4 w-4" /> Inativar ou Remover
                                 </DropdownMenuItem>
                               </DropdownMenuContent>
                             </DropdownMenu>
@@ -800,10 +839,10 @@ function ClientesPage() {
                             <Edit2 className="mr-2 h-4 w-4" /> Editar
                           </DropdownMenuItem>
                           <DropdownMenuItem
-                            onClick={() => handleDelete(c.id)}
+                            onClick={() => abrirGerenciarStatus(c)}
                             className="text-destructive focus:text-destructive"
                           >
-                            <Trash2 className="mr-2 h-4 w-4" /> Excluir
+                            <Ban className="mr-2 h-4 w-4" /> Inativar ou Remover
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
@@ -813,7 +852,10 @@ function ClientesPage() {
                         {c.nome[0]?.toUpperCase()}
                       </div>
                       <div>
-                        <div className="font-semibold text-base leading-tight">{c.nome}</div>
+                        <div className={`font-semibold text-base leading-tight flex items-center gap-2 ${!c.ativo ? "line-through text-muted-foreground" : ""}`}>
+                          {c.nome}
+                          {!c.ativo && <Badge variant="secondary" className="text-[10px] px-1 py-0 h-4">Inativo</Badge>}
+                        </div>
                         <div className="text-xs text-muted-foreground">{c.documento}</div>
                       </div>
                     </div>
@@ -867,6 +909,130 @@ function ClientesPage() {
           </div>
         </div>
       )}
+      <Dialog open={!!statusCliente} onOpenChange={(v) => !v && setStatusCliente(null)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Gerenciar Cliente: {statusCliente?.nome}</DialogTitle>
+          </DialogHeader>
+
+          {!dependenciasQ.data ? (
+            <div className="py-8 flex flex-col items-center justify-center text-muted-foreground">
+              <Loader2 className="w-8 h-8 animate-spin mb-4 text-primary" />
+              <p>Analisando vínculos do cliente...</p>
+            </div>
+          ) : (
+            <div className="space-y-6">
+              <div className="flex rounded-lg border border-border p-1 bg-muted/30">
+                <button
+                  onClick={() => setAcaoStatus("inativar")}
+                  className={`flex-1 py-2 px-3 text-sm font-medium rounded-md transition-all ${
+                    acaoStatus === "inativar"
+                      ? "bg-background shadow-sm text-foreground"
+                      : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                  }`}
+                >
+                  Inativar / Reativar
+                </button>
+                <button
+                  onClick={() => setAcaoStatus("remover")}
+                  className={`flex-1 py-2 px-3 text-sm font-medium rounded-md transition-all ${
+                    acaoStatus === "remover"
+                      ? "bg-destructive/10 text-destructive shadow-sm"
+                      : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                  }`}
+                >
+                  Remover Definitivamente
+                </button>
+              </div>
+
+              {acaoStatus === "inativar" && (
+                <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-200">
+                  <div className="bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-500 p-4 rounded-xl text-sm flex items-start gap-3">
+                    <AlertTriangle className="w-5 h-5 shrink-0 mt-0.5" />
+                    <div>
+                      <p className="font-semibold mb-1">
+                        {statusCliente?.ativo !== false ? "Inativar Cliente" : "Reativar Cliente"}
+                      </p>
+                      <p className="opacity-90 leading-relaxed">
+                        {statusCliente?.ativo !== false
+                          ? "O cliente não aparecerá na lista de criação de novas Ordens de Serviço. Histórico e dados serão mantidos."
+                          : "O cliente voltará a ficar disponível para novas Ordens de Serviço."}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-end gap-3 pt-2 border-t border-border/50">
+                    <Button variant="outline" onClick={() => setStatusCliente(null)}>
+                      Cancelar
+                    </Button>
+                    <Button
+                      onClick={() =>
+                        statusMutation.mutate({ id: statusCliente.id, ativo: statusCliente.ativo === false ? true : false })
+                      }
+                      disabled={statusMutation.isPending}
+                      className={statusCliente?.ativo !== false ? "bg-amber-600 hover:bg-amber-700 text-white" : "bg-emerald-600 hover:bg-emerald-700 text-white"}
+                    >
+                      {statusMutation.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                      {statusCliente?.ativo !== false ? "Inativar Cliente" : "Reativar Cliente"}
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              {acaoStatus === "remover" && (
+                <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-200">
+                  {!dependenciasQ.data.pode_remover ? (
+                    <div className="bg-destructive/10 border border-destructive/20 text-destructive p-4 rounded-xl text-sm flex items-start gap-3">
+                      <Ban className="w-5 h-5 shrink-0 mt-0.5" />
+                      <div>
+                        <p className="font-semibold mb-2">Não é possível remover este cliente</p>
+                        <p className="opacity-90 mb-3">
+                          Existem registros vinculados a ele no sistema. Você deve <strong>Inativar</strong> o cliente.
+                        </p>
+                        <ul className="space-y-1 font-medium bg-destructive/5 p-3 rounded-lg">
+                          {dependenciasQ.data.ordens_servico > 0 && (
+                            <li>• {dependenciasQ.data.ordens_servico} Ordem(ns) de Serviço</li>
+                          )}
+                          {dependenciasQ.data.equipamentos > 0 && (
+                            <li>• {dependenciasQ.data.equipamentos} Equipamento(s)</li>
+                          )}
+                          {dependenciasQ.data.analistas > 0 && (
+                            <li>• {dependenciasQ.data.analistas} Analista(s)</li>
+                          )}
+                        </ul>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="bg-destructive/10 border border-destructive/20 text-destructive p-4 rounded-xl text-sm flex items-start gap-3">
+                      <AlertTriangle className="w-5 h-5 shrink-0 mt-0.5" />
+                      <div>
+                        <p className="font-semibold mb-1">Remover Definitivamente?</p>
+                        <p className="opacity-90 leading-relaxed">
+                          Esta ação não pode ser desfeita.
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="flex justify-end gap-3 pt-2 border-t border-border/50">
+                    <Button variant="outline" onClick={() => setStatusCliente(null)}>
+                      Cancelar
+                    </Button>
+                    <Button
+                      variant="destructive"
+                      disabled={!dependenciasQ.data.pode_remover || removeMutation.isPending}
+                      onClick={() => removeMutation.mutate(statusCliente.id)}
+                    >
+                      {removeMutation.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                      Sim, Remover Definitivamente
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </GestorLayout>
   );
 }

@@ -5,8 +5,10 @@ import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { createFileRoute, Link, Navigate } from "@tanstack/react-router";
 import { GestorLayout } from "@/components/GestorLayout";
 import { useStore, statusColor, OSStatus, OS } from "@/lib/useData";
+import { useKpisData } from "@/lib/kpis";
 import { MesAnoFilter } from "@/components/MesAnoFilter";
 import { EditOSDialog } from "@/routes/os";
+import { AreaChart, Area, ResponsiveContainer } from "recharts";
 
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -688,6 +690,9 @@ function Dashboard() {
       })()
     : null;
 
+  const { data: kpisDataRaw } = useKpisData(profile?.empresa_id, 6);
+  const sparklineMeses = kpisDataRaw?.meses ?? [];
+
   // ============================================================
   // KPIs Financeiros — consulta direta no Supabase (sem depender do store paginado)
   // ============================================================
@@ -1328,6 +1333,8 @@ function Dashboard() {
               value={contagemTotalQ.data?.total ?? 0}
               trend={contagemTotalQ.isLoading ? "..." : "total"}
               tone="info"
+              sparklineData={sparklineMeses}
+              sparklineKey="criadas"
             />
             <KpiCard
               icon={CheckCircle2}
@@ -1335,6 +1342,8 @@ function Dashboard() {
               value={kpis.concluidas}
               trend="período"
               tone="success"
+              sparklineData={sparklineMeses}
+              sparklineKey="concluidas"
             />
             <KpiCard
               icon={Users}
@@ -1711,31 +1720,63 @@ function Dashboard() {
   );
 }
 
-function KpiCard({ className = "", icon: Icon, label, value, trend, tone }: any) {
+function KpiCard({ className = "", icon: Icon, label, value, trend, tone, sparklineData, sparklineKey }: any) {
   const tones: Record<string, string> = {
-    info: "from-info/15 to-info/5 text-info",
-    success: "from-success/15 to-success/5 text-success",
-    violet: "from-violet/15 to-violet/5 text-violet",
-    warning: "from-warning/30 to-warning/10 text-warning-foreground",
+    info: "from-blue-500/20 to-blue-500/5 text-blue-500",
+    success: "from-emerald-500/20 to-emerald-500/5 text-emerald-500",
+    violet: "from-violet-500/20 to-violet-500/5 text-violet-500",
+    warning: "from-amber-500/20 to-amber-500/5 text-amber-500",
   };
+  
+  const sparklineColors: Record<string, string> = {
+    info: "#3b82f6",
+    success: "#10b981",
+    violet: "#8b5cf6",
+    warning: "#f59e0b",
+  };
+
+  const isNumericTrend = trend && trend !== "total" && trend !== "período" && trend !== "...";
+
   return (
     <div
-      className={`${className} rounded-3xl bg-card p-4 border border-border/60 shadow-[var(--shadow-card)] hover:-translate-y-0.5 transition-all duration-300 flex flex-col justify-between`}
+      className={`${className} rounded-3xl bg-card p-4 border border-border/60 shadow-[var(--shadow-card)] hover:-translate-y-0.5 transition-all duration-300 flex flex-col justify-between relative overflow-hidden group`}
     >
-      <div className="flex items-start justify-between">
+      <div className="flex items-start justify-between relative z-10">
         <div
           className={`w-10 h-10 rounded-2xl flex items-center justify-center bg-gradient-to-br ${tones[tone]}`}
         >
-          <Icon className="w-4.5 h-4.5" />
+          <Icon className="w-5 h-5" />
         </div>
-        <span className="text-[10px] font-semibold text-success bg-success/10 px-2 py-0.5 rounded-full">
-          {trend}
-        </span>
+        {isNumericTrend && (
+          <span className="text-[10px] font-semibold flex items-center gap-0.5 text-emerald-600 dark:text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded-full">
+            <TrendingUp className="w-3 h-3" /> {trend}
+          </span>
+        )}
+        {!isNumericTrend && trend && (
+          <span className="text-[10px] font-medium text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
+            {trend}
+          </span>
+        )}
       </div>
-      <div>
+      <div className="mt-4 relative z-10">
         <div className="text-2xl font-bold tracking-tight">{value}</div>
-        <div className="text-xs text-muted-foreground font-medium">{label}</div>
+        <div className="text-xs text-muted-foreground font-medium mt-0.5">{label}</div>
       </div>
+      {sparklineData && sparklineData.length > 0 && sparklineKey && (
+        <div className="absolute -bottom-2 -left-2 -right-2 h-16 opacity-40 group-hover:opacity-60 transition-opacity pointer-events-none">
+          <ResponsiveContainer width="100%" height="100%">
+            <AreaChart data={sparklineData}>
+               <defs>
+                  <linearGradient id={`sparkline-${tone}`} x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor={sparklineColors[tone]} stopOpacity={0.8}/>
+                    <stop offset="95%" stopColor={sparklineColors[tone]} stopOpacity={0}/>
+                  </linearGradient>
+                </defs>
+              <Area type="monotone" dataKey={sparklineKey} stroke={sparklineColors[tone]} strokeWidth={2} fillOpacity={1} fill={`url(#sparkline-${tone})`} />
+            </AreaChart>
+          </ResponsiveContainer>
+        </div>
+      )}
     </div>
   );
 }

@@ -73,14 +73,22 @@ function DesempenhoPage() {
   }, [data, criterio]);
 
   const chartData = useMemo(() => {
-    const top = ranking.slice(0, 5);
-    const labels = top[0]?.porMes.map((m) => m.label) ?? [];
+    const labels = ranking[0]?.porMes.map((m) => m.label) ?? [];
     return labels.map((label, i) => {
       const row: Record<string, string | number> = { label };
-      for (const t of top) row[t.nome] = t.porMes[i]?.[metrica] ?? 0;
+      for (const t of ranking) row[t.nome] = t.porMes[i]?.[metrica] ?? 0;
       return row;
     });
   }, [ranking, metrica]);
+
+  const [hiddenLines, setHiddenLines] = useState<Record<string, boolean>>({});
+  const toggleLine = (dataKey: any) => {
+    if (typeof dataKey === 'string') {
+      setHiddenLines((prev) => ({ ...prev, [dataKey]: !prev[dataKey] }));
+    } else if (dataKey && typeof dataKey.dataKey === 'string') {
+      setHiddenLines((prev) => ({ ...prev, [dataKey.dataKey]: !prev[dataKey.dataKey] }));
+    }
+  };
 
   const maxCriterio = ranking[0]?.[criterio] || 1;
 
@@ -133,7 +141,7 @@ function DesempenhoPage() {
         <>
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0">
-              <CardTitle className="text-base">Evolução mensal (Top 5)</CardTitle>
+              <CardTitle className="text-base">Evolução mensal (Todos os Técnicos)</CardTitle>
               <Select value={metrica} onValueChange={(v) => setMetrica(v as "concluidas" | "valorAPagar")}>
                 <SelectTrigger className="w-[170px]">
                   <SelectValue />
@@ -144,22 +152,27 @@ function DesempenhoPage() {
                 </SelectContent>
               </Select>
             </CardHeader>
-            <CardContent className="h-[320px]">
+            <CardContent className="h-[380px]">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={chartData}>
-                  <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
-                  <XAxis dataKey="label" fontSize={12} />
-                  <YAxis fontSize={12} />
-                  <Tooltip formatter={(v: number) => (metrica === "valorAPagar" ? brl(Number(v)) : v)} />
-                  <Legend />
-                  {ranking.slice(0, 5).map((t, i) => (
+                  <CartesianGrid strokeDasharray="3 3" className="stroke-border" vertical={false} />
+                  <XAxis dataKey="label" fontSize={12} tickLine={false} axisLine={false} />
+                  <YAxis fontSize={12} tickLine={false} axisLine={false} />
+                  <Tooltip contentStyle={{ borderRadius: '8px', border: '1px solid hsl(var(--border))' }} formatter={(v: number) => (metrica === "valorAPagar" ? brl(Number(v)) : v)} />
+                  <Legend 
+                    onClick={toggleLine} 
+                    wrapperStyle={{ cursor: 'pointer', paddingTop: '10px' }} 
+                  />
+                  {ranking.map((t, i) => (
                     <Line
                       key={t.id}
                       type="monotone"
                       dataKey={t.nome}
                       stroke={CORES[i % CORES.length]}
-                      strokeWidth={2}
+                      strokeWidth={3}
                       dot={false}
+                      activeDot={{ r: 6 }}
+                      hide={hiddenLines[t.nome] === true}
                     />
                   ))}
                 </LineChart>
@@ -167,20 +180,26 @@ function DesempenhoPage() {
             </CardContent>
           </Card>
 
+          <VisualPodium top3={ranking.slice(0, 3)} metrica={metrica} />
+
           <div className="space-y-3">
-            {ranking.map((t, i) => (
-              <Card key={t.id} className={t.ativo ? "" : "opacity-60"}>
+            {ranking.map((t, i) => {
+              const perc = Math.min(100, (t[criterio] / maxCriterio) * 100);
+              const metaAtingida = t.metaChamados > 0 && t.produtividade >= 100;
+
+              return (
+              <Card key={t.id} className={`transition-all ${t.ativo ? "" : "opacity-60 bg-muted/30"}`}>
                 <CardContent className="p-4">
                   <div className="flex flex-wrap items-center gap-4">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-muted font-bold">
-                      {i === 0 ? <Trophy className="w-5 h-5 text-amber-500" /> : i + 1}
+                    <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full font-bold shadow-sm ${i === 0 ? "bg-amber-100 dark:bg-amber-900/30 text-amber-600" : i === 1 ? "bg-slate-200 dark:bg-slate-700 text-slate-600" : i === 2 ? "bg-amber-800/10 dark:bg-amber-800/30 text-amber-800" : "bg-muted text-muted-foreground"}`}>
+                      {i === 0 ? <Trophy className="w-5 h-5" /> : i + 1}
                     </div>
                     <div className="min-w-[160px] flex-1">
                       <div className="flex items-center gap-2">
                         <span className={`font-semibold ${t.ativo ? "" : "line-through text-muted-foreground"}`}>
                           {t.nome}
                         </span>
-                        {!t.ativo && <Badge variant="outline">Inativo</Badge>}
+                        {!t.ativo && <Badge variant="secondary" className="bg-amber-500/10 text-amber-600 hover:bg-amber-500/20">Inativo</Badge>}
                       </div>
                       <p className="text-xs text-muted-foreground">
                         Tempo médio: {t.tempoMedioHoras ? `${t.tempoMedioHoras.toFixed(1)} h` : "—"}
@@ -203,7 +222,7 @@ function DesempenhoPage() {
                         <p className="text-xs text-muted-foreground">
                           {t.metaChamados > 0 ? "Produtividade (meta)" : "OS/mês"}
                         </p>
-                        <p className="font-semibold">
+                        <p className={`font-semibold ${metaAtingida ? 'text-emerald-600 dark:text-emerald-500' : ''}`}>
                           {t.metaChamados > 0
                             ? `${t.produtividade.toFixed(0)}%`
                             : t.produtividade.toFixed(1)}
@@ -212,25 +231,29 @@ function DesempenhoPage() {
                     </div>
                   </div>
                   <Progress
-                    className="mt-3 h-2"
-                    value={Math.min(100, (t[criterio] / maxCriterio) * 100)}
+                    className="mt-4 h-2"
+                    indicatorClassName={metaAtingida ? "bg-emerald-500" : ""}
+                    value={perc}
                   />
-                  <MetaTecnico
-                    tecnicoId={t.id}
-                    nome={t.nome}
-                    meta={t.metaChamados}
-                    concluidas={t.concluidas}
-                    meses={Number(meses)}
-                  />
-                  <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
-                    <span>Comissão: {brl(t.comissaoTotal)}</span>
-                    <span>Hora extra: {brl(t.horaExtraTotal)}</span>
-                    <span>Bônus: {brl(t.bonusTotal)}</span>
-                    <span>Lançamentos: {brl(t.lancamentosTotal)}</span>
+                  <div className="mt-3 flex justify-between items-center text-xs">
+                    <MetaTecnico
+                      tecnicoId={t.id}
+                      nome={t.nome}
+                      meta={t.metaChamados}
+                      concluidas={t.concluidas}
+                      meses={Number(meses)}
+                    />
+                    <div className="flex flex-wrap gap-x-4 gap-y-1 text-muted-foreground font-medium">
+                      <span>Comissão: {brl(t.comissaoTotal)}</span>
+                      <span>Hora extra: {brl(t.horaExtraTotal)}</span>
+                      <span>Bônus: {brl(t.bonusTotal)}</span>
+                      <span>Lançamentos: {brl(t.lancamentosTotal)}</span>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
-            ))}
+            );
+            })}
           </div>
         </>
       )}
@@ -336,6 +359,49 @@ function MetaTecnico({
           </p>
         </>
       )}
+    </div>
+  );
+}
+
+function VisualPodium({ top3, metrica }: { top3: any[], metrica: "concluidas" | "valorAPagar" }) {
+  if (top3.length === 0) return null;
+  const renderMedal = (pos: number) => {
+    if (pos === 0) return <div className="absolute -top-3 -right-2 bg-yellow-400 text-yellow-900 w-6 h-6 flex items-center justify-center rounded-full border-2 border-white dark:border-background font-bold text-xs shadow-sm">1</div>;
+    if (pos === 1) return <div className="absolute -top-3 -right-2 bg-slate-300 text-slate-700 w-6 h-6 flex items-center justify-center rounded-full border-2 border-white dark:border-background font-bold text-xs shadow-sm">2</div>;
+    if (pos === 2) return <div className="absolute -top-3 -right-2 bg-amber-600 text-amber-50 w-6 h-6 flex items-center justify-center rounded-full border-2 border-white dark:border-background font-bold text-xs shadow-sm">3</div>;
+    return null;
+  };
+
+  const positions = [
+    { pos: 1, item: top3[1], height: "h-20", color: "bg-slate-100 dark:bg-slate-800/80" },
+    { pos: 0, item: top3[0], height: "h-28", color: "bg-amber-100 dark:bg-amber-900/30" },
+    { pos: 2, item: top3[2], height: "h-16", color: "bg-amber-700/10 dark:bg-amber-900/10" },
+  ];
+
+  return (
+    <div className="flex items-end justify-center gap-3 sm:gap-6 pt-6 pb-2">
+      {positions.map(({ pos, item, height, color }) => {
+        if (!item) return <div key={pos} className="w-24 sm:w-32" />;
+        return (
+          <div key={item.id} className="flex flex-col items-center w-24 sm:w-32 animate-in fade-in slide-in-from-bottom-4 duration-500" style={{ animationDelay: `${pos * 150}ms` }}>
+            <div className="relative mb-2">
+              <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-primary/10 flex items-center justify-center text-xl sm:text-2xl font-bold text-primary shadow-inner">
+                {item.nome.charAt(0).toUpperCase()}
+              </div>
+              {renderMedal(pos)}
+            </div>
+            <div className="text-center mb-2">
+              <p className="font-bold text-sm sm:text-base leading-tight truncate w-full px-1">{item.nome.split(" ")[0]}</p>
+              <p className="text-xs text-muted-foreground font-semibold">
+                {metrica === "valorAPagar" ? brl(item.valorAPagar) : item.concluidas}
+              </p>
+            </div>
+            <div className={`w-full ${height} ${color} rounded-t-xl border-t border-x border-border/50 shadow-sm relative overflow-hidden`}>
+               <div className="absolute inset-0 bg-gradient-to-t from-transparent to-white/20 dark:to-white/5" />
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
 }

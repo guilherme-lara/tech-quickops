@@ -520,7 +520,8 @@ function OSPage() {
                     <SearchCombobox
                       options={(Array.isArray(clientes) ? clientes : []).map((c) => ({
                         value: c.id,
-                        label: c.nome,
+                        label: c.ativo === false ? `${c.nome} (Inativo)` : c.nome,
+                        disabled: c.ativo === false,
                       }))}
                       value={form.clienteId}
                       onChange={(v) => {
@@ -1810,7 +1811,8 @@ export function EditOSDialog({
                 <SearchCombobox
                   options={(Array.isArray(clientes) ? clientes : []).map((c) => ({
                     value: c.id,
-                    label: c.nome,
+                    label: c.ativo === false ? `${c.nome} (Inativo)` : c.nome,
+                    disabled: c.ativo === false,
                   }))}
                   value={form.clienteId}
                   onChange={(v) => {

@@ -26,6 +26,7 @@ export interface Cliente {
   modelo_rat_url?: string;
   template_rat_texto?: string | null;
   ultimo_mes_pago?: string | null;
+  ativo?: boolean;
 }
 export type TipoComissao = "fixo" | "porcentagem";
 export interface Tecnico {
@@ -613,6 +614,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         modelo_rat_url: r.modelo_rat_url ?? undefined,
         template_rat_texto: (r as any).template_rat_texto ?? null,
         ultimo_mes_pago: r.ultimo_mes_pago ?? null,
+        ativo: r.ativo ?? true,
       }));
     },
   });
@@ -643,6 +645,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         modelo_rat_url: r.modelo_rat_url ?? undefined,
         template_rat_texto: (r as any).template_rat_texto ?? null,
         ultimo_mes_pago: r.ultimo_mes_pago ?? null,
+        ativo: r.ativo ?? true,
       }));
     },
   });

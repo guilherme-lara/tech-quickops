@@ -16,6 +16,7 @@ export interface ComboboxOption {
   value: string;
   label: string;
   keywords?: string;
+  disabled?: boolean;
 }
 
 interface SearchComboboxProps {
@@ -85,10 +86,13 @@ export function SearchCombobox({
                 <CommandItem
                   key={opt.value}
                   value={opt.value}
+                  disabled={opt.disabled}
                   onSelect={(v) => {
+                    if (opt.disabled) return;
                     onChange(v);
                     setOpen(false);
                   }}
+                  className={cn(opt.disabled && "opacity-50 cursor-not-allowed")}
                 >
                   <Check
                     className={cn(

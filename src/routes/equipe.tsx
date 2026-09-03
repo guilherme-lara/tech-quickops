@@ -55,7 +55,9 @@ import {
   ArrowUp,
   ArrowDown,
   Wrench,
-  Trash2
+  Trash2,
+  Loader2,
+  AlertTriangle
 } from "lucide-react";
 import { GerarAcessoDialog } from "@/components/GerarAcessoDialog";
 import { TecnicoEmailStatus } from "@/components/TecnicoEmailStatus";
@@ -341,29 +343,66 @@ function EquipePage() {
     setOpen(true);
   };
 
-  const handleDelete = async (id: string) => {
-    if (await confirm({ title: "Excluir Técnico", description: "Deseja inativar/excluir este técnico?", destructive: true })) {
-      try {
-        const tecnico = tecnicos.find((t) => t.id === id);
-        await deleteTecnico(id);
-        await registrarLog(
-          "tecnico_inativado",
-          `Técnico "${tecnico?.nome || id}" excluído por ${nomeUsuario}`,
-        );
-        toast.success("Técnico excluído!");
-      } catch (e: any) {
-        if (e.code === '23503' || /violates foreign key constraint/i.test(e.message)) {
-          toast.info("Técnico possui histórico. Ele será inativado ao invés de excluído.");
-          const tecnico = tecnicos.find((t) => t.id === id);
-          if (tecnico) {
-            await updateTecnico({ id, patch: { ativo: false } });
-            toast.success("Técnico inativado com sucesso.");
-          }
-        } else {
-          toast.error("Erro ao excluir técnico: " + e.message);
-        }
-      }
-    }
+  const [statusUser, setStatusUser] = useState<any | null>(null);
+  const [acaoStatus, setAcaoStatus] = useState<"inativar" | "remover">("inativar");
+
+  const dependenciasQ = useQuery({
+    queryKey: ["dependencias_usuario", statusUser?.id],
+    enabled: !!statusUser?.id,
+    queryFn: async () => {
+      const idToCheck = statusUser.user_id || statusUser.id;
+      const { data, error } = await (supabase.rpc as any)("contar_dependencias_usuario", {
+        p_user_id: idToCheck,
+      });
+      if (error) throw error;
+      return data as {
+        is_tecnico: boolean;
+        ordens_servico: number;
+        ferramentas: number;
+        historico: number;
+        notificacoes: number;
+        pode_remover: boolean;
+      };
+    },
+  });
+
+  const statusMutation = useMutation({
+    mutationFn: async ({ id, ativo }: { id: string; ativo: boolean }) => {
+      const { error } = await (supabase.rpc as any)("definir_status_usuario", {
+        p_user_id: id,
+        p_ativo: ativo,
+      });
+      if (error) throw error;
+      return ativo;
+    },
+    onSuccess: (ativo) => {
+      toast.success(ativo ? "Técnico reativado com sucesso" : "Técnico inativado com sucesso");
+      setStatusUser(null);
+      qc.invalidateQueries({ queryKey: ["tecnicos"] });
+      qc.invalidateQueries({ queryKey: ["equipe_tecnicos"] });
+      qc.invalidateQueries({ queryKey: ["all_tecnicos"] });
+    },
+    onError: (error: any) => toast.error(error.message || "Erro ao alterar status"),
+  });
+
+  const removeMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await (supabase.rpc as any)("remover_acesso_backoffice", { p_user_id: id });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Técnico removido definitivamente");
+      setStatusUser(null);
+      qc.invalidateQueries({ queryKey: ["tecnicos"] });
+      qc.invalidateQueries({ queryKey: ["equipe_tecnicos"] });
+      qc.invalidateQueries({ queryKey: ["all_tecnicos"] });
+    },
+    onError: (error: any) => toast.error(error.message || "Erro ao remover técnico"),
+  });
+
+  const abrirGerenciarStatus = (user: any) => {
+    setAcaoStatus("inativar");
+    setStatusUser(user);
   };
 
   const generateRandomPassword = () => {
@@ -919,10 +958,11 @@ function EquipePage() {
                             </AvatarFallback>
                           </Avatar>
                           <div className="font-medium flex flex-col items-start gap-1 whitespace-nowrap">
-                            <div className="flex items-center gap-1.5">
-                              {t.nome}
-                              {t.ativo && <BadgeCheck className="w-3.5 h-3.5 text-success" />}
-                            </div>
+                              <div className="flex items-center gap-1.5">
+                                <span className={!t.ativo ? "line-through text-muted-foreground" : ""}>{t.nome}</span>
+                                {t.ativo && <BadgeCheck className="w-3.5 h-3.5 text-success" />}
+                                {!t.ativo && <Badge variant="secondary" className="text-[10px] px-1 py-0 h-4">Inativo</Badge>}
+                              </div>
                             {isEmDeslocamento ? (
                               <Badge variant="outline" className="bg-orange-500/10 text-orange-600 border-orange-500/20 shadow-none font-medium h-5 px-1.5 text-[10px]">
                                 Em Trânsito
@@ -1003,10 +1043,10 @@ function EquipePage() {
                               {(!t.user_id && !t.username) ? "Gerar Acesso" : "Gerar Nova Senha"}
                             </DropdownMenuItem>
                             <DropdownMenuItem
-                              onClick={() => handleDelete(t.id)}
+                              onClick={() => abrirGerenciarStatus(t)}
                               className="text-destructive focus:text-destructive"
                             >
-                              <Ban className="mr-2 h-4 w-4" /> Inativar/Excluir
+                              <Ban className="mr-2 h-4 w-4" /> Inativar ou Remover
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
@@ -1064,8 +1104,9 @@ function EquipePage() {
                   <div className="flex-1">
                     <div className="flex flex-col items-start gap-1">
                       <div className="flex items-center gap-1.5">
-                        <h3 className="font-semibold">{t.nome}</h3>
+                        <h3 className={`font-semibold ${!t.ativo ? "line-through text-muted-foreground" : ""}`}>{t.nome}</h3>
                         {t.ativo && <BadgeCheck className="w-4 h-4 text-success" />}
+                        {!t.ativo && <Badge variant="secondary" className="text-[10px] px-1 py-0 h-4">Inativo</Badge>}
                       </div>
                       {isEmDeslocamento ? (
                         <Badge variant="outline" className="bg-orange-500/10 text-orange-600 border-orange-500/20 shadow-none font-medium h-5 px-1.5 text-[10px]">
@@ -1340,6 +1381,135 @@ function EquipePage() {
         nome={verContrato?.nome}
         onClose={() => setVerContrato(null)}
       />
+
+      {/* Modal Gerenciar Status */}
+      <Dialog open={!!statusUser} onOpenChange={(v) => !v && setStatusUser(null)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Gerenciar Acesso: {statusUser?.nome}</DialogTitle>
+          </DialogHeader>
+
+          {!dependenciasQ.data ? (
+            <div className="py-8 flex flex-col items-center justify-center text-muted-foreground">
+              <Loader2 className="w-8 h-8 animate-spin mb-4 text-primary" />
+              <p>Analisando vínculos do técnico...</p>
+            </div>
+          ) : (
+            <div className="space-y-6">
+              {/* Opções de Ação */}
+              <div className="flex rounded-lg border border-border p-1 bg-muted/30">
+                <button
+                  onClick={() => setAcaoStatus("inativar")}
+                  className={`flex-1 py-2 px-3 text-sm font-medium rounded-md transition-all ${
+                    acaoStatus === "inativar"
+                      ? "bg-background shadow-sm text-foreground"
+                      : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                  }`}
+                >
+                  Inativar / Reativar
+                </button>
+                <button
+                  onClick={() => setAcaoStatus("remover")}
+                  className={`flex-1 py-2 px-3 text-sm font-medium rounded-md transition-all ${
+                    acaoStatus === "remover"
+                      ? "bg-destructive/10 text-destructive shadow-sm"
+                      : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                  }`}
+                >
+                  Remover Definitivamente
+                </button>
+              </div>
+
+              {/* CONTEÚDO: INATIVAR */}
+              {acaoStatus === "inativar" && (
+                <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-200">
+                  <div className="bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-500 p-4 rounded-xl text-sm flex items-start gap-3">
+                    <AlertTriangle className="w-5 h-5 shrink-0 mt-0.5" />
+                    <div>
+                      <p className="font-semibold mb-1">
+                        {statusUser?.ativo ? "Inativar Técnico" : "Reativar Técnico"}
+                      </p>
+                      <p className="opacity-90 leading-relaxed">
+                        {statusUser?.ativo
+                          ? "O técnico perderá o acesso ao aplicativo móvel e não poderá ser selecionado em novas ordens de serviço. Todo o histórico será mantido."
+                          : "O acesso ao aplicativo será restaurado e o técnico voltará a aparecer nas opções de atribuição de ordens de serviço."}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-end gap-3 pt-2 border-t border-border/50">
+                    <Button variant="outline" onClick={() => setStatusUser(null)}>
+                      Cancelar
+                    </Button>
+                    <Button
+                      onClick={() =>
+                        statusMutation.mutate({ id: statusUser.user_id || statusUser.id, ativo: !statusUser.ativo })
+                      }
+                      disabled={statusMutation.isPending}
+                      className={statusUser?.ativo ? "bg-amber-600 hover:bg-amber-700 text-white" : "bg-emerald-600 hover:bg-emerald-700 text-white"}
+                    >
+                      {statusMutation.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                      {statusUser?.ativo ? "Inativar Técnico" : "Reativar Técnico"}
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              {/* CONTEÚDO: REMOVER */}
+              {acaoStatus === "remover" && (
+                <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-200">
+                  {!dependenciasQ.data.pode_remover ? (
+                    <div className="bg-destructive/10 border border-destructive/20 text-destructive p-4 rounded-xl text-sm flex items-start gap-3">
+                      <Ban className="w-5 h-5 shrink-0 mt-0.5" />
+                      <div>
+                        <p className="font-semibold mb-2">Não é possível remover este técnico</p>
+                        <p className="opacity-90 mb-3">
+                          Existem registros vinculados a ele no sistema. Para manter a integridade dos dados, você deve <strong>Inativar</strong> o técnico ao invés de excluí-lo.
+                        </p>
+                        <ul className="space-y-1 font-medium bg-destructive/5 p-3 rounded-lg">
+                          {dependenciasQ.data.ordens_servico > 0 && (
+                            <li>• {dependenciasQ.data.ordens_servico} Ordem(ns) de Serviço</li>
+                          )}
+                          {dependenciasQ.data.ferramentas > 0 && (
+                            <li>• {dependenciasQ.data.ferramentas} Ferramenta(s) vinculada(s)</li>
+                          )}
+                          {dependenciasQ.data.historico > 0 && (
+                            <li>• {dependenciasQ.data.historico} Registro(s) de histórico</li>
+                          )}
+                        </ul>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="bg-destructive/10 border border-destructive/20 text-destructive p-4 rounded-xl text-sm flex items-start gap-3">
+                      <AlertTriangle className="w-5 h-5 shrink-0 mt-0.5" />
+                      <div>
+                        <p className="font-semibold mb-1">Remover Definitivamente?</p>
+                        <p className="opacity-90 leading-relaxed">
+                          Esta ação não pode ser desfeita. O cadastro do técnico, acessos e configurações serão <strong>apagados para sempre</strong>.
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="flex justify-end gap-3 pt-2 border-t border-border/50">
+                    <Button variant="outline" onClick={() => setStatusUser(null)}>
+                      Cancelar
+                    </Button>
+                    <Button
+                      variant="destructive"
+                      disabled={!dependenciasQ.data.pode_remover || removeMutation.isPending}
+                      onClick={() => removeMutation.mutate(statusUser.user_id || statusUser.id)}
+                    >
+                      {removeMutation.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                      Sim, Remover Definitivamente
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </GestorLayout>
 
   );
