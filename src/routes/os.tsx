@@ -14,7 +14,13 @@ import {
   DialogFooter,
   DialogDescription,
 } from "@/components/ui/dialog";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useStore, statusColor, OSStatus, OS, PAGE_SIZE } from "@/lib/useData";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { OSHistorico } from "@/components/OSHistorico";
@@ -91,7 +97,7 @@ function useAnalistasByCliente(clienteId: string | undefined) {
 
 export const Route = createFileRoute("/os")({
   component: () => (
-    <ProtectedRoute allowedRoles={["gestor", "analista", "admin", "superadmin"]}>
+    <ProtectedRoute allowedRoles={['gestor', 'analista', 'admin', 'superadmin']}>
       <OSPage />
     </ProtectedRoute>
   ),
@@ -100,15 +106,7 @@ export const Route = createFileRoute("/os")({
 const osFinalizada = (status?: string) =>
   status === "Concluído" || status === "Concluído Técnico" || status === "concluido" || status === "concluido_tecnico";
 
-const colunas: OSStatus[] = [
-  "Agendamento",
-  "Em Deslocamento",
-  "Em Andamento",
-  "Concluído Técnico",
-  "Pendência",
-  "Concluído",
-  "Cancelado",
-];
+const colunas: OSStatus[] = ["Agendamento", "Em Deslocamento", "Em Andamento", "Concluído Técnico", "Pendência", "Concluído", "Cancelado"];
 
 function OSPage() {
   const {
@@ -151,38 +149,23 @@ function OSPage() {
   // Dispara a busca quando os filtros ou página mudam
   useEffect(() => {
     queryClient.invalidateQueries({ queryKey: ["ordens_servico"] });
-  }, [
-    osPage,
-    osSearchCliente,
-    osSearchTecnico,
-    osFilterStatus,
-    osMonth,
-    osYear,
-    osSortField,
-    osSortDirection,
-    queryClient,
-  ]);
+  }, [osPage, osSearchCliente, osSearchTecnico, osFilterStatus, osMonth, osYear, osSortField, osSortDirection, queryClient]);
   const totalPages = Math.max(1, Math.ceil(osTotal / osPageSize));
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<OS | null>(null);
 
   useEffect(() => {
     const searchParams = new URLSearchParams(window.location.search);
-    const id = searchParams.get("id");
+    const id = searchParams.get('id');
     if (id) {
-      supabase
-        .from("ordens_servico")
-        .select("*")
-        .eq("id", id)
-        .single()
-        .then(({ data }) => {
-          if (data) {
-            setEditing(data as any);
-            setDialogMode("view");
-            // Remove the id from URL so it doesn't reopen on refresh
-            window.history.replaceState(null, "", "/os");
-          }
-        });
+      supabase.from("ordens_servico").select("*").eq("id", id).single().then(({ data }) => {
+        if (data) {
+          setEditing(data as any);
+          setDialogMode("view");
+          // Remove the id from URL so it doesn't reopen on refresh
+          window.history.replaceState(null, "", "/os");
+        }
+      });
     }
   }, []);
   const [form, setForm] = useState({
@@ -207,7 +190,9 @@ function OSPage() {
   const [novosDadosExtras, setNovosDadosExtras] = useState<Record<string, any>>({});
   const [novoCampoNome, setNovoCampoNome] = useState("");
   const [novoCampoValor, setNovoCampoValor] = useState("");
-  const [despesasSelecionadas, setDespesasSelecionadas] = useState<Array<{ tipo: string; valor: number }>>([]);
+  const [despesasSelecionadas, setDespesasSelecionadas] = useState<
+    Array<{ tipo: string; valor: number }>
+  >([]);
   const [despesaTipo, setDespesaTipo] = useState("Pedágio");
   const [despesaValor, setDespesaValor] = useState("");
 
@@ -235,14 +220,12 @@ function OSPage() {
     setQuickAnaSaving(true);
     try {
       const { data, error } = await (supabase.from("analistas_cliente" as any) as any)
-        .insert([
-          {
-            empresa_id: empresaId,
-            nome: quickAnaForm.nome,
-            whatsapp: quickAnaForm.whatsapp,
-            cliente_id: form.clienteId,
-          },
-        ])
+        .insert([{
+          empresa_id: empresaId,
+          nome: quickAnaForm.nome,
+          whatsapp: quickAnaForm.whatsapp,
+          cliente_id: form.clienteId,
+        }])
         .select()
         .single();
       if (error) throw error;
@@ -343,7 +326,10 @@ function OSPage() {
     try {
       const { error } = await supabase.from("ordens_servico").delete().eq("id", id);
       if (error) throw error;
-      await registrarLog("os_excluida", `OS "${osItem?.titulo || osItem?.numero || id}" excluída por ${nomeUsuario}`);
+      await registrarLog(
+        "os_excluida",
+        `OS "${osItem?.titulo || osItem?.numero || id}" excluída por ${nomeUsuario}`,
+      );
       toast.success("OS excluída com sucesso");
       queryClient.invalidateQueries({ queryKey: ["ordens_servico"] });
       dispararProcessamentoEmails();
@@ -361,7 +347,7 @@ function OSPage() {
     if (!(form as any).id) {
       const planoAtual = (profile?.empresaPlano as PlanType) || "free";
       const limiteOs = PlanLimits[planoAtual].maxOsMes;
-
+      
       const { count, error } = await supabase
         .from("ordens_servico")
         .select("id", { count: "exact", head: true })
@@ -391,17 +377,14 @@ function OSPage() {
       endereco_servico: form.endereco_servico,
       equipamentosIds: form.equipamentosIds,
     });
-
+    
     let logMsg = `OS "${form.titulo}" criada por ${nomeUsuario}`;
     if (form.equipamentosIds && form.equipamentosIds.length > 0) {
-      const equipNames = equipamentos
-        .filter((e) => form.equipamentosIds.includes(e.id))
-        .map((e) => e.nome)
-        .join(", ");
+      const equipNames = equipamentos.filter(e => form.equipamentosIds.includes(e.id)).map(e => e.nome).join(", ");
       logMsg += ` e vinculada aos equipamentos: ${equipNames}`;
     }
     await registrarLog("os_criada", logMsg);
-
+    
     toast.success("OS criada com sucesso");
     setOpen(false);
     setForm({
@@ -447,11 +430,23 @@ function OSPage() {
     setDespesaValor("");
   };
 
-  const fixedKeys = new Set(["Data", "status", "valor", "cliente", "tecnico", "título", "titulo", "numero"]);
+
+  const fixedKeys = new Set([
+    "Data",
+    "status",
+    "valor",
+    "cliente",
+    "tecnico",
+    "título",
+    "titulo",
+    "numero",
+  ]);
   const dynamicHeaders = Array.from(
     new Set(
       os.flatMap((o) =>
-        Object.keys((o.dados_adicionais as Record<string, any>) || {}).filter((k) => !fixedKeys.has(k.toLowerCase())),
+        Object.keys((o.dados_adicionais as Record<string, any>) || {}).filter(
+          (k) => !fixedKeys.has(k.toLowerCase()),
+        ),
       ),
     ),
   );
@@ -489,439 +484,457 @@ function OSPage() {
                   <TabsTrigger value="nova_extras">Extras</TabsTrigger>
                 </TabsList>
                 <TabsContent value="nova_dados" className="space-y-4 mt-4">
-                  <div>
-                    <Label>Título *</Label>
-                    <Input
-                      value={form.titulo}
-                      onChange={(e) => setForm({ ...form, titulo: e.target.value })}
-                      placeholder="Ex: Manutenção câmara fria"
-                      className="h-10"
-                    />
-                  </div>
-                  <div>
-                    <Label>Endereço do Serviço</Label>
-                    <Input
-                      value={form.endereco_servico}
-                      onChange={(e) => setForm({ ...form, endereco_servico: e.target.value })}
-                      placeholder="Av Paulista, 1000 - Bela Vista - São Paulo / SP"
-                      className="h-10"
-                    />
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Endereço onde o serviço será executado (Obrigatório).
-                    </p>
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <div className="flex items-center justify-between">
-                        <Label>Cliente</Label>
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          className="h-8"
-                          onClick={() => setQuickCliOpen(true)}
-                        >
-                          <Plus className="w-3.5 h-3.5 mr-1" /> Cadastrar novo
-                        </Button>
-                      </div>
-                      <SearchCombobox
-                        options={(Array.isArray(clientes) ? clientes : []).map((c) => ({
-                          value: c.id,
-                          label: c.ativo === false ? `${c.nome} (Inativo)` : c.nome,
-                          disabled: c.ativo === false,
-                        }))}
-                        value={form.clienteId}
-                        onChange={(v) => {
-                          const cliente = clientes.find((c) => c.id === v);
-                          const oldCliente = clientes.find((c) => c.id === form.clienteId);
-
-                          const baseKm = cliente?.base_km || 0;
-                          const valorPorKm = cliente?.valor_por_km || 0;
-                          const novoTemplate = cliente?.template_rat_texto || "";
-                          const oldTemplate = oldCliente?.template_rat_texto || "";
-
-                          let novaDescricao = form.descricao_problema;
-                          if (!novaDescricao || novaDescricao === oldTemplate) {
-                            novaDescricao = novoTemplate;
-                          }
-
-                          setValorKmInput(valorPorKm ? String(valorPorKm) : "");
-
-                          setForm({
-                            ...form,
-                            clienteId: v,
-                            km_viagem: baseKm ? String(baseKm) : "",
-                            custo_viagem: baseKm && valorPorKm ? String(baseKm * valorPorKm) : "",
-                            descricao_problema: novaDescricao,
-                          });
-                        }}
-                        placeholder="Selecione um cliente..."
-                        searchPlaceholder="Buscar cliente..."
-                        emptyText="Nenhum cliente encontrado."
-                      />
-                    </div>
-                    <div>
-                      <div className="flex items-center justify-between">
-                        <Label>Técnico</Label>
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          className="h-8"
-                          onClick={() => setQuickTecOpen(true)}
-                        >
-                          <Plus className="w-3.5 h-3.5 mr-1" /> Cadastrar novo
-                        </Button>
-                      </div>
-                      <SearchCombobox
-                        options={(Array.isArray(tecnicos) ? tecnicos : []).map((t) => ({
-                          value: t.id,
-                          label: t.nome,
-                        }))}
-                        value={form.tecnicoId}
-                        onChange={(v) => setForm({ ...form, tecnicoId: v })}
-                        placeholder="Selecione um técnico..."
-                        searchPlaceholder="Buscar técnico..."
-                        emptyText="Nenhum técnico encontrado."
-                      />
-                    </div>
-                  </div>
+                <div>
+                  <Label>Título *</Label>
+                  <Input
+                    value={form.titulo}
+                    onChange={(e) => setForm({ ...form, titulo: e.target.value })}
+                    placeholder="Ex: Manutenção câmara fria"
+                    className="h-10"
+                  />
+                </div>
+                <div>
+                  <Label>Endereço do Serviço</Label>
+                  <Input
+                    value={form.endereco_servico}
+                    onChange={(e) => setForm({ ...form, endereco_servico: e.target.value })}
+                    placeholder="Av Paulista, 1000 - Bela Vista - São Paulo / SP"
+                    className="h-10"
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Endereço onde o serviço será executado (Obrigatório).
+                  </p>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
                   <div>
                     <div className="flex items-center justify-between">
-                      <Label>Analista / Suporte Responsável</Label>
+                      <Label>Cliente</Label>
                       <Button
                         type="button"
                         variant="outline"
                         size="sm"
                         className="h-8"
-                        onClick={() => {
-                          if (!form.clienteId) return toast.error("Selecione um cliente primeiro");
-                          setQuickAnaOpen(true);
-                        }}
-                        disabled={!form.clienteId}
+                        onClick={() => setQuickCliOpen(true)}
                       >
                         <Plus className="w-3.5 h-3.5 mr-1" /> Cadastrar novo
                       </Button>
                     </div>
-                    <Select
-                      value={form.analistaId || undefined}
-                      onValueChange={(v) => setForm({ ...form, analistaId: v })}
+                    <SearchCombobox
+                      options={(Array.isArray(clientes) ? clientes : []).map((c) => ({
+                        value: c.id,
+                        label: c.ativo === false ? `${c.nome} (Inativo)` : c.nome,
+                        disabled: c.ativo === false,
+                      }))}
+                      value={form.clienteId}
+                      onChange={(v) => {
+                        const cliente = clientes.find((c) => c.id === v);
+                        const oldCliente = clientes.find((c) => c.id === form.clienteId);
+                        
+                        const baseKm = cliente?.base_km || 0;
+                        const valorPorKm = cliente?.valor_por_km || 0;
+                        const novoTemplate = cliente?.template_rat_texto || "";
+                        const oldTemplate = oldCliente?.template_rat_texto || "";
+                        
+                        let novaDescricao = form.descricao_problema;
+                        if (!novaDescricao || novaDescricao === oldTemplate) {
+                          novaDescricao = novoTemplate;
+                        }
+
+                        setValorKmInput(valorPorKm ? String(valorPorKm) : "");
+
+                        setForm({
+                          ...form,
+                          clienteId: v,
+                          km_viagem: baseKm ? String(baseKm) : "",
+                          custo_viagem: baseKm && valorPorKm ? String(baseKm * valorPorKm) : "",
+                          descricao_problema: novaDescricao,
+                        });
+                      }}
+                      placeholder="Selecione um cliente..."
+                      searchPlaceholder="Buscar cliente..."
+                      emptyText="Nenhum cliente encontrado."
+                    />
+                  </div>
+                  <div>
+                    <div className="flex items-center justify-between">
+                      <Label>Técnico</Label>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="h-8"
+                        onClick={() => setQuickTecOpen(true)}
+                      >
+                        <Plus className="w-3.5 h-3.5 mr-1" /> Cadastrar novo
+                      </Button>
+                    </div>
+                    <SearchCombobox
+                      options={(Array.isArray(tecnicos) ? tecnicos : []).map((t) => ({
+                        value: t.id,
+                        label: t.nome,
+                      }))}
+                      value={form.tecnicoId}
+                      onChange={(v) => setForm({ ...form, tecnicoId: v })}
+                      placeholder="Selecione um técnico..."
+                      searchPlaceholder="Buscar técnico..."
+                      emptyText="Nenhum técnico encontrado."
+                    />
+                  </div>
+                </div>
+                <div>
+                  <div className="flex items-center justify-between">
+                    <Label>Analista / Suporte Responsável</Label>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="h-8"
+                      onClick={() => {
+                        if (!form.clienteId) return toast.error("Selecione um cliente primeiro");
+                        setQuickAnaOpen(true);
+                      }}
                       disabled={!form.clienteId}
                     >
-                      <SelectTrigger className="h-10">
-                        <SelectValue
-                          placeholder={
-                            !form.clienteId
-                              ? "Selecione um cliente primeiro"
-                              : analistasNovaOS.length === 0
-                                ? "Nenhum analista cadastrado para este cliente"
-                                : "Selecione um analista..."
-                          }
-                        />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {(Array.isArray(analistasNovaOS) ? analistasNovaOS : []).map((a) => (
-                          <SelectItem key={a.id} value={a.id}>
-                            {a.nome}
-                            {a.whatsapp ? ` — ${a.whatsapp}` : ""}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                      <Plus className="w-3.5 h-3.5 mr-1" /> Cadastrar novo
+                    </Button>
                   </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <Label>Data do Agendamento</Label>
-                      <Input
-                        type="date"
-                        max="9999-12-31"
-                        value={form.data_agendamento}
-                        onChange={(e) => setForm({ ...form, data_agendamento: e.target.value })}
-                        className="h-10"
+                  <Select
+                    value={form.analistaId || undefined}
+                    onValueChange={(v) => setForm({ ...form, analistaId: v })}
+                    disabled={!form.clienteId}
+                  >
+                    <SelectTrigger className="h-10">
+                      <SelectValue
+                        placeholder={
+                          !form.clienteId
+                            ? "Selecione um cliente primeiro"
+                            : analistasNovaOS.length === 0
+                              ? "Nenhum analista cadastrado para este cliente"
+                              : "Selecione um analista..."
+                        }
                       />
-                    </div>
-                    <div>
-                      <Label>Horário do Atendimento</Label>
-                      <Input
-                        type="time"
-                        value={form.horario_atendimento}
-                        onChange={(e) => setForm({ ...form, horario_atendimento: e.target.value })}
-                        className="h-10"
-                      />
-                    </div>
+                    </SelectTrigger>
+                    <SelectContent>
+                      {(Array.isArray(analistasNovaOS) ? analistasNovaOS : []).map((a) => (
+                        <SelectItem key={a.id} value={a.id}>
+                          {a.nome}
+                          {a.whatsapp ? ` — ${a.whatsapp}` : ""}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label>Data do Agendamento</Label>
+                    <Input
+                      type="date"
+                      max="9999-12-31"
+                      value={form.data_agendamento}
+                      onChange={(e) => setForm({ ...form, data_agendamento: e.target.value })}
+                      className="h-10"
+                    />
                   </div>
+                  <div>
+                    <Label>Horário do Atendimento</Label>
+                    <Input
+                      type="time"
+                      value={form.horario_atendimento}
+                      onChange={(e) => setForm({ ...form, horario_atendimento: e.target.value })}
+                      className="h-10"
+                    />
+                  </div>
+                </div>
                 </TabsContent>
 
                 <TabsContent value="nova_financeiro" className="space-y-4 mt-4">
-                  <div className="grid grid-cols-3 gap-4">
-                    <div>
-                      <Label>Valor estimado (R$)</Label>
+                <div className="grid grid-cols-3 gap-4">
+                  <div>
+                    <Label>Valor estimado (R$)</Label>
+                    <Input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={form.valor}
+                      onChange={(e) => {
+                        if (Number(e.target.value) < 0) return;
+                        setForm({ ...form, valor: e.target.value });
+                      }}
+                      className="h-10"
+                    />
+                  </div>
+                  <div>
+                    <Label>Km viagem</Label>
+                    <Input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={form.km_viagem}
+                      onChange={(e) => {
+                        if (Number(e.target.value) < 0) return;
+                        const vKm = Number(valorKmInput);
+                        setForm({
+                          ...form,
+                          km_viagem: e.target.value,
+                          custo_viagem: vKm
+                            ? String(Number(e.target.value) * vKm)
+                            : form.custo_viagem,
+                        });
+                      }}
+                      placeholder="0"
+                      className="h-10"
+                    />
+                  </div>
+                  <div>
+                    <Label>Valor do KM (R$)</Label>
+                    <Input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={valorKmInput}
+                      onChange={(e) => {
+                        if (Number(e.target.value) < 0) return;
+                        setValorKmInput(e.target.value);
+                        const vKm = Number(e.target.value);
+                        setForm({
+                          ...form,
+                          custo_viagem: vKm
+                            ? String(Number(form.km_viagem) * vKm)
+                            : form.custo_viagem,
+                        });
+                      }}
+                      placeholder="0,00"
+                      className="h-10"
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label>Custo viagem (R$)</Label>
+                    <Input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={form.custo_viagem}
+                      onChange={(e) => {
+                        if (Number(e.target.value) < 0) return;
+                        setForm({ ...form, custo_viagem: e.target.value });
+                      }}
+                      placeholder="0,00"
+                      className="h-10"
+                    />
+                  </div>
+                  <div>
+                    <Label>Adicionar despesa</Label>
+                    <div className="flex gap-2">
+                      <Select value={despesaTipo} onValueChange={setDespesaTipo}>
+                        <SelectTrigger className="h-10 flex-1">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {["Pedágio", "Insumos", "Alimentação", "Outros"].map((tipo) => (
+                            <SelectItem key={tipo} value={tipo}>
+                              {tipo}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                       <Input
                         type="number"
-                        min="0"
                         step="0.01"
-                        value={form.valor}
-                        onChange={(e) => {
-                          if (Number(e.target.value) < 0) return;
-                          setForm({ ...form, valor: e.target.value });
-                        }}
-                        className="h-10"
+                        value={despesaValor}
+                        onChange={(e) => setDespesaValor(e.target.value)}
+                        placeholder="R$"
+                        className="h-10 w-24"
                       />
-                    </div>
-                    <div>
-                      <Label>Km viagem</Label>
-                      <Input
-                        type="number"
-                        min="0"
-                        step="0.01"
-                        value={form.km_viagem}
-                        onChange={(e) => {
-                          if (Number(e.target.value) < 0) return;
-                          const vKm = Number(valorKmInput);
-                          setForm({
-                            ...form,
-                            km_viagem: e.target.value,
-                            custo_viagem: vKm ? String(Number(e.target.value) * vKm) : form.custo_viagem,
-                          });
-                        }}
-                        placeholder="0"
-                        className="h-10"
-                      />
-                    </div>
-                    <div>
-                      <Label>Valor do KM (R$)</Label>
-                      <Input
-                        type="number"
-                        min="0"
-                        step="0.01"
-                        value={valorKmInput}
-                        onChange={(e) => {
-                          if (Number(e.target.value) < 0) return;
-                          setValorKmInput(e.target.value);
-                          const vKm = Number(e.target.value);
-                          setForm({
-                            ...form,
-                            custo_viagem: vKm ? String(Number(form.km_viagem) * vKm) : form.custo_viagem,
-                          });
-                        }}
-                        placeholder="0,00"
-                        className="h-10"
-                      />
+                      <Button
+                        type="button"
+                        size="icon"
+                        className="h-10 w-10"
+                        onClick={adicionarDespesa}
+                      >
+                        <Plus className="w-4 h-4" />
+                      </Button>
                     </div>
                   </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <Label>Custo viagem (R$)</Label>
-                      <Input
-                        type="number"
-                        min="0"
-                        step="0.01"
-                        value={form.custo_viagem}
-                        onChange={(e) => {
-                          if (Number(e.target.value) < 0) return;
-                          setForm({ ...form, custo_viagem: e.target.value });
-                        }}
-                        placeholder="0,00"
-                        className="h-10"
-                      />
+                </div>
+                {despesasSelecionadas.length > 0 && (
+                  <div className="rounded-xl border border-border/60 bg-muted/30 p-3 space-y-2">
+                    <div className="text-[10px] uppercase tracking-wider font-bold text-muted-foreground">
+                      Despesas adicionadas
                     </div>
-                    <div>
-                      <Label>Adicionar despesa</Label>
-                      <div className="flex gap-2">
-                        <Select value={despesaTipo} onValueChange={setDespesaTipo}>
-                          <SelectTrigger className="h-10 flex-1">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {["Pedágio", "Insumos", "Alimentação", "Outros"].map((tipo) => (
-                              <SelectItem key={tipo} value={tipo}>
-                                {tipo}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <Input
-                          type="number"
-                          step="0.01"
-                          value={despesaValor}
-                          onChange={(e) => setDespesaValor(e.target.value)}
-                          placeholder="R$"
-                          className="h-10 w-24"
-                        />
-                        <Button type="button" size="icon" className="h-10 w-10" onClick={adicionarDespesa}>
-                          <Plus className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                  {despesasSelecionadas.length > 0 && (
-                    <div className="rounded-xl border border-border/60 bg-muted/30 p-3 space-y-2">
-                      <div className="text-[10px] uppercase tracking-wider font-bold text-muted-foreground">
-                        Despesas adicionadas
-                      </div>
-                      {(Array.isArray(despesasSelecionadas) ? despesasSelecionadas : []).map((despesa, index) => (
+                    {(Array.isArray(despesasSelecionadas) ? despesasSelecionadas : []).map(
+                      (despesa, index) => (
                         <div
                           key={`${despesa.tipo}-${index}`}
                           className="flex items-center justify-between rounded-lg bg-background/70 px-3 py-2 text-sm"
                         >
                           <span>{despesa.tipo}</span>
-                          <span>R$ {despesa.valor.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</span>
+                          <span>
+                            R$ {despesa.valor.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                          </span>
+                        </div>
+                      ),
+                    )}
+                  </div>
+                )}
+                {(() => {
+                  const subtotal = Number(form.valor || 0);
+                  const custoViagem = Number(form.custo_viagem || 0);
+                  const somaDespesas = despesasSelecionadas.reduce(
+                    (s, it) => s + Number(it.valor || 0),
+                    0,
+                  );
+                  const custosExtras = custoViagem + somaDespesas;
+                  const total = subtotal + custosExtras;
+                  const fmt = (n: number) =>
+                    n.toLocaleString("pt-BR", { minimumFractionDigits: 2 });
+                  return (
+                    <>
+                      <div className="rounded-xl border border-border/60 bg-primary/5 p-3 text-sm space-y-1 mb-4">
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Subtotal (Serviço)</span>
+                          <span>R$ {fmt(subtotal)}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">
+                            + Custos Extras (Viagem + Despesas)
+                          </span>
+                          <span>R$ {fmt(custosExtras)}</span>
+                        </div>
+                        <div className="flex justify-between font-semibold pt-1 border-t border-border/60">
+                          <span>= Valor Total Faturado</span>
+                          <span>R$ {fmt(total)}</span>
+                        </div>
+                      </div>
+                      
+                      <div className="col-span-full border-t border-border/50 pt-4 mt-2">
+                        <div className="flex items-center justify-between mb-3">
+                          <h4 className="text-sm font-semibold flex items-center gap-2">
+                            Valores Recebidos Antecipadamente
+                          </h4>
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="h-8 text-xs bg-emerald-500/10 text-emerald-600 border-emerald-500/20 hover:bg-emerald-500/20 hover:text-emerald-700"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              setForm({ ...form, valor_adiantado: String(total), descricao_adiantamento: "Pagamento Total" });
+                            }}
+                          >
+                            Pagamento Total
+                          </Button>
+                        </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label>Valor Adiantado (R$)</Label>
+                      <Input
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        placeholder="0.00"
+                        value={form.valor_adiantado}
+                        onChange={(e) => setForm({ ...form, valor_adiantado: e.target.value })}
+                      />
+                    </div>
+                    <div>
+                      <Label>Descrição do Adiantamento</Label>
+                      <Input
+                        placeholder="ex: Sinal de viagem, Pagamento Total..."
+                        value={form.descricao_adiantamento}
+                        onChange={(e) => setForm({ ...form, descricao_adiantamento: e.target.value })}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </>
+            );
+          })()}
+          </TabsContent>
+
+          <TabsContent value="nova_detalhes" className="space-y-4 mt-4">
+          <div>
+            <Label>Status</Label>
+                  <Select
+                    value={form.status}
+                    onValueChange={(v) => setForm({ ...form, status: v as OSStatus })}
+                  >
+                    <SelectTrigger className="h-10">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {colunas.map((c) => (
+                        <SelectItem key={c} value={c}>
+                          {c}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label>Descrição do Problema</Label>
+                  <textarea
+                    value={form.descricao_problema}
+                    onChange={(e) => setForm({ ...form, descricao_problema: e.target.value })}
+                    placeholder="Descreva o problema ou serviço a ser executado..."
+                    className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  />
+                </div>
+                </TabsContent>
+
+                <TabsContent value="nova_extras" className="space-y-4 mt-4">
+                <div className="rounded-xl border border-border/60 bg-muted/30 p-4">
+                  <div className="text-[10px] uppercase tracking-wider font-bold text-muted-foreground mb-3">
+                    Campos Personalizados (Opcional)
+                  </div>
+                  <div className="flex gap-2 mb-3">
+                    <Input
+                      placeholder="Nome do campo"
+                      value={novoCampoNome}
+                      onChange={(e) => setNovoCampoNome(e.target.value)}
+                      className="h-9 flex-1"
+                    />
+                    <Input
+                      placeholder="Valor"
+                      value={novoCampoValor}
+                      onChange={(e) => setNovoCampoValor(e.target.value)}
+                      className="h-9 flex-1"
+                    />
+                    <Button
+                      type="button"
+                      size="icon"
+                      onClick={adicionarCampoPersonalizado}
+                      className="h-9 w-9 shrink-0"
+                    >
+                      +
+                    </Button>
+                  </div>
+                  {Object.keys(novosDadosExtras).length > 0 && (
+                    <div className="grid grid-cols-2 gap-2">
+                      {Object.entries(novosDadosExtras).map(([k, v]) => (
+                        <div
+                          key={k}
+                          className="flex items-center justify-between bg-background/50 rounded-lg px-3 py-2"
+                        >
+                          <div className="flex-1 min-w-0">
+                            <div className="text-[10px] text-muted-foreground uppercase">{k}</div>
+                            <div className="text-xs font-medium truncate">{String(v)}</div>
+                          </div>
+                          <button
+                            onClick={() => {
+                              const next = { ...novosDadosExtras };
+                              delete next[k];
+                              setNovosDadosExtras(next);
+                            }}
+                            className="ml-2 text-muted-foreground hover:text-destructive"
+                          >
+                            <X className="w-3.5 h-3.5" />
+                          </button>
                         </div>
                       ))}
                     </div>
                   )}
-                  {(() => {
-                    const subtotal = Number(form.valor || 0);
-                    const custoViagem = Number(form.custo_viagem || 0);
-                    const somaDespesas = despesasSelecionadas.reduce((s, it) => s + Number(it.valor || 0), 0);
-                    const custosExtras = custoViagem + somaDespesas;
-                    const total = subtotal + custosExtras;
-                    const fmt = (n: number) => n.toLocaleString("pt-BR", { minimumFractionDigits: 2 });
-                    return (
-                      <>
-                        <div className="rounded-xl border border-border/60 bg-primary/5 p-3 text-sm space-y-1 mb-4">
-                          <div className="flex justify-between">
-                            <span className="text-muted-foreground">Subtotal (Serviço)</span>
-                            <span>R$ {fmt(subtotal)}</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-muted-foreground">+ Custos Extras (Viagem + Despesas)</span>
-                            <span>R$ {fmt(custosExtras)}</span>
-                          </div>
-                          <div className="flex justify-between font-semibold pt-1 border-t border-border/60">
-                            <span>= Valor Total Faturado</span>
-                            <span>R$ {fmt(total)}</span>
-                          </div>
-                        </div>
-
-                        <div className="col-span-full border-t border-border/50 pt-4 mt-2">
-                          <div className="flex items-center justify-between mb-3">
-                            <h4 className="text-sm font-semibold flex items-center gap-2">
-                              Valores Recebidos Antecipadamente
-                            </h4>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="h-8 text-xs bg-emerald-500/10 text-emerald-600 border-emerald-500/20 hover:bg-emerald-500/20 hover:text-emerald-700"
-                              onClick={(e) => {
-                                e.preventDefault();
-                                setForm({
-                                  ...form,
-                                  valor_adiantado: String(total),
-                                  descricao_adiantamento: "Pagamento Total",
-                                });
-                              }}
-                            >
-                              Pagamento Total
-                            </Button>
-                          </div>
-                          <div className="grid grid-cols-2 gap-4">
-                            <div>
-                              <Label>Valor Adiantado (R$)</Label>
-                              <Input
-                                type="number"
-                                min="0"
-                                step="0.01"
-                                placeholder="0.00"
-                                value={form.valor_adiantado}
-                                onChange={(e) => setForm({ ...form, valor_adiantado: e.target.value })}
-                              />
-                            </div>
-                            <div>
-                              <Label>Descrição do Adiantamento</Label>
-                              <Input
-                                placeholder="ex: Sinal de viagem, Pagamento Total..."
-                                value={form.descricao_adiantamento}
-                                onChange={(e) => setForm({ ...form, descricao_adiantamento: e.target.value })}
-                              />
-                            </div>
-                          </div>
-                        </div>
-                      </>
-                    );
-                  })()}
-                </TabsContent>
-
-                <TabsContent value="nova_detalhes" className="space-y-4 mt-4">
-                  <div>
-                    <Label>Status</Label>
-                    <Select value={form.status} onValueChange={(v) => setForm({ ...form, status: v as OSStatus })}>
-                      <SelectTrigger className="h-10">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {colunas.map((c) => (
-                          <SelectItem key={c} value={c}>
-                            {c}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label>Descrição do Problema</Label>
-                    <textarea
-                      value={form.descricao_problema}
-                      onChange={(e) => setForm({ ...form, descricao_problema: e.target.value })}
-                      placeholder="Descreva o problema ou serviço a ser executado..."
-                      className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                    />
-                  </div>
-                </TabsContent>
-
-                <TabsContent value="nova_extras" className="space-y-4 mt-4">
-                  <div className="rounded-xl border border-border/60 bg-muted/30 p-4">
-                    <div className="text-[10px] uppercase tracking-wider font-bold text-muted-foreground mb-3">
-                      Campos Personalizados (Opcional)
-                    </div>
-                    <div className="flex gap-2 mb-3">
-                      <Input
-                        placeholder="Nome do campo"
-                        value={novoCampoNome}
-                        onChange={(e) => setNovoCampoNome(e.target.value)}
-                        className="h-9 flex-1"
-                      />
-                      <Input
-                        placeholder="Valor"
-                        value={novoCampoValor}
-                        onChange={(e) => setNovoCampoValor(e.target.value)}
-                        className="h-9 flex-1"
-                      />
-                      <Button
-                        type="button"
-                        size="icon"
-                        onClick={adicionarCampoPersonalizado}
-                        className="h-9 w-9 shrink-0"
-                      >
-                        +
-                      </Button>
-                    </div>
-                    {Object.keys(novosDadosExtras).length > 0 && (
-                      <div className="grid grid-cols-2 gap-2">
-                        {Object.entries(novosDadosExtras).map(([k, v]) => (
-                          <div
-                            key={k}
-                            className="flex items-center justify-between bg-background/50 rounded-lg px-3 py-2"
-                          >
-                            <div className="flex-1 min-w-0">
-                              <div className="text-[10px] text-muted-foreground uppercase">{k}</div>
-                              <div className="text-xs font-medium truncate">{String(v)}</div>
-                            </div>
-                            <button
-                              onClick={() => {
-                                const next = { ...novosDadosExtras };
-                                delete next[k];
-                                setNovosDadosExtras(next);
-                              }}
-                              className="ml-2 text-muted-foreground hover:text-destructive"
-                            >
-                              <X className="w-3.5 h-3.5" />
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
+                </div>
                 </TabsContent>
               </Tabs>
               <DialogFooter>
@@ -953,7 +966,9 @@ function OSPage() {
                     <Label>Telefone</Label>
                     <Input
                       value={quickCliForm.telefone}
-                      onChange={(e) => setQuickCliForm({ ...quickCliForm, telefone: maskPhoneBR(e.target.value) })}
+                      onChange={(e) =>
+                        setQuickCliForm({ ...quickCliForm, telefone: maskPhoneBR(e.target.value) })
+                      }
                       onPaste={(e) => {
                         e.preventDefault();
                         const pasted = e.clipboardData.getData("text");
@@ -975,7 +990,11 @@ function OSPage() {
                 </div>
               </div>
               <DialogFooter>
-                <Button variant="outline" onClick={() => setQuickCliOpen(false)} disabled={quickCliSaving}>
+                <Button
+                  variant="outline"
+                  onClick={() => setQuickCliOpen(false)}
+                  disabled={quickCliSaving}
+                >
                   Cancelar
                 </Button>
                 <Button onClick={saveQuickCliente} disabled={quickCliSaving}>
@@ -1056,12 +1075,16 @@ function OSPage() {
                     </Select>
                   </div>
                   <div>
-                    <Label>{quickTecForm.tipo_comissao === "fixo" ? "Valor (R$)" : "Comissão (%)"}</Label>
+                    <Label>
+                      {quickTecForm.tipo_comissao === "fixo" ? "Valor (R$)" : "Comissão (%)"}
+                    </Label>
                     <Input
                       type="number"
                       step="0.01"
                       value={quickTecForm.comissao}
-                      onChange={(e) => setQuickTecForm({ ...quickTecForm, comissao: e.target.value })}
+                      onChange={(e) =>
+                        setQuickTecForm({ ...quickTecForm, comissao: e.target.value })
+                      }
                     />
                   </div>
                 </div>
@@ -1070,7 +1093,11 @@ function OSPage() {
                 </p>
               </div>
               <DialogFooter>
-                <Button variant="outline" onClick={() => setQuickTecOpen(false)} disabled={quickTecSaving}>
+                <Button
+                  variant="outline"
+                  onClick={() => setQuickTecOpen(false)}
+                  disabled={quickTecSaving}
+                >
                   Cancelar
                 </Button>
                 <Button onClick={saveQuickTecnico} disabled={quickTecSaving}>
@@ -1085,7 +1112,9 @@ function OSPage() {
             <DialogContent className="rounded-2xl w-[95vw] sm:max-w-md">
               <DialogHeader>
                 <DialogTitle>Cadastro Rápido - Analista</DialogTitle>
-                <DialogDescription>Adicione um analista de suporte para o cliente selecionado.</DialogDescription>
+                <DialogDescription>
+                  Adicione um analista de suporte para o cliente selecionado.
+                </DialogDescription>
               </DialogHeader>
               <div className="space-y-4 py-2">
                 <div>
@@ -1106,7 +1135,11 @@ function OSPage() {
                 </div>
               </div>
               <DialogFooter>
-                <Button variant="outline" onClick={() => setQuickAnaOpen(false)} disabled={quickAnaSaving}>
+                <Button
+                  variant="outline"
+                  onClick={() => setQuickAnaOpen(false)}
+                  disabled={quickAnaSaving}
+                >
                   Cancelar
                 </Button>
                 <Button onClick={saveQuickAnalista} disabled={quickAnaSaving}>
@@ -1159,7 +1192,7 @@ function OSPage() {
                         OS / Título
                       </th>
                       <th className="px-5 py-3 font-semibold">Status</th>
-                      <th
+                      <th 
                         className="px-5 py-3 font-semibold cursor-pointer hover:bg-muted/80 transition-colors"
                         onClick={() => {
                           if (osSortField === "data") {
@@ -1173,18 +1206,14 @@ function OSPage() {
                         <div className="flex items-center gap-1.5">
                           Data
                           {osSortField === "data" ? (
-                            osSortDirection === "asc" ? (
-                              <ArrowUp className="w-3.5 h-3.5" />
-                            ) : (
-                              <ArrowDown className="w-3.5 h-3.5" />
-                            )
+                            osSortDirection === "asc" ? <ArrowUp className="w-3.5 h-3.5" /> : <ArrowDown className="w-3.5 h-3.5" />
                           ) : (
                             <ArrowUpDown className="w-3.5 h-3.5 text-muted-foreground/40" />
                           )}
                         </div>
                       </th>
                       <th className="px-5 py-3 font-semibold">Horário</th>
-                      <th
+                      <th 
                         className="px-5 py-3 font-semibold cursor-pointer hover:bg-muted/80 transition-colors"
                         onClick={() => {
                           if (osSortField === "cliente") {
@@ -1198,18 +1227,14 @@ function OSPage() {
                         <div className="flex items-center gap-1.5">
                           Cliente
                           {osSortField === "cliente" ? (
-                            osSortDirection === "asc" ? (
-                              <ArrowUp className="w-3.5 h-3.5" />
-                            ) : (
-                              <ArrowDown className="w-3.5 h-3.5" />
-                            )
+                            osSortDirection === "asc" ? <ArrowUp className="w-3.5 h-3.5" /> : <ArrowDown className="w-3.5 h-3.5" />
                           ) : (
                             <ArrowUpDown className="w-3.5 h-3.5 text-muted-foreground/40" />
                           )}
                         </div>
                       </th>
                       <th className="px-5 py-3 font-semibold">Técnico</th>
-                      <th
+                      <th 
                         className="px-5 py-3 font-semibold cursor-pointer hover:bg-muted/80 transition-colors"
                         onClick={() => {
                           if (osSortField === "valor") {
@@ -1223,11 +1248,7 @@ function OSPage() {
                         <div className="flex items-center gap-1.5">
                           Valor
                           {osSortField === "valor" ? (
-                            osSortDirection === "asc" ? (
-                              <ArrowUp className="w-3.5 h-3.5" />
-                            ) : (
-                              <ArrowDown className="w-3.5 h-3.5" />
-                            )
+                            osSortDirection === "asc" ? <ArrowUp className="w-3.5 h-3.5" /> : <ArrowDown className="w-3.5 h-3.5" />
                           ) : (
                             <ArrowUpDown className="w-3.5 h-3.5 text-muted-foreground/40" />
                           )}
@@ -1303,7 +1324,9 @@ function OSPage() {
                             )}
                           </td>
                           <td className="px-5 py-3 whitespace-nowrap">
-                            {formatDate(o.data_agendamento ?? o.data_atendimento ?? o.dados_adicionais?.Data)}
+                            {formatDate(
+                              o.data_agendamento ?? o.data_atendimento ?? o.dados_adicionais?.Data,
+                            )}
                           </td>
                           <td className="px-5 py-3 whitespace-nowrap text-muted-foreground">
                             {o.horario_atendimento ?? o.dados_adicionais?.Horario ?? "—"}
@@ -1330,7 +1353,10 @@ function OSPage() {
                                   Viagem/Despesas: R${" "}
                                   {(
                                     Number(o.custo_viagem ?? 0) +
-                                    (o.despesas ?? []).reduce((sum, item) => sum + Number(item?.valor ?? 0), 0)
+                                    (o.despesas ?? []).reduce(
+                                      (sum, item) => sum + Number(item?.valor ?? 0),
+                                      0,
+                                    )
                                   ).toLocaleString("pt-BR")}
                                 </span>
                               </div>
@@ -1375,16 +1401,14 @@ function OSPage() {
                     const tecnico = o.tecnico || tecnicos.find((t) => t.id === o.tecnicoId);
                     const isConcluida = o.status === "Concluída";
                     return (
-                      <div
+                      <div 
                         key={o.id}
                         onClick={() => {
                           setEditing(o);
                           setDialogMode("view");
                         }}
                         className={`rounded-2xl border shadow-sm p-4 cursor-pointer transition-all active:scale-[0.98] ${
-                          isConcluida
-                            ? "bg-muted/20 border-muted opacity-80"
-                            : "bg-card border-border hover:border-primary/50"
+                          isConcluida ? 'bg-muted/20 border-muted opacity-80' : 'bg-card border-border hover:border-primary/50'
                         }`}
                       >
                         <div className="flex items-start justify-between mb-3 gap-3">
@@ -1414,7 +1438,7 @@ function OSPage() {
                               {cliente?.nome || "Cliente Removido"}
                             </span>
                           </div>
-
+                          
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2 max-w-[60%]">
                               <div className="bg-muted p-1.5 rounded-md text-muted-foreground shrink-0">
@@ -1422,7 +1446,7 @@ function OSPage() {
                               </div>
                               <span className="truncate font-medium">{tecnico?.nome || "Sem técnico"}</span>
                             </div>
-
+                            
                             <div className="flex items-center gap-1.5 bg-background border px-2 py-1 rounded-md text-[11px] font-medium shrink-0">
                               <Calendar className="w-3 h-3 text-primary/70" />
                               <span>{formatDate(o.data_agendamento ?? o.data_atendimento)}</span>
@@ -1447,7 +1471,10 @@ function OSPage() {
             </p>
             <div className="flex items-center gap-2">
               <span className="text-xs text-muted-foreground">Exibir:</span>
-              <Select value={String(osPageSize)} onValueChange={(val) => setOsPageSize(Number(val))}>
+              <Select
+                value={String(osPageSize)}
+                onValueChange={(val) => setOsPageSize(Number(val))}
+              >
                 <SelectTrigger className="h-8 text-xs w-[70px]">
                   <SelectValue />
                 </SelectTrigger>
@@ -1500,7 +1527,8 @@ function OSPage() {
           try {
             await updateOS(editing.id, patch);
             const mudouStatus = patch.status !== undefined && patch.status !== editing.status;
-            const mudouTecnico = patch.tecnicoId !== undefined && patch.tecnicoId !== editing.tecnicoId;
+            const mudouTecnico =
+              patch.tecnicoId !== undefined && patch.tecnicoId !== editing.tecnicoId;
             if (mudouStatus) {
               await registrarLog(
                 "os_status_alterado",
@@ -1518,7 +1546,7 @@ function OSPage() {
             if (mudouEquipamento) {
               await registrarLog(
                 "os_equipamentos_alterados",
-                `Equipamentos vinculados à OS "${editing.titulo}" atualizados por ${nomeUsuario}`,
+                `Equipamentos vinculados à OS "${editing.titulo}" atualizados por ${nomeUsuario}`
               );
             }
             toast.success("OS atualizada");
@@ -1577,9 +1605,9 @@ export function EditOSDialog({
   const [despesasEdit, setDespesasEdit] = useState<Array<{ tipo: string; valor: number }>>([]);
   const [despesaTipoEdit, setDespesaTipoEdit] = useState("Pedágio");
   const [despesaValorEdit, setDespesaValorEdit] = useState("");
-  const [lancamentosEdit, setLancamentosEdit] = useState<Array<{ tipo: string; valor: number; descricao?: string }>>(
-    [],
-  );
+  const [lancamentosEdit, setLancamentosEdit] = useState<
+    Array<{ tipo: string; valor: number; descricao?: string }>
+  >([]);
   const [lancTipo, setLancTipo] = useState("Hora extra");
   const [lancValor, setLancValor] = useState("");
   const [lancDescricao, setLancDescricao] = useState("");
@@ -1597,7 +1625,7 @@ export function EditOSDialog({
     tipo_comissao: "porcentagem" as "porcentagem" | "fixo",
   });
   const [quickTecSaving, setQuickTecSaving] = useState(false);
-
+  
   const [quickAnaOpen, setQuickAnaOpen] = useState(false);
   const [quickAnaForm, setQuickAnaForm] = useState({ nome: "", whatsapp: "" });
   const [quickAnaSaving, setQuickAnaSaving] = useState(false);
@@ -1654,7 +1682,9 @@ export function EditOSDialog({
       descricao_problema: descricaoProblema,
       status: (typeof overrideStatus === "string" ? overrideStatus : form.status) as OSStatus,
       dados_adicionais: dadosExtras,
-      pendencias_detalhes: osFinalizada((typeof overrideStatus === "string" ? overrideStatus : form.status) as OSStatus)
+      pendencias_detalhes: osFinalizada(
+        (typeof overrideStatus === "string" ? overrideStatus : form.status) as OSStatus,
+      )
         ? (null as any)
         : form.pendencias_detalhes || (null as any),
       endereco_servico: form.endereco_servico || undefined,
@@ -1685,8 +1715,8 @@ export function EditOSDialog({
             fontWeight: "bold",
             fontSize: "1.1rem",
             border: "none",
-            textAlign: "center",
-          },
+            textAlign: "center"
+          }
         });
       }
       await onSave(patch);
@@ -1763,14 +1793,12 @@ export function EditOSDialog({
     setQuickAnaSaving(true);
     try {
       const { data, error } = await (supabase.from("analistas_cliente" as any) as any)
-        .insert([
-          {
-            empresa_id: empresaId,
-            nome: quickAnaForm.nome,
-            whatsapp: quickAnaForm.whatsapp,
-            cliente_id: form.clienteId,
-          },
-        ])
+        .insert([{
+          empresa_id: empresaId,
+          nome: quickAnaForm.nome,
+          whatsapp: quickAnaForm.whatsapp,
+          cliente_id: form.clienteId,
+        }])
         .select()
         .single();
       if (error) throw error;
@@ -1800,610 +1828,608 @@ export function EditOSDialog({
             <TabsTrigger value="historico">Histórico</TabsTrigger>
           </TabsList>
           <TabsContent value="dados" className="space-y-3 mt-4">
+          <div>
+            <Label className="text-muted-foreground text-xs font-bold uppercase tracking-wider mb-1 block">
+              Título da OS
+            </Label>
+            <Input
+              disabled={isView}
+              value={form.titulo}
+              onChange={(e) => setForm({ ...form, titulo: e.target.value })}
+              className="text-lg font-bold h-12"
+              placeholder="Ex: Manutenção de Equipamento"
+            />
+          </div>
+          <div>
+            <Label className="text-muted-foreground text-xs font-bold uppercase tracking-wider mb-1 block">
+              Endereço do Serviço *
+            </Label>
+            <Input
+              disabled={isView}
+              value={form.endereco_servico}
+              onChange={(e) => setForm({ ...form, endereco_servico: e.target.value })}
+              className="text-md h-10"
+              placeholder="Ex: Av Paulista, 1000 - Bela Vista - São Paulo / SP"
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
             <div>
-              <Label className="text-muted-foreground text-xs font-bold uppercase tracking-wider mb-1 block">
-                Título da OS
-              </Label>
-              <Input
-                disabled={isView}
-                value={form.titulo}
-                onChange={(e) => setForm({ ...form, titulo: e.target.value })}
-                className="text-lg font-bold h-12"
-                placeholder="Ex: Manutenção de Equipamento"
-              />
-            </div>
-            <div>
-              <Label className="text-muted-foreground text-xs font-bold uppercase tracking-wider mb-1 block">
-                Endereço do Serviço *
-              </Label>
-              <Input
-                disabled={isView}
-                value={form.endereco_servico}
-                onChange={(e) => setForm({ ...form, endereco_servico: e.target.value })}
-                className="text-md h-10"
-                placeholder="Ex: Av Paulista, 1000 - Bela Vista - São Paulo / SP"
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <div className="flex items-center justify-between gap-2 mb-1">
-                  <Label>Cliente</Label>
-                  {!isView && (
-                    <Button variant="outline" size="sm" className="h-8" onClick={() => setQuickCliOpen(true)}>
-                      <Plus className="w-3.5 h-3.5 mr-1" /> Cadastrar novo
-                    </Button>
-                  )}
-                </div>
-                {isView ? (
-                  <div className="h-10 px-3 flex items-center rounded-md border border-input bg-muted/40 text-sm">
-                    {clientes.find((c) => c.id === form.clienteId)?.nome || "—"}
-                  </div>
-                ) : (
-                  <SearchCombobox
-                    options={(Array.isArray(clientes) ? clientes : []).map((c) => ({
-                      value: c.id,
-                      label: c.ativo === false ? `${c.nome} (Inativo)` : c.nome,
-                      disabled: c.ativo === false,
-                    }))}
-                    value={form.clienteId}
-                    onChange={(v) => {
-                      const cliente = clientes.find((c) => c.id === v);
-                      const baseKm = cliente?.base_km || 0;
-                      const valorPorKm = cliente?.valor_por_km || 0;
-                      setForm({
-                        ...form,
-                        clienteId: v,
-                        km_viagem: baseKm ? String(baseKm) : "",
-                        custo_viagem: baseKm && valorPorKm ? String(baseKm * valorPorKm) : "",
-                      });
-                    }}
-                    placeholder="Selecione um cliente..."
-                    searchPlaceholder="Buscar cliente..."
-                    emptyText="Nenhum cliente encontrado."
-                  />
+              <div className="flex items-center justify-between gap-2 mb-1">
+                <Label>Cliente</Label>
+                {!isView && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-8"
+                    onClick={() => setQuickCliOpen(true)}
+                  >
+                    <Plus className="w-3.5 h-3.5 mr-1" /> Cadastrar novo
+                  </Button>
                 )}
               </div>
-              {form.clienteId && (
-                <div>
-                  <Label className="mb-1 block">Equipamento(s) a Instalar</Label>
-                  {isView ? (
-                    <div className="min-h-[40px] px-3 py-2 flex flex-wrap gap-2 items-center rounded-md border border-input bg-muted/40 text-sm">
-                      {form.equipamentosIds.length > 0
-                        ? form.equipamentosIds.map((id) => {
-                            const eq = equipamentos.find((e) => e.id === id);
-                            return (
-                              <Badge key={id} variant="secondary">
-                                {eq?.nome}
-                              </Badge>
-                            );
-                          })
-                        : "—"}
-                    </div>
-                  ) : (
-                    <div className="space-y-2">
-                      {form.equipamentosIds.map((eqId, idx) => (
-                        <div key={idx} className="flex gap-2">
-                          <div className="h-10 px-3 flex-1 flex items-center rounded-md border border-input bg-muted/20 text-sm">
-                            {equipamentos.find((e) => e.id === eqId)?.nome || "Desconhecido"}
-                          </div>
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="icon"
-                            onClick={() => {
-                              setForm((f) => ({
-                                ...f,
-                                equipamentosIds: f.equipamentosIds.filter((_, i) => i !== idx),
-                              }));
-                            }}
-                          >
-                            <Trash className="w-4 h-4 text-destructive" />
-                          </Button>
-                        </div>
-                      ))}
-                      <div className="flex gap-2">
-                        <Select
-                          value="none"
-                          onValueChange={(v) => {
-                            if (v !== "none" && !form.equipamentosIds.includes(v)) {
-                              setForm((f) => ({ ...f, equipamentosIds: [...f.equipamentosIds, v] }));
-                            }
-                          }}
-                        >
-                          <SelectTrigger className="h-10 flex-1">
-                            <SelectValue placeholder="Adicionar equipamento..." />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="none">Selecione para adicionar...</SelectItem>
-                            {equipamentos
-                              .filter(
-                                (e) =>
-                                  e.cliente_id === form.clienteId &&
-                                  e.status === "em_estoque" &&
-                                  !form.equipamentosIds.includes(e.id),
-                              )
-                              .map((e) => (
-                                <SelectItem key={e.id} value={e.id}>
-                                  {e.nome} {e.numero_serie ? `(SN: ${e.numero_serie})` : ""}
-                                </SelectItem>
-                              ))}
-                          </SelectContent>
-                        </Select>
-                        <Button
-                          type="button"
-                          size="icon"
-                          variant="secondary"
-                          className="h-10 w-10 shrink-0 pointer-events-none"
-                        >
-                          <Plus className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  )}
+              {isView ? (
+                <div className="h-10 px-3 flex items-center rounded-md border border-input bg-muted/40 text-sm">
+                  {clientes.find((c) => c.id === form.clienteId)?.nome || "—"}
                 </div>
-              )}
-              <div>
-                <div className="flex items-center justify-between gap-2 mb-1">
-                  <Label>Técnico</Label>
-                  {!isView && (
-                    <Button variant="outline" size="sm" className="h-8" onClick={() => setQuickTecOpen(true)}>
-                      <Plus className="w-3.5 h-3.5 mr-1" /> Cadastrar novo
-                    </Button>
-                  )}
-                </div>
-                {isView ? (
-                  <div className="h-10 px-3 flex items-center rounded-md border border-input bg-muted/40 text-sm">
-                    {tecnicos.find((t) => t.id === form.tecnicoId)?.nome || "—"}
-                  </div>
-                ) : (
-                  <SearchCombobox
-                    options={(Array.isArray(tecnicos) ? tecnicos : []).map((t) => ({
-                      value: t.id,
-                      label: t.nome,
-                    }))}
-                    value={form.tecnicoId}
-                    onChange={(v) => setForm({ ...form, tecnicoId: v })}
-                    placeholder="Selecione um técnico..."
-                    searchPlaceholder="Buscar técnico..."
-                    emptyText="Nenhum técnico encontrado."
-                  />
-                )}
-              </div>
-              <div>
-                <div className="flex items-center justify-between">
-                  <Label>Analista / Suporte Responsável</Label>
-                  {!isView && (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      className="h-8"
-                      onClick={() => {
-                        if (!form.clienteId) return toast.error("Selecione um cliente primeiro");
-                        setQuickAnaOpen(true);
-                      }}
-                      disabled={!form.clienteId}
-                    >
-                      <Plus className="w-3.5 h-3.5 mr-1" /> Cadastrar novo
-                    </Button>
-                  )}
-                </div>
-                <Select
-                  disabled={isView || !form.clienteId}
-                  value={form.analistaId || undefined}
-                  onValueChange={(v) => setForm({ ...form, analistaId: v })}
-                >
-                  <SelectTrigger>
-                    <SelectValue
-                      placeholder={
-                        !form.clienteId
-                          ? "Selecione um cliente primeiro"
-                          : analistasEdit.length === 0
-                            ? "Nenhum analista cadastrado para este cliente"
-                            : "Selecione um analista..."
-                      }
-                    />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {(Array.isArray(analistasEdit) ? analistasEdit : []).map((a) => (
-                      <SelectItem key={a.id} value={a.id}>
-                        {a.nome}
-                        {a.whatsapp ? ` — ${a.whatsapp}` : ""}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            <div className="grid grid-cols-4 gap-3">
-              <div>
-                <Label>Valor do Serviço</Label>
-                <Input
-                  disabled={isView}
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  value={form.valor}
-                  onChange={(e) => {
-                    if (Number(e.target.value) < 0) return;
-                    setForm({ ...form, valor: e.target.value });
-                  }}
-                />
-              </div>
-              <div>
-                <Label>Custo de Viagem</Label>
-                <Input
-                  disabled={isView}
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  value={form.custo_viagem}
-                  onChange={(e) => {
-                    if (Number(e.target.value) < 0) return;
-                    setForm({ ...form, custo_viagem: e.target.value });
-                  }}
-                />
-              </div>
-              <div>
-                <Label>Km Viagem</Label>
-                <Input
-                  disabled={isView}
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  value={form.km_viagem}
-                  onChange={(e) => {
-                    if (Number(e.target.value) < 0) return;
-                    const cliente = clientes.find((c) => c.id === form.clienteId);
+              ) : (
+                <SearchCombobox
+                  options={(Array.isArray(clientes) ? clientes : []).map((c) => ({
+                    value: c.id,
+                    label: (c as any).ativo === false ? `${c.nome} (Inativo)` : c.nome,
+                    disabled: (c as any).ativo === false,
+                  }))}
+                  value={form.clienteId}
+                  onChange={(v) => {
+                    const cliente = clientes.find((c) => c.id === v);
+                    const baseKm = cliente?.base_km || 0;
                     const valorPorKm = cliente?.valor_por_km || 0;
                     setForm({
                       ...form,
-                      km_viagem: e.target.value,
-                      custo_viagem: valorPorKm ? String(Number(e.target.value) * valorPorKm) : form.custo_viagem,
+                      clienteId: v,
+                      km_viagem: baseKm ? String(baseKm) : "",
+                      custo_viagem: baseKm && valorPorKm ? String(baseKm * valorPorKm) : "",
                     });
                   }}
+                  placeholder="Selecione um cliente..."
+                  searchPlaceholder="Buscar cliente..."
+                  emptyText="Nenhum cliente encontrado."
                 />
-              </div>
+              )}
+            </div>
+            {form.clienteId && (
               <div>
-                <Label>Valor Total Faturado</Label>
-                <Input
-                  disabled
-                  value={`R$ ${(Number(form.valor || 0) + Number(form.custo_viagem || 0) + despesasEdit.reduce((sum, item) => sum + Number(item.valor || 0), 0)).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`}
+                <Label className="mb-1 block">Equipamento(s) a Instalar</Label>
+                {isView ? (
+                  <div className="min-h-[40px] px-3 py-2 flex flex-wrap gap-2 items-center rounded-md border border-input bg-muted/40 text-sm">
+                    {form.equipamentosIds.length > 0
+                      ? form.equipamentosIds.map(id => {
+                          const eq = equipamentos.find(e => e.id === id);
+                          return <Badge key={id} variant="secondary">{eq?.nome}</Badge>;
+                        })
+                      : "—"}
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {form.equipamentosIds.map((eqId, idx) => (
+                      <div key={idx} className="flex gap-2">
+                        <div className="h-10 px-3 flex-1 flex items-center rounded-md border border-input bg-muted/20 text-sm">
+                          {equipamentos.find(e => e.id === eqId)?.nome || "Desconhecido"}
+                        </div>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="icon"
+                          onClick={() => {
+                            setForm(f => ({
+                              ...f,
+                              equipamentosIds: f.equipamentosIds.filter((_, i) => i !== idx)
+                            }));
+                          }}
+                        >
+                          <Trash className="w-4 h-4 text-destructive" />
+                        </Button>
+                      </div>
+                    ))}
+                    <div className="flex gap-2">
+                      <Select
+                        value="none"
+                        onValueChange={(v) => {
+                          if (v !== "none" && !form.equipamentosIds.includes(v)) {
+                            setForm(f => ({ ...f, equipamentosIds: [...f.equipamentosIds, v] }));
+                          }
+                        }}
+                      >
+                        <SelectTrigger className="h-10 flex-1">
+                          <SelectValue placeholder="Adicionar equipamento..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="none">Selecione para adicionar...</SelectItem>
+                          {equipamentos
+                            .filter(e => e.cliente_id === form.clienteId && e.status === 'em_estoque' && !form.equipamentosIds.includes(e.id))
+                            .map(e => (
+                              <SelectItem key={e.id} value={e.id}>
+                                {e.nome} {e.numero_serie ? `(SN: ${e.numero_serie})` : ''}
+                              </SelectItem>
+                            ))}
+                        </SelectContent>
+                      </Select>
+                      <Button type="button" size="icon" variant="secondary" className="h-10 w-10 shrink-0 pointer-events-none">
+                        <Plus className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+            <div>
+              <div className="flex items-center justify-between gap-2 mb-1">
+                <Label>Técnico</Label>
+                {!isView && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-8"
+                    onClick={() => setQuickTecOpen(true)}
+                  >
+                    <Plus className="w-3.5 h-3.5 mr-1" /> Cadastrar novo
+                  </Button>
+                )}
+              </div>
+              {isView ? (
+                <div className="h-10 px-3 flex items-center rounded-md border border-input bg-muted/40 text-sm">
+                  {tecnicos.find((t) => t.id === form.tecnicoId)?.nome || "—"}
+                </div>
+              ) : (
+                <SearchCombobox
+                  options={(Array.isArray(tecnicos) ? tecnicos : []).map((t) => ({
+                    value: t.id,
+                    label: t.nome,
+                  }))}
+                  value={form.tecnicoId}
+                  onChange={(v) => setForm({ ...form, tecnicoId: v })}
+                  placeholder="Selecione um técnico..."
+                  searchPlaceholder="Buscar técnico..."
+                  emptyText="Nenhum técnico encontrado."
                 />
+              )}
+            </div>
+            <div>
+              <div className="flex items-center justify-between">
+                <Label>Analista / Suporte Responsável</Label>
+                {!isView && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="h-8"
+                    onClick={() => {
+                      if (!form.clienteId) return toast.error("Selecione um cliente primeiro");
+                      setQuickAnaOpen(true);
+                    }}
+                    disabled={!form.clienteId}
+                  >
+                    <Plus className="w-3.5 h-3.5 mr-1" /> Cadastrar novo
+                  </Button>
+                )}
               </div>
-              <div>
-                <Label>Status</Label>
+              <Select
+                disabled={isView || !form.clienteId}
+                value={form.analistaId || undefined}
+                onValueChange={(v) => setForm({ ...form, analistaId: v })}
+              >
+                <SelectTrigger>
+                  <SelectValue
+                    placeholder={
+                      !form.clienteId
+                        ? "Selecione um cliente primeiro"
+                        : analistasEdit.length === 0
+                          ? "Nenhum analista cadastrado para este cliente"
+                          : "Selecione um analista..."
+                    }
+                  />
+                </SelectTrigger>
+                <SelectContent>
+                  {(Array.isArray(analistasEdit) ? analistasEdit : []).map((a) => (
+                    <SelectItem key={a.id} value={a.id}>
+                      {a.nome}
+                      {a.whatsapp ? ` — ${a.whatsapp}` : ""}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <div className="grid grid-cols-4 gap-3">
+            <div>
+              <Label>Valor do Serviço</Label>
+              <Input
+                disabled={isView}
+                type="number"
+                min="0"
+                step="0.01"
+                value={form.valor}
+                onChange={(e) => {
+                  if (Number(e.target.value) < 0) return;
+                  setForm({ ...form, valor: e.target.value });
+                }}
+              />
+            </div>
+            <div>
+              <Label>Custo de Viagem</Label>
+              <Input
+                disabled={isView}
+                type="number"
+                min="0"
+                step="0.01"
+                value={form.custo_viagem}
+                onChange={(e) => {
+                  if (Number(e.target.value) < 0) return;
+                  setForm({ ...form, custo_viagem: e.target.value });
+                }}
+              />
+            </div>
+            <div>
+              <Label>Km Viagem</Label>
+              <Input
+                disabled={isView}
+                type="number"
+                min="0"
+                step="0.01"
+                value={form.km_viagem}
+                onChange={(e) => {
+                  if (Number(e.target.value) < 0) return;
+                  const cliente = clientes.find((c) => c.id === form.clienteId);
+                  const valorPorKm = cliente?.valor_por_km || 0;
+                  setForm({
+                    ...form,
+                    km_viagem: e.target.value,
+                    custo_viagem: valorPorKm
+                      ? String(Number(e.target.value) * valorPorKm)
+                      : form.custo_viagem,
+                  });
+                }}
+              />
+            </div>
+            <div>
+              <Label>Valor Total Faturado</Label>
+              <Input
+                disabled
+                value={`R$ ${(Number(form.valor || 0) + Number(form.custo_viagem || 0) + despesasEdit.reduce((sum, item) => sum + Number(item.valor || 0), 0)).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`}
+              />
+            </div>
+            <div>
+              <Label>Status</Label>
+              <Select
+                disabled={isView}
+                value={form.status}
+                onValueChange={(v) => setForm({ ...form, status: v as OSStatus })}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {colunas.map((c) => (
+                    <SelectItem key={c} value={c}>
+                      {c}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            {!isView && (() => {
+                const total = Number(form.valor || 0) + Number(form.custo_viagem || 0) + despesasEdit.reduce((sum, item) => sum + Number(item.valor || 0), 0);
+                return (
+                  <div className="col-span-full border-t border-border/50 pt-4 mt-2">
+                    <div className="flex items-center justify-between mb-3">
+                      <h4 className="text-sm font-semibold flex items-center gap-2">
+                        Valores Recebidos Antecipadamente
+                      </h4>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="h-8 text-xs bg-emerald-500/10 text-emerald-600 border-emerald-500/20 hover:bg-emerald-500/20 hover:text-emerald-700"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setForm({ ...form, valor_adiantado: String(total), descricao_adiantamento: "Pagamento Total" });
+                        }}
+                      >
+                        Pagamento Total
+                      </Button>
+                    </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label>Valor Adiantado (R$)</Label>
+                      <Input
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        placeholder="0.00"
+                        value={form.valor_adiantado}
+                        onChange={(e) => setForm({ ...form, valor_adiantado: e.target.value })}
+                      />
+                    </div>
+                    <div>
+                      <Label>Descrição do Adiantamento</Label>
+                      <Input
+                        placeholder="ex: Sinal de viagem, Pagamento Total..."
+                        value={form.descricao_adiantamento}
+                        onChange={(e) => setForm({ ...form, descricao_adiantamento: e.target.value })}
+                      />
+                    </div>
+                    </div>
+                  </div>
+                );
+              })()}
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <Label>Data do Agendamento</Label>
+              <Input
+                disabled={isView}
+                type="date"
+                max="9999-12-31"
+                value={dataAgendamento}
+                onChange={(e) => setDataAgendamento(e.target.value)}
+              />
+            </div>
+            <div>
+              <Label>Horário do Atendimento</Label>
+              <Input
+                disabled={isView}
+                type="time"
+                value={horarioAtendimento}
+                onChange={(e) => setHorarioAtendimento(e.target.value)}
+              />
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <Label>Adicionar despesa</Label>
+              <div className="flex gap-2">
                 <Select
                   disabled={isView}
-                  value={form.status}
-                  onValueChange={(v) => setForm({ ...form, status: v as OSStatus })}
+                  value={despesaTipoEdit}
+                  onValueChange={setDespesaTipoEdit}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="h-10 flex-1">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {colunas.map((c) => (
-                      <SelectItem key={c} value={c}>
-                        {c}
+                    {["Pedágio", "Insumos", "Alimentação", "Outros"].map((tipo) => (
+                      <SelectItem key={tipo} value={tipo}>
+                        {tipo}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
-              </div>
-              {!isView &&
-                (() => {
-                  const total =
-                    Number(form.valor || 0) +
-                    Number(form.custo_viagem || 0) +
-                    despesasEdit.reduce((sum, item) => sum + Number(item.valor || 0), 0);
-                  return (
-                    <div className="col-span-full border-t border-border/50 pt-4 mt-2">
-                      <div className="flex items-center justify-between mb-3">
-                        <h4 className="text-sm font-semibold flex items-center gap-2">
-                          Valores Recebidos Antecipadamente
-                        </h4>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="h-8 text-xs bg-emerald-500/10 text-emerald-600 border-emerald-500/20 hover:bg-emerald-500/20 hover:text-emerald-700"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            setForm({
-                              ...form,
-                              valor_adiantado: String(total),
-                              descricao_adiantamento: "Pagamento Total",
-                            });
-                          }}
-                        >
-                          Pagamento Total
-                        </Button>
-                      </div>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <Label>Valor Adiantado (R$)</Label>
-                          <Input
-                            type="number"
-                            min="0"
-                            step="0.01"
-                            placeholder="0.00"
-                            value={form.valor_adiantado}
-                            onChange={(e) => setForm({ ...form, valor_adiantado: e.target.value })}
-                          />
-                        </div>
-                        <div>
-                          <Label>Descrição do Adiantamento</Label>
-                          <Input
-                            placeholder="ex: Sinal de viagem, Pagamento Total..."
-                            value={form.descricao_adiantamento}
-                            onChange={(e) => setForm({ ...form, descricao_adiantamento: e.target.value })}
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })()}
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <Label>Data do Agendamento</Label>
                 <Input
                   disabled={isView}
-                  type="date"
-                  max="9999-12-31"
-                  value={dataAgendamento}
-                  onChange={(e) => setDataAgendamento(e.target.value)}
+                  type="number"
+                  step="0.01"
+                  value={despesaValorEdit}
+                  onChange={(e) => setDespesaValorEdit(e.target.value)}
+                  placeholder="R$"
+                  className="h-10 w-24"
                 />
-              </div>
-              <div>
-                <Label>Horário do Atendimento</Label>
-                <Input
+                <Button
+                  type="button"
+                  size="icon"
+                  className="h-10 w-10"
+                  onClick={adicionarDespesaEdit}
                   disabled={isView}
-                  type="time"
-                  value={horarioAtendimento}
-                  onChange={(e) => setHorarioAtendimento(e.target.value)}
-                />
+                >
+                  <Plus className="w-4 h-4" />
+                </Button>
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <Label>Adicionar despesa</Label>
-                <div className="flex gap-2">
-                  <Select disabled={isView} value={despesaTipoEdit} onValueChange={setDespesaTipoEdit}>
-                    <SelectTrigger className="h-10 flex-1">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {["Pedágio", "Insumos", "Alimentação", "Outros"].map((tipo) => (
-                        <SelectItem key={tipo} value={tipo}>
-                          {tipo}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <Input
-                    disabled={isView}
-                    type="number"
-                    step="0.01"
-                    value={despesaValorEdit}
-                    onChange={(e) => setDespesaValorEdit(e.target.value)}
-                    placeholder="R$"
-                    className="h-10 w-24"
-                  />
-                  <Button
-                    type="button"
-                    size="icon"
-                    className="h-10 w-10"
-                    onClick={adicionarDespesaEdit}
-                    disabled={isView}
-                  >
-                    <Plus className="w-4 h-4" />
-                  </Button>
-                </div>
-              </div>
-              <div>
-                <Label>Descrição do Problema</Label>
-                <textarea
-                  disabled={isView}
-                  value={descricaoProblema}
-                  onChange={(e) => setDescricaoProblema(e.target.value)}
-                  placeholder="Descreva o problema ou serviço a ser executado..."
-                  className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                />
-              </div>
-              {!osFinalizada(form.status) && (
-                <div>
-                  <Label>Pendências (Motivo de Travamento)</Label>
-                  <Input
-                    disabled={isView}
-                    value={form.pendencias_detalhes}
-                    onChange={(e) => setForm({ ...form, pendencias_detalhes: e.target.value })}
-                    placeholder="Ex: Aguardando peça X, falta assinatura. Deixe vazio se não houver pendência."
-                  />
-                </div>
-              )}
-            </div>
-
-            {/* Lançamentos adicionais do técnico */}
-            <div className="rounded-xl border border-border/60 bg-muted/30 p-3 space-y-3">
-              <div className="text-[10px] uppercase tracking-wider font-bold text-muted-foreground">
-                Valores adicionais do técnico
-              </div>
-              {!isView && (
-                <div className="flex flex-col sm:flex-row gap-2">
-                  <Select value={lancTipo} onValueChange={setLancTipo}>
-                    <SelectTrigger className="h-10 sm:w-44">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {["Hora extra", "Reembolso", "Ajuda de custo", "Bônus", "Outro"].map((t) => (
-                        <SelectItem key={t} value={t}>
-                          {t}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <Input
-                    value={lancDescricao}
-                    onChange={(e) => setLancDescricao(e.target.value)}
-                    placeholder="Descrição (ex: jantar)"
-                    className="h-10 flex-1"
-                  />
-                  <Input
-                    type="number"
-                    step="0.01"
-                    value={lancValor}
-                    onChange={(e) => setLancValor(e.target.value)}
-                    placeholder="R$"
-                    className="h-10 w-28"
-                  />
-                  <Button
-                    type="button"
-                    size="icon"
-                    className="h-10 w-10 shrink-0"
-                    onClick={() => {
-                      const valor = Number(lancValor) || 0;
-                      if (valor <= 0) return toast.error("Informe um valor maior que zero");
-                      setLancamentosEdit((prev) => [
-                        ...prev,
-                        { tipo: lancTipo, valor, descricao: lancDescricao || undefined },
-                      ]);
-                      setLancValor("");
-                      setLancDescricao("");
-                    }}
-                  >
-                    <Plus className="w-4 h-4" />
-                  </Button>
-                </div>
-              )}
-              {lancamentosEdit.length === 0 ? (
-                <p className="text-xs text-muted-foreground">Nenhum valor adicional lançado.</p>
-              ) : (
-                <div className="space-y-2">
-                  {lancamentosEdit.map((l, index) => (
-                    <div
-                      key={`${l.tipo}-${index}`}
-                      className="flex items-center justify-between rounded-lg bg-background/70 px-3 py-2 text-sm"
-                    >
-                      <span>
-                        {l.tipo}
-                        {l.descricao ? ` — ${l.descricao}` : ""}
-                      </span>
-                      <div className="flex items-center gap-2">
-                        <span>R$ {Number(l.valor).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</span>
-                        {!isView && (
-                          <Button
-                            type="button"
-                            size="icon"
-                            variant="ghost"
-                            className="h-7 w-7"
-                            onClick={() => setLancamentosEdit((prev) => prev.filter((_, i) => i !== index))}
-                          >
-                            <Trash className="w-3.5 h-3.5 text-destructive" />
-                          </Button>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                  <div className="flex justify-between text-sm font-semibold pt-1 border-t border-border/60">
-                    <span>Total adicional do técnico</span>
-                    <span>
-                      R${" "}
-                      {lancamentosEdit
-                        .reduce((s, l) => s + Number(l.valor || 0), 0)
-                        .toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
-                    </span>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Baixa de recebimento individual */}
-            <div className="rounded-xl border border-border/60 bg-emerald-500/5 p-3 flex items-center justify-between gap-3">
-              <div>
-                <div className="text-sm font-semibold">Valor recebido do cliente</div>
-                <p className="text-xs text-muted-foreground">
-                  {recebidoCliente
-                    ? "Esta OS está marcada como paga pelo cliente."
-                    : "Marque quando o pagamento desta OS for confirmado."}
-                </p>
-              </div>
-              <Button
-                type="button"
-                variant={recebidoCliente ? "default" : "outline"}
-                size="sm"
+            <div>
+              <Label>Descrição do Problema</Label>
+              <textarea
                 disabled={isView}
-                onClick={() => setRecebidoCliente((v) => !v)}
-                className={recebidoCliente ? "bg-emerald-600 hover:bg-emerald-700" : ""}
-              >
-                {recebidoCliente ? "Recebido" : "Dar baixa"}
-              </Button>
+                value={descricaoProblema}
+                onChange={(e) => setDescricaoProblema(e.target.value)}
+                placeholder="Descreva o problema ou serviço a ser executado..."
+                className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              />
             </div>
-            {despesasEdit.length > 0 && (
-              <div className="rounded-xl border border-border/60 bg-muted/30 p-3 space-y-2">
-                <div className="text-[10px] uppercase tracking-wider font-bold text-muted-foreground">
-                  Despesas adicionadas
-                </div>
-                {(Array.isArray(despesasEdit) ? despesasEdit : []).map((despesa, index) => (
+            {!osFinalizada(form.status) && (
+              <div>
+                <Label>Pendências (Motivo de Travamento)</Label>
+                <Input
+                  disabled={isView}
+                  value={form.pendencias_detalhes}
+                  onChange={(e) => setForm({ ...form, pendencias_detalhes: e.target.value })}
+                  placeholder="Ex: Aguardando peça X, falta assinatura. Deixe vazio se não houver pendência."
+                />
+              </div>
+            )}
+          </div>
+
+          {/* Lançamentos adicionais do técnico */}
+          <div className="rounded-xl border border-border/60 bg-muted/30 p-3 space-y-3">
+            <div className="text-[10px] uppercase tracking-wider font-bold text-muted-foreground">
+              Valores adicionais do técnico
+            </div>
+            {!isView && (
+              <div className="flex flex-col sm:flex-row gap-2">
+                <Select value={lancTipo} onValueChange={setLancTipo}>
+                  <SelectTrigger className="h-10 sm:w-44">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {["Hora extra", "Reembolso", "Ajuda de custo", "Bônus", "Outro"].map((t) => (
+                      <SelectItem key={t} value={t}>
+                        {t}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Input
+                  value={lancDescricao}
+                  onChange={(e) => setLancDescricao(e.target.value)}
+                  placeholder="Descrição (ex: jantar)"
+                  className="h-10 flex-1"
+                />
+                <Input
+                  type="number"
+                  step="0.01"
+                  value={lancValor}
+                  onChange={(e) => setLancValor(e.target.value)}
+                  placeholder="R$"
+                  className="h-10 w-28"
+                />
+                <Button
+                  type="button"
+                  size="icon"
+                  className="h-10 w-10 shrink-0"
+                  onClick={() => {
+                    const valor = Number(lancValor) || 0;
+                    if (valor <= 0) return toast.error("Informe um valor maior que zero");
+                    setLancamentosEdit((prev) => [
+                      ...prev,
+                      { tipo: lancTipo, valor, descricao: lancDescricao || undefined },
+                    ]);
+                    setLancValor("");
+                    setLancDescricao("");
+                  }}
+                >
+                  <Plus className="w-4 h-4" />
+                </Button>
+              </div>
+            )}
+            {lancamentosEdit.length === 0 ? (
+              <p className="text-xs text-muted-foreground">Nenhum valor adicional lançado.</p>
+            ) : (
+              <div className="space-y-2">
+                {lancamentosEdit.map((l, index) => (
                   <div
-                    key={`${despesa.tipo}-${index}`}
+                    key={`${l.tipo}-${index}`}
                     className="flex items-center justify-between rounded-lg bg-background/70 px-3 py-2 text-sm"
                   >
-                    <span>{despesa.tipo}</span>
-                    <span>R$ {despesa.valor.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</span>
+                    <span>
+                      {l.tipo}
+                      {l.descricao ? ` — ${l.descricao}` : ""}
+                    </span>
+                    <div className="flex items-center gap-2">
+                      <span>R$ {Number(l.valor).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</span>
+                      {!isView && (
+                        <Button
+                          type="button"
+                          size="icon"
+                          variant="ghost"
+                          className="h-7 w-7"
+                          onClick={() =>
+                            setLancamentosEdit((prev) => prev.filter((_, i) => i !== index))
+                          }
+                        >
+                          <Trash className="w-3.5 h-3.5 text-destructive" />
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                ))}
+                <div className="flex justify-between text-sm font-semibold pt-1 border-t border-border/60">
+                  <span>Total adicional do técnico</span>
+                  <span>
+                    R${" "}
+                    {lancamentosEdit
+                      .reduce((s, l) => s + Number(l.valor || 0), 0)
+                      .toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                  </span>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Baixa de recebimento individual */}
+          <div className="rounded-xl border border-border/60 bg-emerald-500/5 p-3 flex items-center justify-between gap-3">
+            <div>
+              <div className="text-sm font-semibold">Valor recebido do cliente</div>
+              <p className="text-xs text-muted-foreground">
+                {recebidoCliente
+                  ? "Esta OS está marcada como paga pelo cliente."
+                  : "Marque quando o pagamento desta OS for confirmado."}
+              </p>
+            </div>
+            <Button
+              type="button"
+              variant={recebidoCliente ? "default" : "outline"}
+              size="sm"
+              disabled={isView}
+              onClick={() => setRecebidoCliente((v) => !v)}
+              className={recebidoCliente ? "bg-emerald-600 hover:bg-emerald-700" : ""}
+            >
+              {recebidoCliente ? "Recebido" : "Dar baixa"}
+            </Button>
+          </div>
+          {despesasEdit.length > 0 && (
+            <div className="rounded-xl border border-border/60 bg-muted/30 p-3 space-y-2">
+              <div className="text-[10px] uppercase tracking-wider font-bold text-muted-foreground">
+                Despesas adicionadas
+              </div>
+              {(Array.isArray(despesasEdit) ? despesasEdit : []).map((despesa, index) => (
+                <div
+                  key={`${despesa.tipo}-${index}`}
+                  className="flex items-center justify-between rounded-lg bg-background/70 px-3 py-2 text-sm"
+                >
+                  <span>{despesa.tipo}</span>
+                  <span>
+                    R$ {despesa.valor.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+          {(() => {
+            const subtotal = Number(form.valor || 0);
+            const custoViagem = Number(form.custo_viagem || 0);
+            const somaDespesas = despesasEdit.reduce((s, it) => s + Number(it.valor || 0), 0);
+            const custosExtras = custoViagem + somaDespesas;
+            const total = subtotal + custosExtras;
+            const fmt = (n: number) => n.toLocaleString("pt-BR", { minimumFractionDigits: 2 });
+            return (
+              <div className="rounded-xl border border-border/60 bg-primary/5 p-3 text-sm space-y-1">
+                <div className="text-[10px] uppercase tracking-wider font-bold text-muted-foreground mb-1">
+                  Resumo Financeiro
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Subtotal (Serviço)</span>
+                  <span>R$ {fmt(subtotal)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">+ Custo de Viagem</span>
+                  <span>R$ {fmt(custoViagem)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">+ Despesas</span>
+                  <span>R$ {fmt(somaDespesas)}</span>
+                </div>
+                <div className="flex justify-between font-semibold pt-1 border-t border-border/60">
+                  <span>= Valor Total Faturado</span>
+                  <span>R$ {fmt(total)}</span>
+                </div>
+              </div>
+            );
+          })()}
+          {Object.keys(dadosExtras).length > 0 && (
+            <div className="rounded-xl border border-border/60 bg-muted/30 p-3">
+              <div className="text-[10px] uppercase tracking-wider font-bold text-muted-foreground mb-2">
+                Informações adicionais (importadas)
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                {Object.entries(dadosExtras).map(([k, v]) => (
+                  <div key={k}>
+                    <Label>{k}</Label>
+                    <Input
+                      disabled={isView}
+                      value={String(v ?? "")}
+                      onChange={(e) => setDadosExtras((prev) => ({ ...prev, [k]: e.target.value }))}
+                    />
                   </div>
                 ))}
               </div>
-            )}
-            {(() => {
-              const subtotal = Number(form.valor || 0);
-              const custoViagem = Number(form.custo_viagem || 0);
-              const somaDespesas = despesasEdit.reduce((s, it) => s + Number(it.valor || 0), 0);
-              const custosExtras = custoViagem + somaDespesas;
-              const total = subtotal + custosExtras;
-              const fmt = (n: number) => n.toLocaleString("pt-BR", { minimumFractionDigits: 2 });
-              return (
-                <div className="rounded-xl border border-border/60 bg-primary/5 p-3 text-sm space-y-1">
-                  <div className="text-[10px] uppercase tracking-wider font-bold text-muted-foreground mb-1">
-                    Resumo Financeiro
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Subtotal (Serviço)</span>
-                    <span>R$ {fmt(subtotal)}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">+ Custo de Viagem</span>
-                    <span>R$ {fmt(custoViagem)}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">+ Despesas</span>
-                    <span>R$ {fmt(somaDespesas)}</span>
-                  </div>
-                  <div className="flex justify-between font-semibold pt-1 border-t border-border/60">
-                    <span>= Valor Total Faturado</span>
-                    <span>R$ {fmt(total)}</span>
-                  </div>
-                </div>
-              );
-            })()}
-            {Object.keys(dadosExtras).length > 0 && (
-              <div className="rounded-xl border border-border/60 bg-muted/30 p-3">
-                <div className="text-[10px] uppercase tracking-wider font-bold text-muted-foreground mb-2">
-                  Informações adicionais (importadas)
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  {Object.entries(dadosExtras).map(([k, v]) => (
-                    <div key={k}>
-                      <Label>{k}</Label>
-                      <Input
-                        disabled={isView}
-                        value={String(v ?? "")}
-                        onChange={(e) => setDadosExtras((prev) => ({ ...prev, [k]: e.target.value }))}
-                      />
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
+            </div>
+          )}
           </TabsContent>
           <TabsContent value="historico" className="mt-4">
             <OSHistorico osId={ordem?.id ?? null} />
@@ -2412,42 +2438,38 @@ export function EditOSDialog({
 
         <DialogFooter className="sm:justify-between items-center w-full">
           <div className="flex gap-2">
-            {(ordem?.status === "Concluído Técnico" ||
-              form.status === "Concluído Técnico" ||
-              ordem?.status === "concluido_tecnico" ||
-              form.status === ("concluido_tecnico" as any)) &&
-              ordem && (
-                <>
-                  <RatGallery
-                    osId={ordem.id}
-                    trigger={
-                      <Button
-                        type="button"
-                        variant="outline"
-                        className="border-blue-500 text-blue-600 bg-blue-50/50 hover:bg-blue-100 dark:border-blue-800/50 dark:text-blue-400 dark:bg-blue-900/20 dark:hover:bg-blue-900/40"
-                      >
-                        Ver Fotos/RAT
-                      </Button>
-                    }
-                  />
-
-                  {!isView && (
-                    <Button
-                      type="button"
-                      variant="default"
-                      className="bg-emerald-600 hover:bg-emerald-700 text-white"
-                      onClick={() => {
-                        setForm({ ...form, status: "Concluído" });
-                        handleSave("Concluído");
-                      }}
-                      disabled={saving}
+            {(ordem?.status === "Concluído Técnico" || form.status === "Concluído Técnico" || ordem?.status === "concluido_tecnico" || form.status === "concluido_tecnico" as any) && ordem && (
+              <>
+                <RatGallery 
+                  osId={ordem.id} 
+                  trigger={
+                    <Button 
+                      type="button" 
+                      variant="outline" 
+                      className="border-blue-500 text-blue-600 bg-blue-50/50 hover:bg-blue-100 dark:border-blue-800/50 dark:text-blue-400 dark:bg-blue-900/20 dark:hover:bg-blue-900/40"
                     >
-                      <CheckCircle className="w-4 h-4 mr-2" />
-                      Aprovar e Finalizar
+                      Ver Fotos/RAT
                     </Button>
-                  )}
-                </>
-              )}
+                  } 
+                />
+                
+                {!isView && (
+                  <Button 
+                    type="button"
+                    variant="default"
+                    className="bg-emerald-600 hover:bg-emerald-700 text-white"
+                    onClick={() => {
+                      setForm({ ...form, status: "Concluído" });
+                      handleSave("Concluído");
+                    }}
+                    disabled={saving}
+                  >
+                    <CheckCircle className="w-4 h-4 mr-2" />
+                    Aprovar e Finalizar
+                  </Button>
+                )}
+              </>
+            )}
           </div>
           <div className="flex gap-2 justify-end">
             <Button variant="outline" onClick={onClose} disabled={saving}>
@@ -2496,7 +2518,11 @@ export function EditOSDialog({
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setQuickCliOpen(false)} disabled={quickCliSaving}>
+            <Button
+              variant="outline"
+              onClick={() => setQuickCliOpen(false)}
+              disabled={quickCliSaving}
+            >
               Cancelar
             </Button>
             <Button onClick={saveQuickCliente} disabled={quickCliSaving}>
@@ -2545,7 +2571,11 @@ export function EditOSDialog({
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setQuickTecOpen(false)} disabled={quickTecSaving}>
+            <Button
+              variant="outline"
+              onClick={() => setQuickTecOpen(false)}
+              disabled={quickTecSaving}
+            >
               Cancelar
             </Button>
             <Button onClick={saveQuickTecnico} disabled={quickTecSaving}>
@@ -2560,7 +2590,9 @@ export function EditOSDialog({
         <DialogContent className="rounded-2xl w-[95vw] sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Cadastro Rápido - Analista</DialogTitle>
-            <DialogDescription>Adicione um analista de suporte para o cliente selecionado.</DialogDescription>
+            <DialogDescription>
+              Adicione um analista de suporte para o cliente selecionado.
+            </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-2">
             <div>
@@ -2581,7 +2613,11 @@ export function EditOSDialog({
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setQuickAnaOpen(false)} disabled={quickAnaSaving}>
+            <Button
+              variant="outline"
+              onClick={() => setQuickAnaOpen(false)}
+              disabled={quickAnaSaving}
+            >
               Cancelar
             </Button>
             <Button onClick={saveQuickAnalista} disabled={quickAnaSaving}>
