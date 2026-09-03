@@ -8,6 +8,7 @@ import { useMemo, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ContratoViewerDialog } from "@/components/ContratoViewerDialog";
 import { EmptyState } from "@/components/EmptyState";
 import { FileSignature, Download, Search, Eye } from "lucide-react";
 import { toast } from "sonner";
@@ -62,6 +63,7 @@ function ContratosPage() {
   const { profile } = useAuth();
   const empresaId = profile?.empresa_id;
   const [busca, setBusca] = useState("");
+  const [verContrato, setVerContrato] = useState<{ path: string; nome: string } | null>(null);
 
   const contratosQ = useQuery({
     queryKey: ["contratos_equipe", empresaId],
@@ -194,7 +196,7 @@ function ContratosPage() {
                       <div className="text-[10px]">{formatBytes(c.tamanho)}</div>
                     </div>
                     <div className="flex gap-2 shrink-0">
-                      <Button variant="outline" size="sm" className="h-9 rounded-xl" onClick={() => abrir(c.path)}>
+                      <Button variant="outline" size="sm" className="h-9 rounded-xl" onClick={() => setVerContrato({ path: c.path, nome: c.nomeArquivo })}>
                         <Eye className="w-3.5 h-3.5 mr-1.5" /> Ver
                       </Button>
                       <Button size="sm" className="h-9 rounded-xl" onClick={() => abrir(c.path, true)}>
@@ -208,6 +210,11 @@ function ContratosPage() {
           )}
         </div>
       </div>
+      <ContratoViewerDialog
+        path={verContrato?.path ?? null}
+        nome={verContrato?.nome}
+        onClose={() => setVerContrato(null)}
+      />
     </GestorLayout>
   );
 }
