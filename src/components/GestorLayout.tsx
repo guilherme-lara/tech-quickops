@@ -17,6 +17,9 @@ import {
   Shield,
   ShieldAlert,
   Crown,
+  Activity,
+  FileSignature,
+  Mail,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -81,12 +84,15 @@ export function GestorLayout({ children }: { children?: ReactNode }) {
         "/usuarios",
         "/logs",
         "/analista-dashboard",
+        "/contratos",
+        "/emails",
+        "/tempo-real",
       ];
       return !restrictedForTecnico.includes(item.to);
     }
 
     if (profile?.role === "analista") {
-      const allowedForAnalista = ["/analista-dashboard", "/os", "/clientes", "/equipe", "/estoque", "/configuracoes"];
+      const allowedForAnalista = ["/analista-dashboard", "/os", "/clientes", "/equipe", "/estoque", "/tempo-real", "/configuracoes"];
       return allowedForAnalista.includes(item.to);
     }
     // gestor, admin, superadmin
