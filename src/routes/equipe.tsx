@@ -444,7 +444,7 @@ function EquipePage() {
             username: form.username,
             email_notificacoes: form.email_notificacoes,
             ativo: true,
-            dados_adicionais: Object.keys(dadosAdicionais).length > 0 ? dadosAdicionais : undefined,
+            dados_adicionais: dadosAdicionais,
           },
         });
         await registrarLog("tecnico_editado", `Técnico "${form.nome}" editado por ${nomeUsuario}`);
