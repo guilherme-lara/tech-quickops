@@ -20,6 +20,8 @@ import {
   Activity,
   FileSignature,
   Mail,
+  Gauge,
+  Trophy,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -38,6 +40,8 @@ const allNavItems = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { to: "/analista-dashboard", label: "Torre de Controle", icon: LayoutDashboard },
   { to: "/gestor-dashboard", label: "Visão Estratégica", icon: PieChart },
+  { to: "/kpis", label: "KPIs", icon: Gauge },
+  { to: "/desempenho", label: "Desempenho", icon: Trophy },
   { to: "/tempo-real", label: "Tempo Real", icon: Activity },
   { to: "/os", label: "Ordens de Serviço", icon: ClipboardList },
   { to: "/clientes", label: "Clientes", icon: Users },
@@ -87,6 +91,8 @@ export function GestorLayout({ children }: { children?: ReactNode }) {
         "/contratos",
         "/emails",
         "/tempo-real",
+        "/kpis",
+        "/desempenho",
       ];
       return !restrictedForTecnico.includes(item.to);
     }

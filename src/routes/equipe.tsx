@@ -57,6 +57,7 @@ import {
   Trash2
 } from "lucide-react";
 import { GerarAcessoDialog } from "@/components/GerarAcessoDialog";
+import { TecnicoEmailStatus } from "@/components/TecnicoEmailStatus";
 import { useConfirm } from "@/components/ConfirmDialogProvider";
 
 function UsernameField({ userId, initialUsername, empresaId, nomeCompleto }: { userId: string, initialUsername?: string, empresaId?: string, nomeCompleto?: string }) {
@@ -520,10 +521,11 @@ function EquipePage() {
                 <DialogTitle>{form.id ? "Editar Técnico" : "Novo Técnico"}</DialogTitle>
               </DialogHeader>
               <Tabs defaultValue="dados" className="w-full">
-                <TabsList className="grid w-full grid-cols-3">
+                <TabsList className="grid w-full grid-cols-4">
                   <TabsTrigger value="dados">Dados</TabsTrigger>
                   <TabsTrigger value="financeiro">Financeiro</TabsTrigger>
                   <TabsTrigger value="contrato">Contrato</TabsTrigger>
+                  <TabsTrigger value="emails">E-mails</TabsTrigger>
                 </TabsList>
                 <TabsContent value="dados" className="space-y-3 mt-4">
                 <div>
@@ -735,6 +737,16 @@ function EquipePage() {
                     />
                   </div>
                 </div>
+                </TabsContent>
+
+                <TabsContent value="emails" className="space-y-3 mt-4">
+                  <p className="text-xs text-muted-foreground">
+                    Status dos e-mails de gestão e do técnico enviados para os endereços cadastrados.
+                  </p>
+                  <TecnicoEmailStatus
+                    empresaId={profile?.empresa_id}
+                    emails={[form.email_notificacoes].filter(Boolean) as string[]}
+                  />
                 </TabsContent>
               </Tabs>
               <DialogFooter>

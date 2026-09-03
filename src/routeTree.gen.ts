@@ -19,11 +19,13 @@ import { Route as OsRouteImport } from './routes/os'
 import { Route as McpRouteImport } from './routes/mcp'
 import { Route as LogsRouteImport } from './routes/logs'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as KpisRouteImport } from './routes/kpis'
 import { Route as GestorDashboardRouteImport } from './routes/gestor-dashboard'
 import { Route as GestaoEquipeRouteImport } from './routes/gestao-equipe'
 import { Route as EstoqueRouteImport } from './routes/estoque'
 import { Route as EquipeRouteImport } from './routes/equipe'
 import { Route as EmailsRouteImport } from './routes/emails'
+import { Route as DesempenhoRouteImport } from './routes/desempenho'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as ContratosRouteImport } from './routes/contratos'
 import { Route as ConfiguracoesRouteImport } from './routes/configuracoes'
@@ -94,6 +96,11 @@ const LoginRoute = LoginRouteImport.update({
   path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
+const KpisRoute = KpisRouteImport.update({
+  id: '/kpis',
+  path: '/kpis',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const GestorDashboardRoute = GestorDashboardRouteImport.update({
   id: '/gestor-dashboard',
   path: '/gestor-dashboard',
@@ -117,6 +124,11 @@ const EquipeRoute = EquipeRouteImport.update({
 const EmailsRoute = EmailsRouteImport.update({
   id: '/emails',
   path: '/emails',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DesempenhoRoute = DesempenhoRouteImport.update({
+  id: '/desempenho',
+  path: '/desempenho',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DashboardRoute = DashboardRouteImport.update({
@@ -227,11 +239,13 @@ export interface FileRoutesByFullPath {
   '/configuracoes': typeof ConfiguracoesRoute
   '/contratos': typeof ContratosRoute
   '/dashboard': typeof DashboardRoute
+  '/desempenho': typeof DesempenhoRoute
   '/emails': typeof EmailsRoute
   '/equipe': typeof EquipeRoute
   '/estoque': typeof EstoqueRoute
   '/gestao-equipe': typeof GestaoEquipeRoute
   '/gestor-dashboard': typeof GestorDashboardRoute
+  '/kpis': typeof KpisRoute
   '/login': typeof LoginRoute
   '/logs': typeof LogsRoute
   '/mcp': typeof McpRoute
@@ -263,11 +277,13 @@ export interface FileRoutesByTo {
   '/configuracoes': typeof ConfiguracoesRoute
   '/contratos': typeof ContratosRoute
   '/dashboard': typeof DashboardRoute
+  '/desempenho': typeof DesempenhoRoute
   '/emails': typeof EmailsRoute
   '/equipe': typeof EquipeRoute
   '/estoque': typeof EstoqueRoute
   '/gestao-equipe': typeof GestaoEquipeRoute
   '/gestor-dashboard': typeof GestorDashboardRoute
+  '/kpis': typeof KpisRoute
   '/login': typeof LoginRoute
   '/logs': typeof LogsRoute
   '/mcp': typeof McpRoute
@@ -300,11 +316,13 @@ export interface FileRoutesById {
   '/configuracoes': typeof ConfiguracoesRoute
   '/contratos': typeof ContratosRoute
   '/dashboard': typeof DashboardRoute
+  '/desempenho': typeof DesempenhoRoute
   '/emails': typeof EmailsRoute
   '/equipe': typeof EquipeRoute
   '/estoque': typeof EstoqueRoute
   '/gestao-equipe': typeof GestaoEquipeRoute
   '/gestor-dashboard': typeof GestorDashboardRoute
+  '/kpis': typeof KpisRoute
   '/login': typeof LoginRoute
   '/logs': typeof LogsRoute
   '/mcp': typeof McpRoute
@@ -338,11 +356,13 @@ export interface FileRouteTypes {
     | '/configuracoes'
     | '/contratos'
     | '/dashboard'
+    | '/desempenho'
     | '/emails'
     | '/equipe'
     | '/estoque'
     | '/gestao-equipe'
     | '/gestor-dashboard'
+    | '/kpis'
     | '/login'
     | '/logs'
     | '/mcp'
@@ -374,11 +394,13 @@ export interface FileRouteTypes {
     | '/configuracoes'
     | '/contratos'
     | '/dashboard'
+    | '/desempenho'
     | '/emails'
     | '/equipe'
     | '/estoque'
     | '/gestao-equipe'
     | '/gestor-dashboard'
+    | '/kpis'
     | '/login'
     | '/logs'
     | '/mcp'
@@ -410,11 +432,13 @@ export interface FileRouteTypes {
     | '/configuracoes'
     | '/contratos'
     | '/dashboard'
+    | '/desempenho'
     | '/emails'
     | '/equipe'
     | '/estoque'
     | '/gestao-equipe'
     | '/gestor-dashboard'
+    | '/kpis'
     | '/login'
     | '/logs'
     | '/mcp'
@@ -447,11 +471,13 @@ export interface RootRouteChildren {
   ConfiguracoesRoute: typeof ConfiguracoesRoute
   ContratosRoute: typeof ContratosRoute
   DashboardRoute: typeof DashboardRoute
+  DesempenhoRoute: typeof DesempenhoRoute
   EmailsRoute: typeof EmailsRoute
   EquipeRoute: typeof EquipeRoute
   EstoqueRoute: typeof EstoqueRoute
   GestaoEquipeRoute: typeof GestaoEquipeRoute
   GestorDashboardRoute: typeof GestorDashboardRoute
+  KpisRoute: typeof KpisRoute
   LoginRoute: typeof LoginRoute
   LogsRoute: typeof LogsRoute
   McpRoute: typeof McpRoute
@@ -547,6 +573,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/kpis': {
+      id: '/kpis'
+      path: '/kpis'
+      fullPath: '/kpis'
+      preLoaderRoute: typeof KpisRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/gestor-dashboard': {
       id: '/gestor-dashboard'
       path: '/gestor-dashboard'
@@ -580,6 +613,13 @@ declare module '@tanstack/react-router' {
       path: '/emails'
       fullPath: '/emails'
       preLoaderRoute: typeof EmailsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/desempenho': {
+      id: '/desempenho'
+      path: '/desempenho'
+      fullPath: '/desempenho'
+      preLoaderRoute: typeof DesempenhoRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/dashboard': {
@@ -738,11 +778,13 @@ const rootRouteChildren: RootRouteChildren = {
   ConfiguracoesRoute: ConfiguracoesRoute,
   ContratosRoute: ContratosRoute,
   DashboardRoute: DashboardRoute,
+  DesempenhoRoute: DesempenhoRoute,
   EmailsRoute: EmailsRoute,
   EquipeRoute: EquipeRoute,
   EstoqueRoute: EstoqueRoute,
   GestaoEquipeRoute: GestaoEquipeRoute,
   GestorDashboardRoute: GestorDashboardRoute,
+  KpisRoute: KpisRoute,
   LoginRoute: LoginRoute,
   LogsRoute: LogsRoute,
   McpRoute: McpRoute,
