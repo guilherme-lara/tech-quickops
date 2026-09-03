@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as UsuariosRouteImport } from './routes/usuarios'
 import { Route as TermosDeUsoRouteImport } from './routes/termos-de-uso'
+import { Route as TempoRealRouteImport } from './routes/tempo-real'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as PrivacidadeRouteImport } from './routes/privacidade'
 import { Route as PlanosRouteImport } from './routes/planos'
@@ -50,6 +51,11 @@ const UsuariosRoute = UsuariosRouteImport.update({
 const TermosDeUsoRoute = TermosDeUsoRouteImport.update({
   id: '/termos-de-uso',
   path: '/termos-de-uso',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TempoRealRoute = TempoRealRouteImport.update({
+  id: '/tempo-real',
+  path: '/tempo-real',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
@@ -226,6 +232,7 @@ export interface FileRoutesByFullPath {
   '/planos': typeof PlanosRoute
   '/privacidade': typeof PrivacidadeRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/tempo-real': typeof TempoRealRoute
   '/termos-de-uso': typeof TermosDeUsoRoute
   '/usuarios': typeof UsuariosRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
@@ -260,6 +267,7 @@ export interface FileRoutesByTo {
   '/planos': typeof PlanosRoute
   '/privacidade': typeof PrivacidadeRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/tempo-real': typeof TempoRealRoute
   '/termos-de-uso': typeof TermosDeUsoRoute
   '/usuarios': typeof UsuariosRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
@@ -295,6 +303,7 @@ export interface FileRoutesById {
   '/planos': typeof PlanosRoute
   '/privacidade': typeof PrivacidadeRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/tempo-real': typeof TempoRealRoute
   '/termos-de-uso': typeof TermosDeUsoRoute
   '/usuarios': typeof UsuariosRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
@@ -331,6 +340,7 @@ export interface FileRouteTypes {
     | '/planos'
     | '/privacidade'
     | '/sitemap.xml'
+    | '/tempo-real'
     | '/termos-de-uso'
     | '/usuarios'
     | '/.mcp/list-tools'
@@ -365,6 +375,7 @@ export interface FileRouteTypes {
     | '/planos'
     | '/privacidade'
     | '/sitemap.xml'
+    | '/tempo-real'
     | '/termos-de-uso'
     | '/usuarios'
     | '/.mcp/list-tools'
@@ -399,6 +410,7 @@ export interface FileRouteTypes {
     | '/planos'
     | '/privacidade'
     | '/sitemap.xml'
+    | '/tempo-real'
     | '/termos-de-uso'
     | '/usuarios'
     | '/.mcp/list-tools'
@@ -434,6 +446,7 @@ export interface RootRouteChildren {
   PlanosRoute: typeof PlanosRoute
   PrivacidadeRoute: typeof PrivacidadeRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
+  TempoRealRoute: typeof TempoRealRoute
   TermosDeUsoRoute: typeof TermosDeUsoRoute
   UsuariosRoute: typeof UsuariosRoute
   Char91DotmcpChar93ListToolsRoute: typeof Char91DotmcpChar93ListToolsRoute
@@ -463,6 +476,13 @@ declare module '@tanstack/react-router' {
       path: '/termos-de-uso'
       fullPath: '/termos-de-uso'
       preLoaderRoute: typeof TermosDeUsoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tempo-real': {
+      id: '/tempo-real'
+      path: '/tempo-real'
+      fullPath: '/tempo-real'
+      preLoaderRoute: typeof TempoRealRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/sitemap.xml': {
@@ -709,6 +729,7 @@ const rootRouteChildren: RootRouteChildren = {
   PlanosRoute: PlanosRoute,
   PrivacidadeRoute: PrivacidadeRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
+  TempoRealRoute: TempoRealRoute,
   TermosDeUsoRoute: TermosDeUsoRoute,
   UsuariosRoute: UsuariosRoute,
   Char91DotmcpChar93ListToolsRoute: Char91DotmcpChar93ListToolsRoute,
