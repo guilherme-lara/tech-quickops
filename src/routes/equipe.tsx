@@ -737,6 +737,16 @@ function EquipePage() {
                   </div>
                 </div>
                 </TabsContent>
+
+                <TabsContent value="emails" className="space-y-3 mt-4">
+                  <p className="text-xs text-muted-foreground">
+                    Status dos e-mails de gestão e do técnico enviados para os endereços cadastrados.
+                  </p>
+                  <TecnicoEmailStatus
+                    empresaId={profile?.empresa_id}
+                    emails={[form.email_notificacoes, form.email].filter(Boolean) as string[]}
+                  />
+                </TabsContent>
               </Tabs>
               <DialogFooter>
                 <Button variant="outline" onClick={() => setOpen(false)} disabled={saving}>
