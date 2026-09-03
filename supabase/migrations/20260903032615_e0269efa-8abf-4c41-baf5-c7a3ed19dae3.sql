@@ -1,0 +1,18 @@
+CREATE INDEX IF NOT EXISTS idx_os_empresa_data ON public.ordens_servico (empresa_id, data_agendamento DESC);
+CREATE INDEX IF NOT EXISTS idx_os_empresa_status ON public.ordens_servico (empresa_id, status);
+CREATE INDEX IF NOT EXISTS idx_os_empresa_tecnico ON public.ordens_servico (empresa_id, tecnico_id);
+CREATE INDEX IF NOT EXISTS idx_os_empresa_cliente ON public.ordens_servico (empresa_id, cliente_id);
+CREATE INDEX IF NOT EXISTS idx_os_empresa_created ON public.ordens_servico (empresa_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_clientes_empresa_nome ON public.clientes (empresa_id, nome);
+CREATE INDEX IF NOT EXISTS idx_tecnicos_empresa_nome ON public.tecnicos (empresa_id, nome);
+CREATE INDEX IF NOT EXISTS idx_tecnicos_user_id ON public.tecnicos (user_id);
+CREATE INDEX IF NOT EXISTS idx_inventario_empresa_nome ON public.itens_inventario (empresa_id, nome);
+CREATE INDEX IF NOT EXISTS idx_analistas_empresa_cliente ON public.analistas_cliente (empresa_id, cliente_id);
+CREATE INDEX IF NOT EXISTS idx_os_historico_os_created ON public.os_historico (os_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_email_queue_empresa_created ON public.email_queue (empresa_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_os_inventario_os ON public.os_inventario (os_id);
+CREATE INDEX IF NOT EXISTS idx_equip_clientes_empresa_cliente ON public.equipamentos_clientes (empresa_id, cliente_id);
+CREATE INDEX IF NOT EXISTS idx_perfis_empresa ON public.perfis (empresa_id);
+CREATE INDEX IF NOT EXISTS idx_notificacoes_perfil_created ON public.notificacoes (perfil_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_tecnico_ferramentas_tecnico ON public.tecnico_ferramentas (tecnico_id);
+CREATE INDEX IF NOT EXISTS idx_rat_arquivos_os ON public.rat_arquivos (ordem_servico_id);
