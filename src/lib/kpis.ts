@@ -136,8 +136,13 @@ export function useKpisData(empresaId: string | undefined, meses = 6) {
           faturamento: 0,
           valorAPagar: 0,
           tempoMedioHoras: 0,
+          csat: 0,
+          nps: 0,
+          turnover: 0,
+          absenteismo: 0,
+          eficiencia: 0,
           _horas: [],
-        });
+        } as any);
       }
 
       const tecStats = new Map<string, TecnicoKpi & { _horas: number[]; _mes: Map<string, { c: number; v: number }> }>();

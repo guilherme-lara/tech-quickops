@@ -50,7 +50,6 @@ import {
   ArrowDown,
   CheckCircle,
   MapPin,
-  User,
   Calendar,
 } from "lucide-react";
 import { useEffect, useState, useRef } from "react";
@@ -1876,8 +1875,8 @@ export function EditOSDialog({
                 <SearchCombobox
                   options={(Array.isArray(clientes) ? clientes : []).map((c) => ({
                     value: c.id,
-                    label: c.ativo === false ? `${c.nome} (Inativo)` : c.nome,
-                    disabled: c.ativo === false,
+                    label: (c as any).ativo === false ? `${c.nome} (Inativo)` : c.nome,
+                    disabled: (c as any).ativo === false,
                   }))}
                   value={form.clienteId}
                   onChange={(v) => {

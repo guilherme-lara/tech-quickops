@@ -614,7 +614,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         modelo_rat_url: r.modelo_rat_url ?? undefined,
         template_rat_texto: (r as any).template_rat_texto ?? null,
         ultimo_mes_pago: r.ultimo_mes_pago ?? null,
-        ativo: r.ativo ?? true,
+        ativo: (r as any).ativo ?? true,
       }));
     },
   });
@@ -645,7 +645,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         modelo_rat_url: r.modelo_rat_url ?? undefined,
         template_rat_texto: (r as any).template_rat_texto ?? null,
         ultimo_mes_pago: r.ultimo_mes_pago ?? null,
-        ativo: r.ativo ?? true,
+        ativo: (r as any).ativo ?? true,
       }));
     },
   });

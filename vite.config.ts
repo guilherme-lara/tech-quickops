@@ -37,9 +37,28 @@ export default defineConfig({
           ]
         },
         workbox: {
-          globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
-          navigateFallback: '/',
-          cleanupOutdatedCaches: true
+          globPatterns: ['**/*.{js,css,ico,svg}'],
+          cleanupOutdatedCaches: true,
+          runtimeCaching: [
+            {
+              urlPattern: ({ request }) => request.mode === 'navigate',
+              handler: 'NetworkFirst',
+              options: {
+                cacheName: 'pages-cache',
+                cacheableResponse: {
+                  statuses: [200]
+                }
+              }
+            },
+            {
+              urlPattern: ({ request }) => request.destination === 'image',
+              handler: 'CacheFirst',
+              options: {
+                cacheName: 'images-cache',
+                expiration: { maxEntries: 50, maxAgeSeconds: 30 * 24 * 60 * 60 }
+              }
+            }
+          ]
         },
         devOptions: {
           enabled: true,

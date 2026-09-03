@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { toast } from "sonner";
+// @ts-ignore
 import { registerSW } from "virtual:pwa-register";
 
 export function PwaUpdater() {
