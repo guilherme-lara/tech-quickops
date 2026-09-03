@@ -2,7 +2,7 @@ import { Link, useRouterState, useNavigate, Outlet } from "@tanstack/react-route
 import { useStore } from "@/lib/useData";
 import {
   LayoutDashboard,
-  Users,
+  Building2,
   UsersRound,
   Package,
   ClipboardList,
@@ -40,18 +40,12 @@ const allNavItems = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { to: "/analista-dashboard", label: "Torre de Controle", icon: LayoutDashboard },
   { to: "/gestor-dashboard", label: "Visão Estratégica", icon: PieChart },
-  { to: "/kpis", label: "KPIs", icon: Gauge },
-  { to: "/desempenho", label: "Desempenho", icon: Trophy },
-  { to: "/tempo-real", label: "Tempo Real", icon: Activity },
   { to: "/os", label: "Ordens de Serviço", icon: ClipboardList },
-  { to: "/clientes", label: "Clientes", icon: Users },
+  { to: "/clientes", label: "Clientes", icon: Building2 },
   { to: "/equipe", label: "Equipe", icon: UsersRound },
-  { to: "/contratos", label: "Contratos", icon: FileSignature },
   { to: "/usuarios", label: "Acessos do Sistema", icon: Shield },
   { to: "/estoque", label: "Inventário", icon: Package },
-  { to: "/emails", label: "E-mails Enviados", icon: Mail },
   { to: "/logs", label: "Logs e Auditoria", icon: FileText },
-  { to: "/planos", label: "Meu Plano", icon: Crown },
   { to: "/configuracoes", label: "Configurações", icon: Settings },
 ] as const;
 
@@ -107,7 +101,16 @@ export function GestorLayout({ children }: { children?: ReactNode }) {
     return true;
   });
 
-  const current = navItems.find((n) => path.startsWith(n.to))?.label ?? "Dashboard";
+  const extraLabels: Record<string, string> = {
+    "/kpis": "KPIs",
+    "/desempenho": "Desempenho",
+    "/tempo-real": "Tempo Real",
+    "/contratos": "Contratos",
+    "/emails": "E-mails Enviados",
+    "/planos": "Meu Plano",
+  };
+  const current =
+    extraLabels[path] ?? navItems.find((n) => path.startsWith(n.to))?.label ?? "Dashboard";
   const [isOpen, setIsOpen] = useState(false);
 
   const handleLogout = async () => {

@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { GestorLayout } from "@/components/GestorLayout";
+import { SectionTabs } from "@/components/SectionTabs";
 import { useAuth } from "@/lib/auth-context";
 import { PlanLimits, PlanType } from "@/lib/planLimits";
 import { Card } from "@/components/ui/card";
@@ -90,6 +91,7 @@ function PlanosPage() {
 
   return (
     <GestorLayout>
+      <SectionTabs group="configuracoes" />
       <div className="max-w-6xl mx-auto py-10 px-6">
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold tracking-tight mb-4">Escolha o plano ideal para sua operação</h1>
