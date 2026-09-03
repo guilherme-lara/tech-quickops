@@ -414,12 +414,17 @@ function EquipePage() {
     setSaving(true);
     try {
       if (form.id) {
-        const dadosAdicionais: any = {};
+        const dadosAdicionais: any = {
+          ...(tecnicos.find((t) => t.id === form.id)?.dados_adicionais || {}),
+        };
         if (form.cidade_atendimento) dadosAdicionais.cidade_atendimento = form.cidade_atendimento;
         if (form.raio_atendimento) dadosAdicionais.raio_atendimento = Number(form.raio_atendimento);
         if (form.contrato_arquivo) {
           dadosAdicionais.contrato_arquivo = form.contrato_arquivo;
           dadosAdicionais.contrato_nome = form.contrato_nome;
+        } else {
+          delete dadosAdicionais.contrato_arquivo;
+          delete dadosAdicionais.contrato_nome;
         }
 
         await updateTecnico({
