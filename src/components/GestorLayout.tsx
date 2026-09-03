@@ -101,7 +101,16 @@ export function GestorLayout({ children }: { children?: ReactNode }) {
     return true;
   });
 
-  const current = navItems.find((n) => path.startsWith(n.to))?.label ?? "Dashboard";
+  const extraLabels: Record<string, string> = {
+    "/kpis": "KPIs",
+    "/desempenho": "Desempenho",
+    "/tempo-real": "Tempo Real",
+    "/contratos": "Contratos",
+    "/emails": "E-mails Enviados",
+    "/planos": "Meu Plano",
+  };
+  const current =
+    extraLabels[path] ?? navItems.find((n) => path.startsWith(n.to))?.label ?? "Dashboard";
   const [isOpen, setIsOpen] = useState(false);
 
   const handleLogout = async () => {
