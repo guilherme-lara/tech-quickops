@@ -49,7 +49,6 @@ const allNavItems = [
   { to: "/configuracoes", label: "Configurações", icon: Settings },
 ] as const;
 
-
 export function GestorLayout({ children }: { children?: ReactNode }) {
   const path = useRouterState({ select: (s) => s.location.pathname });
   const navigate = useNavigate();
@@ -92,7 +91,15 @@ export function GestorLayout({ children }: { children?: ReactNode }) {
     }
 
     if (profile?.role === "analista") {
-      const allowedForAnalista = ["/analista-dashboard", "/os", "/clientes", "/equipe", "/estoque", "/tempo-real", "/configuracoes"];
+      const allowedForAnalista = [
+        "/analista-dashboard",
+        "/os",
+        "/clientes",
+        "/equipe",
+        "/estoque",
+        "/tempo-real",
+        "/configuracoes",
+      ];
       return allowedForAnalista.includes(item.to);
     }
     // gestor, admin, superadmin
@@ -109,8 +116,7 @@ export function GestorLayout({ children }: { children?: ReactNode }) {
     "/emails": "E-mails Enviados",
     "/planos": "Meu Plano",
   };
-  const current =
-    extraLabels[path] ?? navItems.find((n) => path.startsWith(n.to))?.label ?? "Dashboard";
+  const current = extraLabels[path] ?? navItems.find((n) => path.startsWith(n.to))?.label ?? "Dashboard";
   const [isOpen, setIsOpen] = useState(false);
 
   const handleLogout = async () => {
@@ -196,7 +202,7 @@ export function GestorLayout({ children }: { children?: ReactNode }) {
                 {profile?.empresaNome || "QuickOps"}
               </div>
               <div className="text-[10px] text-muted-foreground tracking-wider uppercase truncate w-full mt-0.5">
-                QuickOps B2B <span className="font-semibold text-primary/80 ml-1">v0.0.1.51</span>
+                QuickOps B2B <span className="font-semibold text-primary/80 ml-1">v0.0.1.53</span>
               </div>
             </div>
           </div>
