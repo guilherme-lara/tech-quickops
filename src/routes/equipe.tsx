@@ -1333,6 +1333,12 @@ function EquipePage() {
           )}
         </DialogContent>
       </Dialog>
+      <ContratoViewerDialog
+        path={verContrato?.path ?? null}
+        nome={verContrato?.nome}
+        onClose={() => setVerContrato(null)}
+      />
     </GestorLayout>
+
   );
 }
