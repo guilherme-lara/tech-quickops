@@ -18,6 +18,7 @@ import { ErrorBoundary, installGlobalErrorHandlers } from "@/components/ErrorBou
 import { ConfirmDialogProvider } from "@/components/ConfirmDialogProvider";
 import { queryKeysForTable } from "@/lib/realtime-invalidation";
 import { iniciarPollingEmails } from "@/lib/email-trigger";
+import { PwaUpdater } from "@/components/PwaUpdater";
 
 
 import appCss from "../styles.css?url";
@@ -246,6 +247,7 @@ function RootComponent() {
           <ConfirmDialogProvider>
             <ErrorBoundary scope="app">
               <AuthGate />
+              <PwaUpdater />
               <Outlet />
               <Toaster />
               <CookieConsent />
