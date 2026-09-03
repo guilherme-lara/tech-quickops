@@ -9,6 +9,7 @@ import { MesAnoFilter } from "@/components/MesAnoFilter";
 import { EditOSDialog } from "@/routes/os";
 
 import { Skeleton } from "@/components/ui/skeleton";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
@@ -1309,15 +1310,73 @@ function Dashboard() {
         </div>
       </div>
 
+      <Tabs defaultValue="resumo" className="w-full">
+        <TabsList className="w-full justify-start overflow-x-auto rounded-2xl h-11 p-1 mb-6 bg-muted/60">
+          <TabsTrigger value="resumo" className="rounded-xl text-xs md:text-sm px-4">Visão Geral</TabsTrigger>
+          <TabsTrigger value="financeiro" className="rounded-xl text-xs md:text-sm px-4">Financeiro</TabsTrigger>
+          <TabsTrigger value="operacao" className="rounded-xl text-xs md:text-sm px-4">Operação</TabsTrigger>
+          <TabsTrigger value="equipe" className="rounded-xl text-xs md:text-sm px-4">Equipe</TabsTrigger>
+          <TabsTrigger value="atividade" className="rounded-xl text-xs md:text-sm px-4">Atividade</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="resumo" className="space-y-6 mt-0">
+          {/* KPIs Grid */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <KpiCard
+              icon={ClipboardList}
+              label="Total de OS"
+              value={contagemTotalQ.data?.total ?? 0}
+              trend={contagemTotalQ.isLoading ? "..." : "total"}
+              tone="info"
+            />
+            <KpiCard
+              icon={CheckCircle2}
+              label="Concluídas"
+              value={kpis.concluidas}
+              trend="período"
+              tone="success"
+            />
+            <KpiCard
+              icon={Users}
+              label="Clientes Ativos"
+              value={clientes.length}
+              trend="+3"
+              tone="violet"
+            />
+            <KpiCard
+              icon={Activity}
+              label={(profile?.role as string) === "tecnico" ? "OS Ativas" : "Em Campo Agora"}
+              value={osAtivasCount}
+              trend={
+                (profile?.role as string) === "tecnico"
+                  ? "Suas atribuições"
+                  : `${(Array.isArray(tecnicos) ? tecnicos : []).filter((t) => t.ativo).length} técnicos`
+              }
+              tone="warning"
+            />
+          </div>
       <PriorityAlerts ordens={alertasOSQ.data ?? []} isLoading={alertasOSQ.isLoading} onEdit={(os) => { setDialogMode("edit"); setEditingOS(os); }} logs={logsQ.data ?? []} />
-      <EnvioPlanilhaAlerts clientes={clientes} />
-      <PagamentoAlerts clientes={clientes} empresaId={profile?.empresa_id} />
       <PendingAlertsCard
         ordens={pendenciasOSQ.data ?? []}
         isLoading={pendenciasOSQ.isLoading}
         onEdit={(os) => { setDialogMode("edit"); setEditingOS(os); }}
       />
+          {contagemTotalQ.data && contagemTotalQ.data.semTecnico > 0 && (
+            <div className="rounded-2xl bg-amber-50 border border-amber-200 p-4 mb-4 flex items-center gap-3">
+              <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0" />
+              <div className="flex-1">
+                <p className="text-sm font-semibold text-amber-900">
+                  {contagemTotalQ.data.semTecnico} OS(s) sem técnico atribuído
+                </p>
+                <p className="text-xs text-amber-700">
+                  Verifique as importações ou atribua técnicos manualmente
+                </p>
+              </div>
+            </div>
+          )}
+        </TabsContent>
 
+        <TabsContent value="financeiro" className="space-y-6 mt-0">
       {/* Cards Estratégicos */}
       {profile?.role !== "analista" && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
@@ -1405,62 +1464,11 @@ function Dashboard() {
           </div>
         </div>
       )}
+      <EnvioPlanilhaAlerts clientes={clientes} />
+      <PagamentoAlerts clientes={clientes} empresaId={profile?.empresa_id} />
+        </TabsContent>
 
-      {/* Layout Principal: Coluna Esquerda + Direita */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Coluna Esquerda: KPIs + Atividades Recentes */}
-        <div className="lg:col-span-2 space-y-6">
-          {/* Aviso de OS Sem Técnico */}
-          {contagemTotalQ.data && contagemTotalQ.data.semTecnico > 0 && (
-            <div className="rounded-2xl bg-amber-50 border border-amber-200 p-4 mb-4 flex items-center gap-3">
-              <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0" />
-              <div className="flex-1">
-                <p className="text-sm font-semibold text-amber-900">
-                  {contagemTotalQ.data.semTecnico} OS(s) sem técnico atribuído
-                </p>
-                <p className="text-xs text-amber-700">
-                  Verifique as importações ou atribua técnicos manualmente
-                </p>
-              </div>
-            </div>
-          )}
-
-          {/* KPIs Grid */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <KpiCard
-              icon={ClipboardList}
-              label="Total de OS"
-              value={contagemTotalQ.data?.total ?? 0}
-              trend={contagemTotalQ.isLoading ? "..." : "total"}
-              tone="info"
-            />
-            <KpiCard
-              icon={CheckCircle2}
-              label="Concluídas"
-              value={kpis.concluidas}
-              trend="período"
-              tone="success"
-            />
-            <KpiCard
-              icon={Users}
-              label="Clientes Ativos"
-              value={clientes.length}
-              trend="+3"
-              tone="violet"
-            />
-            <KpiCard
-              icon={Activity}
-              label={(profile?.role as string) === "tecnico" ? "OS Ativas" : "Em Campo Agora"}
-              value={osAtivasCount}
-              trend={
-                (profile?.role as string) === "tecnico"
-                  ? "Suas atribuições"
-                  : `${(Array.isArray(tecnicos) ? tecnicos : []).filter((t) => t.ativo).length} técnicos`
-              }
-              tone="warning"
-            />
-          </div>
-
+        <TabsContent value="operacao" className="space-y-6 mt-0">
           {/* Atualizações de OS (Substituindo Atividades Recentes) */}
           <div className="rounded-3xl bg-card p-4 md:p-6 shadow-[var(--shadow-card)] border border-border/60">
             <div className="flex items-center justify-between mb-5">
@@ -1541,10 +1549,9 @@ function Dashboard() {
               )}
             </div>
           </div>
-        </div>
+        </TabsContent>
 
-        {/* Coluna Direita: Produtividade + Logs */}
-        <div className="space-y-6">
+        <TabsContent value="equipe" className="space-y-6 mt-0">
           {/* Produtividade da Equipe */}
           <div className="rounded-3xl bg-card p-4 md:p-6 shadow-[var(--shadow-card)] border border-border/60">
             <div className="flex items-center justify-between mb-5">
@@ -1610,7 +1617,9 @@ function Dashboard() {
               </div>
             )}
           </div>
+        </TabsContent>
 
+        <TabsContent value="atividade" className="space-y-6 mt-0">
           {/* Logs Administrativos */}
           <div className="rounded-3xl bg-card p-4 md:p-6 shadow-[var(--shadow-card)] border border-border/60">
             <div className="flex items-center justify-between mb-5">
@@ -1663,8 +1672,9 @@ function Dashboard() {
               )}
             </div>
           </div>
-        </div>
-      </div>
+        </TabsContent>
+      </Tabs>
+
 
       <EditOSDialog
         mode={dialogMode}
