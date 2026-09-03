@@ -252,11 +252,42 @@ function EquipePage() {
       });
       if (error) throw error;
       setForm((prev) => ({ ...prev, contrato_arquivo: path, contrato_nome: file.name }));
-      toast.success("Contrato anexado! Salve para confirmar.");
+
+      // Em edição, persiste na hora (sem depender de clicar em Salvar)
+      if (form.id) {
+        const atual = tecnicos.find((t) => t.id === form.id)?.dados_adicionais || {};
+        await updateTecnico({
+          id: form.id,
+          patch: {
+            dados_adicionais: { ...atual, contrato_arquivo: path, contrato_nome: file.name },
+          },
+        });
+        toast.success("Contrato salvo!");
+      } else {
+        toast.success("Contrato anexado! Salve para confirmar.");
+      }
     } catch (err: any) {
       toast.error("Erro ao enviar contrato: " + (err?.message ?? ""));
     } finally {
       setUploadingContrato(false);
+    }
+  };
+
+  const removerContrato = async () => {
+    if (!form.contrato_arquivo) return;
+    try {
+      if (form.id) {
+        const atual: Record<string, any> = {
+          ...(tecnicos.find((t) => t.id === form.id)?.dados_adicionais || {}),
+        };
+        delete atual.contrato_arquivo;
+        delete atual.contrato_nome;
+        await updateTecnico({ id: form.id, patch: { dados_adicionais: atual } });
+      }
+      setForm((prev) => ({ ...prev, contrato_arquivo: "", contrato_nome: "" }));
+      toast.success("Contrato removido.");
+    } catch (err: any) {
+      toast.error("Erro ao remover contrato: " + (err?.message ?? ""));
     }
   };
 
@@ -268,6 +299,7 @@ function EquipePage() {
     if (error || !data?.signedUrl) return toast.error("Não foi possível abrir o contrato");
     window.open(data.signedUrl, "_blank");
   };
+
 
   const [gerarAcessoFor, setGerarAcessoFor] = useState<any>(null);
   const [viewFerramentasFor, setViewFerramentasFor] = useState<any>(null);
