@@ -1027,6 +1027,10 @@ export type Database = {
       }
     }
     Functions: {
+      contar_dependencias_usuario: {
+        Args: { p_user_id: string }
+        Returns: Json
+      }
       criar_tecnico: {
         Args: {
           p_chave_pix?: string
@@ -1052,6 +1056,10 @@ export type Database = {
           p_username: string
         }
         Returns: string
+      }
+      definir_status_usuario: {
+        Args: { p_ativo: boolean; p_user_id: string }
+        Returns: boolean
       }
       gerar_chave_licenca_segura: {
         Args: { p_empresa_id: string }
