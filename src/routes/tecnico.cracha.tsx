@@ -3,7 +3,7 @@ import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { TecnicoLayout } from "@/components/TecnicoLayout";
 import { useAuth } from "@/lib/auth-context";
 import { Button } from "@/components/ui/button";
-import { Maximize, ChevronLeft, Loader2 } from "lucide-react";
+import { Maximize, ChevronLeft, Loader2, X } from "lucide-react";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -49,15 +49,7 @@ function TecnicoCrachaPage() {
   if (!profile) return null;
 
   const toggleFullscreen = () => {
-    if (!document.fullscreenElement) {
-      document.documentElement.requestFullscreen().catch((err) => {
-        console.error(`Erro ao ativar tela cheia: ${err.message}`);
-      });
-      setIsFullscreen(true);
-    } else {
-      document.exitFullscreen();
-      setIsFullscreen(false);
-    }
+    setIsFullscreen(!isFullscreen);
   };
 
   const getInitials = (name: string) => {
@@ -215,7 +207,22 @@ function TecnicoCrachaPage() {
               <Loader2 className="w-8 h-8 animate-spin text-primary" />
             </div>
           ) : (
-            <CrachaContent />
+            <>
+              <CrachaContent />
+              {isFullscreen && (
+                <div className="fixed inset-0 z-[100] bg-slate-950/95 backdrop-blur-xl flex flex-col items-center justify-center p-4">
+                  <button 
+                    onClick={() => setIsFullscreen(false)}
+                    className="absolute top-6 right-6 p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors"
+                  >
+                    <X className="w-8 h-8" />
+                  </button>
+                  <div className="scale-105 sm:scale-110 md:scale-125 transition-transform duration-500 ease-out">
+                    <CrachaContent />
+                  </div>
+                </div>
+              )}
+            </>
           )}
         </div>
       </div>

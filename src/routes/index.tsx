@@ -65,7 +65,7 @@ function LandingPage() {
           </div>
 
           <div className="flex items-center gap-4 sm:gap-6">
-            <Link to="/login" className="hidden sm:block text-sm font-semibold text-slate-300 hover:text-primary transition-colors">
+            <Link to="/login" className="text-sm font-semibold text-slate-300 hover:text-primary transition-colors">
               Entrar no Sistema
             </Link>
             <Link to="/login">
