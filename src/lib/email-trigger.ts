@@ -1,10 +1,20 @@
 import { processarFilaEmails } from "./email.functions";
+import { supabase } from "@/integrations/supabase/client";
 
 const MIN_INTERVAL_MS = 3_000;
 
 let lastRun = 0;
 let running = false;
 let trailingScheduled = false;
+
+async function temSessao() {
+  try {
+    const { data } = await supabase.auth.getSession();
+    return !!data.session?.access_token;
+  } catch {
+    return false;
+  }
+}
 
 async function run() {
   if (running) {
@@ -14,13 +24,17 @@ async function run() {
   running = true;
   lastRun = Date.now();
   try {
-    await processarFilaEmails();
+    // Sem sessão o endpoint é protegido (401): nem tenta chamar.
+    if (await temSessao()) {
+      await processarFilaEmails();
+    }
   } catch {
     // Falhas de envio não podem quebrar o fluxo do usuário
   } finally {
     running = false;
   }
 }
+
 
 function scheduleTrailing() {
   if (trailingScheduled) return;
