@@ -90,6 +90,9 @@ function Perfil() {
 
   const saveEmail = async () => {
     if (!tecnicoId) return;
+    const email = emailValue.trim();
+    if (!email) return toast.error("O e-mail é obrigatório para receber as notificações de OS");
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) return toast.error("E-mail inválido");
     setSavingEmail(true);
     try {
       const { error } = await supabase
