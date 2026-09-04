@@ -437,8 +437,14 @@ function EquipePage() {
     }
   };
 
+  const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+
   const submit = async () => {
     if (!form.nome.trim()) return toast.error("Informe o nome do técnico");
+    if (!form.email_notificacoes.trim())
+      return toast.error("Informe o e-mail do técnico (obrigatório para envio de notificações)");
+    if (!EMAIL_RE.test(form.email_notificacoes.trim()))
+      return toast.error("E-mail do técnico inválido");
 
     // Limites de Plano para Criação
     if (!form.id) {
@@ -649,13 +655,19 @@ function EquipePage() {
                   </div>
                 )}
                 <div>
-                  <Label>E-mail para notificações (opcional)</Label>
+                  <Label>
+                    E-mail para notificações <span className="text-destructive">*</span>
+                  </Label>
                   <Input
                     type="email"
+                    required
                     value={form.email_notificacoes}
                     onChange={(e) => setForm({ ...form, email_notificacoes: e.target.value.trim() })}
                     placeholder="tecnico@email.com — recebe aviso de OS atribuída"
                   />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Obrigatório: todas as notificações de OS do técnico são enviadas para este e-mail.
+                  </p>
                 </div>
                 <div>
                   <Label>Telefone</Label>

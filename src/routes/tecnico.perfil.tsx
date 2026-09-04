@@ -90,11 +90,14 @@ function Perfil() {
 
   const saveEmail = async () => {
     if (!tecnicoId) return;
+    const email = emailValue.trim();
+    if (!email) return toast.error("O e-mail é obrigatório para receber as notificações de OS");
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) return toast.error("E-mail inválido");
     setSavingEmail(true);
     try {
       const { error } = await supabase
         .from("tecnicos")
-        .update({ email_notificacoes: emailValue.trim() || null })
+        .update({ email_notificacoes: email })
         .eq("id", tecnicoId);
       if (error) throw error;
       toast.success("E-mail de notificações atualizado!");
@@ -242,7 +245,7 @@ function Perfil() {
                 </Button>
               </div>
               <p className="text-xs text-muted-foreground">
-                Receba um e-mail sempre que uma OS for atribuída a você. Deixe em branco para não receber.
+                Obrigatório: você recebe um e-mail neste endereço sempre que uma OS for atribuída a você.
               </p>
             </>
           )}

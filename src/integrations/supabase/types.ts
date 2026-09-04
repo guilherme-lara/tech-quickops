@@ -85,6 +85,7 @@ export type Database = {
       }
       clientes: {
         Row: {
+          ativo: boolean
           base_km: number | null
           cidade: string | null
           created_at: string
@@ -103,6 +104,7 @@ export type Database = {
           valor_por_km: number | null
         }
         Insert: {
+          ativo?: boolean
           base_km?: number | null
           cidade?: string | null
           created_at?: string
@@ -121,6 +123,7 @@ export type Database = {
           valor_por_km?: number | null
         }
         Update: {
+          ativo?: boolean
           base_km?: number | null
           cidade?: string | null
           created_at?: string
@@ -1027,6 +1030,10 @@ export type Database = {
       }
     }
     Functions: {
+      contar_dependencias_cliente: {
+        Args: { p_cliente_id: string }
+        Returns: Json
+      }
       contar_dependencias_usuario: {
         Args: { p_user_id: string }
         Returns: Json
@@ -1057,6 +1064,10 @@ export type Database = {
         }
         Returns: string
       }
+      definir_status_cliente: {
+        Args: { p_ativo: boolean; p_cliente_id: string }
+        Returns: boolean
+      }
       definir_status_usuario: {
         Args: { p_ativo: boolean; p_user_id: string }
         Returns: boolean
@@ -1081,6 +1092,7 @@ export type Database = {
         Args: { p_user_id: string }
         Returns: undefined
       }
+      remover_cliente: { Args: { p_cliente_id: string }; Returns: undefined }
       resetar_senha_tecnico: {
         Args: { p_nova_senha: string; p_tecnico_id: string }
         Returns: boolean
