@@ -24,6 +24,33 @@ export function PwaUpdater() {
           });
         },
       });
+
+      // Detecção de iOS para sugerir "Adicionar à Tela de Início"
+      const isIos = () => {
+        const userAgent = window.navigator.userAgent.toLowerCase();
+        return /iphone|ipad|ipod/.test(userAgent);
+      };
+
+      const isInStandaloneMode = () =>
+        // @ts-ignore
+        'standalone' in window.navigator && window.navigator.standalone;
+
+      // Se for iOS e não estiver no modo PWA, mostramos a dica
+      if (isIos() && !isInStandaloneMode()) {
+        const hasSeenPrompt = localStorage.getItem("ios-pwa-prompt");
+        if (!hasSeenPrompt) {
+          toast.info("Instale o App no iOS", {
+            description: "Para uma melhor experiência, toque em Compartilhar e 'Adicionar à Tela de Início'.",
+            duration: 10000,
+            onDismiss: () => {
+              localStorage.setItem("ios-pwa-prompt", "true");
+            },
+            onAutoClose: () => {
+              localStorage.setItem("ios-pwa-prompt", "true");
+            }
+          });
+        }
+      }
     }
   }, []);
 

@@ -48,9 +48,12 @@ export const Route = createRootRoute({
   head: () => ({
     meta: [
       { charSet: "utf-8" },
-      { name: "viewport", content: "width=device-width, initial-scale=1" },
+      { name: "viewport", content: "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0" },
       { title: "QuickOps — Gestão de Ordens de Serviço" },
       { name: "description", content: "QuickOps: SaaS B2B para gestão de OS e RAT digital." },
+      { name: "apple-mobile-web-app-capable", content: "yes" },
+      { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" },
+      { name: "apple-mobile-web-app-title", content: "QuickOps" },
     ],
     links: [
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
