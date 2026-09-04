@@ -42,7 +42,7 @@ export const Route = createFileRoute("/usuarios")({
   ),
 });
 
-const emptyForm = { nome: "", telefone: "", username: "", role: "analista" };
+const emptyForm = { nome: "", telefone: "", username: "", role: "analista", email: "" };
 
 function generateRandomPassword() {
   return Math.random().toString(36).slice(-8).toUpperCase();
@@ -65,7 +65,7 @@ function UsuariosPage() {
     nome: string;
   } | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [editFormData, setEditFormData] = useState({ id: "", nome: "", telefone: "", username: "", role: "" });
+  const [editFormData, setEditFormData] = useState({ id: "", nome: "", telefone: "", username: "", role: "", email: "" });
   const [resetSenhaResult, setResetSenhaResult] = useState<{
     texto: string;
     nome: string;
@@ -105,6 +105,7 @@ function UsuariosPage() {
         p_telefone: formData.telefone || null,
         p_dominio: null,
         p_empresa_id: empresaId,
+        p_email: formData.email || null,
       });
       if (error) throw error;
       return { userId: data as string, senha: novaSenha, login: formData.username.toLowerCase(), nome: formData.nome, role: formData.role };
@@ -131,6 +132,7 @@ function UsuariosPage() {
         .update({
           nome_completo: editFormData.nome,
           telefone: editFormData.telefone || null,
+          email: editFormData.email || null,
           role: editFormData.role as "admin" | "analista" | "gestor" | "superadmin" | "tecnico",
         })
         .eq("id", editFormData.id);
@@ -233,6 +235,7 @@ function UsuariosPage() {
       telefone: user.telefone || "",
       username: user.username || "",
       role: user.role || "",
+      email: user.email || "",
     });
     setIsEditDialogOpen(true);
   };
@@ -308,6 +311,7 @@ function UsuariosPage() {
                 <tr>
                   <th className="px-6 py-4 text-left font-medium">Nome Completo</th>
                   <th className="px-6 py-4 text-left font-medium">Usuário (Login)</th>
+                  <th className="px-6 py-4 text-left font-medium">E-mail</th>
                   <th className="px-6 py-4 text-left font-medium">Telefone</th>
                   <th className="px-6 py-4 text-left font-medium">Nível de Acesso</th>
                   <th className="px-6 py-4 text-right font-medium">Criado em</th>
@@ -350,6 +354,9 @@ function UsuariosPage() {
                       </td>
                       <td className="px-6 py-4 text-muted-foreground">
                         {u.username || "—"}
+                      </td>
+                      <td className="px-6 py-4 text-muted-foreground">
+                        {(u as any).email || "—"}
                       </td>
                       <td className="px-6 py-4 text-muted-foreground">
                         {u.telefone || "—"}
@@ -531,6 +538,16 @@ function UsuariosPage() {
               />
             </div>
             <div className="grid gap-2">
+              <Label>E-mail (para notificações)</Label>
+              <Input
+                placeholder="Ex: ana.silva@empresa.com"
+                type="email"
+                required={formData.role === 'analista'}
+                value={formData.email}
+                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+              />
+            </div>
+            <div className="grid gap-2">
               <Label>Usuário de Login</Label>
               <Input
                 placeholder="Ex: ana.silva"
@@ -593,6 +610,16 @@ function UsuariosPage() {
                 placeholder="(11) 99999-9999"
                 value={editFormData.telefone}
                 onChange={(e) => setEditFormData({ ...editFormData, telefone: e.target.value })}
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label>E-mail (para notificações)</Label>
+              <Input
+                placeholder="Ex: ana.silva@empresa.com"
+                type="email"
+                required={editFormData.role === 'analista'}
+                value={editFormData.email}
+                onChange={(e) => setEditFormData({ ...editFormData, email: e.target.value })}
               />
             </div>
             <div className="grid gap-2">
