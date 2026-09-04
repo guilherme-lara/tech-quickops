@@ -1154,6 +1154,17 @@ function OSPage() {
                     placeholder="Ex: João Silva"
                   />
                 </div>
+                <div>
+                  <Label>
+                    E-mail para notificações <span className="text-destructive">*</span>
+                  </Label>
+                  <Input
+                    type="email"
+                    value={quickTecForm.email}
+                    onChange={(e) => setQuickTecForm({ ...quickTecForm, email: e.target.value.trim() })}
+                    placeholder="tecnico@email.com"
+                  />
+                </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <Label>Perfil</Label>
@@ -2947,6 +2958,17 @@ export function EditOSDialog({
               <Input
                 value={quickTecForm.nome}
                 onChange={(e) => setQuickTecForm({ ...quickTecForm, nome: e.target.value })}
+              />
+            </div>
+            <div>
+              <Label>
+                E-mail para notificações <span className="text-destructive">*</span>
+              </Label>
+              <Input
+                type="email"
+                value={quickTecForm.email}
+                onChange={(e) => setQuickTecForm({ ...quickTecForm, email: e.target.value.trim() })}
+                placeholder="tecnico@email.com"
               />
             </div>
             <div>
