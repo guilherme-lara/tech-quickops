@@ -220,6 +220,7 @@ function OSPage() {
     nome: "",
     perfil: "Técnico de Campo",
     telefone: "",
+    email: "",
     comissao: "",
     tipo_comissao: "porcentagem" as "porcentagem" | "fixo",
   });
@@ -281,6 +282,9 @@ function OSPage() {
 
   const saveQuickTecnico = async () => {
     if (!quickTecForm.nome.trim()) return toast.error("Informe o nome do técnico");
+    const email = quickTecForm.email.trim();
+    if (!email) return toast.error("Informe o e-mail do técnico (obrigatório para notificações)");
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) return toast.error("E-mail do técnico inválido");
     setQuickTecSaving(true);
     try {
       const id = await addTecnico({
@@ -291,6 +295,7 @@ function OSPage() {
         comissao: Number(quickTecForm.comissao) || 0,
         tipo_comissao: quickTecForm.tipo_comissao,
         chave_pix: "",
+        email_notificacoes: email,
       } as any);
       setForm((f) => ({ ...f, tecnicoId: id }));
       toast.success("Técnico cadastrado e selecionado");
@@ -299,6 +304,7 @@ function OSPage() {
         nome: "",
         perfil: "Técnico de Campo",
         telefone: "",
+        email: "",
         comissao: "",
         tipo_comissao: "porcentagem",
       });
@@ -1746,6 +1752,7 @@ export function EditOSDialog({
     nome: "",
     perfil: "Técnico de Campo",
     telefone: "",
+    email: "",
     comissao: "",
     tipo_comissao: "porcentagem" as "porcentagem" | "fixo",
   });
@@ -1882,6 +1889,9 @@ export function EditOSDialog({
 
   const saveQuickTecnico = async () => {
     if (!quickTecForm.nome.trim()) return toast.error("Informe o nome do técnico");
+    const email = quickTecForm.email.trim();
+    if (!email) return toast.error("Informe o e-mail do técnico (obrigatório para notificações)");
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) return toast.error("E-mail do técnico inválido");
     setQuickTecSaving(true);
     try {
       const id = await addTecnico({
@@ -1892,6 +1902,7 @@ export function EditOSDialog({
         comissao: Number(quickTecForm.comissao) || 0,
         tipo_comissao: quickTecForm.tipo_comissao,
         chave_pix: "",
+        email_notificacoes: email,
       } as any);
       setForm((prev) => ({ ...prev, tecnicoId: id }));
       toast.success("Técnico cadastrado e selecionado");
@@ -1900,6 +1911,7 @@ export function EditOSDialog({
         nome: "",
         perfil: "Técnico de Campo",
         telefone: "",
+        email: "",
         comissao: "",
         tipo_comissao: "porcentagem",
       });
