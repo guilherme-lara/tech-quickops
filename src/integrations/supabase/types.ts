@@ -702,6 +702,7 @@ export type Database = {
           avatar_url: string | null
           created_at: string
           current_session_id: string | null
+          email: string | null
           empresa_id: string
           id: string
           nome_completo: string
@@ -714,6 +715,7 @@ export type Database = {
           avatar_url?: string | null
           created_at?: string
           current_session_id?: string | null
+          email?: string | null
           empresa_id: string
           id: string
           nome_completo?: string
@@ -726,6 +728,7 @@ export type Database = {
           avatar_url?: string | null
           created_at?: string
           current_session_id?: string | null
+          email?: string | null
           empresa_id?: string
           id?: string
           nome_completo?: string
@@ -1052,18 +1055,32 @@ export type Database = {
         }
         Returns: string
       }
-      criar_usuario_backoffice: {
-        Args: {
-          p_dominio: string
-          p_empresa_id: string
-          p_nome: string
-          p_role: Database["public"]["Enums"]["app_role"]
-          p_senha: string
-          p_telefone: string
-          p_username: string
-        }
-        Returns: string
-      }
+      criar_usuario_backoffice:
+        | {
+            Args: {
+              p_dominio: string
+              p_empresa_id: string
+              p_nome: string
+              p_role: Database["public"]["Enums"]["app_role"]
+              p_senha: string
+              p_telefone: string
+              p_username: string
+            }
+            Returns: string
+          }
+        | {
+            Args: {
+              p_dominio: string
+              p_email?: string
+              p_empresa_id: string
+              p_nome: string
+              p_role: Database["public"]["Enums"]["app_role"]
+              p_senha: string
+              p_telefone: string
+              p_username: string
+            }
+            Returns: string
+          }
       definir_status_cliente: {
         Args: { p_ativo: boolean; p_cliente_id: string }
         Returns: boolean
