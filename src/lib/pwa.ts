@@ -38,7 +38,8 @@ export async function setupPwa(onNeedRefresh: (update: () => void) => void) {
     await unregisterAppSW();
     return;
   }
-  const { registerSW } = await import("virtual:pwa-register");
+  // @ts-ignore módulo virtual gerado pelo build
+  const { registerSW } = await import(/* @vite-ignore */ "virtual:pwa-register");
   const updateSW = registerSW({
     immediate: true,
     onNeedRefresh() {
