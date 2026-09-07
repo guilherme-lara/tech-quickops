@@ -69,10 +69,10 @@ export function TecnicoLayout({ children }: { children?: ReactNode }) {
           </header>
         )}
 
-        <main className={`flex-1 ${isRAT ? "" : "pb-24"}`}>{children ?? <Outlet />}</main>
+        <main className={`flex-1 ${isRAT ? "" : "pb-[calc(6rem+env(safe-area-inset-bottom))]"}`}>{children ?? <Outlet />}</main>
 
         {!isRAT && (
-          <nav className="fixed bottom-3 left-1/2 -translate-x-1/2 w-[calc(100%-1.5rem)] max-w-md glass rounded-3xl h-16 flex shadow-[var(--shadow-glow)] z-30">
+          <nav className="fixed bottom-[calc(0.75rem+env(safe-area-inset-bottom))] left-1/2 -translate-x-1/2 w-[calc(100%-1.5rem)] max-w-md glass rounded-3xl h-16 flex shadow-[var(--shadow-glow)] z-30">
             {tabs.map((t) => {
               const active = path.startsWith(t.to);
               return (
