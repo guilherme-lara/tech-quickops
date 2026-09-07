@@ -45,6 +45,7 @@ import {
   CheckCircle,
   MapPin,
   Calendar,
+  FileText,
 } from "lucide-react";
 import { useEffect, useState, useRef } from "react";
 import { toast } from "sonner";
@@ -2458,8 +2459,8 @@ export function EditOSDialog({
                       variant="outline"
                       className="border-blue-500 text-blue-600 bg-blue-50/50 hover:bg-blue-100 dark:border-blue-800/50 dark:text-blue-400 dark:bg-blue-900/20 dark:hover:bg-blue-900/40"
                     >
-                      <CheckCircle className="w-4 h-4 mr-2" />
-                      Aprovar e Finalizar
+                      <FileText className="w-4 h-4 mr-2" />
+                      Revisar Evidências
                     </Button>
                   }
                 />
