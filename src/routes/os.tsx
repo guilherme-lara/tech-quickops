@@ -45,6 +45,7 @@ import {
   CheckCircle,
   MapPin,
   Calendar,
+  FileText,
 } from "lucide-react";
 import { useEffect, useState, useRef } from "react";
 import { toast } from "sonner";
