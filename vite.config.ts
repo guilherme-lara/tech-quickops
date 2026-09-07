@@ -39,32 +39,32 @@ export default defineConfig({
           ]
         },
         workbox: {
-          globPatterns: ['**/*.{js,css,ico,svg}'],
+          globPatterns: ['**/*.{js,css,ico,svg,png,woff2}'],
           cleanupOutdatedCaches: true,
+          navigateFallbackDenylist: [/^\/~oauth/, /^\/api\//],
           runtimeCaching: [
             {
               urlPattern: ({ request }) => request.mode === 'navigate',
               handler: 'NetworkFirst',
               options: {
                 cacheName: 'pages-cache',
-                cacheableResponse: {
-                  statuses: [200]
-                }
+                networkTimeoutSeconds: 5,
+                cacheableResponse: { statuses: [200] }
               }
             },
             {
-              urlPattern: ({ request }) => request.destination === 'image',
+              urlPattern: ({ request, sameOrigin }) => sameOrigin && request.destination === 'image',
               handler: 'CacheFirst',
               options: {
                 cacheName: 'images-cache',
-                expiration: { maxEntries: 50, maxAgeSeconds: 30 * 24 * 60 * 60 }
+                expiration: { maxEntries: 60, maxAgeSeconds: 30 * 24 * 60 * 60 },
+                cacheableResponse: { statuses: [0, 200] }
               }
             }
           ]
         },
         devOptions: {
-          enabled: true,
-          type: 'module',
+          enabled: false,
         }
       })
     ],
