@@ -1,56 +1,36 @@
 import { useEffect } from "react";
 import { toast } from "sonner";
-// @ts-ignore
-import { registerSW } from "virtual:pwa-register";
+import { setupPwa } from "@/lib/pwa";
 
 export function PwaUpdater() {
   useEffect(() => {
-    // Só registra no client-side
-    if (typeof window !== "undefined") {
-      const updateSW = registerSW({
-        onNeedRefresh() {
-          toast("Nova versão disponível!", {
-            description: "Uma nova versão do QuickOps foi baixada. Deseja recarregar?",
-            action: {
-              label: "Atualizar",
-              onClick: () => updateSW(true),
-            },
-            duration: Infinity,
-          });
-        },
-        onOfflineReady() {
-          toast.success("Pronto para uso Offline", {
-            description: "O sistema baixou os arquivos necessários para rodar sem internet.",
-          });
-        },
+    if (typeof window === "undefined") return;
+
+    setupPwa((update) => {
+      toast("Nova versão disponível!", {
+        description: "Uma nova versão do QuickOps foi baixada. Deseja recarregar?",
+        action: { label: "Atualizar", onClick: () => update() },
+        duration: Infinity,
       });
+    });
 
-      // Detecção de iOS para sugerir "Adicionar à Tela de Início"
-      const isIos = () => {
-        const userAgent = window.navigator.userAgent.toLowerCase();
-        return /iphone|ipad|ipod/.test(userAgent);
-      };
+    // Dica de instalação no iOS (Safari não tem prompt nativo)
+    const ua = window.navigator.userAgent.toLowerCase();
+    const isIos = /iphone|ipad|ipod/.test(ua) || (/mac/.test(ua) && "ontouchend" in document);
+    const isSafari = /safari/.test(ua) && !/crios|fxios|edgios/.test(ua);
+    const standalone =
+      window.matchMedia("(display-mode: standalone)").matches ||
+      // @ts-ignore Safari legacy
+      window.navigator.standalone === true;
 
-      const isInStandaloneMode = () =>
-        // @ts-ignore
-        'standalone' in window.navigator && window.navigator.standalone;
-
-      // Se for iOS e não estiver no modo PWA, mostramos a dica
-      if (isIos() && !isInStandaloneMode()) {
-        const hasSeenPrompt = localStorage.getItem("ios-pwa-prompt");
-        if (!hasSeenPrompt) {
-          toast.info("Instale o App no iOS", {
-            description: "Para uma melhor experiência, toque em Compartilhar e 'Adicionar à Tela de Início'.",
-            duration: 10000,
-            onDismiss: () => {
-              localStorage.setItem("ios-pwa-prompt", "true");
-            },
-            onAutoClose: () => {
-              localStorage.setItem("ios-pwa-prompt", "true");
-            }
-          });
-        }
-      }
+    if (isIos && isSafari && !standalone && !localStorage.getItem("ios-pwa-prompt")) {
+      const done = () => localStorage.setItem("ios-pwa-prompt", "true");
+      toast.info("Instale o QuickOps no seu iPhone", {
+        description: "Toque em Compartilhar e depois em 'Adicionar à Tela de Início'.",
+        duration: 12000,
+        onDismiss: done,
+        onAutoClose: done,
+      });
     }
   }, []);
 
