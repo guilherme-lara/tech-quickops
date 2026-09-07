@@ -13,27 +13,29 @@ export default defineConfig({
     plugins: [
       mcpPlugin(),
       VitePWA({
-        registerType: 'prompt',
-        includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg'],
+        registerType: 'autoUpdate',
+        injectRegister: null,
+        filename: 'sw.js',
+        includeAssets: ['favicon.ico', 'favicon.png', 'apple-touch-icon.png'],
         manifest: {
-          name: 'QuickOps Field App',
+          id: '/',
+          name: 'QuickOps — Gestão de Ordens de Serviço',
           short_name: 'QuickOps',
-          description: 'Gestão de Ordem de Serviço em Campo',
+          description: 'Gestão de Ordem de Serviço em Campo e RAT digital',
+          lang: 'pt-BR',
+          dir: 'ltr',
           theme_color: '#0f172a',
           background_color: '#0f172a',
           display: 'standalone',
+          orientation: 'portrait',
+          scope: '/',
           start_url: '/',
           icons: [
-            {
-              src: 'android-chrome-192x192.png',
-              sizes: '192x192',
-              type: 'image/png'
-            },
-            {
-              src: 'android-chrome-512x512.png',
-              sizes: '512x512',
-              type: 'image/png'
-            }
+            { src: '/android-chrome-192x192.png', sizes: '192x192', type: 'image/png' },
+            { src: '/android-chrome-512x512.png', sizes: '512x512', type: 'image/png' },
+            { src: '/android-chrome-192x192.png', sizes: '192x192', type: 'image/png', purpose: 'maskable' },
+            { src: '/android-chrome-512x512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
+            { src: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png' }
           ]
         },
         workbox: {
