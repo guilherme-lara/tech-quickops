@@ -102,9 +102,10 @@ const osFinalizada = (status?: string) =>
   status === "Concluído" || status === "Concluído Técnico" || status === "concluido" || status === "concluido_tecnico";
 
 const colunas: OSStatus[] = [
+  "Aguardando Confirmação",
   "Agendamento",
-  "Em Deslocamento",
   "Em Andamento",
+  "Em Deslocamento",
   "Concluído Técnico",
   "Pendência",
   "Concluído",

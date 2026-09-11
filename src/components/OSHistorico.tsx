@@ -180,28 +180,72 @@ export function OSHistorico({ osId }: { osId: string | null }) {
             {r.alteracoes &&
               Object.keys(r.alteracoes).length > 0 &&
               (() => {
+                const CHAVES_IGNORADAS = ["empresa_id", "created_at", "updated_at", "tecnico_user_id", "id"];
+                const CHAVE_LABELS: Record<string, string> = {
+                  cliente_id: "Cliente",
+                  tecnico_id: "Técnico",
+                  analista_id: "Analista",
+                  titulo: "Título",
+                  descricao_problema: "Descrição do Problema",
+                  valor: "Valor",
+                  valor_adiantado: "Valor Adiantado",
+                  custo_viagem: "Custo de Viagem",
+                  km_viagem: "KM da Viagem",
+                  dados_adicionais: "Dados Adicionais",
+                  pendencias_detalhes: "Detalhes da Pendência",
+                  endereco_servico: "Endereço do Serviço",
+                  data_agendamento: "Data de Agendamento",
+                  horario_atendimento: "Horário",
+                  data_hora_inicio: "Início",
+                  data_hora_fim: "Fim",
+                  equipamentos_cliente_ids: "Equipamentos",
+                  recebido_cliente: "Recebido do Cliente",
+                  despesas: "Despesas",
+                  descricao_adiantamento: "Descrição Adiantamento"
+                };
+
+                function fmtHistValue(k: string, val: any): string {
+                  if (val === null || val === undefined) return "—";
+                  if (["valor", "valor_adiantado", "custo_viagem"].includes(k)) {
+                    return Number(val).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+                  }
+                  if (typeof val === "boolean") return val ? "Sim" : "Não";
+                  if (["data_agendamento", "data_hora_inicio", "data_hora_fim"].includes(k) && typeof val === "string") {
+                    if (val.length === 10) {
+                      const p = val.split("-");
+                      if (p.length === 3) return `${p[2]}/${p[1]}/${p[0]}`;
+                    }
+                    if (val.includes("T")) return fmtDate(val);
+                  }
+                  if (typeof val === "object") return Array.isArray(val) ? `${val.length} itens` : "Dados editados";
+                  return String(val);
+                }
+
                 const outros = Object.entries(r.alteracoes).filter(
-                  ([k]) => !["tecnico_id", "tecnico_user_id", "status"].includes(k)
+                  ([k]) => !["tecnico_id", "tecnico_user_id", "status"].includes(k) && !CHAVES_IGNORADAS.includes(k)
                 );
                 if (outros.length === 0) return null;
                 return (
                   <div className="text-xs space-y-1 pt-1 border-t">
-                    {outros.map(([k, v]: [string, any]) => (
-                      <div key={k} className="flex items-center gap-1.5 flex-wrap">
-                        <span className="text-muted-foreground capitalize">{k}:</span>
-                        {v && typeof v === "object" && "de" in v ? (
-                          <>
-                            <span className="line-through text-muted-foreground">
-                              {String(v.de ?? "—")}
-                            </span>
-                            <ArrowRight className="w-3 h-3 text-muted-foreground" />
-                            <span className="font-medium">{String(v.para ?? "—")}</span>
-                          </>
-                        ) : (
-                          <span className="font-medium">{String(v)}</span>
-                        )}
-                      </div>
-                    ))}
+                    {outros.map(([k, v]: [string, any]) => {
+                      const lbl = CHAVE_LABELS[k] || k.replace(/_/g, " ");
+                      return (
+                        <div key={k} className="flex items-center gap-1.5 flex-wrap">
+                          <span className="text-muted-foreground font-medium capitalize">{lbl}:</span>
+                          {v && typeof v === "object" && "de" in v && "para" in v ? (
+                            <>
+                              <span className="line-through text-muted-foreground">
+                                {fmtHistValue(k, v.de)}
+                              </span>
+                              <ArrowRight className="w-3 h-3 text-muted-foreground" />
+                              <span className="font-medium">{fmtHistValue(k, v.para)}</span>
+                            </>
+                          ) : (
+                            <span className="font-medium">{fmtHistValue(k, v)}</span>
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
                 );
               })()}

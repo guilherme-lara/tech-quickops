@@ -156,7 +156,8 @@ interface User {
 // ============================================================
 // DB ↔ UI mappers
 // ============================================================
-const dbToUiStatus: Record<string, OSStatus> = {
+export const dbToUiStatus: Record<string, OSStatus> = {
+  aguardando_confirmacao: "Aguardando Confirmação",
   agendamento: "Agendamento",
   em_andamento: "Em Andamento",
   em_deslocamento: "Em Deslocamento",
@@ -165,7 +166,9 @@ const dbToUiStatus: Record<string, OSStatus> = {
   concluido: "Concluído",
   cancelado: "Cancelado",
 };
-const uiToDbStatus: Record<OSStatus, string> = {
+
+export const uiToDbStatus: Record<OSStatus, string> = {
+  "Aguardando Confirmação": "aguardando_confirmacao",
   Agendamento: "agendamento",
   "Em Andamento": "em_andamento",
   "Em Deslocamento": "em_deslocamento",
@@ -1828,6 +1831,7 @@ export function useStore() {
 }
 
 export const statusColor: Record<OSStatus, string> = {
+  "Aguardando Confirmação": "bg-indigo-500/10 text-indigo-600 dark:text-indigo-400",
   Agendamento: "bg-blue-500/10 text-blue-600 dark:text-blue-300",
   "Em Andamento": "bg-yellow-500/10 text-yellow-600 dark:text-yellow-300",
   "Em Deslocamento": "bg-orange-500/10 text-orange-600 dark:text-orange-400",
