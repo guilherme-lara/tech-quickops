@@ -1541,7 +1541,8 @@ function isValidCpfCnpj(val: string) {
               nome_completo: nome, 
               nome_empresa: empresa,
               cnpj: cnpj || null,
-              telefone_empresa: telefone || null
+              telefone_empresa: telefone || null,
+              dominio: dominio || null
             },
           },
         });
