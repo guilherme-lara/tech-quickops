@@ -1138,6 +1138,7 @@ export type Database = {
         | "concluido_tecnico"
         | "pendencia"
         | "em_deslocamento"
+        | "aguardando_confirmacao"
       tipo_comissao_enum: "fixo" | "porcentagem"
     }
     CompositeTypes: {
@@ -1278,6 +1279,7 @@ export const Constants = {
         "concluido_tecnico",
         "pendencia",
         "em_deslocamento",
+        "aguardando_confirmacao",
       ],
       tipo_comissao_enum: ["fixo", "porcentagem"],
     },
