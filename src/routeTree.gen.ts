@@ -9,153 +9,48 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as UsuariosRouteImport } from './routes/usuarios'
-import { Route as TermosDeUsoRouteImport } from './routes/termos-de-uso'
-import { Route as TempoRealRouteImport } from './routes/tempo-real'
-import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
-import { Route as PrivacidadeRouteImport } from './routes/privacidade'
-import { Route as PlanosRouteImport } from './routes/planos'
-import { Route as OsRouteImport } from './routes/os'
-import { Route as McpRouteImport } from './routes/mcp'
-import { Route as LogsRouteImport } from './routes/logs'
-import { Route as LoginRouteImport } from './routes/login'
-import { Route as KpisRouteImport } from './routes/kpis'
-import { Route as GestorDashboardRouteImport } from './routes/gestor-dashboard'
-import { Route as GestaoEquipeRouteImport } from './routes/gestao-equipe'
-import { Route as EstoqueRouteImport } from './routes/estoque'
-import { Route as EquipeRouteImport } from './routes/equipe'
-import { Route as EmailsRouteImport } from './routes/emails'
-import { Route as DesempenhoRouteImport } from './routes/desempenho'
-import { Route as DashboardRouteImport } from './routes/dashboard'
-import { Route as ContratosRouteImport } from './routes/contratos'
-import { Route as ConfiguracoesRouteImport } from './routes/configuracoes'
-import { Route as ClientesRouteImport } from './routes/clientes'
-import { Route as AnalistaDashboardRouteImport } from './routes/analista-dashboard'
-import { Route as AdminSistemaRouteImport } from './routes/admin-sistema'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as TecnicoPerfilRouteImport } from './routes/tecnico.perfil'
-import { Route as TecnicoHistoricoRouteImport } from './routes/tecnico.historico'
-import { Route as TecnicoDashboardRouteImport } from './routes/tecnico.dashboard'
-import { Route as TecnicoCrachaRouteImport } from './routes/tecnico.cracha'
-import { Route as ClientesIdRouteImport } from './routes/clientes.$id'
-import { Route as ApiProcessEmailQueueRouteImport } from './routes/api/process-email-queue'
-import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
+import { Route as AdminSistemaRouteImport } from './routes/admin-sistema'
+import { Route as AnalistaDashboardRouteImport } from './routes/analista-dashboard'
+import { Route as ClientesRouteImport } from './routes/clientes'
+import { Route as ConfiguracoesRouteImport } from './routes/configuracoes'
+import { Route as ContratosRouteImport } from './routes/contratos'
+import { Route as DashboardRouteImport } from './routes/dashboard'
+import { Route as DesempenhoRouteImport } from './routes/desempenho'
+import { Route as EmailsRouteImport } from './routes/emails'
+import { Route as EquipeRouteImport } from './routes/equipe'
+import { Route as EstoqueRouteImport } from './routes/estoque'
+import { Route as GestaoEquipeRouteImport } from './routes/gestao-equipe'
+import { Route as GestorDashboardRouteImport } from './routes/gestor-dashboard'
+import { Route as KpisRouteImport } from './routes/kpis'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as LogsRouteImport } from './routes/logs'
+import { Route as McpRouteImport } from './routes/mcp'
+import { Route as OsRouteImport } from './routes/os'
+import { Route as PlanosRouteImport } from './routes/planos'
+import { Route as PrivacidadeRouteImport } from './routes/privacidade'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
+import { Route as TempoRealRouteImport } from './routes/tempo-real'
+import { Route as TermosDeUsoRouteImport } from './routes/termos-de-uso'
+import { Route as UsuariosRouteImport } from './routes/usuarios'
 import { Route as Char91DotmcpChar93ListToolsRouteImport } from './routes/[.mcp]/list-tools'
+import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
+import { Route as ApiProcessEmailQueueRouteImport } from './routes/api/process-email-queue'
+import { Route as ClientesIdRouteImport } from './routes/clientes.$id'
+import { Route as TecnicoCrachaRouteImport } from './routes/tecnico.cracha'
+import { Route as TecnicoDashboardRouteImport } from './routes/tecnico.dashboard'
+import { Route as TecnicoHistoricoRouteImport } from './routes/tecnico.historico'
+import { Route as TecnicoPerfilRouteImport } from './routes/tecnico.perfil'
+import { Route as DotlovableOauthConsentRouteImport } from './routes/[.]lovable.oauth.consent'
+import { Route as Char91DotmcpChar93InvokeToolToolRouteImport } from './routes/[.mcp]/invoke-tool/$tool'
+import { Route as ApiPublicProcessEmailQueueRouteImport } from './routes/api/public/process-email-queue'
 import { Route as TecnicoOsIndexRouteImport } from './routes/tecnico.os.index'
 import { Route as TecnicoOsIdRouteImport } from './routes/tecnico.os.$id'
-import { Route as ApiPublicProcessEmailQueueRouteImport } from './routes/api/public/process-email-queue'
-import { Route as Char91DotmcpChar93InvokeToolToolRouteImport } from './routes/[.mcp]/invoke-tool/$tool'
-import { Route as DotlovableOauthConsentRouteImport } from './routes/[.]lovable.oauth.consent'
 import { Route as TecnicoOsIdRatRouteImport } from './routes/tecnico.os.$id.rat'
 
-const UsuariosRoute = UsuariosRouteImport.update({
-  id: '/usuarios',
-  path: '/usuarios',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const TermosDeUsoRoute = TermosDeUsoRouteImport.update({
-  id: '/termos-de-uso',
-  path: '/termos-de-uso',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const TempoRealRoute = TempoRealRouteImport.update({
-  id: '/tempo-real',
-  path: '/tempo-real',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
-  id: '/sitemap.xml',
-  path: '/sitemap.xml',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PrivacidadeRoute = PrivacidadeRouteImport.update({
-  id: '/privacidade',
-  path: '/privacidade',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PlanosRoute = PlanosRouteImport.update({
-  id: '/planos',
-  path: '/planos',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const OsRoute = OsRouteImport.update({
-  id: '/os',
-  path: '/os',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const McpRoute = McpRouteImport.update({
-  id: '/mcp',
-  path: '/mcp',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const LogsRoute = LogsRouteImport.update({
-  id: '/logs',
-  path: '/logs',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const LoginRoute = LoginRouteImport.update({
-  id: '/login',
-  path: '/login',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const KpisRoute = KpisRouteImport.update({
-  id: '/kpis',
-  path: '/kpis',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const GestorDashboardRoute = GestorDashboardRouteImport.update({
-  id: '/gestor-dashboard',
-  path: '/gestor-dashboard',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const GestaoEquipeRoute = GestaoEquipeRouteImport.update({
-  id: '/gestao-equipe',
-  path: '/gestao-equipe',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const EstoqueRoute = EstoqueRouteImport.update({
-  id: '/estoque',
-  path: '/estoque',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const EquipeRoute = EquipeRouteImport.update({
-  id: '/equipe',
-  path: '/equipe',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const EmailsRoute = EmailsRouteImport.update({
-  id: '/emails',
-  path: '/emails',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DesempenhoRoute = DesempenhoRouteImport.update({
-  id: '/desempenho',
-  path: '/desempenho',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DashboardRoute = DashboardRouteImport.update({
-  id: '/dashboard',
-  path: '/dashboard',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ContratosRoute = ContratosRouteImport.update({
-  id: '/contratos',
-  path: '/contratos',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ConfiguracoesRoute = ConfiguracoesRouteImport.update({
-  id: '/configuracoes',
-  path: '/configuracoes',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ClientesRoute = ClientesRouteImport.update({
-  id: '/clientes',
-  path: '/clientes',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AnalistaDashboardRoute = AnalistaDashboardRouteImport.update({
-  id: '/analista-dashboard',
-  path: '/analista-dashboard',
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminSistemaRoute = AdminSistemaRouteImport.update({
@@ -163,29 +58,131 @@ const AdminSistemaRoute = AdminSistemaRouteImport.update({
   path: '/admin-sistema',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+const AnalistaDashboardRoute = AnalistaDashboardRouteImport.update({
+  id: '/analista-dashboard',
+  path: '/analista-dashboard',
   getParentRoute: () => rootRouteImport,
 } as any)
-const TecnicoPerfilRoute = TecnicoPerfilRouteImport.update({
-  id: '/tecnico/perfil',
-  path: '/tecnico/perfil',
+const ClientesRoute = ClientesRouteImport.update({
+  id: '/clientes',
+  path: '/clientes',
   getParentRoute: () => rootRouteImport,
 } as any)
-const TecnicoHistoricoRoute = TecnicoHistoricoRouteImport.update({
-  id: '/tecnico/historico',
-  path: '/tecnico/historico',
+const ConfiguracoesRoute = ConfiguracoesRouteImport.update({
+  id: '/configuracoes',
+  path: '/configuracoes',
   getParentRoute: () => rootRouteImport,
 } as any)
-const TecnicoDashboardRoute = TecnicoDashboardRouteImport.update({
-  id: '/tecnico/dashboard',
-  path: '/tecnico/dashboard',
+const ContratosRoute = ContratosRouteImport.update({
+  id: '/contratos',
+  path: '/contratos',
   getParentRoute: () => rootRouteImport,
 } as any)
-const TecnicoCrachaRoute = TecnicoCrachaRouteImport.update({
-  id: '/tecnico/cracha',
-  path: '/tecnico/cracha',
+const DashboardRoute = DashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DesempenhoRoute = DesempenhoRouteImport.update({
+  id: '/desempenho',
+  path: '/desempenho',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EmailsRoute = EmailsRouteImport.update({
+  id: '/emails',
+  path: '/emails',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EquipeRoute = EquipeRouteImport.update({
+  id: '/equipe',
+  path: '/equipe',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EstoqueRoute = EstoqueRouteImport.update({
+  id: '/estoque',
+  path: '/estoque',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GestaoEquipeRoute = GestaoEquipeRouteImport.update({
+  id: '/gestao-equipe',
+  path: '/gestao-equipe',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GestorDashboardRoute = GestorDashboardRouteImport.update({
+  id: '/gestor-dashboard',
+  path: '/gestor-dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const KpisRoute = KpisRouteImport.update({
+  id: '/kpis',
+  path: '/kpis',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LogsRoute = LogsRouteImport.update({
+  id: '/logs',
+  path: '/logs',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const McpRoute = McpRouteImport.update({
+  id: '/mcp',
+  path: '/mcp',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OsRoute = OsRouteImport.update({
+  id: '/os',
+  path: '/os',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PlanosRoute = PlanosRouteImport.update({
+  id: '/planos',
+  path: '/planos',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivacidadeRoute = PrivacidadeRouteImport.update({
+  id: '/privacidade',
+  path: '/privacidade',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TempoRealRoute = TempoRealRouteImport.update({
+  id: '/tempo-real',
+  path: '/tempo-real',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TermosDeUsoRoute = TermosDeUsoRouteImport.update({
+  id: '/termos-de-uso',
+  path: '/termos-de-uso',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const UsuariosRoute = UsuariosRouteImport.update({
+  id: '/usuarios',
+  path: '/usuarios',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const Char91DotmcpChar93ListToolsRoute =
+  Char91DotmcpChar93ListToolsRouteImport.update({
+    id: '/.mcp/list-tools',
+    path: '/.mcp/list-tools',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const Char91DotwellKnownChar93OauthProtectedResourceRoute =
+  Char91DotwellKnownChar93OauthProtectedResourceRouteImport.update({
+    id: '/.well-known/oauth-protected-resource',
+    path: '/.well-known/oauth-protected-resource',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiProcessEmailQueueRoute = ApiProcessEmailQueueRouteImport.update({
+  id: '/api/process-email-queue',
+  path: '/api/process-email-queue',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ClientesIdRoute = ClientesIdRouteImport.update({
@@ -193,21 +190,41 @@ const ClientesIdRoute = ClientesIdRouteImport.update({
   path: '/$id',
   getParentRoute: () => ClientesRoute,
 } as any)
-const ApiProcessEmailQueueRoute = ApiProcessEmailQueueRouteImport.update({
-  id: '/api/process-email-queue',
-  path: '/api/process-email-queue',
+const TecnicoCrachaRoute = TecnicoCrachaRouteImport.update({
+  id: '/tecnico/cracha',
+  path: '/tecnico/cracha',
   getParentRoute: () => rootRouteImport,
 } as any)
-const Char91DotwellKnownChar93OauthProtectedResourceRoute =
-  Char91DotwellKnownChar93OauthProtectedResourceRouteImport.update({
-    id: '/.well-known/oauth-protected-resource',
-    path: '/.well-known/oauth-protected-resource',
+const TecnicoDashboardRoute = TecnicoDashboardRouteImport.update({
+  id: '/tecnico/dashboard',
+  path: '/tecnico/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TecnicoHistoricoRoute = TecnicoHistoricoRouteImport.update({
+  id: '/tecnico/historico',
+  path: '/tecnico/historico',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TecnicoPerfilRoute = TecnicoPerfilRouteImport.update({
+  id: '/tecnico/perfil',
+  path: '/tecnico/perfil',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DotlovableOauthConsentRoute = DotlovableOauthConsentRouteImport.update({
+  id: '/.lovable/oauth/consent',
+  path: '/.lovable/oauth/consent',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const Char91DotmcpChar93InvokeToolToolRoute =
+  Char91DotmcpChar93InvokeToolToolRouteImport.update({
+    id: '/.mcp/invoke-tool/$tool',
+    path: '/.mcp/invoke-tool/$tool',
     getParentRoute: () => rootRouteImport,
   } as any)
-const Char91DotmcpChar93ListToolsRoute =
-  Char91DotmcpChar93ListToolsRouteImport.update({
-    id: '/.mcp/list-tools',
-    path: '/.mcp/list-tools',
+const ApiPublicProcessEmailQueueRoute =
+  ApiPublicProcessEmailQueueRouteImport.update({
+    id: '/api/public/process-email-queue',
+    path: '/api/public/process-email-queue',
     getParentRoute: () => rootRouteImport,
   } as any)
 const TecnicoOsIndexRoute = TecnicoOsIndexRouteImport.update({
@@ -218,23 +235,6 @@ const TecnicoOsIndexRoute = TecnicoOsIndexRouteImport.update({
 const TecnicoOsIdRoute = TecnicoOsIdRouteImport.update({
   id: '/tecnico/os/$id',
   path: '/tecnico/os/$id',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiPublicProcessEmailQueueRoute =
-  ApiPublicProcessEmailQueueRouteImport.update({
-    id: '/api/public/process-email-queue',
-    path: '/api/public/process-email-queue',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const Char91DotmcpChar93InvokeToolToolRoute =
-  Char91DotmcpChar93InvokeToolToolRouteImport.update({
-    id: '/.mcp/invoke-tool/$tool',
-    path: '/.mcp/invoke-tool/$tool',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const DotlovableOauthConsentRoute = DotlovableOauthConsentRouteImport.update({
-  id: '/.lovable/oauth/consent',
-  path: '/.lovable/oauth/consent',
   getParentRoute: () => rootRouteImport,
 } as any)
 const TecnicoOsIdRatRoute = TecnicoOsIdRatRouteImport.update({
@@ -528,158 +528,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/usuarios': {
-      id: '/usuarios'
-      path: '/usuarios'
-      fullPath: '/usuarios'
-      preLoaderRoute: typeof UsuariosRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/termos-de-uso': {
-      id: '/termos-de-uso'
-      path: '/termos-de-uso'
-      fullPath: '/termos-de-uso'
-      preLoaderRoute: typeof TermosDeUsoRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/tempo-real': {
-      id: '/tempo-real'
-      path: '/tempo-real'
-      fullPath: '/tempo-real'
-      preLoaderRoute: typeof TempoRealRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/sitemap.xml': {
-      id: '/sitemap.xml'
-      path: '/sitemap.xml'
-      fullPath: '/sitemap.xml'
-      preLoaderRoute: typeof SitemapDotxmlRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/privacidade': {
-      id: '/privacidade'
-      path: '/privacidade'
-      fullPath: '/privacidade'
-      preLoaderRoute: typeof PrivacidadeRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/planos': {
-      id: '/planos'
-      path: '/planos'
-      fullPath: '/planos'
-      preLoaderRoute: typeof PlanosRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/os': {
-      id: '/os'
-      path: '/os'
-      fullPath: '/os'
-      preLoaderRoute: typeof OsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/mcp': {
-      id: '/mcp'
-      path: '/mcp'
-      fullPath: '/mcp'
-      preLoaderRoute: typeof McpRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/logs': {
-      id: '/logs'
-      path: '/logs'
-      fullPath: '/logs'
-      preLoaderRoute: typeof LogsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/login': {
-      id: '/login'
-      path: '/login'
-      fullPath: '/login'
-      preLoaderRoute: typeof LoginRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/kpis': {
-      id: '/kpis'
-      path: '/kpis'
-      fullPath: '/kpis'
-      preLoaderRoute: typeof KpisRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/gestor-dashboard': {
-      id: '/gestor-dashboard'
-      path: '/gestor-dashboard'
-      fullPath: '/gestor-dashboard'
-      preLoaderRoute: typeof GestorDashboardRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/gestao-equipe': {
-      id: '/gestao-equipe'
-      path: '/gestao-equipe'
-      fullPath: '/gestao-equipe'
-      preLoaderRoute: typeof GestaoEquipeRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/estoque': {
-      id: '/estoque'
-      path: '/estoque'
-      fullPath: '/estoque'
-      preLoaderRoute: typeof EstoqueRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/equipe': {
-      id: '/equipe'
-      path: '/equipe'
-      fullPath: '/equipe'
-      preLoaderRoute: typeof EquipeRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/emails': {
-      id: '/emails'
-      path: '/emails'
-      fullPath: '/emails'
-      preLoaderRoute: typeof EmailsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/desempenho': {
-      id: '/desempenho'
-      path: '/desempenho'
-      fullPath: '/desempenho'
-      preLoaderRoute: typeof DesempenhoRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/dashboard': {
-      id: '/dashboard'
-      path: '/dashboard'
-      fullPath: '/dashboard'
-      preLoaderRoute: typeof DashboardRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/contratos': {
-      id: '/contratos'
-      path: '/contratos'
-      fullPath: '/contratos'
-      preLoaderRoute: typeof ContratosRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/configuracoes': {
-      id: '/configuracoes'
-      path: '/configuracoes'
-      fullPath: '/configuracoes'
-      preLoaderRoute: typeof ConfiguracoesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/clientes': {
-      id: '/clientes'
-      path: '/clientes'
-      fullPath: '/clientes'
-      preLoaderRoute: typeof ClientesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/analista-dashboard': {
-      id: '/analista-dashboard'
-      path: '/analista-dashboard'
-      fullPath: '/analista-dashboard'
-      preLoaderRoute: typeof AnalistaDashboardRouteImport
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin-sistema': {
@@ -689,53 +542,165 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminSistemaRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+    '/analista-dashboard': {
+      id: '/analista-dashboard'
+      path: '/analista-dashboard'
+      fullPath: '/analista-dashboard'
+      preLoaderRoute: typeof AnalistaDashboardRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/tecnico/perfil': {
-      id: '/tecnico/perfil'
-      path: '/tecnico/perfil'
-      fullPath: '/tecnico/perfil'
-      preLoaderRoute: typeof TecnicoPerfilRouteImport
+    '/clientes': {
+      id: '/clientes'
+      path: '/clientes'
+      fullPath: '/clientes'
+      preLoaderRoute: typeof ClientesRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/tecnico/historico': {
-      id: '/tecnico/historico'
-      path: '/tecnico/historico'
-      fullPath: '/tecnico/historico'
-      preLoaderRoute: typeof TecnicoHistoricoRouteImport
+    '/configuracoes': {
+      id: '/configuracoes'
+      path: '/configuracoes'
+      fullPath: '/configuracoes'
+      preLoaderRoute: typeof ConfiguracoesRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/tecnico/dashboard': {
-      id: '/tecnico/dashboard'
-      path: '/tecnico/dashboard'
-      fullPath: '/tecnico/dashboard'
-      preLoaderRoute: typeof TecnicoDashboardRouteImport
+    '/contratos': {
+      id: '/contratos'
+      path: '/contratos'
+      fullPath: '/contratos'
+      preLoaderRoute: typeof ContratosRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/tecnico/cracha': {
-      id: '/tecnico/cracha'
-      path: '/tecnico/cracha'
-      fullPath: '/tecnico/cracha'
-      preLoaderRoute: typeof TecnicoCrachaRouteImport
+    '/dashboard': {
+      id: '/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof DashboardRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/clientes/$id': {
-      id: '/clientes/$id'
-      path: '/$id'
-      fullPath: '/clientes/$id'
-      preLoaderRoute: typeof ClientesIdRouteImport
-      parentRoute: typeof ClientesRoute
+    '/desempenho': {
+      id: '/desempenho'
+      path: '/desempenho'
+      fullPath: '/desempenho'
+      preLoaderRoute: typeof DesempenhoRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/api/process-email-queue': {
-      id: '/api/process-email-queue'
-      path: '/api/process-email-queue'
-      fullPath: '/api/process-email-queue'
-      preLoaderRoute: typeof ApiProcessEmailQueueRouteImport
+    '/emails': {
+      id: '/emails'
+      path: '/emails'
+      fullPath: '/emails'
+      preLoaderRoute: typeof EmailsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/equipe': {
+      id: '/equipe'
+      path: '/equipe'
+      fullPath: '/equipe'
+      preLoaderRoute: typeof EquipeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/estoque': {
+      id: '/estoque'
+      path: '/estoque'
+      fullPath: '/estoque'
+      preLoaderRoute: typeof EstoqueRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/gestao-equipe': {
+      id: '/gestao-equipe'
+      path: '/gestao-equipe'
+      fullPath: '/gestao-equipe'
+      preLoaderRoute: typeof GestaoEquipeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/gestor-dashboard': {
+      id: '/gestor-dashboard'
+      path: '/gestor-dashboard'
+      fullPath: '/gestor-dashboard'
+      preLoaderRoute: typeof GestorDashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/kpis': {
+      id: '/kpis'
+      path: '/kpis'
+      fullPath: '/kpis'
+      preLoaderRoute: typeof KpisRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/logs': {
+      id: '/logs'
+      path: '/logs'
+      fullPath: '/logs'
+      preLoaderRoute: typeof LogsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/mcp': {
+      id: '/mcp'
+      path: '/mcp'
+      fullPath: '/mcp'
+      preLoaderRoute: typeof McpRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/os': {
+      id: '/os'
+      path: '/os'
+      fullPath: '/os'
+      preLoaderRoute: typeof OsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/planos': {
+      id: '/planos'
+      path: '/planos'
+      fullPath: '/planos'
+      preLoaderRoute: typeof PlanosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/privacidade': {
+      id: '/privacidade'
+      path: '/privacidade'
+      fullPath: '/privacidade'
+      preLoaderRoute: typeof PrivacidadeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tempo-real': {
+      id: '/tempo-real'
+      path: '/tempo-real'
+      fullPath: '/tempo-real'
+      preLoaderRoute: typeof TempoRealRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/termos-de-uso': {
+      id: '/termos-de-uso'
+      path: '/termos-de-uso'
+      fullPath: '/termos-de-uso'
+      preLoaderRoute: typeof TermosDeUsoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/usuarios': {
+      id: '/usuarios'
+      path: '/usuarios'
+      fullPath: '/usuarios'
+      preLoaderRoute: typeof UsuariosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/.mcp/list-tools': {
+      id: '/.mcp/list-tools'
+      path: '/.mcp/list-tools'
+      fullPath: '/.mcp/list-tools'
+      preLoaderRoute: typeof Char91DotmcpChar93ListToolsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/.well-known/oauth-protected-resource': {
@@ -745,11 +710,67 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/.mcp/list-tools': {
-      id: '/.mcp/list-tools'
-      path: '/.mcp/list-tools'
-      fullPath: '/.mcp/list-tools'
-      preLoaderRoute: typeof Char91DotmcpChar93ListToolsRouteImport
+    '/api/process-email-queue': {
+      id: '/api/process-email-queue'
+      path: '/api/process-email-queue'
+      fullPath: '/api/process-email-queue'
+      preLoaderRoute: typeof ApiProcessEmailQueueRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/clientes/$id': {
+      id: '/clientes/$id'
+      path: '/$id'
+      fullPath: '/clientes/$id'
+      preLoaderRoute: typeof ClientesIdRouteImport
+      parentRoute: typeof ClientesRoute
+    }
+    '/tecnico/cracha': {
+      id: '/tecnico/cracha'
+      path: '/tecnico/cracha'
+      fullPath: '/tecnico/cracha'
+      preLoaderRoute: typeof TecnicoCrachaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tecnico/dashboard': {
+      id: '/tecnico/dashboard'
+      path: '/tecnico/dashboard'
+      fullPath: '/tecnico/dashboard'
+      preLoaderRoute: typeof TecnicoDashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tecnico/historico': {
+      id: '/tecnico/historico'
+      path: '/tecnico/historico'
+      fullPath: '/tecnico/historico'
+      preLoaderRoute: typeof TecnicoHistoricoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tecnico/perfil': {
+      id: '/tecnico/perfil'
+      path: '/tecnico/perfil'
+      fullPath: '/tecnico/perfil'
+      preLoaderRoute: typeof TecnicoPerfilRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/.lovable/oauth/consent': {
+      id: '/.lovable/oauth/consent'
+      path: '/.lovable/oauth/consent'
+      fullPath: '/.lovable/oauth/consent'
+      preLoaderRoute: typeof DotlovableOauthConsentRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/.mcp/invoke-tool/$tool': {
+      id: '/.mcp/invoke-tool/$tool'
+      path: '/.mcp/invoke-tool/$tool'
+      fullPath: '/.mcp/invoke-tool/$tool'
+      preLoaderRoute: typeof Char91DotmcpChar93InvokeToolToolRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/process-email-queue': {
+      id: '/api/public/process-email-queue'
+      path: '/api/public/process-email-queue'
+      fullPath: '/api/public/process-email-queue'
+      preLoaderRoute: typeof ApiPublicProcessEmailQueueRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/tecnico/os/': {
@@ -764,27 +785,6 @@ declare module '@tanstack/react-router' {
       path: '/tecnico/os/$id'
       fullPath: '/tecnico/os/$id'
       preLoaderRoute: typeof TecnicoOsIdRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/process-email-queue': {
-      id: '/api/public/process-email-queue'
-      path: '/api/public/process-email-queue'
-      fullPath: '/api/public/process-email-queue'
-      preLoaderRoute: typeof ApiPublicProcessEmailQueueRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/.mcp/invoke-tool/$tool': {
-      id: '/.mcp/invoke-tool/$tool'
-      path: '/.mcp/invoke-tool/$tool'
-      fullPath: '/.mcp/invoke-tool/$tool'
-      preLoaderRoute: typeof Char91DotmcpChar93InvokeToolToolRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/.lovable/oauth/consent': {
-      id: '/.lovable/oauth/consent'
-      path: '/.lovable/oauth/consent'
-      fullPath: '/.lovable/oauth/consent'
-      preLoaderRoute: typeof DotlovableOauthConsentRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/tecnico/os/$id/rat': {
