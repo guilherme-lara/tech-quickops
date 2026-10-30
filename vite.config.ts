@@ -10,6 +10,18 @@ import { VitePWA } from "vite-plugin-pwa";
 
 export default defineConfig({
   vite: {
+    // @lovable.dev/mcp-js dynamically imports "cloudflare:workers" (with a runtime
+    // .catch fallback) for Cloudflare deployments. On the Vercel preset Rollup
+    // cannot resolve it, so mark it external for the nitro server build.
+    environments: {
+      nitro: {
+        build: {
+          rollupOptions: {
+            external: [/^cloudflare:/],
+          },
+        },
+      },
+    },
     plugins: [
       mcpPlugin(),
       VitePWA({
