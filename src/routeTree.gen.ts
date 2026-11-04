@@ -33,6 +33,7 @@ import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as TempoRealRouteImport } from './routes/tempo-real'
 import { Route as TermosDeUsoRouteImport } from './routes/termos-de-uso'
 import { Route as UsuariosRouteImport } from './routes/usuarios'
+import { Route as Char91DotmcpChar93ListToolsRouteImport } from './routes/[.mcp]/list-tools'
 import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
 import { Route as ApiProcessEmailQueueRouteImport } from './routes/api/process-email-queue'
 import { Route as ClientesIdRouteImport } from './routes/clientes.$id'
@@ -41,6 +42,7 @@ import { Route as TecnicoDashboardRouteImport } from './routes/tecnico.dashboard
 import { Route as TecnicoHistoricoRouteImport } from './routes/tecnico.historico'
 import { Route as TecnicoPerfilRouteImport } from './routes/tecnico.perfil'
 import { Route as DotlovableOauthConsentRouteImport } from './routes/[.]lovable.oauth.consent'
+import { Route as Char91DotmcpChar93InvokeToolToolRouteImport } from './routes/[.mcp]/invoke-tool/$tool'
 import { Route as ApiPublicProcessEmailQueueRouteImport } from './routes/api/public/process-email-queue'
 import { Route as TecnicoOsIndexRouteImport } from './routes/tecnico.os.index'
 import { Route as TecnicoOsIdRouteImport } from './routes/tecnico.os.$id'
@@ -166,6 +168,12 @@ const UsuariosRoute = UsuariosRouteImport.update({
   path: '/usuarios',
   getParentRoute: () => rootRouteImport,
 } as any)
+const Char91DotmcpChar93ListToolsRoute =
+  Char91DotmcpChar93ListToolsRouteImport.update({
+    id: '/.mcp/list-tools',
+    path: '/.mcp/list-tools',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const Char91DotwellKnownChar93OauthProtectedResourceRoute =
   Char91DotwellKnownChar93OauthProtectedResourceRouteImport.update({
     id: '/.well-known/oauth-protected-resource',
@@ -207,6 +215,12 @@ const DotlovableOauthConsentRoute = DotlovableOauthConsentRouteImport.update({
   path: '/.lovable/oauth/consent',
   getParentRoute: () => rootRouteImport,
 } as any)
+const Char91DotmcpChar93InvokeToolToolRoute =
+  Char91DotmcpChar93InvokeToolToolRouteImport.update({
+    id: '/.mcp/invoke-tool/$tool',
+    path: '/.mcp/invoke-tool/$tool',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicProcessEmailQueueRoute =
   ApiPublicProcessEmailQueueRouteImport.update({
     id: '/api/public/process-email-queue',
@@ -254,6 +268,7 @@ export interface FileRoutesByFullPath {
   '/tempo-real': typeof TempoRealRoute
   '/termos-de-uso': typeof TermosDeUsoRoute
   '/usuarios': typeof UsuariosRoute
+  '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/api/process-email-queue': typeof ApiProcessEmailQueueRoute
   '/clientes/$id': typeof ClientesIdRoute
@@ -262,6 +277,7 @@ export interface FileRoutesByFullPath {
   '/tecnico/historico': typeof TecnicoHistoricoRoute
   '/tecnico/perfil': typeof TecnicoPerfilRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
+  '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/api/public/process-email-queue': typeof ApiPublicProcessEmailQueueRoute
   '/tecnico/os/$id': typeof TecnicoOsIdRouteWithChildren
   '/tecnico/os/': typeof TecnicoOsIndexRoute
@@ -292,6 +308,7 @@ export interface FileRoutesByTo {
   '/tempo-real': typeof TempoRealRoute
   '/termos-de-uso': typeof TermosDeUsoRoute
   '/usuarios': typeof UsuariosRoute
+  '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/api/process-email-queue': typeof ApiProcessEmailQueueRoute
   '/clientes/$id': typeof ClientesIdRoute
@@ -300,6 +317,7 @@ export interface FileRoutesByTo {
   '/tecnico/historico': typeof TecnicoHistoricoRoute
   '/tecnico/perfil': typeof TecnicoPerfilRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
+  '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/api/public/process-email-queue': typeof ApiPublicProcessEmailQueueRoute
   '/tecnico/os/$id': typeof TecnicoOsIdRouteWithChildren
   '/tecnico/os': typeof TecnicoOsIndexRoute
@@ -331,6 +349,7 @@ export interface FileRoutesById {
   '/tempo-real': typeof TempoRealRoute
   '/termos-de-uso': typeof TermosDeUsoRoute
   '/usuarios': typeof UsuariosRoute
+  '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/api/process-email-queue': typeof ApiProcessEmailQueueRoute
   '/clientes/$id': typeof ClientesIdRoute
@@ -339,6 +358,7 @@ export interface FileRoutesById {
   '/tecnico/historico': typeof TecnicoHistoricoRoute
   '/tecnico/perfil': typeof TecnicoPerfilRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
+  '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/api/public/process-email-queue': typeof ApiPublicProcessEmailQueueRoute
   '/tecnico/os/$id': typeof TecnicoOsIdRouteWithChildren
   '/tecnico/os/': typeof TecnicoOsIndexRoute
@@ -371,6 +391,7 @@ export interface FileRouteTypes {
     | '/tempo-real'
     | '/termos-de-uso'
     | '/usuarios'
+    | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
     | '/api/process-email-queue'
     | '/clientes/$id'
@@ -379,6 +400,7 @@ export interface FileRouteTypes {
     | '/tecnico/historico'
     | '/tecnico/perfil'
     | '/.lovable/oauth/consent'
+    | '/.mcp/invoke-tool/$tool'
     | '/api/public/process-email-queue'
     | '/tecnico/os/$id'
     | '/tecnico/os/'
@@ -409,6 +431,7 @@ export interface FileRouteTypes {
     | '/tempo-real'
     | '/termos-de-uso'
     | '/usuarios'
+    | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
     | '/api/process-email-queue'
     | '/clientes/$id'
@@ -417,6 +440,7 @@ export interface FileRouteTypes {
     | '/tecnico/historico'
     | '/tecnico/perfil'
     | '/.lovable/oauth/consent'
+    | '/.mcp/invoke-tool/$tool'
     | '/api/public/process-email-queue'
     | '/tecnico/os/$id'
     | '/tecnico/os'
@@ -447,6 +471,7 @@ export interface FileRouteTypes {
     | '/tempo-real'
     | '/termos-de-uso'
     | '/usuarios'
+    | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
     | '/api/process-email-queue'
     | '/clientes/$id'
@@ -455,6 +480,7 @@ export interface FileRouteTypes {
     | '/tecnico/historico'
     | '/tecnico/perfil'
     | '/.lovable/oauth/consent'
+    | '/.mcp/invoke-tool/$tool'
     | '/api/public/process-email-queue'
     | '/tecnico/os/$id'
     | '/tecnico/os/'
@@ -486,6 +512,7 @@ export interface RootRouteChildren {
   TempoRealRoute: typeof TempoRealRoute
   TermosDeUsoRoute: typeof TermosDeUsoRoute
   UsuariosRoute: typeof UsuariosRoute
+  Char91DotmcpChar93ListToolsRoute: typeof Char91DotmcpChar93ListToolsRoute
   Char91DotwellKnownChar93OauthProtectedResourceRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   ApiProcessEmailQueueRoute: typeof ApiProcessEmailQueueRoute
   TecnicoCrachaRoute: typeof TecnicoCrachaRoute
@@ -493,6 +520,7 @@ export interface RootRouteChildren {
   TecnicoHistoricoRoute: typeof TecnicoHistoricoRoute
   TecnicoPerfilRoute: typeof TecnicoPerfilRoute
   DotlovableOauthConsentRoute: typeof DotlovableOauthConsentRoute
+  Char91DotmcpChar93InvokeToolToolRoute: typeof Char91DotmcpChar93InvokeToolToolRoute
   ApiPublicProcessEmailQueueRoute: typeof ApiPublicProcessEmailQueueRoute
   TecnicoOsIdRoute: typeof TecnicoOsIdRouteWithChildren
   TecnicoOsIndexRoute: typeof TecnicoOsIndexRoute
@@ -668,6 +696,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof UsuariosRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/.mcp/list-tools': {
+      id: '/.mcp/list-tools'
+      path: '/.mcp/list-tools'
+      fullPath: '/.mcp/list-tools'
+      preLoaderRoute: typeof Char91DotmcpChar93ListToolsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/.well-known/oauth-protected-resource': {
       id: '/.well-known/oauth-protected-resource'
       path: '/.well-known/oauth-protected-resource'
@@ -722,6 +757,13 @@ declare module '@tanstack/react-router' {
       path: '/.lovable/oauth/consent'
       fullPath: '/.lovable/oauth/consent'
       preLoaderRoute: typeof DotlovableOauthConsentRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/.mcp/invoke-tool/$tool': {
+      id: '/.mcp/invoke-tool/$tool'
+      path: '/.mcp/invoke-tool/$tool'
+      fullPath: '/.mcp/invoke-tool/$tool'
+      preLoaderRoute: typeof Char91DotmcpChar93InvokeToolToolRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/process-email-queue': {
@@ -804,6 +846,7 @@ const rootRouteChildren: RootRouteChildren = {
   TempoRealRoute: TempoRealRoute,
   TermosDeUsoRoute: TermosDeUsoRoute,
   UsuariosRoute: UsuariosRoute,
+  Char91DotmcpChar93ListToolsRoute: Char91DotmcpChar93ListToolsRoute,
   Char91DotwellKnownChar93OauthProtectedResourceRoute:
     Char91DotwellKnownChar93OauthProtectedResourceRoute,
   ApiProcessEmailQueueRoute: ApiProcessEmailQueueRoute,
@@ -812,6 +855,7 @@ const rootRouteChildren: RootRouteChildren = {
   TecnicoHistoricoRoute: TecnicoHistoricoRoute,
   TecnicoPerfilRoute: TecnicoPerfilRoute,
   DotlovableOauthConsentRoute: DotlovableOauthConsentRoute,
+  Char91DotmcpChar93InvokeToolToolRoute: Char91DotmcpChar93InvokeToolToolRoute,
   ApiPublicProcessEmailQueueRoute: ApiPublicProcessEmailQueueRoute,
   TecnicoOsIdRoute: TecnicoOsIdRouteWithChildren,
   TecnicoOsIndexRoute: TecnicoOsIndexRoute,
