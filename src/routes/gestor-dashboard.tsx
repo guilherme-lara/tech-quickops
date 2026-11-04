@@ -3,14 +3,16 @@ import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { GestorLayout } from "@/components/GestorLayout";
 import { SectionTabs } from "@/components/SectionTabs";
 import { supabase } from "@/integrations/supabase/client";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { 
   ClipboardList, 
   AlertCircle, 
   CheckCircle2, 
+  Check,
   DollarSign, 
+  Loader2,
   Printer, 
   Download,
   ArrowUpRight,
@@ -29,9 +31,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import * as XLSX from "xlsx";
 import { toast } from "sonner";
+import { withSingleFlight } from "@/lib/single-flight";
 import { 
   PieChart, 
   Pie, 
@@ -104,6 +109,26 @@ function formatMinutes(minutes: number) {
   const mins = minutes % 60;
   return mins > 0 ? `${hours}h ${mins}m` : `${hours}h`;
 }
+
+type PagamentoTecnico = {
+  id: string;
+  tecnico_id: string | null;
+  tecnico_nome: string;
+  mes_referencia: string;
+  tipo: "integral" | "adiantamento";
+  valor: number;
+  created_at: string;
+};
+
+type PagamentoSelecionado = {
+  tecnico_id: string | null;
+  tecnico_nome: string;
+  mes_referencia: string;
+  valor_bruto_a_pagar: number;
+  valor_pago: number;
+  valor_a_pagar: number;
+  pagamentos: PagamentoTecnico[];
+};
 
 function TecnicoOSModalContent({ tecnicoId, tecnicoNome, defaultMes }: { tecnicoId: string, tecnicoNome: string, defaultMes: string }) {
   const [mes, setMes] = useState(defaultMes);
@@ -251,6 +276,11 @@ function GestorDashboard() {
   const [resumo, setResumo] = useState<any>(null);
   const [ranking, setRanking] = useState<any[]>([]);
   const [tecnicoSelecionado, setTecnicoSelecionado] = useState<any | null>(null);
+  const [pagamentoSelecionado, setPagamentoSelecionado] = useState<PagamentoSelecionado | null>(null);
+  const [valorAdiantamento, setValorAdiantamento] = useState("");
+  const [savingPagamento, setSavingPagamento] = useState(false);
+  const [atualizacaoPagamentos, setAtualizacaoPagamentos] = useState(0);
+  const pagamentoRequestIds = useRef(new Map<string, string>());
   const [topClientes, setTopClientes] = useState<any[]>([]);
   const [painelFinanceiro, setPainelFinanceiro] = useState<any[]>([]);
   const [evolucaoMensal, setEvolucaoMensal] = useState<any[]>([]);
@@ -279,7 +309,7 @@ function GestorDashboard() {
         const lastDayPrev = new Date(prevMonthYear, prevMonthMonth, 0).getDate();
         const endOfPrevMonth = `${prevMonthStr}-${String(lastDayPrev).padStart(2, "0")}`;
 
-        const [pendentesRes, osMesRes, osPrevMesRes] = await Promise.all([
+        const [pendentesRes, osMesRes, osPrevMesRes, pagamentosRes] = await Promise.all([
           supabase
             .from("ordens_servico")
             .select("id", { count: "exact" })
@@ -293,16 +323,23 @@ function GestorDashboard() {
             .from("ordens_servico")
             .select("id, status, valor, custo_viagem, km_viagem, despesas, data_agendamento, clientes(ultimo_mes_pago)")
             .gte("data_agendamento", startOfPrevMonth)
-            .lte("data_agendamento", endOfPrevMonth)
+            .lte("data_agendamento", endOfPrevMonth),
+          supabase
+            .from("pagamentos_tecnicos")
+            .select("id, tecnico_id, tecnico_nome, mes_referencia, tipo, valor, created_at")
+            .eq("mes_referencia", mesSelecionado)
+            .order("created_at", { ascending: false })
         ]);
 
         if (pendentesRes.error) throw pendentesRes.error;
         if (osMesRes.error) throw osMesRes.error;
         if (osPrevMesRes.error) throw osPrevMesRes.error;
+        if (pagamentosRes.error) throw pagamentosRes.error;
 
         const pendentes_globais = pendentesRes.count || 0;
         const allOs = osMesRes.data || [];
         const allOsPrev = osPrevMesRes.data || [];
+        const pagamentos = (pagamentosRes.data ?? []) as PagamentoTecnico[];
 
         // Current Month Metrics
         const os_mes = allOs.length;
@@ -468,12 +505,24 @@ function GestorDashboard() {
           }
         });
         // Pós-processamento: valor fixo mensal + bônus por chamados excedentes
-        tecnicosMap.forEach((stat) => {
+        const pagamentosPorTecnico = new Map<string, PagamentoTecnico[]>();
+        for (const pagamento of pagamentos) {
+          if (!pagamento.tecnico_id) continue;
+          const pagamentosDoTecnico = pagamentosPorTecnico.get(pagamento.tecnico_id) ?? [];
+          pagamentosDoTecnico.push(pagamento);
+          pagamentosPorTecnico.set(pagamento.tecnico_id, pagamentosDoTecnico);
+        }
+
+        tecnicosMap.forEach((stat, tecnicoId) => {
           if (stat.valor_fixo > 0) stat.valor_a_pagar += stat.valor_fixo;
           if (stat.meta_chamados > 0 && stat.bonus_excedente > 0 && stat.os_finalizadas > stat.meta_chamados) {
             stat.bonus_total = (stat.os_finalizadas - stat.meta_chamados) * stat.bonus_excedente;
             stat.valor_a_pagar += stat.bonus_total;
           }
+          stat.valor_bruto_a_pagar = stat.valor_a_pagar;
+          stat.pagamentos = pagamentosPorTecnico.get(tecnicoId) ?? [];
+          stat.valor_pago = stat.pagamentos.reduce((total: number, pagamento: PagamentoTecnico) => total + Number(pagamento.valor), 0);
+          stat.valor_a_pagar = Math.max(0, stat.valor_bruto_a_pagar - stat.valor_pago);
         });
         const rankingArr = Array.from(tecnicosMap.values()).sort((a, b) => b.faturamento_gerado - a.faturamento_gerado);
         setRanking(rankingArr);
@@ -524,7 +573,94 @@ function GestorDashboard() {
       }
     }
     loadData();
-  }, [mesSelecionado]);
+  }, [mesSelecionado, atualizacaoPagamentos]);
+
+  const registrarPagamento = (tipo: PagamentoTecnico["tipo"]) => {
+    if (!pagamentoSelecionado) return;
+    const saldoCentavos = Math.round(Number(pagamentoSelecionado.valor_a_pagar) * 100);
+    const valorCentavos =
+      tipo === "integral" ? saldoCentavos : Math.round(Number(valorAdiantamento) * 100);
+
+    if (!Number.isFinite(valorCentavos) || valorCentavos <= 0) {
+      toast.error("Informe um valor de adiantamento maior que zero.");
+      return;
+    }
+    if (valorCentavos > saldoCentavos) {
+      toast.error("O adiantamento não pode ser maior que o saldo pendente.");
+      return;
+    }
+
+    const operationKey = `${pagamentoSelecionado.mes_referencia}:${pagamentoSelecionado.tecnico_id}:${tipo}:${valorCentavos}`;
+    const idempotencyKey = pagamentoRequestIds.current.get(operationKey) ?? crypto.randomUUID();
+    pagamentoRequestIds.current.set(operationKey, idempotencyKey);
+
+    void withSingleFlight(
+      `pagamentos-tecnicos:${operationKey}`,
+      async () => {
+        setSavingPagamento(true);
+        try {
+          const { data: insertedPayment, error } = await supabase.from("pagamentos_tecnicos").insert({
+            tecnico_id: pagamentoSelecionado.tecnico_id,
+            tecnico_nome: pagamentoSelecionado.tecnico_nome,
+            mes_referencia: pagamentoSelecionado.mes_referencia,
+            tipo,
+            valor: valorCentavos / 100,
+            idempotency_key: idempotencyKey,
+          }).select("id, tecnico_id, tecnico_nome, mes_referencia, tipo, valor, created_at").single();
+          let data = insertedPayment;
+          if (error) {
+            if (error.code !== "23505") throw error;
+            const { data: existingPayment, error: lookupError } = await supabase
+              .from("pagamentos_tecnicos")
+              .select("id, tecnico_id, tecnico_nome, mes_referencia, tipo, valor, created_at")
+              .eq("idempotency_key", idempotencyKey)
+              .maybeSingle();
+            if (lookupError) throw lookupError;
+            if (!existingPayment) throw error;
+            data = existingPayment;
+          }
+          if (!data) throw new Error("O pagamento não foi retornado pelo servidor.");
+
+          const novoPagamento = data as PagamentoTecnico;
+          setRanking((current) =>
+            current.map((tecnico) =>
+              tecnico.tecnico_id === pagamentoSelecionado.tecnico_id
+                ? (tecnico.pagamentos ?? []).some((pagamento: PagamentoTecnico) => pagamento.id === novoPagamento.id)
+                  ? tecnico
+                  : {
+                      ...tecnico,
+                      valor_pago: Number(tecnico.valor_pago ?? 0) + novoPagamento.valor,
+                      valor_a_pagar: Math.max(
+                        0,
+                        Number(tecnico.valor_a_pagar ?? 0) - novoPagamento.valor,
+                      ),
+                      pagamentos: [novoPagamento, ...(tecnico.pagamentos ?? [])],
+                    }
+                : tecnico,
+            ),
+          );
+          pagamentoRequestIds.current.delete(operationKey);
+          toast.success(
+            tipo === "integral"
+              ? "Saldo do técnico quitado."
+              : "Adiantamento do técnico registrado.",
+          );
+          setPagamentoSelecionado(null);
+          setValorAdiantamento("");
+          setAtualizacaoPagamentos((value) => value + 1);
+        } catch (error) {
+          toast.error(
+            error instanceof Error ? error.message : "Não foi possível registrar o pagamento.",
+          );
+          setPagamentoSelecionado(null);
+          setValorAdiantamento("");
+          setAtualizacaoPagamentos((value) => value + 1);
+        } finally {
+          setSavingPagamento(false);
+        }
+      },
+    );
+  };
 
   const chartData = resumo
     ? [
@@ -823,13 +959,14 @@ function GestorDashboard() {
                       <th className="px-4 py-3 rounded-tl-lg font-medium">Técnico</th>
                       <th className="px-4 py-3 font-medium text-center">OS Finalizadas</th>
                       <th className="px-4 py-3 font-medium text-right">Faturamento Gerado</th>
-                      <th className="px-4 py-3 rounded-tr-lg font-medium text-right text-emerald-600 dark:text-emerald-400">Valor a Pagar (Técnico)</th>
+                      <th className="px-4 py-3 font-medium text-right text-emerald-600 dark:text-emerald-400">Saldo a Pagar</th>
+                      <th className="px-4 py-3 rounded-tr-lg font-medium text-right">Pagamento</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border/60">
                     {ranking.map((t, idx) => (
                       <tr 
-                        key={idx} 
+                        key={t.tecnico_id ?? idx}
                         className="hover:bg-muted/20 transition-colors cursor-pointer"
                         onClick={() => setTecnicoSelecionado(t)}
                       >
@@ -852,7 +989,31 @@ function GestorDashboard() {
                           R$ {Number(t.faturamento_gerado ?? 0).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
                         </td>
                         <td className="px-4 py-3 text-right font-bold text-emerald-600 dark:text-emerald-400">
-                          R$ {Number(t.valor_a_pagar ?? 0).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                          <div>R$ {Number(t.valor_a_pagar ?? 0).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</div>
+                          {Number(t.valor_pago) > 0 && (
+                            <div className="mt-1 text-[10px] font-normal text-muted-foreground">
+                              Pago: R$ {Number(t.valor_pago).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                            </div>
+                          )}
+                        </td>
+                        <td className="px-4 py-3 text-right" onClick={(event) => event.stopPropagation()}>
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant={Number(t.valor_a_pagar) > 0 ? "outline" : "secondary"}
+                            disabled={Number(t.valor_a_pagar) <= 0 || (savingPagamento && pagamentoSelecionado?.tecnico_id === t.tecnico_id)}
+                            onClick={() => {
+                              setPagamentoSelecionado({ ...t, mes_referencia: mesSelecionado });
+                              setValorAdiantamento("");
+                            }}
+                          >
+                            {savingPagamento && pagamentoSelecionado?.tecnico_id === t.tecnico_id ? (
+                              <Loader2 className="mr-1 h-4 w-4 animate-spin" />
+                            ) : Number(t.valor_a_pagar) <= 0 ? (
+                              <Check className="mr-1 h-4 w-4" />
+                            ) : null}
+                            {Number(t.valor_a_pagar) <= 0 ? "Quitado" : "Registrar"}
+                          </Button>
                         </td>
                       </tr>
                     ))}
@@ -1036,6 +1197,105 @@ function GestorDashboard() {
             tecnicoNome={tecnicoSelecionado.tecnico_nome} 
             defaultMes={mesSelecionado}
           />
+        )}
+      </Dialog>
+
+      <Dialog
+        open={!!pagamentoSelecionado}
+        onOpenChange={(open) => {
+          if (!open && !savingPagamento) {
+            setPagamentoSelecionado(null);
+            setValorAdiantamento("");
+          }
+        }}
+      >
+        {pagamentoSelecionado && (
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>Pagamento do técnico</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div className="rounded-lg border bg-muted/30 p-3 text-sm">
+                <div className="font-medium">{pagamentoSelecionado.tecnico_nome}</div>
+                <div className="text-muted-foreground">Referência: {pagamentoSelecionado.mes_referencia}</div>
+                <div className="mt-2 flex justify-between">
+                  <span>Total devido</span>
+                  <span>R$ {Number(pagamentoSelecionado.valor_bruto_a_pagar ?? 0).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Já pago</span>
+                  <span>R$ {Number(pagamentoSelecionado.valor_pago ?? 0).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</span>
+                </div>
+                <div className="flex justify-between font-semibold text-emerald-600">
+                  <span>Saldo pendente</span>
+                  <span>R$ {Number(pagamentoSelecionado.valor_a_pagar ?? 0).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</span>
+                </div>
+              </div>
+
+              <Button
+                type="button"
+                className="w-full"
+                disabled={savingPagamento || Number(pagamentoSelecionado.valor_a_pagar) <= 0}
+                onClick={() => registrarPagamento("integral")}
+              >
+                {savingPagamento ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Check className="mr-2 h-4 w-4" />}
+                Pagar saldo total
+              </Button>
+
+              <div className="space-y-2">
+                <Label htmlFor="valor-adiantamento-tecnico">Valor do adiantamento</Label>
+                <Input
+                  id="valor-adiantamento-tecnico"
+                  type="number"
+                  min="0.01"
+                  max={Number(pagamentoSelecionado.valor_a_pagar)}
+                  step="0.01"
+                  value={valorAdiantamento}
+                  onChange={(event) => setValorAdiantamento(event.target.value)}
+                  placeholder="0,00"
+                  disabled={savingPagamento}
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full"
+                  disabled={savingPagamento || !valorAdiantamento}
+                  onClick={() => registrarPagamento("adiantamento")}
+                >
+                  Registrar adiantamento
+                </Button>
+              </div>
+
+              {pagamentoSelecionado.pagamentos?.length > 0 && (
+                <div className="space-y-2 border-t pt-3">
+                  <h3 className="text-sm font-semibold">Histórico deste mês</h3>
+                  <ul className="max-h-32 space-y-1 overflow-y-auto text-xs text-muted-foreground">
+                    {pagamentoSelecionado.pagamentos.map((pagamento: PagamentoTecnico) => (
+                      <li key={pagamento.id} className="flex justify-between gap-3">
+                        <span>
+                          {pagamento.tipo === "integral" ? "Pagamento integral" : "Adiantamento"} ·{" "}
+                          {new Date(pagamento.created_at).toLocaleDateString("pt-BR")}
+                        </span>
+                        <span className="shrink-0">
+                          R$ {Number(pagamento.valor).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="ghost"
+                disabled={savingPagamento}
+                onClick={() => setPagamentoSelecionado(null)}
+              >
+                Fechar
+              </Button>
+            </DialogFooter>
+          </DialogContent>
         )}
       </Dialog>
     </div>

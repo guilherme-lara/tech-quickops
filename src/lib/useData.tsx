@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { compressImage } from "@/lib/image-compressor";
 import { dispararProcessamentoEmails } from "@/lib/email-trigger";
+import { withSingleFlight } from "@/lib/single-flight";
 
 // ============================================================
 // Types — UI-shape (kept stable so existing components compile)
@@ -298,7 +299,12 @@ interface Store {
   setOsSortField: (v: "data" | "cliente" | "valor") => void;
   osSortDirection: "asc" | "desc";
   setOsSortDirection: (v: "asc" | "desc") => void;
-  addOS: (o: Omit<OS, "id" | "numero" | "criadaEm" | "rat"> & { equipamentosIds?: string[] }) => Promise<void>;
+  addOS: (
+    o: Omit<OS, "id" | "numero" | "criadaEm" | "rat"> & {
+      equipamentosIds?: string[];
+      idempotencyKey?: string;
+    },
+  ) => Promise<void>;
   updateOS: (id: string, patch: Partial<OS>) => Promise<void>;
   updateRAT: (id: string, patch: Partial<RAT>) => void;
 
@@ -1060,9 +1066,15 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   });
 
   const addOSM = useMutation({
-    mutationFn: async (o: Omit<OS, "id" | "numero" | "criadaEm" | "rat"> & { equipamentosIds?: string[] }) => {
+    mutationFn: async (
+      o: Omit<OS, "id" | "numero" | "criadaEm" | "rat"> & {
+        equipamentosIds?: string[];
+        idempotencyKey?: string;
+      },
+    ) => {
       const { data, error } = await (supabase.from("ordens_servico") as any).insert({
         empresa_id: empresaId!,
+        idempotency_key: o.idempotencyKey ?? null,
         cliente_id: o.clienteId,
         equipamentos_cliente_ids: o.equipamentosIds || [],
         tecnico_id: o.tecnicoId || null,
@@ -1082,21 +1094,34 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         valor_adiantado: o.valor_adiantado ?? 0,
         descricao_adiantamento: o.descricao_adiantamento ?? null,
       }).select("id").single();
-      if (error) throw error;
+      let osId = data?.id as string | undefined;
+      let wasCreated = !error;
+      if (error) {
+        if (error.code !== "23505" || !o.idempotencyKey) throw error;
+        const { data: existingOS, error: existingError } = await supabase
+          .from("ordens_servico")
+          .select("id")
+          .eq("idempotency_key", o.idempotencyKey)
+          .maybeSingle();
+        if (existingError) throw existingError;
+        if (!existingOS) throw error;
+        osId = existingOS.id;
+        wasCreated = false;
+      }
       
-      if (o.equipamentosIds && o.equipamentosIds.length > 0 && data?.id) {
+      if (o.equipamentosIds && o.equipamentosIds.length > 0 && osId) {
         await (supabase.from("equipamentos_clientes") as any).update({
           status: "em_transito",
-          os_id: data.id,
+          os_id: osId,
         }).in("id", o.equipamentosIds);
       }
+      return wasCreated;
     },
-    onSuccess: () => {
+    onSuccess: (wasCreated) => {
       qc.invalidateQueries({ queryKey: ["ordens_servico"] });
       qc.invalidateQueries({ queryKey: ["equipamentos_clientes"] });
-      dispararProcessamentoEmails();
+      if (wasCreated) dispararProcessamentoEmails();
     },
-    onError: (e: Error) => toast.error(e.message),
   });
 
   const updateOSM = useMutation({
@@ -1683,14 +1708,18 @@ function isValidCpfCnpj(val: string) {
       setClientesPage(p);
     },
     addCliente: async (c) => {
-      const data = await addClienteM.mutateAsync(c);
+      const data = await withSingleFlight(`clientes:create:${empresaId}:${JSON.stringify(c)}`, () =>
+        addClienteM.mutateAsync(c),
+      );
       return data.id as string;
     },
     updateCliente: async (id, patch) => {
-      await updateClienteM.mutateAsync({ id, patch });
+      await withSingleFlight(`clientes:update:${id}:${JSON.stringify(patch)}`, () =>
+        updateClienteM.mutateAsync({ id, patch }),
+      );
     },
     deleteCliente: async (id) => {
-      await deleteClienteM.mutateAsync(id);
+      await withSingleFlight(`clientes:delete:${id}`, () => deleteClienteM.mutateAsync(id));
     },
     tecnicos: tecnicosQ.data ?? [],
     allTecnicos: allTecnicosQ.data ?? [],
@@ -1710,13 +1739,18 @@ function isValidCpfCnpj(val: string) {
       setTecnicosPage(p);
     },
     addTecnico: async (t) => {
-      return await addTecnicoM.mutateAsync(t);
+      return await withSingleFlight(
+        `tecnicos:create:${empresaId}:${JSON.stringify(t)}`,
+        () => addTecnicoM.mutateAsync(t),
+      );
     },
     updateTecnico: async (id, patch) => {
-      await updateTecnicoM.mutateAsync({ id, patch });
+      await withSingleFlight(`tecnicos:update:${id}:${JSON.stringify(patch)}`, () =>
+        updateTecnicoM.mutateAsync({ id, patch }),
+      );
     },
     deleteTecnico: async (id) => {
-      await deleteTecnicoM.mutateAsync(id);
+      await withSingleFlight(`tecnicos:delete:${id}`, () => deleteTecnicoM.mutateAsync(id));
     },
     itens: itensQ.data ?? [],
     loadingItens: itensQ.isLoading,
@@ -1740,32 +1774,46 @@ function isValidCpfCnpj(val: string) {
       setEstoqueTipo(t);
     },
     addItem: async (i) => {
-      await addItemM.mutateAsync(i);
+      await withSingleFlight(`itens:create:${empresaId}:${JSON.stringify(i)}`, () =>
+        addItemM.mutateAsync(i),
+      );
     },
     updateItem: async (id, patch) => {
-      await updateItemM.mutateAsync({ id, patch });
+      await withSingleFlight(`itens:update:${id}:${JSON.stringify(patch)}`, () =>
+        updateItemM.mutateAsync({ id, patch }),
+      );
     },
     deleteItem: async (id) => {
-      await deleteItemM.mutateAsync(id);
+      await withSingleFlight(`itens:delete:${id}`, () => deleteItemM.mutateAsync(id));
     },
     equipamentos: equipamentosQ.data ?? [],
     loadingEquipamentos: equipamentosQ.isLoading,
     addEquipamento: async (e) => {
-      await addEquipamentoM.mutateAsync(e);
+      await withSingleFlight(`equipamentos:create:${empresaId}:${JSON.stringify(e)}`, () =>
+        addEquipamentoM.mutateAsync(e),
+      );
     },
     updateEquipamento: async (id, patch) => {
-      await updateEquipamentoM.mutateAsync({ id, patch });
+      await withSingleFlight(`equipamentos:update:${id}:${JSON.stringify(patch)}`, () =>
+        updateEquipamentoM.mutateAsync({ id, patch }),
+      );
     },
     deleteEquipamento: async (id) => {
-      await deleteEquipamentoM.mutateAsync(id);
+      await withSingleFlight(`equipamentos:delete:${id}`, () =>
+        deleteEquipamentoM.mutateAsync(id),
+      );
     },
     tecnicoFerramentas: tecnicoFerramentasQ.data ?? [],
     loadingTecnicoFerramentas: tecnicoFerramentasQ.isLoading,
     addTecnicoFerramenta: async (f) => {
-      await addTecnicoFerramentaM.mutateAsync(f);
+      await withSingleFlight(`tecnico-ferramentas:create:${empresaId}:${JSON.stringify(f)}`, () =>
+        addTecnicoFerramentaM.mutateAsync(f),
+      );
     },
     deleteTecnicoFerramenta: async (id) => {
-      await deleteTecnicoFerramentaM.mutateAsync(id);
+      await withSingleFlight(`tecnico-ferramentas:delete:${id}`, () =>
+        deleteTecnicoFerramentaM.mutateAsync(id),
+      );
     },
     os: osQ.data ?? [],
     loadingOS: osQ.isLoading,
@@ -1807,10 +1855,15 @@ function isValidCpfCnpj(val: string) {
     osSortDirection,
     setOsSortDirection,
     addOS: async (o) => {
-      await addOSM.mutateAsync(o);
+      await withSingleFlight(
+        `ordens-servico:create:${empresaId}:${o.idempotencyKey ?? JSON.stringify(o)}`,
+        () => addOSM.mutateAsync(o),
+      );
     },
     updateOS: async (id, patch) => {
-      await updateOSM.mutateAsync({ id, patch });
+      await withSingleFlight(`ordens-servico:update:${id}:${JSON.stringify(patch)}`, () =>
+        updateOSM.mutateAsync({ id, patch }),
+      );
     },
     updateRAT: (id, patch) =>
       setRatLocal((prev) => ({

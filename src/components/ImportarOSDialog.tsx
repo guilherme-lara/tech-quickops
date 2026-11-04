@@ -98,8 +98,10 @@ export function ImportarOSDialog({ trigger }: Props) {
     null,
   );
   const inputRef = useRef<HTMLInputElement>(null);
+  const importInProgress = useRef(false);
 
   const reset = () => {
+    importInProgress.current = false;
     setStep("upload");
     setProgress(0);
     setProgressLabel("");
@@ -163,7 +165,8 @@ export function ImportarOSDialog({ trigger }: Props) {
   };
 
   const processImport = async (f: File) => {
-    if (!profile) return;
+    if (!profile || importInProgress.current) return;
+    importInProgress.current = true;
     setStep("importing");
     setProgress(5);
     setProgressLabel("Lendo arquivo...");
@@ -366,6 +369,7 @@ export function ImportarOSDialog({ trigger }: Props) {
 
     } catch (e: any) {
       toast.error(e.message ?? "Falha ao importar planilha");
+      importInProgress.current = false;
       setStep("upload");
       setProgress(0);
     }
@@ -417,6 +421,7 @@ export function ImportarOSDialog({ trigger }: Props) {
     <Dialog
       open={open}
       onOpenChange={(o) => {
+        if (!o && step === "importing") return;
         setOpen(o);
         if (!o) reset();
       }}

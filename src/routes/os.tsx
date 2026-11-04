@@ -43,6 +43,7 @@ import {
   ArrowUp,
   ArrowDown,
   CheckCircle,
+  Loader2,
   MapPin,
   Calendar,
   FileText,
@@ -60,6 +61,7 @@ import { MesAnoFilter } from "@/components/MesAnoFilter";
 import { FiltrosBarGlobal } from "@/components/FiltrosBarGlobal";
 import { SearchCombobox } from "@/components/SearchCombobox";
 import { PlanLimits, PlanType } from "@/lib/planLimits";
+import { withSingleFlight } from "@/lib/single-flight";
 
 type AnalistaOpt = { id: string; nome: string; whatsapp: string | null };
 
@@ -167,6 +169,9 @@ function OSPage() {
   const totalPages = Math.max(1, Math.ceil(osTotal / osPageSize));
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<OS | null>(null);
+  const [creatingOS, setCreatingOS] = useState(false);
+  const [deletingOSIds, setDeletingOSIds] = useState<Set<string>>(() => new Set());
+  const createOSRequestId = useRef<string | null>(null);
 
   useEffect(() => {
     const searchParams = new URLSearchParams(window.location.search);
@@ -345,22 +350,33 @@ function OSPage() {
     scrollRef.current.scrollLeft = scrollLeft - walk;
   };
 
-  const handleDeleteOS = async (id: string) => {
-    const osItem = os.find((o) => o.id === id);
-    if (!confirm(`Tem certeza que deseja excluir a OS ${osItem?.numero || ""}?`)) return;
-    try {
-      const { error } = await supabase.from("ordens_servico").delete().eq("id", id);
-      if (error) throw error;
-      await registrarLog("os_excluida", `OS "${osItem?.titulo || osItem?.numero || id}" excluída por ${nomeUsuario}`);
-      toast.success("OS excluída com sucesso");
-      queryClient.invalidateQueries({ queryKey: ["ordens_servico"] });
-      dispararProcessamentoEmails();
-    } catch (e: any) {
-      toast.error(e?.message ?? "Erro ao excluir OS");
-    }
-  };
+  const handleDeleteOS = (id: string) =>
+    withSingleFlight(`ordens-servico:delete:${id}`, async () => {
+      setDeletingOSIds((current) => new Set(current).add(id));
+      const osItem = os.find((o) => o.id === id);
+      try {
+        if (!confirm(`Tem certeza que deseja excluir a OS ${osItem?.numero || ""}?`)) return;
+        const { error } = await supabase.from("ordens_servico").delete().eq("id", id);
+        if (error) throw error;
+        await registrarLog("os_excluida", `OS "${osItem?.titulo || osItem?.numero || id}" excluída por ${nomeUsuario}`);
+        toast.success("OS excluída com sucesso");
+        queryClient.invalidateQueries({ queryKey: ["ordens_servico"] });
+        dispararProcessamentoEmails();
+      } catch (e: any) {
+        toast.error(e?.message ?? "Erro ao excluir OS");
+      } finally {
+        setDeletingOSIds((current) => {
+          const next = new Set(current);
+          next.delete(id);
+          return next;
+        });
+      }
+    });
 
-  const submit = async () => {
+  const submit = () =>
+    withSingleFlight(`ordens-servico:create:${empresaId}`, async () => {
+      setCreatingOS(true);
+      try {
     if (!form.titulo || !form.clienteId || !form.tecnicoId) {
       toast.error("Preencha todos os campos obrigatórios");
       return;
@@ -386,6 +402,7 @@ function OSPage() {
       titulo: form.titulo,
       clienteId: form.clienteId,
       tecnicoId: form.tecnicoId,
+      idempotencyKey: (createOSRequestId.current ??= crypto.randomUUID()),
       analistaId: form.analistaId || undefined,
       valor: Number(form.valor) || 0,
       custo_viagem: Number(form.custo_viagem) || 0,
@@ -411,6 +428,7 @@ function OSPage() {
     await registrarLog("os_criada", logMsg);
 
     toast.success("OS criada com sucesso");
+    createOSRequestId.current = null;
     setOpen(false);
     setForm({
       titulo: "",
@@ -432,7 +450,12 @@ function OSPage() {
     setNovosDadosExtras({});
     setDespesasSelecionadas([]);
     setDespesaValor("");
-  };
+      } catch (e: any) {
+        toast.error(e?.message ?? "Erro ao criar OS");
+      } finally {
+        setCreatingOS(false);
+      }
+    });
 
   const adicionarCampoPersonalizado = () => {
     if (!novoCampoNome.trim()) return;
@@ -479,7 +502,7 @@ function OSPage() {
               </Button>
             }
           />
-          <Dialog open={open} onOpenChange={setOpen}>
+          <Dialog open={open} onOpenChange={(nextOpen) => !creatingOS && setOpen(nextOpen)}>
             <DialogTrigger asChild>
               <Button className="rounded-xl h-10 bg-gradient-to-r from-primary to-violet shadow-[var(--shadow-glow)] shrink-0">
                 <Plus className="w-4 h-4" /> Nova OS
@@ -954,7 +977,10 @@ function OSPage() {
                 <Button variant="outline" onClick={() => setOpen(false)}>
                   Cancelar
                 </Button>
-                <Button onClick={submit}>Criar OS</Button>
+                <Button onClick={submit} disabled={creatingOS}>
+                  {creatingOS ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Plus className="w-4 h-4 mr-2" />}
+                  {creatingOS ? "Criando..." : "Criar OS"}
+                </Button>
               </DialogFooter>
             </DialogContent>
           </Dialog>
@@ -1392,12 +1418,17 @@ function OSPage() {
                                 variant="ghost"
                                 size="icon"
                                 className="h-8 w-8"
+                                disabled={deletingOSIds.has(o.id)}
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   handleDeleteOS(o.id);
                                 }}
                               >
-                                <Trash className="w-4 h-4 text-red-500" />
+                                {deletingOSIds.has(o.id) ? (
+                                  <Loader2 className="w-4 h-4 animate-spin" />
+                                ) : (
+                                  <Trash className="w-4 h-4 text-red-500" />
+                                )}
                               </Button>
                             </div>
                           </td>

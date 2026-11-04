@@ -164,6 +164,7 @@ import { maskPhoneBR, formatComissao } from "@/lib/utils";
 import { useAuth } from "@/lib/auth-context";
 import { PlanLimits, PlanType } from "@/lib/planLimits";
 import { logActivity } from "@/lib/logger";
+import { withSingleFlight } from "@/lib/single-flight";
 
 const PERFIS_TECNICO = ["Técnico de Campo", "Instalador", "Suporte", "Manutenção"];
 
@@ -439,7 +440,8 @@ function EquipePage() {
 
   const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
-  const submit = async () => {
+  const submit = () =>
+    withSingleFlight(`tecnicos:form-save:${form.id || empresaId}`, async () => {
     if (!form.nome.trim()) return toast.error("Informe o nome do técnico");
     if (!form.email_notificacoes.trim())
       return toast.error("Informe o e-mail do técnico (obrigatório para envio de notificações)");
@@ -563,7 +565,7 @@ function EquipePage() {
     } finally {
       setSaving(false);
     }
-  };
+    });
 
   return (
     <GestorLayout>

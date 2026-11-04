@@ -15,6 +15,7 @@ import { toast } from "sonner";
 import { compressImage } from "@/lib/image-compressor";
 import { useStore } from "@/lib/useData";
 import { useConfirm } from "@/components/ConfirmDialogProvider";
+import { withSingleFlight } from "@/lib/single-flight";
 
 interface RatArquivo {
   id: string;
@@ -47,7 +48,10 @@ export function RatGallery({ osId, trigger }: { osId: string; trigger?: React.Re
     },
   });
 
-  const uploadFile = async (file: File) => {
+  const uploadFile = (file: File) =>
+    withSingleFlight(
+      `rat-upload:${osId}:${file.name}:${file.size}:${file.lastModified}`,
+      async () => {
     if (!user) return;
     setUploading(true);
     try {
@@ -78,7 +82,7 @@ export function RatGallery({ osId, trigger }: { osId: string; trigger?: React.Re
     } finally {
       setUploading(false);
     }
-  };
+    });
 
   const deleteM = useMutation({
     mutationFn: async (arq: RatArquivo) => {
@@ -202,12 +206,15 @@ export function RatGallery({ osId, trigger }: { osId: string; trigger?: React.Re
                           variant="ghost"
                           size="icon"
                           className="shrink-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10 opacity-0 group-hover:opacity-100 transition-opacity"
-                          onClick={async () => {
-                            if (await confirm({ title: "Excluir Arquivo", description: "Excluir este arquivo?", destructive: true })) {
-                              deleteM.mutate(arq);
-                            }
-                          }}
-                        >
+                                          disabled={deleteM.isPending}
+                                          onClick={async () => {
+                                            await withSingleFlight(`rat-delete:${arq.id}`, async () => {
+                                              if (await confirm({ title: "Excluir Arquivo", description: "Excluir este arquivo?", destructive: true })) {
+                                                await deleteM.mutateAsync(arq);
+                                              }
+                                            });
+                                          }}
+                                        >
                           <Trash2 className="w-4 h-4" />
                         </Button>
                       </div>

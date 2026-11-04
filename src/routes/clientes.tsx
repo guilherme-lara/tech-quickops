@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useConfirm } from "@/components/ConfirmDialogProvider";
+import { withSingleFlight } from "@/lib/single-flight";
 import {
   Dialog,
   DialogContent,
@@ -118,6 +119,7 @@ function ClientesPage() {
   const [uploadingRat, setUploadingRat] = useState(false);
   const [novoDiaPagamento, setNovoDiaPagamento] = useState("");
   const [viewMode, setViewMode] = useState<"list" | "card">("list");
+  const [savingCliente, setSavingCliente] = useState(false);
 
   const totalClientesPages = Math.max(1, Math.ceil(clientesTotal / PAGE_SIZE));
 
@@ -208,14 +210,15 @@ function ClientesPage() {
   });
 
   const statusMutation = useMutation({
-    mutationFn: async ({ id, ativo }: { id: string; ativo: boolean }) => {
+    mutationFn: ({ id, ativo }: { id: string; ativo: boolean }) =>
+      withSingleFlight(`clientes:status:${id}:${ativo}`, async () => {
       const { error } = await (supabase.rpc as any)("definir_status_cliente", {
         p_cliente_id: id,
         p_ativo: ativo,
       });
       if (error) throw error;
       return ativo;
-    },
+      }),
     onSuccess: (ativo) => {
       toast.success(ativo ? "Cliente reativado com sucesso" : "Cliente inativado com sucesso");
       setStatusCliente(null);
@@ -226,10 +229,11 @@ function ClientesPage() {
   });
 
   const removeMutation = useMutation({
-    mutationFn: async (id: string) => {
+    mutationFn: (id: string) =>
+      withSingleFlight(`clientes:remove:${id}`, async () => {
       const { error } = await (supabase.rpc as any)("remover_cliente", { p_cliente_id: id });
       if (error) throw error;
-    },
+      }),
     onSuccess: () => {
       toast.success("Cliente removido definitivamente");
       setStatusCliente(null);
@@ -285,7 +289,8 @@ function ClientesPage() {
     }
   };
 
-  const submit = async () => {
+  const submit = () =>
+    withSingleFlight(`clientes:save:${form.id || profile?.empresa_id}`, async () => {
     if (!form.nome) {
       return toast.error("Nome fantasia é obrigatório.");
     }
@@ -294,6 +299,7 @@ function ClientesPage() {
       if (erro) return toast.error(erro);
     }
 
+    setSavingCliente(true);
     try {
       const payload = {
         ...form,
@@ -344,8 +350,10 @@ function ClientesPage() {
       setAnalistas([]);
     } catch (e: any) {
       toast.error(e.message || "Erro ao salvar cliente");
+    } finally {
+      setSavingCliente(false);
     }
-  };
+    });
 
   const handleUploadRat = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -666,7 +674,9 @@ function ClientesPage() {
                 <Button variant="outline" onClick={() => setOpen(false)}>
                   Cancelar
                 </Button>
-                <Button onClick={submit}>Salvar</Button>
+                <Button onClick={submit} disabled={savingCliente}>
+                  {savingCliente ? "Salvando..." : "Salvar"}
+                </Button>
               </DialogFooter>
             </DialogContent>
           </Dialog>

@@ -529,8 +529,8 @@ function ItemDialog({
             <div><Label>Valor unit. (R$)</Label><Input type="number" step="0.01" {...register("valor_unitario")} /></div>
           </div>
           <DialogFooter>
-            <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>Cancelar</Button>
-            <Button type="submit" disabled={isSubmitting}>Salvar</Button>
+            <Button type="button" variant="ghost" onClick={() => onOpenChange(false)} disabled={isSubmitting}>Cancelar</Button>
+            <Button type="submit" disabled={isSubmitting}>{isSubmitting ? "Salvando..." : "Salvar"}</Button>
           </DialogFooter>
         </form>
       </DialogContent>
@@ -540,7 +540,7 @@ function ItemDialog({
 
 function VincularDialog({ open, onOpenChange, item }: { open: boolean; onOpenChange: (v: boolean) => void; item: Item | null }) {
   const { tecnicos, tecnicoFerramentas, addTecnicoFerramenta } = useStore();
-  const { register, handleSubmit, setValue, watch, reset } = useForm<VincularFormData>({ resolver: zodResolver(vincularSchema) as never });
+  const { register, handleSubmit, setValue, watch, reset, formState: { isSubmitting } } = useForm<VincularFormData>({ resolver: zodResolver(vincularSchema) as never });
   const selectedTecnico = watch("tecnico_id");
 
   useEffect(() => { reset({ tecnico_id: "", quantidade: 1 }); }, [item, reset, open]);
@@ -584,8 +584,8 @@ function VincularDialog({ open, onOpenChange, item }: { open: boolean; onOpenCha
             <Input type="number" min="1" max={quantidadeDisponivel} disabled={quantidadeDisponivel <= 0} {...register("quantidade")} />
           </div>
           <DialogFooter>
-            <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>Cancelar</Button>
-            <Button type="submit" disabled={quantidadeDisponivel <= 0}>Vincular</Button>
+            <Button type="button" variant="ghost" onClick={() => onOpenChange(false)} disabled={isSubmitting}>Cancelar</Button>
+            <Button type="submit" disabled={quantidadeDisponivel <= 0 || isSubmitting}>{isSubmitting ? "Vinculando..." : "Vincular"}</Button>
           </DialogFooter>
         </form>
       </DialogContent>
@@ -595,7 +595,7 @@ function VincularDialog({ open, onOpenChange, item }: { open: boolean; onOpenCha
 
 function EquipamentoDialog({ open, onOpenChange, equipamento }: { open: boolean; onOpenChange: (v: boolean) => void; equipamento: EquipamentoCliente | null }) {
   const { clientes, addEquipamento, updateEquipamento } = useStore();
-  const { register, handleSubmit, reset, setValue, watch } = useForm<EquipamentoFormData>({ resolver: zodResolver(equipamentoSchema) });
+  const { register, handleSubmit, reset, setValue, watch, formState: { isSubmitting } } = useForm<EquipamentoFormData>({ resolver: zodResolver(equipamentoSchema) });
   const cliente_id = watch("cliente_id");
 
   useEffect(() => {
@@ -636,8 +636,8 @@ function EquipamentoDialog({ open, onOpenChange, equipamento }: { open: boolean;
           <div><Label>Patrimônio</Label><Input {...register("patrimonio")} /></div>
           <div><Label>Número de Série</Label><Input {...register("numero_serie")} /></div>
           <DialogFooter>
-            <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>Cancelar</Button>
-            <Button type="submit">Salvar</Button>
+            <Button type="button" variant="ghost" onClick={() => onOpenChange(false)} disabled={isSubmitting}>Cancelar</Button>
+            <Button type="submit" disabled={isSubmitting}>{isSubmitting ? "Salvando..." : "Salvar"}</Button>
           </DialogFooter>
         </form>
       </DialogContent>

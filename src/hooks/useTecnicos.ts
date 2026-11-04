@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Tecnico, TipoComissao, PAGE_SIZE } from "@/lib/useData";
+import { withSingleFlight } from "@/lib/single-flight";
 
 export function useTecnicos(
   empresaId?: string,
@@ -93,7 +94,8 @@ export function useUpdateTecnico() {
   const qc = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ id, patch }: { id: string; patch: Partial<Tecnico> }) => {
+    mutationFn: ({ id, patch }: { id: string; patch: Partial<Tecnico> }) =>
+      withSingleFlight(`tecnicos:update:${id}:${JSON.stringify(patch)}`, async () => {
       const dbPatch: Record<string, any> = {};
       if (patch.nome !== undefined) dbPatch.nome = patch.nome;
       if (patch.perfil !== undefined) dbPatch.perfil = patch.perfil;
@@ -116,7 +118,7 @@ export function useUpdateTecnico() {
         .update(dbPatch as any)
         .eq("id", id);
       if (error) throw error;
-    },
+      }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["tecnicos"] });
       qc.invalidateQueries({ queryKey: ["equipe_tecnicos"] });
@@ -129,10 +131,11 @@ export function useDeleteTecnico() {
   const qc = useQueryClient();
 
   return useMutation({
-    mutationFn: async (id: string) => {
+    mutationFn: (id: string) =>
+      withSingleFlight(`tecnicos:delete:${id}`, async () => {
       const { error } = await supabase.from("tecnicos").delete().eq("id", id);
       if (error) throw error;
-    },
+      }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["tecnicos"] });
     },

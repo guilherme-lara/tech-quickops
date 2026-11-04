@@ -460,6 +460,7 @@ export type Database = {
           equipamentos_cliente_ids: string[] | null
           horario_atendimento: string | null
           id: string
+          idempotency_key: string | null
           km_viagem: number
           lancamentos_adicionais: Json
           numero: string | null
@@ -492,6 +493,7 @@ export type Database = {
           equipamentos_cliente_ids?: string[] | null
           horario_atendimento?: string | null
           id?: string
+          idempotency_key?: string | null
           km_viagem?: number
           lancamentos_adicionais?: Json
           numero?: string | null
@@ -524,6 +526,7 @@ export type Database = {
           equipamentos_cliente_ids?: string[] | null
           horario_atendimento?: string | null
           id?: string
+          idempotency_key?: string | null
           km_viagem?: number
           lancamentos_adicionais?: Json
           numero?: string | null
@@ -692,6 +695,60 @@ export type Database = {
             columns: ["os_id"]
             isOneToOne: false
             referencedRelation: "ordens_servico"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pagamentos_tecnicos: {
+        Row: {
+          created_at: string
+          empresa_id: string
+          id: string
+          idempotency_key: string
+          mes_referencia: string
+          registrado_por: string | null
+          tecnico_id: string | null
+          tecnico_nome: string
+          tipo: string
+          valor: number
+        }
+        Insert: {
+          created_at?: string
+          empresa_id?: string
+          id?: string
+          idempotency_key: string
+          mes_referencia: string
+          registrado_por?: string | null
+          tecnico_id?: string | null
+          tecnico_nome: string
+          tipo: string
+          valor: number
+        }
+        Update: {
+          created_at?: string
+          empresa_id?: string
+          id?: string
+          idempotency_key?: string
+          mes_referencia?: string
+          registrado_por?: string | null
+          tecnico_id?: string | null
+          tecnico_nome?: string
+          tipo?: string
+          valor?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pagamentos_tecnicos_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: false
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pagamentos_tecnicos_tecnico_id_fkey"
+            columns: ["tecnico_id"]
+            isOneToOne: false
+            referencedRelation: "tecnicos"
             referencedColumns: ["id"]
           },
         ]

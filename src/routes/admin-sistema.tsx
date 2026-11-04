@@ -14,6 +14,7 @@ import { useAuth } from "@/lib/auth-context";
 import { PlanLimits, PlanType } from "@/lib/planLimits";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { withSingleFlight } from "@/lib/single-flight";
 
 export const Route = createFileRoute("/admin-sistema")({
   component: AdminSistemaPage,
@@ -96,14 +97,15 @@ function LicencasTable() {
   });
 
   const generateKeyMutation = useMutation({
-    mutationFn: async (empresaId: string) => {
+    mutationFn: async (empresaId: string) =>
+      withSingleFlight(`admin:empresa-key:${empresaId}`, async () => {
       const { data, error } = await supabase.rpc('gerar_chave_licenca_segura', {
         p_empresa_id: empresaId
       });
       
       if (error) throw error;
       return { id: empresaId, key: data };
-    },
+      }),
     onSuccess: async (data) => {
       queryClient.invalidateQueries({ queryKey: ["superadmin-empresas"] });
       toast.success("Nova chave gerada com sucesso!");
@@ -122,14 +124,15 @@ function LicencasTable() {
   });
 
   const toggleStatusMutation = useMutation({
-    mutationFn: async ({ id, newStatus }: { id: string, newStatus: string }) => {
+    mutationFn: async ({ id, newStatus }: { id: string, newStatus: string }) =>
+      withSingleFlight(`admin:empresa-status:${id}:${newStatus}`, async () => {
       const { error } = await supabase
         .from("empresas")
         .update({ status_licenca: newStatus })
         .eq("id", id);
       if (error) throw error;
       return { id, newStatus };
-    },
+      }),
     onSuccess: async (data) => {
       queryClient.invalidateQueries({ queryKey: ["superadmin-empresas"] });
       toast.success(`Empresa ${data.newStatus === 'bloqueado' ? 'bloqueada' : 'desbloqueada'}.`);
@@ -148,14 +151,15 @@ function LicencasTable() {
   });
 
   const changePlanMutation = useMutation({
-    mutationFn: async ({ id, novoPlano }: { id: string, novoPlano: string }) => {
+    mutationFn: async ({ id, novoPlano }: { id: string, novoPlano: string }) =>
+      withSingleFlight(`admin:empresa-plan:${id}:${novoPlano}`, async () => {
       const { error } = await supabase
         .from("empresas")
         .update({ plano: novoPlano })
         .eq("id", id);
       if (error) throw error;
       return { id, novoPlano };
-    },
+      }),
     onSuccess: async (data) => {
       queryClient.invalidateQueries({ queryKey: ["superadmin-empresas"] });
       toast.success(`Plano alterado para ${data.novoPlano.toUpperCase()}.`);

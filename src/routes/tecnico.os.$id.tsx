@@ -16,6 +16,7 @@ import { useAuth } from "@/lib/auth-context";
 import { useConfirm } from "@/components/ConfirmDialogProvider";
 import { invalidateOS } from "@/lib/refresh";
 import { AssinaturaDialog } from "@/components/AssinaturaDialog";
+import { withSingleFlight } from "@/lib/single-flight";
 
 export const Route = createFileRoute("/tecnico/os/$id")({
   component: () => (
@@ -75,7 +76,8 @@ function TecnicoOSDetail() {
 
   const despesasArray = Array.isArray(os?.despesas) ? os.despesas : [];
 
-  const handleUpdateStatus = async (newStatus: string) => {
+  const handleUpdateStatus = (newStatus: string) =>
+    withSingleFlight(`tecnico-os:status:${id}:${newStatus}`, async () => {
     if (newStatus === "concluido_tecnico" && profile?.role === "tecnico") {
       if (!ratArquivos || ratArquivos.length < 4) {
         toast.error("É necessário enviar a RAT e pelo menos 3 fotos evidenciando o serviço para concluir.");
@@ -104,9 +106,10 @@ function TecnicoOSDetail() {
     } finally {
       setIsUpdatingStatus(false);
     }
-  };
+    });
 
-  const handleIniciarDeslocamento = async () => {
+  const handleIniciarDeslocamento = () =>
+    withSingleFlight(`tecnico-os:status:${id}:em_deslocamento`, async () => {
     try {
       setIsUpdatingStatus(true);
       const { error } = await supabase
@@ -128,9 +131,10 @@ function TecnicoOSDetail() {
     } finally {
       setIsUpdatingStatus(false);
     }
-  };
+    });
 
-  const handleConfirmarChegada = async () => {
+  const handleConfirmarChegada = () =>
+    withSingleFlight(`tecnico-os:status:${id}:em_andamento`, async () => {
     try {
       setIsUpdatingStatus(true);
       const patch: Record<string, any> = { status: "em_andamento" };
@@ -150,9 +154,10 @@ function TecnicoOSDetail() {
     } finally {
       setIsUpdatingStatus(false);
     }
-  };
+    });
 
-  const handleAddDespesa = async () => {
+  const handleAddDespesa = () =>
+    withSingleFlight(`tecnico-os:despesa:${id}:${descDespesa}:${valorDespesa}`, async () => {
     if (!descDespesa || !valorDespesa) return toast.error("Preencha descrição e valor.");
     const novoValor = parseFloat(valorDespesa.replace(",", "."));
     if (isNaN(novoValor)) return toast.error("Valor inválido.");
@@ -185,9 +190,10 @@ function TecnicoOSDetail() {
     } finally {
       setIsAddingDespesa(false);
     }
-  };
+    });
 
-  const handleSolicitarEndereco = async () => {
+  const handleSolicitarEndereco = () =>
+    withSingleFlight(`tecnico-os:status:${id}:pendencia`, async () => {
     try {
       setIsUpdatingStatus(true);
       const { error } = await supabase
@@ -207,12 +213,15 @@ function TecnicoOSDetail() {
     } finally {
       setIsUpdatingStatus(false);
     }
-  };
+    });
 
-  const handleFileUpload = (tipo_arquivo: string) => async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = (tipo_arquivo: string) => (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
+    return withSingleFlight(
+      `tecnico-os:upload:${id}:${tipo_arquivo}:${file.name}:${file.size}:${file.lastModified}`,
+      async () => {
     try {
       setIsUploading(true);
       
@@ -249,9 +258,12 @@ function TecnicoOSDetail() {
       setIsUploading(false);
       if (e.target) e.target.value = ''; // Reset input
     }
+      },
+    );
   };
 
-  const handleDeleteArquivo = async (arquivoId: string, arquivoUrl: string) => {
+  const handleDeleteArquivo = (arquivoId: string, arquivoUrl: string) =>
+    withSingleFlight(`tecnico-os:rat-delete:${arquivoId}`, async () => {
     if (!(await confirm({ title: "Excluir Arquivo", description: "Deseja realmente excluir este arquivo?", destructive: true }))) return;
     try {
       const { error: storageError } = await supabase.storage.from('rats').remove([arquivoUrl]);
@@ -265,7 +277,7 @@ function TecnicoOSDetail() {
     } catch (error: any) {
       toast.error("Erro ao excluir arquivo: " + error.message);
     }
-  };
+    });
 
   if (isLoading) {
     return (
