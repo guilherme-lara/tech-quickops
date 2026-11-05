@@ -20,6 +20,7 @@ Este documento descreve os princípios observados e requisitos de manutenção. 
 ## Row Level Security (RLS)
 
 - RLS é necessária para tabelas acessíveis pelo cliente autenticado. Confirmar habilitação e policies para `SELECT`, `INSERT`, `UPDATE` e `DELETE`.
+- O inventário das policies encontradas nas migrations está em [RLS do sistema](./specs/rls-do-sistema.md); ele não confirma sozinho o estado aplicado no Supabase remoto.
 - Conceder apenas os privilégios SQL necessários; grant não substitui policy.
 - Funções `SECURITY DEFINER` exigem revisão de `search_path`, permissões de execução e validação de papel/empresa.
 - Políticas devem ser testadas com papéis autorizados e não autorizados, incluindo usuário de outra empresa.
