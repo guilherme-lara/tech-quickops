@@ -751,6 +751,20 @@ export type Database = {
             referencedRelation: "tecnicos"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "pagamentos_tecnicos_tecnico_id_fkey"
+            columns: ["tecnico_id"]
+            isOneToOne: false
+            referencedRelation: "view_ranking_tecnicos_mensal"
+            referencedColumns: ["tecnico_id"]
+          },
+          {
+            foreignKeyName: "pagamentos_tecnicos_tecnico_id_fkey"
+            columns: ["tecnico_id"]
+            isOneToOne: false
+            referencedRelation: "vw_produtividade_tecnico"
+            referencedColumns: ["tecnico_id"]
+          },
         ]
       }
       perfis: {
